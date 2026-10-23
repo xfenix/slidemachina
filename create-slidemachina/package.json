@@ -1,0 +1,18 @@
+{
+  "name": "create-slidemachina",
+  "version": "0.1.0",
+  "description": "Creates a slidemachina presentation: npm create slidemachina",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create-slidemachina": "./create-project.js"
+  },
+  "files": [
+    "create-project.js",
+    "template",
+    "theme"
+  ],
+  "dependencies": {
+    "@clack/prompts": "^1.8.1"
+  }
+}

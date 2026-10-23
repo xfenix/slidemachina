@@ -1,0 +1,177 @@
+/* Engine styles sit between Tailwind's base and utilities: utilities on slides win, the preflight reset does not. */
+@layer theme, base, slidemachina, components, utilities;
+
+@layer slidemachina {
+  html,
+  body {
+    margin: 0;
+    overflow: hidden;
+  }
+
+  [data-presentation] {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--letterbox-background);
+    font-family: var(--font-text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  [data-canvas] {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: calc(var(--canvas-width) * 1px);
+    height: 1080px;
+    translate: -50% -50%;
+    scale: var(--canvas-scale);
+    overflow: hidden;
+  }
+
+  [data-slide] {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: var(--slide-background) center / cover no-repeat;
+    color: var(--text-color);
+    font-size: var(--text-size);
+    line-height: 1.35;
+    isolation: isolate;
+  }
+
+  [data-canvas] > [data-slide]:not([data-current]) {
+    visibility: hidden;
+  }
+
+  /* The cover on the list is a still copy of the first slide: no step caught halfway through its animation. */
+  [data-cover-preview] [data-canvas] > [data-slide] {
+    visibility: visible;
+  }
+
+  /* A frame on the list is 16:9 only up to a pixel: a hair of overscale hides the letterbox line at its edge. */
+  [data-cover-preview] [data-canvas] {
+    scale: calc(var(--canvas-scale) * 1.01);
+  }
+
+  [data-cover-preview] * {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  [data-slide][data-tone="dark"] {
+    --text-color: var(--text-color-on-dark);
+    --muted-color: var(--muted-color-on-dark);
+    --hairline-color: var(--hairline-color-on-dark);
+    --code-background: var(--code-background-on-dark);
+    --diagram-box-background: var(--diagram-box-background-on-dark);
+    --diagram-box-border-color: var(--diagram-box-border-color-on-dark);
+    --diagram-box-shadow: var(--diagram-box-shadow-on-dark);
+    --diagram-group-background: var(--diagram-group-background-on-dark);
+    --diagram-group-border-color: var(--diagram-group-border-color-on-dark);
+    --diagram-line-color: var(--diagram-line-color-on-dark);
+    --diagram-lifeline-color: var(--diagram-lifeline-color-on-dark);
+    --scene-shadow-opacity: var(--scene-shadow-opacity-on-dark);
+  }
+
+  [data-logo] {
+    position: absolute;
+    top: var(--frame-top);
+    right: var(--frame-padding);
+    height: var(--logo-height);
+  }
+
+  [data-slide][data-tone="dark"] [data-logo="light"] {
+    filter: var(--logo-filter-on-dark);
+  }
+
+  [data-content] {
+    position: absolute;
+    inset: var(--content-top) var(--frame-padding) var(--content-bottom);
+    max-width: var(--content-max-width);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  [data-slide][data-align="center"] [data-content] {
+    inset-inline: var(--frame-padding);
+    margin-inline: auto;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  [data-breadcrumbs],
+  [data-slide-number] {
+    position: absolute;
+    bottom: var(--frame-padding);
+    color: var(--muted-color);
+    text-box: trim-both cap alphabetic;
+    font-size: var(--frame-text-size);
+  }
+
+  [data-breadcrumbs] {
+    left: var(--frame-padding);
+  }
+
+  [data-slide-number] {
+    right: var(--frame-padding);
+    font-variant-numeric: tabular-nums;
+  }
+
+  [data-breadcrumbs] > span + span::before,
+  [data-navigator-heading] > span + span::before {
+    content: var(--breadcrumbs-separator);
+    padding-inline: 0.5em;
+  }
+
+  [data-step] {
+    transition-property: opacity, translate, scale, color, visibility;
+    transition-duration: var(--step-duration);
+    transition-timing-function: var(--step-easing);
+  }
+
+  span[data-step] {
+    display: inline-block;
+  }
+
+  :is([data-step-effect="fade"], [data-step-effect="rise"], [data-step-effect="scale"]):not([data-step-reached]) {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  [data-step-effect="rise"]:not([data-step-reached]) {
+    translate: 0 var(--step-rise-distance);
+  }
+
+  [data-step-effect="scale"]:not([data-step-reached]) {
+    scale: 0.85;
+  }
+
+  [data-step-effect="highlight"][data-step-reached] {
+    color: var(--accent-color);
+  }
+
+  [data-step-effect="dim"][data-step-reached] {
+    opacity: var(--dim-opacity);
+  }
+
+  [data-typed-slide-number] {
+    position: absolute;
+    right: var(--frame-padding);
+    bottom: calc(var(--frame-padding) * 2 + var(--frame-text-size));
+    padding: 8px 20px;
+    border-radius: 12px;
+    background: var(--accent-color);
+    color: #fff;
+    font-size: calc(var(--frame-text-size) * 1.5);
+    font-variant-numeric: tabular-nums;
+  }
+
+  [data-blackout] {
+    position: fixed;
+    inset: 0;
+    background: #000;
+  }
+}

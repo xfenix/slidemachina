@@ -1,0 +1,12 @@
+# Зависимости и сборки
+node_modules/
+dist/
+.vite/
+
+# Логи и секреты: пароль презентации — в SLIDEMACHINA_PASSWORD
+*.log
+.env
+.env.*
+
+# Система
+.DS_Store

@@ -1,0 +1,68 @@
+/* Every page is a 16:9 slide on the 1080 grid, edge to edge. */
+@page {
+  size: 1920px 1080px;
+  margin: 0;
+}
+
+@layer slidemachina {
+  /* On screen the printed pages are laid out but clipped away: diagrams measure their text and find a ready layout. */
+  [data-print-pages] {
+    --canvas-width: 1920;
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  [data-print-pages] * {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  [data-print-page] {
+    position: relative;
+    width: calc(var(--canvas-width) * 1px);
+    height: 1080px;
+    overflow: hidden;
+  }
+
+  @media print {
+    :root {
+      print-color-adjust: exact;
+    }
+
+    html,
+    body {
+      overflow: visible;
+      height: auto;
+      background: none;
+    }
+
+    /* Agentation and other overlays live next to the presentation root. */
+    body > :not(#slidemachina),
+    [data-presentation] > :not([data-print-pages]) {
+      display: none !important;
+    }
+
+    [data-presentation] {
+      position: static;
+      overflow: visible;
+      background: none;
+    }
+
+    [data-print-pages] {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+    }
+
+    [data-print-page] {
+      break-after: page;
+    }
+
+    [data-print-page]:last-child {
+      break-after: auto;
+    }
+  }
+}

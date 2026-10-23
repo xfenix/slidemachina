@@ -1,0 +1,127 @@
+@layer slidemachina {
+  [data-slide] [data-sequence] {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--actor-count), minmax(0, 1fr));
+    row-gap: var(--sequence-row-gap);
+    width: min(100%, var(--actor-count) * var(--sequence-column-width));
+    margin: 0 0 var(--block-gap);
+    padding-bottom: var(--sequence-row-gap);
+    /* Lifelines run long and are cut at the bottom of the figure; shadows on the sides stay. */
+    clip-path: inset(-1080px -4000px 0 -4000px);
+  }
+
+  /* On a left-aligned slide the first actor box, not its column, starts on the content edge. */
+  [data-slide][data-align="left"] [data-sequence] {
+    margin-left: calc((var(--diagram-box-min-width) - var(--sequence-column-width)) / 2);
+  }
+
+  [data-slide][data-align="center"] [data-sequence] {
+    margin-inline: auto;
+  }
+
+  [data-slide] [data-actor] > [data-box] {
+    min-width: var(--diagram-box-min-width);
+  }
+
+  [data-slide] [data-actor] {
+    grid-row: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: calc(var(--sequence-row-gap) * 0.25);
+    transition-property: opacity, translate, scale, visibility;
+    transition-duration: var(--step-duration);
+    transition-timing-function: var(--step-easing);
+  }
+
+  [data-slide] [data-actor] > [data-box] {
+    position: relative;
+    z-index: 1;
+  }
+
+  [data-slide] [data-lifeline] {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    height: 2000px;
+    border-left: 2px dashed var(--diagram-lifeline-color);
+    translate: -1px 0;
+  }
+
+  /* A message runs from lifeline to lifeline: half a column in from each edge of the columns it spans. */
+  [data-slide] [data-message] {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-inline: calc(100% / var(--message-span) / 2);
+    transition-property: opacity, translate, scale, visibility;
+    transition-duration: var(--step-duration);
+    transition-timing-function: var(--step-easing);
+  }
+
+  [data-slide] [data-message="self"] {
+    flex-direction: row;
+    gap: 20px;
+    margin-inline: 50% 0;
+  }
+
+  [data-slide] [data-message="self"] [data-message-label] {
+    order: 1;
+  }
+
+  [data-slide] [data-message-label] {
+    color: var(--text-color);
+    font-size: var(--diagram-label-size);
+    line-height: 1.2;
+    white-space: nowrap;
+    text-box: trim-both cap alphabetic;
+  }
+
+  [data-slide] [data-message-line] {
+    position: relative;
+    align-self: stretch;
+    height: 13px;
+  }
+
+  [data-slide] [data-message="left"] [data-message-line] {
+    scale: -1 1;
+  }
+
+  [data-slide] [data-message-line]:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 10px;
+    top: 50%;
+    border-top: 2px solid var(--diagram-line-color);
+    translate: 0 -1px;
+    transform-origin: 0 50%;
+    transition:
+      scale calc(var(--step-duration) * 1.4) var(--step-easing),
+      border-color var(--step-duration);
+  }
+
+  [data-slide] [data-reply] [data-message-line]:before {
+    border-top-style: dashed;
+  }
+
+  [data-slide] [data-message-head] {
+    position: absolute;
+    right: 0;
+    top: 0;
+    overflow: visible;
+  }
+
+  [data-slide] [data-message-loop] {
+    flex: none;
+    overflow: visible;
+  }
+
+  [data-slide] [data-message][data-step]:not([data-step-reached]) [data-message-line]:before {
+    scale: 0 1;
+  }
+}

@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Тема — это CSS-переменные. Здесь главные, со значениями по умолчанию.
+   Чтобы поменять, снимите со строки комментарий и впишите своё значение. */
+:root {
+  /* --accent-color: #4c5ee8; */
+  /* --slide-background: #ffffff; */
+  /* --section-background: #1c2030; */
+  /* --dark-background: #14161d; */
+  /* --transition-stage-background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--dark-background), #fff 10%), color-mix(in srgb, var(--dark-background), #000 45%) 75%); */
+  /* --font-text: "Onest Variable", system-ui, sans-serif; */
+  /* --font-heading: var(--font-text); */
+  /* --text-size: 40px; */
+  /* --heading-size: 72px; */
+}

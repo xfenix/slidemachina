@@ -1,0 +1,30 @@
+# Зависимости
+node_modules/
+
+# Сборки презентаций: slidemachina build кладёт их в dist/ рядом с index.tsx
+dist/
+*.tgz
+
+# Кэш Vite, в том числе в папке без своего package.json
+.vite/
+
+# Результаты тестов Playwright
+test-results/
+playwright-report/
+blob-report/
+.playwright-mcp/
+
+# Логи
+*.log
+npm-debug.log*
+
+# Локальные настройки и секреты: пароль презентаций — в SLIDEMACHINA_PASSWORD
+.env
+.env.*
+.npmrc
+
+# Редакторы и система
+.DS_Store
+.idea/
+.vscode/
+*.swp

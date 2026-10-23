@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101530"/>
+      <stop offset="0.6" stop-color="#3a2a5c"/>
+      <stop offset="1" stop-color="#d9735a"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.72" cy="0.78" r="0.25">
+      <stop offset="0" stop-color="#ffd38a" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffd38a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <rect width="1920" height="1080" fill="url(#sun)"/>
+  <path d="M0 900 L320 760 L560 860 L860 700 L1180 850 L1460 740 L1920 880 L1920 1080 L0 1080 Z" fill="#141022"/>
+</svg>
