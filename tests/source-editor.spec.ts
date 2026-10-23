@@ -2,11 +2,9 @@ import { spawn } from "node:child_process";
 import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
-import { currentSlide, waitForServer } from "./test-helpers.ts";
+import { commandLineScript, currentSlide, demoFolderName, examplesFolder, skipsGeneratedFiles, waitForServer, workspaceFolder } from "./test-helpers.ts";
 
-const repositoryFolder = fileURLToPath(new URL("..", import.meta.url));
 const editorServerPort = 5198;
 const editorServerAddress = `http://localhost:${editorServerPort}`;
 const playgroundSlideNumber = 46;
@@ -26,11 +24,12 @@ async function sendEdit(editBody: object, requestHeaders: Record<string, string>
 // The editor writes to disk: a copy of the demo outside the repository, opened through a link as macOS opens /tmp.
 test("редактор правит текст, двигает блок схемы и меняет картинку прямо в файле", async ({ page }) => {
   const scratchFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-editor-"));
-  const copyFolder = path.join(scratchFolder, "talk");
+  const examplesCopyFolder = path.join(scratchFolder, "examples");
+  const copyFolder = path.join(examplesCopyFolder, demoFolderName);
   const linkedFolder = path.join(scratchFolder, "linked-talk");
   const copiedPresentation = path.join(copyFolder, "index.tsx");
   const readPresentation = () => readFile(copiedPresentation, "utf8");
-  await cp(path.join(repositoryFolder, "demo-presentation"), copyFolder, { recursive: true });
+  await cp(examplesFolder, examplesCopyFolder, { recursive: true, filter: skipsGeneratedFiles });
   await symlink(copyFolder, linkedFolder);
   // Typograf took "= for a quote it cannot open and closed it: align="center».
   await writeFile(
@@ -45,8 +44,8 @@ test("редактор правит текст, двигает блок схем
   await writeFile(dependencyFile, refusedSource);
   await writeFile(outsideFile, refusedSource);
   await symlink(outsideFile, path.join(copyFolder, "outside-link.tsx"));
-  const developmentServer = spawn(process.execPath, ["bin/slidemachina.js", "dev", linkedFolder, "--port", String(editorServerPort)], {
-    cwd: repositoryFolder,
+  const developmentServer = spawn(process.execPath, [commandLineScript, "dev", linkedFolder, "--port", String(editorServerPort)], {
+    cwd: workspaceFolder,
     stdio: "ignore",
   });
   try {

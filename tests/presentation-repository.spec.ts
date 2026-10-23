@@ -2,17 +2,16 @@ import { execFile, spawn } from "node:child_process";
 import { access, cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { expect, test, type Page } from "@playwright/test";
-import { waitForServer } from "./test-helpers.ts";
+import { commandLineScript, examplesFolder, projectCreatorScript, skipsGeneratedFiles, waitForServer, workspaceFolder } from "./test-helpers.ts";
 
 const runCommand = promisify(execFile);
-const repositoryFolder = fileURLToPath(new URL("..", import.meta.url));
 const repositoryServerPort = 5197;
 const repositoryServerAddress = `http://localhost:${repositoryServerPort}`;
 // Newest first, by <Presentation date>.
-const presentationTitles = ["Итоги квартала", "Python 3.15: что нового"];
+const presentationTitles = ["slidemachina", "Итоги квартала", "Python 3.15: что нового"];
 // The ELK worker itself and three.js: a cover of a first slide without a diagram or a scene needs neither.
 const heavyRequestPattern = /elk-worker\.min\.js(?!\?url)|\/three\/|scene-view/;
 
@@ -24,15 +23,16 @@ function readThemeVariable(page: Page, variableName: string) {
   );
 }
 
-// Engine defaults, the shared theme/style.css, then the presentation's own style.css: each later one wins.
+// Engine defaults, the shared theme/style.css, then the presentation's own style.css with the brand it imports: each later one wins.
 async function expectThemeCascade(page: Page, ownSectionBackground: string) {
   expect(await readThemeVariable(page, "--frame-padding"), "переменная движка").toBe("64px");
-  expect(await readThemeVariable(page, "--slide-background"), "общая тема").toBe("#f6f3e9");
-  expect(await readThemeVariable(page, "--section-background"), "своя тема сильнее общей").toBe(ownSectionBackground);
+  expect(await readThemeVariable(page, "--list-accent-color"), "общая тема").toBe("#fee600");
+  expect(await readThemeVariable(page, "--slide-background"), "бренд из своей темы").toBe("#f6f3e9");
+  expect(await readThemeVariable(page, "--section-background"), "своя тема сильнее бренда").toBe(ownSectionBackground);
 }
 
 async function runFailingCommand(commandArguments: string[]) {
-  const commandFailure = await runCommand(process.execPath, ["bin/slidemachina.js", ...commandArguments]).then(
+  const commandFailure = await runCommand(process.execPath, [commandLineScript, ...commandArguments]).then(
     () => undefined,
     (commandError: { code: number; stdout: string; stderr: string }) => commandError,
   );
@@ -43,13 +43,13 @@ async function runFailingCommand(commandArguments: string[]) {
 // Works on a copy outside the repository, without node_modules, opened through a link as macOS opens /tmp.
 test("репозиторий презентаций: список с обложками, общая тема, правка темы на лету, сборка всех", async ({ page }) => {
   const scratchFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-repository-"));
-  const copyFolder = path.join(scratchFolder, "talks");
-  const linkedFolder = path.join(scratchFolder, "linked-talks");
+  const copyFolder = path.join(scratchFolder, "examples");
+  const linkedFolder = path.join(scratchFolder, "linked-examples");
   const outputFolder = path.join(scratchFolder, "dist");
-  await cp(path.join(repositoryFolder, "examples", "talks"), copyFolder, { recursive: true, filter: (copiedPath) => !copiedPath.includes("node_modules") });
+  await cp(examplesFolder, copyFolder, { recursive: true, filter: skipsGeneratedFiles });
   await symlink(copyFolder, linkedFolder);
-  const developmentServer = spawn(process.execPath, ["bin/slidemachina.js", "dev", linkedFolder, "--port", String(repositoryServerPort)], {
-    cwd: repositoryFolder,
+  const developmentServer = spawn(process.execPath, [commandLineScript, "dev", linkedFolder, "--port", String(repositoryServerPort)], {
+    cwd: workspaceFolder,
     stdio: "ignore",
   });
   const requestedAddresses: string[] = [];
@@ -62,20 +62,20 @@ test("репозиторий презентаций: список с облож�
       await page.goto(repositoryServerAddress);
       await expect(page.locator("h1")).toHaveText("Презентации");
       await expect(page.locator("[data-list-title]")).toHaveText(presentationTitles);
-      await expect(page.locator("[data-list-meta] time").first()).toHaveText("16 октября 2026");
+      await expect(page.locator("[data-list-meta] time").first()).toHaveText("23 октября 2026");
       for (const [cardIndex, presentationTitle] of presentationTitles.entries()) {
         const coverFrame = page.frameLocator("[data-list-cover] iframe").nth(cardIndex);
         await expect(coverFrame.locator("[data-cover-preview] [data-slide] h1")).toHaveText(presentationTitle.split(":")[0]);
       }
       await expect(page.frameLocator("[data-list-cover] iframe").first().locator("[data-toolbar]")).toHaveCount(0);
       expect(requestedAddresses.filter((requestedAddress) => heavyRequestPattern.test(requestedAddress))).toEqual([]);
-      // Two presentations share the width of the page instead of huddling in the left corner.
+      // The cards share the width of the page instead of huddling in the left corner.
       const cardWidths = await page.locator("[data-list-card]").evaluateAll((cardElements) => cardElements.map((cardElement) => cardElement.getBoundingClientRect().width));
-      expect(cardWidths[0] * 2, "карточки занимают ширину страницы").toBeGreaterThan(1440 * 0.8);
+      expect(cardWidths[0] * cardWidths.length, "карточки занимают ширину страницы").toBeGreaterThan(1440 * 0.8);
     });
 
     await test.step("клик по карточке открывает презентацию, тема: движок → общая → своя", async () => {
-      await page.locator("[data-list-link]").nth(1).click();
+      await page.locator("[data-list-link]").nth(2).click();
       await expect(page).toHaveURL(/\/python-news\/#1$/);
       await expect(page.locator("[data-canvas] > [data-current] h1")).toHaveText("Python 3.15");
       await expect(page.locator("[data-toolbar]")).toBeVisible();
@@ -83,14 +83,14 @@ test("репозиторий презентаций: список с облож�
       await page.getByRole("link", { name: "Все презентации" }).click();
       await expect(page.locator("[data-list-title]")).toHaveText(presentationTitles);
       await page.goto(`${repositoryServerAddress}/team-sync/`);
-      expect(await readThemeVariable(page, "--section-background"), "без своей темы раздел из общей").toBe("#fee600");
+      expect(await readThemeVariable(page, "--section-background"), "раздел из бренда, своего цвета нет").toBe("#fee600");
     });
 
     await test.step("правка общей темы видна в открытой презентации без перезагрузки", async () => {
       const themeFile = path.join(copyFolder, "theme", "style.css");
       const themeBefore = await readFile(themeFile, "utf8");
-      await writeFile(themeFile, themeBefore.replace("--slide-background: #f6f3e9;", "--slide-background: #ffffff;"));
-      await expect.poll(() => readThemeVariable(page, "--slide-background")).toBe("#ffffff");
+      await writeFile(themeFile, themeBefore.replace("--list-accent-color: #fee600;", "--list-accent-color: #00ff00;"));
+      await expect.poll(() => readThemeVariable(page, "--list-accent-color")).toBe("#00ff00");
       expect(await page.evaluate(() => performance.getEntriesByType("navigation").length)).toBe(1);
       await writeFile(themeFile, themeBefore);
     });
@@ -118,17 +118,17 @@ test("репозиторий презентаций: список с облож�
     });
 
     await test.step("сборка всех: список, обложки, PDF рядом, презентация открывается с диска", async () => {
-      await runCommand(process.execPath, ["bin/slidemachina.js", "build", linkedFolder, "--html", "--pdf", "--out", outputFolder]);
+      await runCommand(process.execPath, [commandLineScript, "build", linkedFolder, "--html", "--pdf", "--out", outputFolder]);
       await page.goto(pathToFileURL(path.join(outputFolder, "index.html")).href);
       await expect(page.locator("[data-list-title]")).toHaveText(presentationTitles);
       const coverPictures = page.locator("[data-list-cover] img");
-      await expect(coverPictures).toHaveCount(2);
+      await expect(coverPictures).toHaveCount(presentationTitles.length);
       for (const coverPicture of await coverPictures.all()) {
         await expect.poll(() => coverPicture.evaluate((pictureElement: HTMLImageElement) => pictureElement.naturalWidth)).toBe(960);
       }
-      await expect(page.locator("[data-list-downloads] a")).toHaveText(["PDF", "PDF"]);
+      await expect(page.locator("[data-list-downloads] a")).toHaveText(presentationTitles.map(() => "PDF"));
       expect((await readFile(path.join(outputFolder, "team-sync", "team-sync.pdf"))).subarray(0, 4).toString()).toBe("%PDF");
-      await page.locator("[data-list-link]").nth(1).click();
+      await page.locator("[data-list-link]").nth(2).click();
       await expect(page).toHaveURL(/python-news\/index\.html#1$/);
       await expect(page.locator("[data-canvas] > [data-current] h1")).toHaveText("Python 3.15");
       await expectThemeCascade(page, "#3c91cd");
@@ -139,7 +139,7 @@ test("репозиторий презентаций: список с облож�
     await test.step("npm create slidemachina: презентация с README и главными переменными темы", async () => {
       const createdFolder = path.join(scratchFolder, "created");
       await mkdir(createdFolder);
-      await runCommand(process.execPath, [path.join(repositoryFolder, "create-slidemachina", "create-project.js"), "my-talk"], { cwd: createdFolder });
+      await runCommand(process.execPath, [projectCreatorScript, "my-talk"], { cwd: createdFolder });
       const projectReadme = await readFile(path.join(createdFolder, "my-talk", "README.md"), "utf8");
       for (const readmePart of ["npm run dev", "--pdf", "<Diagram>", "Esc", "--accent-color"]) expect(projectReadme).toContain(readmePart);
       const projectStyle = await readFile(path.join(createdFolder, "my-talk", "style.css"), "utf8");

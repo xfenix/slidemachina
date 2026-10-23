@@ -7,6 +7,7 @@ import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { expect, test, type Page } from "@playwright/test";
 import { sampleSceneCanvas } from "./scene-sampling.ts";
+import { commandLineScript, demoFolderName, examplesFolder } from "./test-helpers.ts";
 
 const runCommand = promisify(execFile);
 // Marks, the edit endpoint and the editor's own attributes: none of them may reach a build.
@@ -45,7 +46,7 @@ function countPrintedPages(page: Page) {
 test("сборка: один HTML-файл листается без сервера, папка держит ELK и three.js отдельно, PDF по шагам", async ({ page }) => {
   const outputFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-build-"));
   try {
-    await runCommand(process.execPath, ["bin/slidemachina.js", "build", "demo-presentation", "--html", "--folder", "--steps", "--out", outputFolder]);
+    await runCommand(process.execPath, [commandLineScript, "build", path.join(examplesFolder, demoFolderName), "--html", "--folder", "--steps", "--out", outputFolder]);
     const singleFile = path.join(outputFolder, "demo-presentation.html");
     const assetFolder = path.join(outputFolder, "demo-presentation", "assets");
 
