@@ -1,0 +1,72 @@
+@layer slidemachina {
+  [data-slide] [data-media] {
+    display: block;
+    min-height: 0;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0 0 var(--block-gap);
+    border-radius: var(--block-radius);
+    box-shadow:
+      0 0 0 1px var(--hairline-color),
+      var(--media-shadow);
+  }
+
+  /* The frame takes the free space; the picture inside keeps its proportions, so corners and shadow hug it. */
+  [data-slide] [data-media-frame="stretch"] {
+    flex: 1 1 0;
+    align-self: stretch;
+    min-height: 0;
+    margin: 0 0 var(--block-gap);
+    display: grid;
+    place-items: start center;
+    container-type: size;
+  }
+
+  [data-slide][data-align="center"] [data-media-frame="stretch"] {
+    place-items: center;
+  }
+
+  [data-slide] [data-media-frame] > [data-media] {
+    max-width: none;
+    max-height: none;
+    margin: 0;
+  }
+
+  [data-slide] [data-media-frame="stretch"][data-media-fit="contain"] > [data-media] {
+    width: min(100cqw, 100cqh * var(--media-ratio, 1.7778));
+    height: auto;
+    aspect-ratio: var(--media-ratio, 16 / 9);
+  }
+
+  [data-slide] [data-media-frame="stretch"][data-media-fit="cover"] > [data-media] {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The frame steps out of the content area to the slide edges and stays under the text and the frame of the slide. */
+  [data-slide] [data-media-frame="full"] {
+    position: absolute;
+    top: calc(var(--content-top) * -1);
+    left: calc(var(--frame-padding) * -1);
+    z-index: -1;
+    width: calc(var(--canvas-width) * 1px);
+    height: 1080px;
+  }
+
+  [data-slide][data-align="center"] [data-media-frame="full"] {
+    left: calc((100% - var(--canvas-width) * 1px) / 2);
+  }
+
+  [data-slide] [data-media-frame="full"] > [data-media] {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  [data-slide] [data-media-frame="full"][data-media-fit="contain"] > [data-media] {
+    object-fit: contain;
+  }
+}

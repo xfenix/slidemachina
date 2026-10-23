@@ -1,0 +1,41 @@
+@layer slidemachina {
+  [data-slide] [data-quote] {
+    max-width: 1600px;
+    margin: 0 0 var(--block-gap);
+  }
+
+  /* The opening mark hangs outside the text, so the letters stay on the grid line. */
+  [data-slide] [data-quote] blockquote {
+    position: relative;
+    margin: 0;
+    font-size: var(--quote-size);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    quotes: auto;
+  }
+
+  [data-slide] [data-quote] blockquote:before {
+    content: open-quote;
+    position: absolute;
+    translate: -100% 0;
+    color: var(--accent-color);
+  }
+
+  [data-slide] [data-quote] blockquote:after {
+    content: close-quote;
+    color: var(--accent-color);
+  }
+
+  [data-slide] [data-quote] figcaption {
+    margin-top: 1.2em;
+    color: var(--muted-color);
+    font-size: var(--quote-author-size);
+    text-box: trim-both cap alphabetic;
+  }
+
+  [data-slide] [data-quote] figcaption:before {
+    content: "\2014\00A0";
+  }
+}

@@ -1,0 +1,84 @@
+import { useRef, type CSSProperties, type ReactNode } from "react";
+import { isBackgroundColor, useBackgroundTone, type SlideTone } from "./background-tone.ts";
+import { useSlideEnvironment, type PresentationLogo, type SlideAlign } from "./slide-environment.ts";
+import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
+import { useStepVisibility } from "../slide-steps/step-visibility.ts";
+
+export type SlideProperties = {
+  children?: ReactNode;
+  align?: SlideAlign;
+  cover?: boolean;
+  background?: string;
+  tone?: SlideTone;
+  transition?: SlideTransition;
+  plain?: boolean;
+  logo?: boolean;
+  breadcrumbs?: boolean | string;
+  number?: boolean;
+  className?: string;
+};
+
+export function Slide({
+  children,
+  align,
+  cover = false,
+  background,
+  tone,
+  transition,
+  plain = false,
+  logo = true,
+  breadcrumbs = true,
+  number = true,
+  className,
+}: SlideProperties) {
+  const slideEnvironment = useSlideEnvironment();
+  const { presentationSettings } = slideEnvironment;
+  const slideElementReference = useRef<HTMLElement>(null);
+  const detectedTone = useBackgroundTone(slideElementReference, background, className);
+  useStepVisibility(slideElementReference, slideEnvironment.revealedStep, slideEnvironment.reportStepCount);
+
+  const slideTone = tone ?? detectedTone;
+  const breadcrumbTrail = typeof breadcrumbs === "string" ? [breadcrumbs] : slideEnvironment.sectionTrail;
+  const presentationLogo = presentationSettings.logo;
+  const showsLogo = !plain && logo && presentationLogo !== undefined;
+  const showsBreadcrumbs = !plain && !cover && breadcrumbs !== false && breadcrumbTrail.length > 0;
+  const showsNumber = !plain && !cover && number;
+
+  return (
+    <section
+      ref={slideElementReference}
+      className={className}
+      data-slide
+      data-align={align ?? (cover ? "center" : presentationSettings.align)}
+      data-tone={slideTone}
+      data-cover={cover || undefined}
+      data-transition={transition ?? presentationSettings.transition}
+      data-current={slideEnvironment.isCurrentSlide || undefined}
+      inert={!slideEnvironment.isCurrentSlide}
+      style={createBackgroundStyle(background)}
+    >
+      {showsLogo && <SlideLogo presentationLogo={presentationLogo} slideTone={slideTone} />}
+      <div data-content>{children}</div>
+      {showsBreadcrumbs && (
+        <nav data-breadcrumbs>
+          {breadcrumbTrail.map((sectionTitle, trailPosition) => (
+            <span key={trailPosition}>{sectionTitle}</span>
+          ))}
+        </nav>
+      )}
+      {showsNumber && <span data-slide-number>{slideEnvironment.slideNumber}</span>}
+    </section>
+  );
+}
+
+function SlideLogo({ presentationLogo, slideTone }: { presentationLogo: PresentationLogo; slideTone: SlideTone }) {
+  const logoVersions = typeof presentationLogo === "string" ? { light: presentationLogo } : presentationLogo;
+  const darkLogo = slideTone === "dark" ? logoVersions.dark : undefined;
+  return <img data-logo={darkLogo === undefined ? "light" : "dark"} src={darkLogo ?? logoVersions.light} alt="" />;
+}
+
+function createBackgroundStyle(backgroundValue: string | undefined): CSSProperties | undefined {
+  if (backgroundValue === undefined) return undefined;
+  if (isBackgroundColor(backgroundValue)) return { backgroundColor: backgroundValue };
+  return { backgroundImage: `url("${backgroundValue}")` };
+}

@@ -1,4 +1,17 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { Page } from "@playwright/test";
+
+export const workspaceFolder = fileURLToPath(new URL("..", import.meta.url));
+export const commandLineScript = path.join(workspaceFolder, "packages", "slidemachina", "node-tooling", "command-line", "slidemachina.js");
+export const projectCreatorScript = path.join(workspaceFolder, "packages", "create-slidemachina", "create-project.js");
+export const examplesFolder = path.join(workspaceFolder, "examples");
+export const demoFolderName = "demo-presentation";
+
+// A copy of examples/ keeps the shared theme: the demo takes Tailwind from examples/theme/style.css.
+export function skipsGeneratedFiles(copiedPath: string) {
+  return !/(^|\/)(node_modules|dist|\.vite)(\/|$)/.test(copiedPath);
+}
 
 export function currentSlide(page: Page) {
   return page.locator("[data-canvas] > [data-slide][data-current]");

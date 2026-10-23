@@ -1,0 +1,9 @@
+{
+  "name": "slidemachina-examples",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "slidemachina dev",
+    "build": "slidemachina build"
+  }
+}

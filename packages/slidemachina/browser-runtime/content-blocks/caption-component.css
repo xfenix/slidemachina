@@ -1,0 +1,16 @@
+@layer slidemachina {
+  [data-slide] [data-caption] {
+    max-width: var(--text-max-width);
+    margin: 0 0 var(--block-gap);
+    color: var(--muted-color);
+    font-size: var(--caption-size);
+    line-height: 1.4;
+    text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
+  }
+
+  /* A caption belongs to the block above it: the gap is measured from the block to the caption's capitals. */
+  [data-slide] :is([data-media], [data-media-frame], [data-code], [data-table]) + [data-caption] {
+    margin-top: calc(var(--caption-gap) - var(--block-gap));
+  }
+}

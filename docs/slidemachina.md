@@ -394,7 +394,7 @@ npx slidemachina build --html --pdf  # все презентации и спис
 | `--pdf`, `--steps` | `<папка>/<папка>.pdf`, `<папка>/<папка>-steps.pdf` |
 | всегда | `index.html` и `assets/` списка, `<папка>/cover.webp` |
 
-Пример репозитория — `examples/talks`, запуск `npm run talks`.
+Пример репозитория — сама папка `examples/`: демо и два доклада с общей темой. Запуск — `npm run examples`, одно демо — `npm run demo`.
 
 ## Тема
 
@@ -411,7 +411,7 @@ npx slidemachina build --html --pdf  # все презентации и спис
 
 Слои CSS: `theme, base, slidemachina, components, utilities`. Стили движка сильнее сброса Tailwind, но слабее его утилит. Обычный CSS из `style.css` сильнее всего.
 
-Главные переменные (все — в `src/default-theme.css`):
+Главные переменные (все — в `browser-runtime/visual-theme/default-theme.css`):
 
 | Группа | Переменные |
 |---|---|
@@ -446,76 +446,74 @@ npx slidemachina build --html --pdf  # все презентации и спис
 
 ## Архитектура
 
-Пакет `slidemachina` — CLI в `bin/` и исходники движка в `src/` на TypeScript. Сборки пакета нет: CLI запускает Vite 8, Vite компилирует движок вместе с презентацией. Шаблон проекта — отдельный пакет `create-slidemachina`.
+Репозиторий — npm workspaces:
+
+```
+packages/slidemachina/          движок — npm-пакет slidemachina
+packages/create-slidemachina/   генератор проектов: npm create slidemachina
+examples/                       репозиторий из трёх презентаций с общей темой
+  demo-presentation/            демо всех возможностей
+  python-news/, team-sync/      два доклада в фирменной теме
+  theme/                        общая тема: style.css для всех, yellow-brand.css для докладов
+tests/                          интеграционные тесты и их помощники
+workspace-checks/               проверка правил раскладки (входит в npm run check)
+```
+
+Пакет движка публикуется исходниками TypeScript, сборки нет: CLI запускает Vite 8, Vite компилирует движок вместе с презентацией.
+
+### Раскладка движка
+
+Верхний уровень — где выполняется код, внутри — возможности:
+
+```
+browser-runtime/                всё, что работает на странице
+  public-interface/             slidemachina.ts — единственный вход: компоненты, типы, атрибут morph
+  presentation-core/            <Presentation>, <Section>, <Slide>, разворот разделов, контекст слайда,
+                                масштаб холста, тон фона, подгонка по ширине, ленивая загрузка тяжёлого,
+                                обход дочерних элементов, метки «файл:строка»
+  slide-navigation/             позиция и адрес #7.2, клавиши, свайп, переход по номеру
+  slide-steps/                  <List>, <Step>, атрибуты и видимость шагов
+  slide-transitions/            переходы, имена слоёв, переход «список → слайд»
+  element-morphing/             пары для морфинга, дуги, морфинг слов и кода
+  presentation-interface/       панель управления, навигатор, меню печати, тексты интерфейса
+  content-blocks/               <Image>, <Video>, <Columns>, <Table>, <Quote>, <BigNumber>, <Caption>, <Source>
+  code-blocks/                  <Code>, строки по шагам
+  diagram-blocks/               <Diagram> с <Box>, <Arrow>, <Group>, <Focus>; <Sequence> с <Actor>, <Message>; ELK в воркере
+  scene-blocks/                 <Scene> с <Cube>, <Sphere>, <Text>, <Light>, <Camera>, <Move> на three.js
+  slide-printing/               страницы печати
+  source-editor/                редактор в браузере (только dev)
+  development-feedback/         кнопка Agentation (только dev)
+  visual-theme/                 порядок слоёв CSS, сетка, тема по умолчанию, шрифты
+node-tooling/                   всё, что работает в Node
+  command-line/                 команда slidemachina: разбор аргументов, выбор варианта сборки, тексты CLI
+  development-server/           настройки Vite, модули входа, маршруты, зависимости из установки движка
+    source-editing/             приём, проверка и точечная запись правок редактора
+  source-transforms/            проход по .tsx: Shiki, типограф, метки, настройки <Presentation>
+  presentation-build/           сборка: один файл, пароль, папка, zip, PDF, картинки, обложки
+  presentation-repository/      репозиторий презентаций и страница-список
+shared-between-runtimes/        чистый JS без зависимостей: общие константы и выбор ru/en
+```
+
+Публичный компонент лежит в файле `<имя>-component.tsx` (`table-component.tsx` — это `<Table>`), его стили — рядом, в `<имя>-component.css`. Индексных файлов в папках нет.
+
+Правила проверяет `workspace-checks/import-boundaries.js` в `npm run check`:
+- `browser-runtime` не берёт код из `node-tooling` и модули `node:*`, а `node-tooling` — модули `browser-runtime`;
+- `shared-between-runtimes` не зависит ни от остального движка, ни от пакетов;
+- `presentation-core` не зависит от блоков;
+- блоки (`content-blocks`, `code-blocks`, `diagram-blocks`, `scene-blocks`) не зависят друг от друга.
 
 ### Как всё устроено
 
-1. `bin/slidemachina.js` разбирает команду и описание сайта: одна презентация или репозиторий.
-2. Vite получает настройки из `bin/vite-configuration.js`. Страницы `index.html` на диске нет: плагин `slidemachina` отдаёт её dev-серверу и сборке.
-3. Страница грузит виртуальный модуль входа `/@slidemachina/entry.js` (в репозитории — `/@slidemachina/entry/<папка>.js`). Он подключает CSS движка списком, потом `theme/style.css`, потом `style.css`, потом `index.tsx`. Стили редактора — только в dev.
-4. Плагин `slidemachina-slide-source` проходит по каждому `.tsx` сайта до React: подсвечивает `<Code>` Shiki, типографирует текст, в dev ставит метки `data-source-location`.
-5. `mountPresentation` рендерит элемент из `index.tsx`. Горячая замена рендерит новый элемент в тот же корень, слайд и шаг остаются.
-6. `Presentation` разворачивает разделы в плоский список слайдов, рисует все слайды сразу и ведёт позицию в адресе. Неактивные скрыты через `visibility: hidden` и `inert`: так у элементов есть размеры, а шаги можно посчитать по DOM.
+1. `node-tooling/command-line/slidemachina.js` разбирает команду и описание сайта: одна презентация или репозиторий.
+2. Vite получает настройки из `node-tooling/development-server/vite-configuration.js`. Страницы `index.html` на диске нет: плагин `slidemachina` отдаёт её dev-серверу и сборке.
+3. Страница грузит виртуальный модуль входа `/@slidemachina/entry.js` (в репозитории — `/@slidemachina/entry/<папка>.js`). Он подключает CSS движка списком из `entry-modules.js`, потом `theme/style.css`, потом `style.css` презентации, потом `index.tsx`. Стили редактора — только в dev.
+4. Плагин `slidemachina-slide-source` из `source-transforms/` проходит по каждому `.tsx` сайта до React: подсвечивает `<Code>` Shiki, типографирует текст, в dev ставит метки `data-source-location`.
+5. `mountPresentation` из `presentation-core/presentation-mounting.tsx` рендерит элемент из `index.tsx`. Горячая замена рендерит новый элемент в тот же корень, слайд и шаг остаются.
+6. `<Presentation>` разворачивает разделы в плоский список слайдов, рисует все слайды сразу и ведёт позицию в адресе. Неактивные скрыты через `visibility: hidden` и `inert`: так у элементов есть размеры, а шаги можно посчитать по DOM.
 7. Шаги — атрибуты `data-step` в DOM. Слайд размечает достигнутые шаги и шлёт событие `slidemachina-steps`. Код, схемы и сцены по нему ставят подсветку, фокус и позы прямо в DOM, без перерисовки React.
 8. Переход — View Transitions API. Движок перед снимком старого слайда и внутри обновления раздаёт элементам имена слоёв, после перехода снимает.
 
-### Модули
-
-Ядро и навигация (`src/`):
-- `slidemachina.ts` — публичный API.
-- `mount-presentation.tsx` — монтирует презентацию в страницу.
-- `presentation.tsx` — холст, слайды, клавиши, навигатор, чёрный экран, печать.
-- `slide-outline.tsx`, `section-marker.tsx`, `slide-frame.tsx`, `slide-environment.ts` — разделы, слайд с рамкой, контекст слайда.
-- `slide-navigation.ts`, `position-hash.ts`, `typed-slide-number.ts` — позиция, адрес, переход по номеру.
-- `keyboard-listener.ts`, `keyboard-controls.ts`, `swipe-controls.ts` — клавиши и свайп.
-- `canvas-scaling.ts`, `background-tone.ts` — масштаб холста, тон фона.
-- `slide-navigator.tsx`, `presentation-toolbar.tsx`, `toolbar-idle.ts` — навигатор и панель.
-- `development-feedback.tsx` — кнопка Agentation.
-- `interface-texts.ts`, `text-language.js` — тексты интерфейса и выбор ru/en, общий для `src` и `bin`.
-- `engine-constants.js` — константы, общие для страницы и dev-сервера: адрес `/@slidemachina/edit` и ключ печати по шагам.
-- `heavy-part-loading.ts` — когда грузить ELK, three.js и видео.
-
-Шаги: `step-attributes.ts`, `step-visibility.ts`, `step-list.tsx`, `step-reveal.tsx`.
-
-Переходы и морфинг: `slide-transition.ts`, `transition-layers.ts` (имена слоёв), `morph-matching.ts`, `word-morphing.ts`, `code-morphing.ts`, `morph-arcs.ts`, `list-transition.ts`.
-
-Блоки: `media-blocks.tsx`, `column-layout.tsx`, `table-block.tsx`, `quote-block.tsx`, `big-number.tsx`, `caption-blocks.tsx`, `width-fitting.ts`.
-
-Код: `code-block.tsx`, `code-line-steps.ts`.
-
-Схемы: `diagram-block.tsx`, `diagram-parts.tsx`, `diagram-outline.ts`, `diagram-measuring.ts`, `diagram-columns.ts`, `diagram-graph.ts` (граф для ELK), `diagram-layout.ts` (раскладка и кэш), `elk-worker-client.ts`, `arrow-geometry.ts`, `diagram-focus.ts`, `diagram-scaling.ts`, `sequence-block.tsx`.
-
-Сцены: `scene-block.tsx`, `scene-parts.tsx`, `scene-outline.ts`, `scene-view.ts`, `scene-building.ts`, `scene-objects.ts`, `scene-text.ts`, `scene-camera.ts`, `scene-poses.ts`, `scene-motion.ts`, `scene-colors.ts`, `scene-renderer.ts`.
-
-Печать: `print-pages.tsx`, `print-menu.tsx`.
-
-Редактор: `editor-switch.tsx`, `source-editor.tsx`, `editor-outlines.ts`, `picture-replacement.ts`, `text-editing.ts`, `box-dragging.ts`, `source-edit-requests.ts`, `source-marks.ts`, `editor-texts.ts`.
-
-CSS (`src/`), подключается одним списком в `bin/entry-modules.js`:
-- `engine-layout.css` — порядок слоёв, холст, сетка, шаги, чёрный экран;
-- `slide-navigator.css`, `presentation-toolbar.css`, `print-menu.css`, `print-layout.css`;
-- `slide-transitions.css`;
-- `default-theme.css` с `font-subsets.css` — тема по умолчанию;
-- `content-blocks.css`, `code-block.css`, `diagram-blocks.css`, `sequence-blocks.css`, `scene-block.css`;
-- `source-editor.css` — только в dev;
-- `presentation-list.css` — список репозитория.
-
-CLI и dev-сервер (`bin/`):
-- `slidemachina.js`, `command-line-texts.js` — команда и тексты CLI на языке системы.
-- `vite-configuration.js` — настройки Vite для dev и сборки.
-- `engine-resolution.js` — React, three.js, Agentation и Tailwind берутся из установки движка: `slidemachina dev` работает и в папке без `node_modules`.
-- `entry-modules.js` — код модулей входа и списка, список CSS движка.
-- `page-serving.js` — страницы и маршруты dev-сервера.
-- `presentation-repository.js` — одна презентация или репозиторий, какие файлы — исходники слайдов.
-- `presentation-settings.js` — `lang`, `typography`, `title`, `date` из `<Presentation>`.
-- `slide-source-plugin.js`, `syntax-tree.js`, `code-highlighting.js`, `slide-typography.js`, `text-typography.js`, `source-marking.js` — проход по исходникам слайдов.
-- `source-edit-server.js`, `edit-request-checks.js`, `source-rewriting.js` — приём и проверка правок редактора, точечная запись в файл.
-- `feedback-server-check.js` — отвечает ли сервер Agentation.
-- `presentation-list-page.js` — HTML списка презентаций.
-
-Сборка (`bin/`): `build-command.js`, `build-choice.js`, `presentation-build.js`, `repository-build.js`, `image-compression.js`, `pdf-printing.js`, `cover-shooting.js`, `folder-archive.js`, `page-encryption.js`, `password-page.html`, `html-escaping.js`.
-
-`bin/` и `create-slidemachina/create-project.js` написаны на JavaScript с JSDoc-типами. `npm run check` проверяет их через `checkJs` вместе с TypeScript.
+Код Node написан на JavaScript с JSDoc-типами, `npm run check` проверяет его через `checkJs` вместе с TypeScript.
 
 ### Ключевые решения
 
@@ -541,9 +539,9 @@ CLI и dev-сервер (`bin/`):
 - `tests/presentation-core.spec.ts` — демо целиком: листание, шаги, навигатор, переходы, морфинг, схемы, код, сцены, панель и Agentation, правка файлов, вёрстка на 4:3.
 - `tests/presentation-build.spec.ts` — все варианты сборки, PDF, что в бандл не попали ELK, three.js, Agentation и редактор.
 - `tests/source-editor.spec.ts` — редактор на копии демо.
-- `tests/presentation-repository.spec.ts` — репозиторий на копии `examples/talks`: список, обложки, тема, сборка.
+- `tests/presentation-repository.spec.ts` — репозиторий на копии `examples/`: список из трёх презентаций, обложки, тема, сборка.
 
-Тесты поднимают свои dev-серверы на копиях во временной папке: 5199 для демо (копию делает `playwright.config.ts`), 5198 для редактора, 5197 для репозитория. Настоящие файлы демо тесты не правят. Общие помощники — `tests/test-helpers.ts` и `tests/scene-sampling.ts`. `npm run check` — `tsc --noEmit` с `noUnusedLocals` и `noUnusedParameters`.
+Тесты поднимают свои dev-серверы на копиях во временной папке: 5199 для демо (копию всей папки `examples/` делает `playwright.config.ts`), 5198 для редактора, 5197 для репозитория. Настоящие файлы демо тесты не правят. Общие помощники — `tests/test-helpers.ts` и `tests/scene-sampling.ts`. `npm run check` — `tsc --noEmit` с `noUnusedLocals` и `noUnusedParameters` и проверка правил раскладки.
 
 ## Ограничения и что осталось
 
@@ -569,7 +567,7 @@ CLI и dev-сервер (`bin/`):
 - Видео не пережимается. Картинки из `url()` в `style.css` тоже.
 - Папка сборки не открывается с диска, только с веб-сервера.
 - Шаблон `npm create slidemachina` только на русском.
-- `style.css` или `theme/style.css`, созданный при запущенном `slidemachina dev`, подключится после перезапуска. После обновления `bin/` dev-сервер тоже нужно перезапустить.
+- `style.css` или `theme/style.css`, созданный при запущенном `slidemachina dev`, подключится после перезапуска. После обновления `node-tooling/` dev-сервер тоже нужно перезапустить.
 - Изменённые `lang` и `typography` применяются к слайдам из других файлов после их следующей правки.
 - `.tsx` из `theme/` типографируется по правилам английского.
 - Удалённые презентации остаются в `dist/` до ручной очистки.
