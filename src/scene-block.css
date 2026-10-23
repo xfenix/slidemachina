@@ -1,0 +1,47 @@
+@layer slidemachina {
+  /* The scene takes the free space under the heading, like a stretched picture. */
+  [data-slide] [data-scene="block"] {
+    position: relative;
+    flex: 1 1 0;
+    align-self: stretch;
+    min-height: 0;
+    margin: 0 0 var(--block-gap);
+  }
+
+  [data-slide] :is([data-content], [data-column]) > [data-scene="block"]:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Objects at the edge of a column scene would touch the slide margin or the next column. */
+  [data-slide] [data-column] > [data-scene="block"] {
+    margin-inline: var(--block-gap);
+  }
+
+  /* Columns with a scene grow to the bottom of the content area, so the scene has room in its column. */
+  [data-slide] [data-columns]:has(> [data-column] > [data-scene="block"]) {
+    flex: 1 1 0;
+  }
+
+  /* A full scene lies under the text and the frame of the slide, from edge to edge. */
+  [data-slide] [data-scene="full"] {
+    position: absolute;
+    top: calc(var(--content-top) * -1);
+    left: calc(var(--frame-padding) * -1);
+    z-index: -1;
+    width: calc(var(--canvas-width) * 1px);
+    height: 1080px;
+    margin: 0;
+  }
+
+  [data-slide][data-align="center"] [data-scene="full"] {
+    left: calc((100% - var(--canvas-width) * 1px) / 2);
+  }
+
+  [data-scene-canvas] {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}

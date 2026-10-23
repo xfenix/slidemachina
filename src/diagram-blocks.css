@@ -1,0 +1,195 @@
+@layer slidemachina {
+  /* The figure takes the free space up to --diagram-max-scale of the diagram's own size; the stage inside scales to fit. */
+  [data-slide] [data-diagram] {
+    position: relative;
+    align-self: stretch;
+    flex: 0 1 auto;
+    min-height: 0;
+    max-width: calc(var(--diagram-width) * var(--diagram-max-scale) * 1px);
+    max-height: calc(var(--diagram-height) * var(--diagram-max-scale) * 1px);
+    aspect-ratio: var(--diagram-width) / var(--diagram-height);
+    margin: 0 0 var(--block-gap);
+  }
+
+  [data-slide][data-align="center"] [data-diagram] {
+    margin-inline: auto;
+  }
+
+  [data-slide] [data-content] > :is([data-diagram], [data-sequence]):last-child {
+    margin-bottom: 0;
+  }
+
+  [data-slide] [data-diagram-stage] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(var(--diagram-width) * 1px);
+    height: calc(var(--diagram-height) * 1px);
+    transform-origin: 0 0;
+    scale: var(--diagram-scale, 1);
+    transition: opacity 0.3s;
+  }
+
+  [data-slide][data-align="center"] [data-diagram-stage] {
+    left: 50%;
+    translate: -50% 0;
+    transform-origin: 50% 0;
+  }
+
+  [data-slide] [data-diagram]:not([data-laid-out]) > [data-diagram-stage] {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  [data-slide] [data-box] {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--diagram-box-min-width);
+    padding: 28px 32px;
+    border: 1px solid var(--diagram-box-border-color);
+    border-radius: var(--diagram-radius);
+    background: var(--diagram-box-background);
+    box-shadow: var(--diagram-box-shadow);
+    color: var(--text-color);
+    font-size: var(--diagram-text-size);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-align: center;
+    transition-property: opacity, translate, scale, visibility, border-color, box-shadow;
+    transition-duration: var(--step-duration);
+    transition-timing-function: var(--step-easing);
+  }
+
+  /* Padding is measured to the letters, like the frame of the slide. */
+  [data-slide] [data-box-label] {
+    display: block;
+    width: max-content;
+    max-width: var(--diagram-label-width);
+    text-box: trim-both cap alphabetic;
+    text-wrap: balance;
+  }
+
+  [data-slide] [data-box-label] small {
+    display: block;
+    margin-top: 14px;
+    color: var(--muted-color);
+    font-size: var(--diagram-title-size);
+    font-weight: 400;
+    letter-spacing: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
+  [data-slide] [data-diagram] :is([data-box], [data-group]) {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  [data-slide] [data-group-frame] {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--diagram-group-border-color);
+    border-radius: calc(var(--diagram-radius) + 8px);
+    background: var(--diagram-group-background);
+  }
+
+  [data-slide] [data-group-title] {
+    position: absolute;
+    left: var(--diagram-group-padding);
+    top: var(--diagram-group-padding);
+    color: var(--muted-color);
+    font-size: var(--diagram-title-size);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-box: trim-both cap alphabetic;
+  }
+
+  [data-slide] [data-group-frame],
+  [data-slide] [data-group-title] {
+    transition: opacity var(--step-duration) var(--step-easing);
+  }
+
+  [data-slide] [data-arrow] {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    transition-property: opacity, visibility;
+    transition-duration: var(--step-duration);
+    transition-timing-function: var(--step-easing);
+  }
+
+  [data-slide] [data-arrow] > svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    overflow: visible;
+  }
+
+  [data-slide] [data-arrow-line] {
+    fill: none;
+    stroke: var(--diagram-line-color);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    transition:
+      stroke-dashoffset calc(var(--step-duration) * 1.4) var(--step-easing),
+      stroke var(--step-duration);
+  }
+
+  [data-slide] [data-arrow-head] {
+    fill: var(--diagram-line-color);
+    stroke: var(--diagram-line-color);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    transition:
+      opacity 0.2s calc(var(--step-duration) * 0.9),
+      fill var(--step-duration),
+      stroke var(--step-duration);
+  }
+
+  /* A stepped arrow draws itself from its start, the head lands last. */
+  [data-slide] [data-step]:not([data-step-reached]) [data-arrow-line] {
+    stroke-dashoffset: 1;
+  }
+
+  [data-slide] [data-step]:not([data-step-reached]) [data-arrow-head] {
+    opacity: 0;
+    transition-delay: 0s;
+  }
+
+  [data-slide] [data-arrow-label] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: max-content;
+    color: var(--muted-color);
+    font-size: var(--diagram-label-size);
+    line-height: 1.2;
+    white-space: nowrap;
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* Focus: the rest fades back, the chosen parts get the accent. */
+  [data-slide] :is([data-box], [data-arrow], [data-message], [data-actor])[data-focus="off"],
+  [data-slide] [data-group][data-focus="off"] > :is([data-group-frame], [data-group-title]) {
+    opacity: var(--diagram-dim-opacity);
+  }
+
+  [data-slide] :is([data-box][data-focus="on"], [data-actor][data-focus="on"] > [data-box]) {
+    border-color: var(--accent-color);
+    box-shadow:
+      0 0 0 4px var(--diagram-focus-ring),
+      var(--diagram-box-shadow);
+  }
+
+  [data-slide] :is([data-arrow], [data-message])[data-focus="on"] {
+    --diagram-line-color: var(--accent-color);
+  }
+}

@@ -1,0 +1,119 @@
+/* Registered, so the fade at a clipped edge of long code eases in instead of jumping. */
+@property --code-fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --code-fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@layer slidemachina {
+  [data-slide] [data-code] {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 1;
+    box-sizing: border-box;
+    min-height: 0;
+    max-width: 100%;
+    margin: 0 0 var(--block-gap);
+    padding: 40px 48px;
+    border-radius: var(--block-radius);
+    background: var(--code-background);
+    box-shadow: inset 0 0 0 1px var(--hairline-color);
+    color: var(--text-color);
+    font-family: var(--font-code);
+    font-size: var(--code-size);
+    font-variant-ligatures: none;
+    line-height: 1.5;
+    text-align: start;
+    tab-size: 4;
+  }
+
+  [data-slide] [data-code-title] {
+    margin: 0 0 28px;
+    color: var(--muted-color);
+    font-size: calc(var(--code-size) * 0.78);
+    line-height: 1;
+    text-box: trim-both cap alphabetic;
+  }
+
+  [data-slide] [data-code-viewport] {
+    position: relative;
+    min-height: 0;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 var(--code-fade-top),
+      #000 calc(100% - var(--code-fade-bottom)),
+      transparent
+    );
+    transition:
+      --code-fade-top 0.3s,
+      --code-fade-bottom 0.3s;
+  }
+
+  [data-slide] [data-code-viewport][data-clipped-top] {
+    --code-fade-top: 2lh;
+  }
+
+  [data-slide] [data-code-viewport][data-clipped-bottom] {
+    --code-fade-bottom: 2lh;
+  }
+
+  [data-slide] [data-code] code {
+    display: block;
+    width: max-content;
+    font: inherit;
+    white-space: pre;
+  }
+
+  [data-slide] [data-code-line] {
+    display: block;
+    min-height: 1lh;
+  }
+
+  /* Even the smallest font is too wide: lines wrap, and the rest of a wrapped line is indented. */
+  [data-slide] [data-code][data-overflowing] code {
+    width: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  [data-slide] [data-code][data-overflowing] [data-code-line] {
+    padding-left: 2ch;
+    text-indent: -2ch;
+  }
+
+  /* A one-line command is read from afar: larger, without the grey box. */
+  [data-slide] [data-code][data-one-line] {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    font-size: var(--command-size);
+    font-weight: 500;
+  }
+
+  [data-slide] [data-code][data-one-line]:is([data-lang="bash"], [data-lang="sh"], [data-lang="shell"], [data-lang="zsh"]) [data-code-line]:before {
+    content: var(--command-prompt);
+    color: var(--accent-color);
+  }
+
+  /* Opacity sits on the tokens, not the line: a morph snapshot keeps the element's own opacity, not its parent's. */
+  [data-slide] [data-code-token] {
+    color: var(--token-light, inherit);
+    transition: opacity var(--step-duration) var(--step-easing);
+  }
+
+  [data-slide][data-tone="dark"] [data-code-token] {
+    color: var(--token-dark, inherit);
+  }
+
+  [data-slide] [data-code][data-has-lit-lines] [data-code-line]:not([data-lit]) > [data-code-token] {
+    opacity: var(--code-dim-opacity);
+  }
+}

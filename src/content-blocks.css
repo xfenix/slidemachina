@@ -1,0 +1,247 @@
+@layer slidemachina {
+  /* A block that ends the slide reaches the bottom edge of the content area. */
+  [data-slide] [data-content] > :is([data-code], [data-media-frame], [data-columns], [data-table], [data-quote]):last-child {
+    margin-bottom: 0;
+  }
+
+  [data-slide] [data-media] {
+    display: block;
+    min-height: 0;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0 0 var(--block-gap);
+    border-radius: var(--block-radius);
+    box-shadow:
+      0 0 0 1px var(--hairline-color),
+      var(--media-shadow);
+  }
+
+  /* The frame takes the free space; the picture inside keeps its proportions, so corners and shadow hug it. */
+  [data-slide] [data-media-frame="stretch"] {
+    flex: 1 1 0;
+    align-self: stretch;
+    min-height: 0;
+    margin: 0 0 var(--block-gap);
+    display: grid;
+    place-items: start center;
+    container-type: size;
+  }
+
+  [data-slide][data-align="center"] [data-media-frame="stretch"] {
+    place-items: center;
+  }
+
+  [data-slide] [data-media-frame] > [data-media] {
+    max-width: none;
+    max-height: none;
+    margin: 0;
+  }
+
+  [data-slide] [data-media-frame="stretch"][data-media-fit="contain"] > [data-media] {
+    width: min(100cqw, 100cqh * var(--media-ratio, 1.7778));
+    height: auto;
+    aspect-ratio: var(--media-ratio, 16 / 9);
+  }
+
+  [data-slide] [data-media-frame="stretch"][data-media-fit="cover"] > [data-media] {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The frame steps out of the content area to the slide edges and stays under the text and the frame of the slide. */
+  [data-slide] [data-media-frame="full"] {
+    position: absolute;
+    top: calc(var(--content-top) * -1);
+    left: calc(var(--frame-padding) * -1);
+    z-index: -1;
+    width: calc(var(--canvas-width) * 1px);
+    height: 1080px;
+  }
+
+  [data-slide][data-align="center"] [data-media-frame="full"] {
+    left: calc((100% - var(--canvas-width) * 1px) / 2);
+  }
+
+  [data-slide] [data-media-frame="full"] > [data-media] {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  [data-slide] [data-media-frame="full"][data-media-fit="contain"] > [data-media] {
+    object-fit: contain;
+  }
+
+  [data-slide] [data-caption] {
+    max-width: var(--text-max-width);
+    margin: 0 0 var(--block-gap);
+    color: var(--muted-color);
+    font-size: var(--caption-size);
+    line-height: 1.4;
+    text-box: trim-both cap alphabetic;
+    text-wrap: pretty;
+  }
+
+  /* A caption belongs to the block above it: the gap is measured from the block to the caption's capitals. */
+  [data-slide] :is([data-media], [data-media-frame], [data-code], [data-table]) + [data-caption] {
+    margin-top: calc(var(--caption-gap) - var(--block-gap));
+  }
+
+  /* The source line stands on the bottom edge of the content area and takes no room from the blocks above. */
+  [data-slide] [data-source] {
+    position: absolute;
+    inset: auto 0 0;
+    margin: 0;
+    color: var(--muted-color);
+    font-size: var(--source-size);
+    line-height: 1.4;
+    text-box: trim-both cap alphabetic;
+  }
+
+  [data-slide] [data-columns] {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    column-gap: var(--frame-padding);
+    align-self: stretch;
+    min-height: 0;
+    margin: 0 0 var(--block-gap);
+  }
+
+  [data-slide] [data-column] {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 0;
+  }
+
+  [data-slide][data-align="center"] [data-column] {
+    align-items: center;
+  }
+
+  /* Columns start on the same line: the cap height of text or the top edge of a picture. */
+  [data-slide] [data-column] > :first-child {
+    text-box: trim-start cap alphabetic;
+  }
+
+  [data-slide] [data-column] > :last-child {
+    margin-bottom: 0;
+  }
+
+  /* Wide blocks fill their column, so a short code sample leaves no hole before the next column. */
+  [data-slide] [data-column] > :is([data-code]:not([data-one-line]), [data-table]) {
+    align-self: stretch;
+  }
+
+  [data-slide] [data-table] {
+    align-self: stretch;
+    margin: 0 0 var(--block-gap);
+    border-collapse: collapse;
+    font-size: var(--table-text-size);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.3;
+  }
+
+  [data-slide] [data-table] :is(th, td) {
+    padding: 24px 48px 24px 0;
+    border-bottom: 1px solid var(--hairline-color);
+    text-align: start;
+    vertical-align: baseline;
+  }
+
+  [data-slide] [data-table] :is(th, td):last-child {
+    padding-right: 0;
+  }
+
+  [data-slide] [data-table] thead th {
+    padding-top: 0;
+    border-bottom-color: color-mix(in srgb, var(--text-color) 40%, transparent);
+    font-size: var(--caption-size);
+    font-weight: 600;
+  }
+
+  [data-slide] [data-table] tbody th {
+    color: var(--table-heading-color);
+    font-weight: 600;
+  }
+
+  [data-slide] [data-table] tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  [data-slide] [data-quote] {
+    max-width: 1600px;
+    margin: 0 0 var(--block-gap);
+  }
+
+  /* The opening mark hangs outside the text, so the letters stay on the grid line. */
+  [data-slide] [data-quote] blockquote {
+    position: relative;
+    margin: 0;
+    font-size: var(--quote-size);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    quotes: auto;
+  }
+
+  [data-slide] [data-quote] blockquote:before {
+    content: open-quote;
+    position: absolute;
+    translate: -100% 0;
+    color: var(--accent-color);
+  }
+
+  [data-slide] [data-quote] blockquote:after {
+    content: close-quote;
+    color: var(--accent-color);
+  }
+
+  [data-slide] [data-quote] figcaption {
+    margin-top: 1.2em;
+    color: var(--muted-color);
+    font-size: var(--quote-author-size);
+    text-box: trim-both cap alphabetic;
+  }
+
+  [data-slide] [data-quote] figcaption:before {
+    content: "\2014\00A0";
+  }
+
+  /* The figure is as wide as its column: a number wider than that gets a smaller font in big-number.tsx. */
+  [data-slide] [data-big-number] {
+    align-self: stretch;
+    margin: 0 0 var(--block-gap);
+  }
+
+  [data-slide] [data-big-number] > p {
+    margin: 0;
+    color: var(--big-number-color);
+    font-family: var(--font-heading);
+    font-size: var(--big-number-size);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    font-variant-numeric: lining-nums;
+    white-space: nowrap;
+    text-box: trim-both cap alphabetic;
+  }
+
+  [data-slide][data-align="center"] [data-big-number] > figcaption {
+    margin-inline: auto;
+  }
+
+  [data-slide] [data-big-number] > figcaption {
+    max-width: 14em;
+    margin-top: 36px;
+    color: var(--muted-color);
+    font-size: var(--caption-size);
+    line-height: 1.35;
+    text-wrap: balance;
+    text-box: trim-both cap alphabetic;
+  }
+}

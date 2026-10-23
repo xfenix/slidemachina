@@ -1,0 +1,310 @@
+@layer slidemachina {
+  :root {
+    --slide-direction-sign: 1;
+  }
+
+  :root[data-slide-direction="backward"] {
+    --slide-direction-sign: -1;
+  }
+
+  /* The toolbar is its own layer on top: moving slides pass under it instead of hiding it. */
+  [data-toolbar] {
+    view-transition-name: presentation-toolbar;
+  }
+
+  ::view-transition-group(presentation-toolbar) {
+    z-index: 2;
+  }
+
+  /* A snapshot keeps the blurred backdrop as a square under the capsule; without it the capsule stays round. */
+  :root:active-view-transition [data-toolbar] {
+    backdrop-filter: none;
+  }
+
+  /* Whole slides move over a stage instead of the black letterbox, so the cube has depth and the flipped card a shadow. */
+  :root:is([data-slide-transition="slide"], [data-slide-transition="zoom"], [data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition {
+    background: var(--transition-stage-background);
+  }
+
+  :root:is([data-slide-transition="slide"], [data-slide-transition="zoom"], [data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-group(root) {
+    visibility: hidden;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: var(--transition-duration);
+    animation-timing-function: var(--transition-easing);
+    animation-fill-mode: both;
+  }
+
+  /* A square morphing into a bar stretches with its frame instead of keeping its proportions. */
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    height: 100%;
+  }
+
+  :root[data-slide-transition="morph"]::view-transition-group(*),
+  :root[data-slide-transition="morph"]::view-transition-old(*),
+  :root[data-slide-transition="morph"]::view-transition-new(*) {
+    animation-duration: var(--morph-duration);
+  }
+
+  /* Like Keynote: what leaves is gone by the middle, moving words arrive by then, and only then new text fades in. */
+  :root[data-slide-transition="morph"]::view-transition-old(slide-content-out),
+  :root[data-slide-transition="morph"]::view-transition-old(*.leaving-word),
+  :root[data-slide-transition="morph"]::view-transition-old(*.code-text),
+  :root[data-slide-transition="morph"]::view-transition-group(*.moving-word) {
+    animation-duration: calc(var(--morph-duration) * 0.5);
+  }
+
+  :root[data-slide-transition="morph"]::view-transition-new(slide-content-in),
+  :root[data-slide-transition="morph"]::view-transition-new(*.arriving-word),
+  :root[data-slide-transition="morph"]::view-transition-new(*.code-text) {
+    animation-delay: calc(var(--morph-duration) * 0.5);
+    animation-duration: calc(var(--morph-duration) * 0.5);
+  }
+
+  /* Diagram arrows overlap in time, so the diagram is never left without them. */
+  :root[data-slide-transition="morph"]::view-transition-old(*.leaving-part) {
+    animation-delay: calc(var(--morph-duration) * 0.2);
+    animation-duration: calc(var(--morph-duration) * 0.45);
+    animation-timing-function: linear;
+  }
+
+  :root[data-slide-transition="morph"]::view-transition-new(*.arriving-part) {
+    animation-delay: calc(var(--morph-duration) * 0.3);
+    animation-duration: calc(var(--morph-duration) * 0.45);
+    animation-timing-function: linear;
+  }
+
+  /* Snapshots of two different shapes would show a double edge; the swap happens early, while they are still alike. */
+  :root[data-slide-transition="morph"]::view-transition-old(*.morph-shape),
+  :root[data-slide-transition="morph"]::view-transition-new(*.morph-shape) {
+    animation-duration: calc(var(--morph-duration) * 0.4);
+  }
+
+  /* Text scales only with its height, that is its font: a list item in a wider list keeps its letters instead of stretching or shrinking. */
+  ::view-transition-old(*.morph-text),
+  ::view-transition-new(*.morph-text) {
+    width: auto;
+  }
+
+  /* A box label keeps its own size and stays centred while the box around it moves and resizes. */
+  ::view-transition-old(*.morph-label),
+  ::view-transition-new(*.morph-label) {
+    object-fit: none;
+  }
+
+  /* Words move in their own layers; what stays, such as a list bullet or code nobody moved, keeps its size while the box grows. */
+  ::view-transition-old(*.reworded-text),
+  ::view-transition-new(*.reworded-text),
+  ::view-transition-old(*.code-text),
+  ::view-transition-new(*.code-text) {
+    width: auto;
+    height: auto;
+  }
+
+  /* Morph: the new background with its logo and number opens from the centre instead of blending through grey. */
+  :root[data-slide-transition="morph"]::view-transition-old(root) {
+    animation: none;
+  }
+
+  :root[data-slide-transition="morph"]::view-transition-new(root) {
+    animation-name: slidemachina-reveal;
+  }
+
+  :root[data-slide-transition="morph"][data-slide-direction="backward"]::view-transition-old(root) {
+    z-index: 1;
+    animation: slidemachina-reveal var(--morph-duration) var(--transition-easing) both reverse;
+  }
+
+  :root[data-slide-transition="morph"][data-slide-direction="backward"]::view-transition-new(root) {
+    animation: none;
+  }
+
+  /* Fade goes through the background: the old text is gone, the background and number switch, the new text appears. */
+  :root[data-slide-transition="fade"]::view-transition-old(slide-content-out) {
+    animation-duration: calc(var(--transition-duration) * 0.5);
+  }
+
+  :root[data-slide-transition="fade"]::view-transition-new(slide-content-in) {
+    animation-delay: calc(var(--transition-duration) * 0.5);
+    animation-duration: calc(var(--transition-duration) * 0.5);
+  }
+
+  :root[data-slide-transition="fade"]::view-transition-old(root) {
+    animation: none;
+  }
+
+  :root[data-slide-transition="fade"]::view-transition-new(root) {
+    animation-name: slidemachina-switch-halfway;
+    animation-timing-function: linear;
+  }
+
+  :root[data-slide-transition="none"]::view-transition-group(*),
+  :root[data-slide-transition="none"]::view-transition-old(*),
+  :root[data-slide-transition="none"]::view-transition-new(*) {
+    animation: none;
+  }
+
+  :root[data-slide-transition="slide"]::view-transition-old(slide-out) {
+    animation-name: slidemachina-slide-out;
+  }
+
+  :root[data-slide-transition="slide"]::view-transition-new(slide-in) {
+    animation-name: slidemachina-slide-in;
+  }
+
+  /* Zoom: the old slide flies at the viewer and is gone within the first 40%; the new one settles under it. */
+  :root[data-slide-transition="zoom"]::view-transition-group(slide-out) {
+    z-index: 1;
+  }
+
+  :root[data-slide-transition="zoom"]::view-transition-old(slide-out) {
+    animation-name: slidemachina-zoom-away;
+    animation-duration: calc(var(--transition-duration) * 0.4);
+  }
+
+  :root[data-slide-transition="zoom"]::view-transition-new(slide-in) {
+    animation-name: slidemachina-zoom-settle;
+  }
+
+  :root[data-slide-transition="zoom"][data-slide-direction="backward"]::view-transition-group(slide-out) {
+    z-index: auto;
+  }
+
+  :root[data-slide-transition="zoom"][data-slide-direction="backward"]::view-transition-old(slide-out) {
+    animation: slidemachina-zoom-settle var(--transition-duration) var(--transition-easing) both reverse;
+  }
+
+  :root[data-slide-transition="zoom"][data-slide-direction="backward"]::view-transition-new(slide-in) {
+    animation: slidemachina-zoom-away calc(var(--transition-duration) * 0.4) var(--transition-easing) calc(var(--transition-duration) * 0.6) both reverse;
+  }
+
+  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-group(*),
+  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-old(*),
+  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-new(*) {
+    animation-duration: var(--rotation-duration);
+  }
+
+  /* Cube and flip turn whole slides; the slide steps back a little so the turn fits the screen. */
+  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-old(slide-out),
+  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-new(slide-in) {
+    backface-visibility: hidden;
+    animation-timing-function: var(--transition-easing), ease-in-out;
+  }
+
+  :root[data-slide-transition="cube"]::view-transition-old(slide-out) {
+    animation-name: slidemachina-cube-out, slidemachina-step-back;
+  }
+
+  :root[data-slide-transition="cube"]::view-transition-new(slide-in) {
+    animation-name: slidemachina-cube-in, slidemachina-step-back;
+  }
+
+  :root[data-slide-transition="flip"]::view-transition-old(slide-out),
+  :root[data-slide-transition="flip"]::view-transition-new(slide-in) {
+    filter: drop-shadow(0 40px 60px rgb(0 0 0 / 0.45));
+  }
+
+  :root[data-slide-transition="flip"]::view-transition-old(slide-out) {
+    animation-name: slidemachina-flip-out, slidemachina-step-back;
+  }
+
+  :root[data-slide-transition="flip"]::view-transition-new(slide-in) {
+    animation-name: slidemachina-flip-in, slidemachina-step-back;
+  }
+}
+
+@keyframes slidemachina-reveal {
+  from {
+    clip-path: circle(0% at 50% 50%);
+  }
+  to {
+    clip-path: circle(71% at 50% 50%);
+  }
+}
+
+@keyframes slidemachina-switch-halfway {
+  0%,
+  49.9% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slidemachina-slide-out {
+  to {
+    translate: calc(-100% * var(--slide-direction-sign)) 0;
+  }
+}
+
+@keyframes slidemachina-slide-in {
+  from {
+    translate: calc(100% * var(--slide-direction-sign)) 0;
+  }
+}
+
+@keyframes slidemachina-zoom-away {
+  to {
+    opacity: 0;
+    scale: 1.25;
+  }
+}
+
+@keyframes slidemachina-zoom-settle {
+  from {
+    scale: 0.96;
+  }
+}
+
+@keyframes slidemachina-step-back {
+  50% {
+    scale: 0.86;
+  }
+}
+
+/* A face turns around the cube's centre, half a slide behind the screen; the face turning away darkens. */
+@keyframes slidemachina-cube-out {
+  from {
+    transform: perspective(2400px) translateZ(calc(-1 * var(--slide-half-width))) rotateY(0deg) translateZ(var(--slide-half-width));
+  }
+  to {
+    transform: perspective(2400px) translateZ(calc(-1 * var(--slide-half-width))) rotateY(calc(-90deg * var(--slide-direction-sign)))
+      translateZ(var(--slide-half-width));
+    filter: brightness(0.78);
+  }
+}
+
+@keyframes slidemachina-cube-in {
+  from {
+    transform: perspective(2400px) translateZ(calc(-1 * var(--slide-half-width))) rotateY(calc(90deg * var(--slide-direction-sign)))
+      translateZ(var(--slide-half-width));
+    filter: brightness(0.78);
+  }
+  to {
+    transform: perspective(2400px) translateZ(calc(-1 * var(--slide-half-width))) rotateY(0deg) translateZ(var(--slide-half-width));
+  }
+}
+
+@keyframes slidemachina-flip-out {
+  from {
+    transform: perspective(2400px) rotateY(0deg);
+  }
+  to {
+    transform: perspective(2400px) rotateY(calc(-180deg * var(--slide-direction-sign)));
+  }
+}
+
+@keyframes slidemachina-flip-in {
+  from {
+    transform: perspective(2400px) rotateY(calc(180deg * var(--slide-direction-sign)));
+  }
+  to {
+    transform: perspective(2400px) rotateY(0deg);
+  }
+}

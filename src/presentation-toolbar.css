@@ -1,0 +1,125 @@
+@layer slidemachina {
+  /* Outside the canvas, so the toolbar keeps its screen size; centred on the cap height of the frame text. */
+  [data-toolbar] {
+    --toolbar-size: 44px;
+    position: absolute;
+    left: 50%;
+    bottom: calc(
+      (100% - 1080px * var(--canvas-scale)) / 2 + (var(--frame-padding) + var(--frame-text-size) * 0.36) *
+        var(--canvas-scale) - var(--toolbar-size) / 2
+    );
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    height: var(--toolbar-size);
+    border-radius: calc(var(--toolbar-size) / 2);
+    background: var(--toolbar-background);
+    backdrop-filter: blur(20px) saturate(1.6);
+    box-shadow:
+      0 10px 30px rgb(0 0 0 / 0.18),
+      inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  }
+
+  [data-toolbar] :is(button, [data-list-return]) {
+    all: unset;
+    display: grid;
+    place-items: center;
+    width: var(--toolbar-size);
+    height: var(--toolbar-size);
+    border-radius: 50%;
+    color: var(--toolbar-icon-color);
+    cursor: pointer;
+    transition:
+      color 0.2s,
+      background-color 0.2s;
+  }
+
+  [data-toolbar] :is(button, [data-list-return]):is(:hover, :focus-visible, [aria-pressed="true"]) {
+    color: #fff;
+    background: rgb(255 255 255 / 0.1);
+  }
+
+  [data-toolbar] svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  [data-toolbar-divider] {
+    width: 1px;
+    height: 18px;
+    margin-inline: 4px;
+    background: rgb(255 255 255 / 0.18);
+  }
+
+  /* The arrow left by H is a small dark disc, visible on light and dark slides alike. */
+  [data-toolbar][data-collapsed] {
+    opacity: 0.75;
+    box-shadow:
+      0 10px 30px rgb(0 0 0 / 0.18),
+      inset 0 0 0 1px rgb(255 255 255 / 0.18);
+  }
+
+  [data-toolbar][data-collapsed]:hover {
+    opacity: 1;
+  }
+
+  [data-toolbar] {
+    transition: opacity 0.4s;
+  }
+
+  [data-toolbar][data-idle] {
+    opacity: 0;
+    pointer-events: none;
+    transition-duration: 0.8s;
+  }
+
+  /* Agentation lives outside the toolbar; visibility, unlike opacity, also reaches its shadow and top-layer parts. */
+  .slidemachina-feedback {
+    transition:
+      opacity 0.4s,
+      visibility 0.4s;
+  }
+
+  body:has([data-toolbar][data-idle], [data-toolbar][data-collapsed], [data-blackout]) .slidemachina-feedback {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition-duration: 0.8s;
+  }
+
+  body:has([data-blackout]) .slidemachina-feedback {
+    transition: none;
+  }
+
+  [data-toolbar-slot] {
+    display: grid;
+    place-items: center;
+    width: var(--toolbar-size);
+    height: var(--toolbar-size);
+    color: var(--toolbar-icon-color);
+  }
+
+  [data-toolbar] [data-toolbar-slot] svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 1.5;
+    visibility: hidden;
+  }
+
+  :root:active-view-transition [data-toolbar] [data-toolbar-slot] svg {
+    visibility: visible;
+  }
+
+  /* Agentation draws its own 44 px button in the top layer; the engine moves it over the toolbar slot. */
+  .slidemachina-feedback {
+    top: auto;
+    left: auto;
+    right: var(--feedback-right);
+    bottom: var(--feedback-bottom);
+  }
+}

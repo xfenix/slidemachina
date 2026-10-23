@@ -1,0 +1,73 @@
+@layer slidemachina {
+  /* Thumbnails scroll above the bottom strip, where the toolbar sits, and never pass under it. */
+  [data-navigator] {
+    position: absolute;
+    inset: 0;
+    background: var(--navigator-background);
+    color: var(--text-color-on-dark);
+  }
+
+  [data-navigator-scroller] {
+    position: absolute;
+    inset: 0 0 calc(var(--frame-padding) * 2);
+    box-sizing: border-box;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  [data-navigator-heading] {
+    margin: 0 0 24px;
+    font-size: var(--frame-text-size);
+    font-weight: 500;
+    color: var(--muted-color-on-dark);
+  }
+
+  [data-navigator-grid] {
+    display: grid;
+    grid-template-columns: repeat(var(--navigator-columns), 1fr);
+    gap: var(--navigator-gap);
+    margin-bottom: 64px;
+  }
+
+  [data-thumbnail] {
+    position: relative;
+    aspect-ratio: var(--canvas-width) / 1080;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    outline: 6px solid transparent;
+    outline-offset: 4px;
+    cursor: pointer;
+  }
+
+  [data-thumbnail][data-selected] {
+    outline-color: var(--accent-color);
+  }
+
+  [data-thumbnail-number] {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 1;
+    min-width: 1.6em;
+    padding: 4px 6px;
+    border-radius: 8px;
+    background: rgb(0 0 0 / 0.62);
+    color: #fff;
+    font-size: 18px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  [data-thumbnail] > [data-slide] {
+    width: calc(var(--canvas-width) * 1px);
+    height: 1080px;
+    inset: 0 auto auto 0;
+    transform-origin: 0 0;
+    scale: var(--thumbnail-scale);
+    text-align: start;
+  }
+}

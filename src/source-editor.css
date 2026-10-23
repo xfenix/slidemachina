@@ -1,0 +1,212 @@
+@layer slidemachina {
+  :root {
+    --editor-color: #0d99ff;
+    --editor-saved-color: #2fbf71;
+    --editor-problem-color: #ff5c5c;
+  }
+
+  :root[data-source-editor] [data-canvas] > [data-slide][data-current] {
+    [data-source-edit="text"] {
+      cursor: text;
+    }
+
+    [data-source-edit="picture"] {
+      cursor: pointer;
+    }
+
+    [data-source-edit="box"] {
+      cursor: grab;
+      touch-action: none;
+    }
+  }
+
+  [data-source-editing] {
+    outline: none;
+    caret-color: var(--editor-color);
+  }
+
+  /* The dragged box rises over its neighbours; its transform follows the pointer without easing. */
+  [data-slide] [data-diagram] [data-box][data-source-dragging] {
+    z-index: 3;
+    cursor: grabbing;
+    box-shadow: 0 18px 40px rgb(0 0 0 / 0.16);
+  }
+
+  /* A group is its own layer: the one holding the dragged box rises too, or the next group would cover the box. */
+  [data-slide] [data-diagram] [data-group]:has([data-source-dragging]) {
+    z-index: 3;
+  }
+
+  /* Outlines are drawn outside the canvas in screen pixels, so they stay one crisp line at any scale. */
+  [data-editor-overlay] {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    font-family: var(--font-text);
+  }
+
+  [data-editor-outline] {
+    position: fixed;
+    border-radius: 4px;
+    outline: 1.5px solid color-mix(in srgb, var(--editor-color) 72%, transparent);
+    outline-offset: 6px;
+  }
+
+  [data-editor-outline-kind="picture"],
+  [data-editor-outline-kind="box"] {
+    border-radius: 12px;
+    outline-offset: 4px;
+  }
+
+  [data-editor-outline="active"] {
+    outline: 2px solid var(--editor-color);
+  }
+
+  [data-editor-outline="droppable"] {
+    outline: 2px dashed color-mix(in srgb, var(--editor-color) 80%, transparent);
+    background: color-mix(in srgb, var(--editor-color) 6%, transparent);
+  }
+
+  [data-editor-outline="drop"] {
+    outline: 2px solid var(--editor-color);
+    background: color-mix(in srgb, var(--editor-color) 16%, transparent);
+  }
+
+  /* The chip stands on the outline's left edge, 8 px above it, like a layer name in Figma. */
+  [data-editor-chip] {
+    position: absolute;
+    left: -7.5px;
+    bottom: calc(100% + 14px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 24px;
+    padding-inline: 8px;
+    border-radius: 6px;
+    background: var(--editor-color);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 24px;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgb(13 153 255 / 0.24);
+    animation: slidemachina-chip-in 0.14s ease-out;
+  }
+
+  [data-editor-outline-kind="picture"] > [data-editor-chip],
+  [data-editor-outline-kind="box"] > [data-editor-chip] {
+    left: -6px;
+    bottom: calc(100% + 12px);
+  }
+
+  [data-editor-outline="hover"] > [data-editor-chip] {
+    background: #1a1a1a;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.18);
+  }
+
+  [data-editor-chip-note] {
+    color: rgb(255 255 255 / 0.72);
+    font-weight: 400;
+  }
+
+  @keyframes slidemachina-chip-in {
+    from {
+      opacity: 0;
+      translate: 0 4px;
+    }
+  }
+
+  [data-editor-column-band] {
+    position: fixed;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--editor-color) 7%, transparent);
+    outline: 1px dashed color-mix(in srgb, var(--editor-color) 45%, transparent);
+    transition:
+      left 0.12s ease-out,
+      width 0.12s ease-out;
+  }
+
+  /* The landing line has round caps at both ends, as an insertion marker in auto layout. */
+  [data-editor-insertion-line] {
+    position: fixed;
+    border-radius: 1px;
+    background: var(--editor-color);
+    transition:
+      left 0.12s ease-out,
+      top 0.12s ease-out;
+  }
+
+  [data-editor-insertion-line]:before,
+  [data-editor-insertion-line]:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border: 2px solid var(--editor-color);
+    border-radius: 50%;
+    background: #fff;
+    translate: -50% -50%;
+  }
+
+  [data-editor-insertion-line]:before {
+    left: 0;
+  }
+
+  [data-editor-insertion-line]:after {
+    left: 100%;
+  }
+
+  /* The status stands above the toolbar, in its colours, like the print menu. */
+  [data-editor-status] {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 12px);
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: max-content;
+    max-width: min(640px, 90vw);
+    padding: 10px 16px 10px 14px;
+    border-radius: 18px;
+    background: var(--toolbar-background);
+    color: #fff;
+    font-family: var(--font-text);
+    font-size: 13px;
+    line-height: 16px;
+    box-shadow:
+      0 18px 48px rgb(0 0 0 / 0.28),
+      inset 0 0 0 1px rgb(255 255 255 / 0.08);
+    pointer-events: none;
+    animation: slidemachina-menu-in 0.16s var(--step-easing);
+  }
+
+  [data-editor-status-mark] {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--editor-color);
+  }
+
+  [data-editor-status="saving"] [data-editor-status-mark] {
+    animation: slidemachina-saving-pulse 0.9s ease-in-out infinite alternate;
+  }
+
+  [data-editor-status="saved"] [data-editor-status-mark] {
+    background: var(--editor-saved-color);
+  }
+
+  [data-editor-status="problem"] [data-editor-status-mark] {
+    background: var(--editor-problem-color);
+  }
+
+  @keyframes slidemachina-saving-pulse {
+    to {
+      opacity: 0.3;
+      scale: 0.7;
+    }
+  }
+}
