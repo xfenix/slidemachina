@@ -54,7 +54,6 @@
     box-shadow: var(--diagram-box-shadow);
     color: var(--text-color);
     font-size: var(--diagram-text-size);
-    font-weight: 500;
     line-height: 1.2;
     letter-spacing: -0.01em;
     text-align: center;
@@ -102,10 +101,7 @@
     top: var(--diagram-group-padding);
     color: var(--muted-color);
     font-size: var(--diagram-title-size);
-    font-weight: 600;
     line-height: 1;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     white-space: nowrap;
     text-box: trim-both cap alphabetic;
   }

@@ -43,24 +43,26 @@
     --logo-filter-on-dark: brightness(0) invert(1);
     --breadcrumbs-separator: "›";
 
-    /* Three sizes of text, besides headings and display numbers: main, secondary and small. Blocks take theirs from these. */
+    /* Three faces: the text font regular and bold, the code font regular. Five sizes: small, secondary, main, heading, display.
+       Blocks take theirs from these. */
     --text-size: 40px;
     --secondary-text-size: 28px;
     --small-text-size: 24px;
+    --heading-size: 56px;
+    --display-size: 112px;
     --frame-text-size: var(--small-text-size);
-    --heading-size: 72px;
-    --cover-heading-size: 112px;
+    --cover-heading-size: var(--display-size);
     --code-size: var(--secondary-text-size);
     --code-title-size: var(--small-text-size);
-    --command-size: var(--text-size);
+    --command-size: var(--code-size);
     --command-prompt: "$ ";
     --caption-size: var(--secondary-text-size);
     --source-size: var(--small-text-size);
     --table-text-size: var(--secondary-text-size);
-    --quote-size: 96px;
+    --quote-size: var(--display-size);
     --quote-author-size: var(--secondary-text-size);
     --table-heading-color: var(--accent-color);
-    --big-number-size: 168px;
+    --big-number-size: var(--display-size);
     --big-number-color: var(--accent-color);
 
     --block-gap: 40px;
@@ -100,7 +102,7 @@
 
     /* Objects take --scene-color, text takes --scene-text-color; unset, they follow the accent and the text of the slide tone. */
     --scene-font: var(--font-heading);
-    --scene-font-weight: 600;
+    --scene-font-weight: 700;
     --scene-shadow-opacity: 0.16;
     --scene-shadow-opacity-on-dark: 0.5;
 
@@ -161,16 +163,12 @@
     max-width: var(--text-max-width);
   }
 
-  [data-slide] h1 {
+  [data-slide] :is(h1, h2) {
     font-size: var(--heading-size);
   }
 
-  [data-slide] h2 {
-    font-size: calc(var(--heading-size) * 0.8);
-  }
-
   [data-slide] h3 {
-    font-size: calc(var(--heading-size) * 0.6);
+    font-size: var(--text-size);
   }
 
   [data-slide][data-cover] h1 {
@@ -201,7 +199,7 @@
     height: 1px;
     overflow: visible;
     font-size: var(--section-number-size);
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.04em;
     font-variant-numeric: lining-nums;
     pointer-events: none;
@@ -281,7 +279,6 @@
     border-radius: 8px;
     background: var(--code-background);
     font-family: var(--font-code);
-    font-size: 0.85em;
     line-height: 1.3;
     text-align: center;
   }
@@ -291,6 +288,5 @@
     border-radius: 0.25em;
     background: var(--code-background);
     font-family: var(--font-code);
-    font-size: 0.86em;
   }
 }
