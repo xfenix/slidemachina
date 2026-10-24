@@ -89,7 +89,7 @@
     text-indent: -2ch;
   }
 
-  /* A one-line command stands without the grey box, in the size of the other code. */
+  /* A one-line command reads as a line of the slide: the size of the text, without the grey box. */
   [data-slide] [data-code][data-one-line] {
     padding: 0;
     background: none;
