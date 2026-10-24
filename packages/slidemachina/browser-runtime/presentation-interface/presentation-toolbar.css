@@ -20,13 +20,17 @@
       inset 0 0 0 1px rgb(255 255 255 / 0.08);
   }
 
+  /* The hit area is the full 44 px; the highlight is a smaller disc that keeps clear of the capsule edge. */
   :is([data-toolbar], [data-print-view-bar]) :is(button, [data-list-return]) {
     all: unset;
+    box-sizing: border-box;
     display: grid;
     place-items: center;
     width: var(--toolbar-size);
     height: var(--toolbar-size);
+    border: 4px solid transparent;
     border-radius: 50%;
+    background-clip: padding-box;
     color: var(--toolbar-icon-color);
     cursor: pointer;
     transition:
@@ -36,7 +40,7 @@
 
   :is([data-toolbar], [data-print-view-bar]) :is(button, [data-list-return]):is(:hover, :focus-visible, [aria-pressed="true"]) {
     color: #fff;
-    background: rgb(255 255 255 / 0.1);
+    background-color: rgb(255 255 255 / 0.1);
   }
 
   :is([data-toolbar], [data-print-view-bar]) svg {

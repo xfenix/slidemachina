@@ -100,42 +100,29 @@
       break-after: auto;
     }
 
+    /* The grain of a section slide costs more to print than the rest of the deck and does not show on paper; the glow stays. */
+    [data-print-page] [data-slide]:has(> [data-content] > h1[data-section-number]) {
+      background-size: cover, 0 0;
+    }
+
     /* A canvas redrawn after beforeprint is printed by replaying its drawing calls, and the replay erases the slide background
        under a scene. With pixelated rendering Chrome prints the finished picture instead, still at its full resolution. */
     [data-print-page] [data-scene-canvas] {
       image-rendering: pixelated;
     }
 
-    /* Chrome writes blurred shadows and mask images into a PDF as soft masks, and macOS Preview draws most of them as solid patches. */
-    [data-print-page] [data-slide] [data-box] {
-      isolation: isolate;
-      background: none;
+    /* Blurred shadows cost more to print than anything else on a slide, and Chrome writes them as soft masks that macOS Preview
+       draws as solid patches. Printed boxes and pictures keep only their outlines. */
+    [data-print-page] [data-slide] :is([data-box], [data-media]) {
       box-shadow: none;
-    }
-
-    /* The shadow is cast by a layer under the label: a filter turns its element into a picture, and the label stays text. */
-    [data-print-page] [data-slide] [data-box]:before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      border-radius: inherit;
-      background: var(--diagram-box-background);
-      filter: var(--diagram-box-print-shadow);
     }
 
     [data-print-page] [data-slide] :is([data-box][data-focus="on"], [data-actor][data-focus="on"] > [data-box]) {
       box-shadow: 0 0 0 4px var(--diagram-focus-ring);
     }
 
-    [data-print-page] [data-slide] [data-media] {
+    [data-print-page] [data-slide] [data-media]:not([data-media-frame="full"] > *) {
       box-shadow: 0 0 0 1px var(--hairline-color);
-      filter: var(--media-print-shadow);
-    }
-
-    [data-print-page] [data-slide] [data-media-frame="full"] > [data-media] {
-      box-shadow: none;
-      filter: none;
     }
 
     /* Instead of a mask, cut lines fade under strips of the code box colour that stay at the edges of the scrolled view. */
