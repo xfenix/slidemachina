@@ -33,7 +33,7 @@
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
-    animation-duration: var(--transition-duration);
+    animation-duration: var(--transition-time);
     animation-timing-function: var(--transition-easing);
     animation-fill-mode: both;
   }
@@ -47,7 +47,7 @@
   :root[data-slide-transition="morph"]::view-transition-group(*),
   :root[data-slide-transition="morph"]::view-transition-old(*),
   :root[data-slide-transition="morph"]::view-transition-new(*) {
-    animation-duration: var(--morph-duration);
+    animation-duration: var(--morph-time);
   }
 
   /* Like Keynote: what leaves is gone by the middle, moving words arrive by then, and only then new text fades in. */
@@ -55,33 +55,33 @@
   :root[data-slide-transition="morph"]::view-transition-old(*.leaving-word),
   :root[data-slide-transition="morph"]::view-transition-old(*.code-text),
   :root[data-slide-transition="morph"]::view-transition-group(*.moving-word) {
-    animation-duration: calc(var(--morph-duration) * 0.5);
+    animation-duration: calc(var(--morph-time) * 0.5);
   }
 
   :root[data-slide-transition="morph"]::view-transition-new(slide-content-in),
   :root[data-slide-transition="morph"]::view-transition-new(*.arriving-word),
   :root[data-slide-transition="morph"]::view-transition-new(*.code-text) {
-    animation-delay: calc(var(--morph-duration) * 0.5);
-    animation-duration: calc(var(--morph-duration) * 0.5);
+    animation-delay: calc(var(--morph-time) * 0.5);
+    animation-duration: calc(var(--morph-time) * 0.5);
   }
 
   /* Diagram arrows overlap in time, so the diagram is never left without them. */
   :root[data-slide-transition="morph"]::view-transition-old(*.leaving-part) {
-    animation-delay: calc(var(--morph-duration) * 0.2);
-    animation-duration: calc(var(--morph-duration) * 0.45);
+    animation-delay: calc(var(--morph-time) * 0.2);
+    animation-duration: calc(var(--morph-time) * 0.45);
     animation-timing-function: linear;
   }
 
   :root[data-slide-transition="morph"]::view-transition-new(*.arriving-part) {
-    animation-delay: calc(var(--morph-duration) * 0.3);
-    animation-duration: calc(var(--morph-duration) * 0.45);
+    animation-delay: calc(var(--morph-time) * 0.3);
+    animation-duration: calc(var(--morph-time) * 0.45);
     animation-timing-function: linear;
   }
 
   /* Snapshots of two different shapes would show a double edge; the swap happens early, while they are still alike. */
   :root[data-slide-transition="morph"]::view-transition-old(*.morph-shape),
   :root[data-slide-transition="morph"]::view-transition-new(*.morph-shape) {
-    animation-duration: calc(var(--morph-duration) * 0.4);
+    animation-duration: calc(var(--morph-time) * 0.4);
   }
 
   /* Text scales only with its height, that is its font: a list item in a wider list keeps its letters instead of stretching or shrinking. */
@@ -107,12 +107,12 @@
 
   /* Fade goes through the background: the old text is gone, the background and number blend, the new text appears. */
   :root[data-slide-transition="fade"]::view-transition-old(slide-content-out) {
-    animation-duration: calc(var(--transition-duration) * 0.5);
+    animation-duration: calc(var(--transition-time) * 0.5);
   }
 
   :root[data-slide-transition="fade"]::view-transition-new(slide-content-in) {
-    animation-delay: calc(var(--transition-duration) * 0.5);
-    animation-duration: calc(var(--transition-duration) * 0.5);
+    animation-delay: calc(var(--transition-time) * 0.5);
+    animation-duration: calc(var(--transition-time) * 0.5);
   }
 
   /* The new background with its logo and number covers the old one in the middle, while little text is on screen. */
@@ -145,7 +145,7 @@
 
   :root[data-slide-transition="zoom"]::view-transition-old(slide-out) {
     animation-name: slidemachina-zoom-away;
-    animation-duration: calc(var(--transition-duration) * 0.4);
+    animation-duration: calc(var(--transition-time) * 0.4);
   }
 
   :root[data-slide-transition="zoom"]::view-transition-new(slide-in) {
@@ -157,17 +157,17 @@
   }
 
   :root[data-slide-transition="zoom"][data-slide-direction="backward"]::view-transition-old(slide-out) {
-    animation: slidemachina-zoom-settle var(--transition-duration) var(--transition-easing) both reverse;
+    animation: slidemachina-zoom-settle var(--transition-time) var(--transition-easing) both reverse;
   }
 
   :root[data-slide-transition="zoom"][data-slide-direction="backward"]::view-transition-new(slide-in) {
-    animation: slidemachina-zoom-away calc(var(--transition-duration) * 0.4) var(--transition-easing) calc(var(--transition-duration) * 0.6) both reverse;
+    animation: slidemachina-zoom-away calc(var(--transition-time) * 0.4) var(--transition-easing) calc(var(--transition-time) * 0.6) both reverse;
   }
 
   :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-group(*),
   :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-old(*),
   :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-new(*) {
-    animation-duration: var(--rotation-duration);
+    animation-duration: var(--rotation-time);
   }
 
   /* Cube and flip turn whole slides; the slide steps back a little so the turn fits the screen. */

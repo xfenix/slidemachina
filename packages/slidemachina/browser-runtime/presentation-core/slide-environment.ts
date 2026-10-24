@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, type RefObject } from "react";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
+import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 
 export type SlideAlign = "left" | "center";
 
@@ -12,6 +13,7 @@ export type PresentationSettings = {
   logo?: PresentationLogo;
   lang: string;
   transition: SlideTransition;
+  speed: TransitionSpeed;
 };
 
 type SlideEnvironment = {
