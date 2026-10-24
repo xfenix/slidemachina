@@ -176,6 +176,9 @@ test("демо листается, показывает шаги и навига
     const pictureBox = await stretchedPicture.boundingBox();
     const captionBox = await currentSlide(page).locator("[data-caption]").boundingBox();
     expect(captionBox!.y).toBeGreaterThan(pictureBox!.y + pictureBox!.height);
+    // A caption inside the picture keeps to its left edge, not to the edge of the content.
+    expect(captionBox!.x).toBeCloseTo(pictureBox!.x, 0);
+    expect(pictureBox!.x).toBeGreaterThan((await currentSlide(page).locator("[data-content]").boundingBox())!.x + 50);
 
     await jumpToSlide(page, 15);
     const fullPictureBox = await currentSlide(page).locator("[data-media-frame=full] img").boundingBox();

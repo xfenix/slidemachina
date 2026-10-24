@@ -156,8 +156,9 @@ export default (
 
       <Slide>
         <h2>Картинка занимает всё свободное место</h2>
-        <Image src={navigatorPicture} stretch alt="Навигатор по слайдам" />
-        <Caption>Навигатор: Esc открывает все слайды</Caption>
+        <Image src={navigatorPicture} stretch alt="Навигатор по слайдам">
+          <Caption>Навигатор: Esc открывает все слайды</Caption>
+        </Image>
       </Slide>
 
       <Slide plain background="var(--dark-background)">
@@ -648,8 +649,9 @@ export default (
 
       <Slide>
         <h2>Список презентаций</h2>
-        <Image src={presentationListPicture} alt="Страница со списком презентаций" stretch />
-        <Caption>Обложка — живой первый слайд, правку темы видно сразу</Caption>
+        <Image src={presentationListPicture} alt="Страница со списком презентаций" stretch>
+          <Caption>Обложка — живой первый слайд, правку темы видно сразу</Caption>
+        </Image>
       </Slide>
 
       <Slide>

@@ -1,14 +1,17 @@
+import type { ReactNode } from "react";
 import { pickSourceMarks } from "../presentation-core/source-marks.ts";
 import { MediaFrame, rememberProportions, type MediaPlacement } from "./media-frame.tsx";
 
 export type ImageProperties = MediaPlacement & {
   src: string;
   alt?: string;
+  // A <Caption> here stays with the picture: under it and from its left edge.
+  children?: ReactNode;
 };
 
-export function Image({ src, alt = "", stretch, full, fit, ...otherProperties }: ImageProperties) {
+export function Image({ src, alt = "", stretch, full, fit, children, ...otherProperties }: ImageProperties) {
   return (
-    <MediaFrame stretch={stretch} full={full} fit={fit}>
+    <MediaFrame stretch={stretch} full={full} fit={fit} caption={children}>
       <img
         data-media
         {...pickSourceMarks(otherProperties)}
