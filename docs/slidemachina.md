@@ -70,26 +70,28 @@ slidemachina dev [папка] [--port 5173]
 
 ## Разметка
 
+Все компоненты берутся одним импортом: `import * as Machina from "slidemachina"`, дальше `<Machina.Slide>`, `<Machina.Image>` и так далее. В таблицах ниже приставка `Machina.` опущена. Именованный импорт `import { Slide } from "slidemachina"` тоже работает.
+
 ```tsx
-import { Code, Columns, List, Presentation, Section, Slide, Step } from "slidemachina";
+import * as Machina from "slidemachina";
 import logoPicture from "./images/logo.svg";
 import logoOnDarkPicture from "./images/logo-on-dark.svg";
 
 export default (
-  <Presentation title="Доклад" lang="ru" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
-    <Slide cover>
+  <Machina.Presentation title="Доклад" lang="ru" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
+    <Machina.Slide cover>
       <h1>Доклад</h1>
-    </Slide>
-    <Section title="Раздел">
-      <Slide>
+    </Machina.Slide>
+    <Machina.Section title="Раздел">
+      <Machina.Slide>
         <h2>Заголовок</h2>
-        <List step>
+        <Machina.List step>
           <li>Первый пункт</li>
-          <li>Второй пункт: <Step effect="highlight">выделено</Step></li>
-        </List>
-      </Slide>
-    </Section>
-  </Presentation>
+          <li>Второй пункт: <Machina.Step effect="highlight">выделено</Machina.Step></li>
+        </Machina.List>
+      </Machina.Slide>
+    </Machina.Section>
+  </Machina.Presentation>
 );
 ```
 
@@ -144,7 +146,9 @@ export default (
 - `Image` без пропсов — в натуральную величину, но не больше места на слайде.
 - `stretch` — на всё свободное место под заголовком, по центру. По умолчанию `fit="contain"`: видно целиком, скругление и тень обнимают саму картинку.
 - `full` — на весь слайд под текстом и рамкой. По умолчанию `fit="cover"`.
-- `<Caption>` внутри `Image` или `Video` — подпись этой картинки: сразу под ней, от её левого края. С `stretch` картинка уменьшается, чтобы подпись в одну строку встала на нижнюю линию контента. `<Caption>` после блока — подпись по левому краю контента.
+- `<Caption>` внутри `Image` или `Video` — подпись этой картинки: сразу под ней, от её левого края. С `stretch` картинка уменьшается, чтобы подпись в одну строку встала на нижнюю линию контента.
+- `<Caption>` после `Scene`, `Diagram`, `Sequence`, `BigNumber`, `Quote`, `Code`, `Table` — подпись этого блока: стоит на `--caption-gap` от его края, выровнена по нему. Под сценой подпись по центру: сцена рисует объекты в середине холста.
+- `<Caption>` после другого блока — подпись по левому краю контента.
 - `Video` играет без звука и по кругу, пока его слайд на экране. Грузится, когда до слайда два слайда или меньше.
 - `Columns`: каждый ребёнок — колонка. Несколько элементов в одной колонке оборачивают в `<>…</>`. `step` показывает колонки по одной.
 - `Table`: первая строка из одних `<th>` — шапка. С `step` остальные строки появляются по одной.
