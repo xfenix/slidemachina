@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
 
-// The package root: browser-runtime/, node-tooling/ and shared-between-runtimes/ lie inside it.
+// The package root: browser-runtime/, server-runtime/ and shared-between-runtimes/ lie inside it.
 export const enginePackageFolder = fileURLToPath(new URL("../..", import.meta.url));
 
 // A folder run with npx has no node_modules: these packages come from the engine's install, with one copy of React.

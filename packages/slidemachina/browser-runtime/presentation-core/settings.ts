@@ -1,5 +1,5 @@
 // Engine-wide browser settings: timings, limits and sizes that more than one module uses or that a presentation may want to tune.
-// Settings of a single module stay at the top of that module; values shared with node-tooling live in shared-between-runtimes/engine-constants.js.
+// Settings of a single module stay at the top of that module; values shared with server-runtime live in shared-between-runtimes/engine-constants.js.
 
 // The slide canvas: height is fixed, width follows the screen within these aspect ratios.
 export const canvasHeight = 1080;

@@ -45,8 +45,8 @@ function findBrokenRule(
   if (importingLocation.runtimeFolder === "shared-between-runtimes" && importedLocation.runtimeFolder !== "shared-between-runtimes") {
     return "общий код не зависит от остального движка";
   }
-  if (importingLocation.runtimeFolder === "browser-runtime" && importedLocation.runtimeFolder === "node-tooling") return "браузерный код не берёт код Node";
-  if (importingLocation.runtimeFolder === "node-tooling" && importedLocation.runtimeFolder === "browser-runtime") return "код Node не берёт браузерные модули";
+  if (importingLocation.runtimeFolder === "browser-runtime" && importedLocation.runtimeFolder === "server-runtime") return "браузерный код не берёт серверный";
+  if (importingLocation.runtimeFolder === "server-runtime" && importedLocation.runtimeFolder === "browser-runtime") return "серверный код не берёт браузерные модули";
   if (importingLocation.runtimeFolder !== "browser-runtime" || importedLocation.runtimeFolder !== "browser-runtime") return undefined;
   const importsBlock = importedLocation.featureFolder.endsWith(blockFolderSuffix);
   if (importingLocation.featureFolder === "presentation-core" && importsBlock) return "ядро не зависит от блоков";

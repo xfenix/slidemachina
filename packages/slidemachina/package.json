@@ -5,11 +5,11 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "slidemachina": "./node-tooling/command-line/slidemachina.ts"
+    "slidemachina": "./server-runtime/command-line/slidemachina.ts"
   },
   "files": [
     "browser-runtime",
-    "node-tooling",
+    "server-runtime",
     "shared-between-runtimes"
   ],
   "exports": {

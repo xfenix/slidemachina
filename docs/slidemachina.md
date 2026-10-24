@@ -494,7 +494,7 @@ browser-runtime/                всё, что работает на стран�
   source-editor/                редактор в браузере (только dev)
   development-feedback/         кнопка Agentation (только dev)
   visual-theme/                 порядок слоёв CSS, сетка, тема по умолчанию, шрифты
-node-tooling/                   всё, что работает в Node
+server-runtime/                 всё, что работает в Node
   command-line/                 команда slidemachina: разбор аргументов, выбор варианта сборки, тексты CLI
   development-server/           настройки Vite, модули входа, маршруты, зависимости из установки движка
     source-editing/             приём, проверка и точечная запись правок редактора
@@ -507,15 +507,15 @@ shared-between-runtimes/        чистый JS без зависимостей:
 Публичный компонент лежит в своей папке `<имя>-block/`: компонент `<имя>-component.tsx` (`table-block/table-component.tsx` — это `<Table>`), его стили `<имя>-component.css` и модули, которые нужны только ему. Модули, нужные нескольким компонентам папки, остаются на верхнем уровне. Индексных файлов в папках нет.
 
 Правила проверяет `workspace-checks/import-boundaries.ts` в `npm run check`:
-- `browser-runtime` не берёт код из `node-tooling` и модули `node:*`, а `node-tooling` — модули `browser-runtime`;
+- `browser-runtime` не берёт код из `server-runtime` и модули `node:*`, а `server-runtime` — модули `browser-runtime`;
 - `shared-between-runtimes` не зависит ни от остального движка, ни от пакетов;
 - `presentation-core` не зависит от блоков;
 - блоки (`content-blocks`, `diagram-blocks`, `scene-blocks`) не зависят друг от друга.
 
 ### Как всё устроено
 
-1. `node-tooling/command-line/slidemachina.ts` разбирает команду и описание сайта: одна презентация или репозиторий.
-2. Vite получает настройки из `node-tooling/development-server/vite-configuration.ts`. Страницы `index.html` на диске нет: плагин `slidemachina` отдаёт её dev-серверу и сборке.
+1. `server-runtime/command-line/slidemachina.ts` разбирает команду и описание сайта: одна презентация или репозиторий.
+2. Vite получает настройки из `server-runtime/development-server/vite-configuration.ts`. Страницы `index.html` на диске нет: плагин `slidemachina` отдаёт её dev-серверу и сборке.
 3. Страница грузит виртуальный модуль входа `/@slidemachina/entry.js` (в репозитории — `/@slidemachina/entry/<папка>.js`). Он подключает CSS движка: сначала `engine-layout.css` и `default-theme.css`, потом все `.css` из `browser-runtime/` (сначала мельче по вложенности, внутри — по алфавиту), потом `theme/style.css`, потом `style.css` презентации, потом `index.tsx`. Стили редактора — только в dev.
 4. Плагин `slidemachina-slide-source` из `source-transforms/` проходит по каждому `.tsx` сайта до React: подсвечивает `<Code>` Shiki, типографирует текст, в dev ставит метки `data-source-location`.
 5. `mountPresentation` из `presentation-core/presentation-mounting.tsx` рендерит элемент из `index.tsx`. Горячая замена рендерит новый элемент в тот же корень, слайд и шаг остаются.
@@ -576,7 +576,7 @@ shared-between-runtimes/        чистый JS без зависимостей:
 - Видео не пережимается. Картинки из `url()` в `style.css` тоже.
 - Папка сборки не открывается с диска, только с веб-сервера.
 - Шаблон `npm create slidemachina` только на русском.
-- `style.css` или `theme/style.css`, созданный при запущенном `slidemachina dev`, подключится после перезапуска. После обновления `node-tooling/` dev-сервер тоже нужно перезапустить.
+- `style.css` или `theme/style.css`, созданный при запущенном `slidemachina dev`, подключится после перезапуска. После обновления `server-runtime/` dev-сервер тоже нужно перезапустить.
 - Изменённые `lang` и `typography` применяются к слайдам из других файлов после их следующей правки.
 - `.tsx` из `theme/` типографируется по правилам английского.
 - Удалённые презентации остаются в `dist/` до ручной очистки.

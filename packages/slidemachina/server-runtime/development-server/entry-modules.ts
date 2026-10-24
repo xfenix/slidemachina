@@ -12,7 +12,7 @@ const leadingStylesheets = ["browser-runtime/visual-theme/engine-layout.css", "b
 // The editor exists only in slidemachina dev, so a build leaves its styles out.
 const developmentStylesheets = ["browser-runtime/source-editor/source-editor.css"];
 // The list declares the order of CSS layers first, as engine-layout.css does for slides.
-const listStylesheets = ["node-tooling/presentation-repository/presentation-list.css", "browser-runtime/visual-theme/default-theme.css"];
+const listStylesheets = ["server-runtime/presentation-repository/presentation-list.css", "browser-runtime/visual-theme/default-theme.css"];
 
 // Every stylesheet of the runtime: a folder's own styles come before the styles of its nested components.
 const engineStylesheets = listEngineStylesheets();

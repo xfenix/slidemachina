@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import type { Page } from "@playwright/test";
 
 export const workspaceFolder = fileURLToPath(new URL("..", import.meta.url));
-export const commandLineScript = path.join(workspaceFolder, "packages", "slidemachina", "node-tooling", "command-line", "slidemachina.ts");
+export const commandLineScript = path.join(workspaceFolder, "packages", "slidemachina", "server-runtime", "command-line", "slidemachina.ts");
 export const projectCreatorScript = path.join(workspaceFolder, "packages", "create-slidemachina", "create-project.ts");
 export const examplesFolder = path.join(workspaceFolder, "examples");
 export const demoFolderName = "demo-presentation";
