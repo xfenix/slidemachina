@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useSlideEnvironment } from "../presentation-core/slide-environment.ts";
 import { MediaFrame, rememberProportions, type MediaPlacement } from "./media-frame.tsx";
 
@@ -7,10 +7,12 @@ export type VideoProperties = MediaPlacement & {
   poster?: string;
   loop?: boolean;
   controls?: boolean;
+  // A <Caption> here stays with the video, as with <Image>.
+  children?: ReactNode;
 };
 
 // Plays muted only while its slide is on screen and loads only near its slide.
-export function Video({ src, poster, loop = true, controls = false, stretch, full, fit }: VideoProperties) {
+export function Video({ src, poster, loop = true, controls = false, stretch, full, fit, children }: VideoProperties) {
   const videoElementReference = useRef<HTMLVideoElement>(null);
   const { isCurrentSlide, isSlideNearby, isSlideCopy } = useSlideEnvironment();
   const loadsVideo = isSlideNearby || (isSlideCopy && poster === undefined);
@@ -23,7 +25,7 @@ export function Video({ src, poster, loop = true, controls = false, stretch, ful
   }, [isCurrentSlide]);
 
   return (
-    <MediaFrame stretch={stretch} full={full} fit={fit}>
+    <MediaFrame stretch={stretch} full={full} fit={fit} caption={children}>
       <video
         ref={videoElementReference}
         data-media
