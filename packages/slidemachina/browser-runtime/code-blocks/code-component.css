@@ -106,7 +106,7 @@
   /* Opacity sits on the tokens, not the line: a morph snapshot keeps the element's own opacity, not its parent's. */
   [data-slide] [data-code-token] {
     color: var(--token-light, inherit);
-    transition: opacity var(--step-duration) var(--step-easing);
+    transition: opacity var(--step-time) var(--step-easing);
   }
 
   [data-slide][data-tone="dark"] [data-code-token] {

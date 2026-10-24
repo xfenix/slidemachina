@@ -2,6 +2,7 @@ import { useRef, type CSSProperties, type ReactNode } from "react";
 import { isBackgroundColor, useBackgroundTone, type SlideTone } from "./background-tone.ts";
 import { useSlideEnvironment, type PresentationLogo, type SlideAlign } from "./slide-environment.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
+import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { useStepVisibility } from "../slide-steps/step-visibility.ts";
 
 export type SlideProperties = {
@@ -11,6 +12,7 @@ export type SlideProperties = {
   background?: string;
   tone?: SlideTone;
   transition?: SlideTransition;
+  speed?: TransitionSpeed;
   plain?: boolean;
   logo?: boolean;
   breadcrumbs?: boolean | string;
@@ -25,6 +27,7 @@ export function Slide({
   background,
   tone,
   transition,
+  speed,
   plain = false,
   logo = true,
   breadcrumbs = true,
@@ -55,7 +58,7 @@ export function Slide({
       data-transition={transition ?? presentationSettings.transition}
       data-current={slideEnvironment.isCurrentSlide || undefined}
       inert={!slideEnvironment.isCurrentSlide}
-      style={createBackgroundStyle(background)}
+      style={{ ...createBackgroundStyle(background), "--transition-speed": resolveSpeedFactor(speed ?? presentationSettings.speed) } as CSSProperties}
     >
       {showsLogo && <SlideLogo presentationLogo={presentationLogo} slideTone={slideTone} />}
       <div data-content>{children}</div>

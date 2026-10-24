@@ -45,6 +45,7 @@ export {
 export type { DiagramDirection } from "../diagram-blocks/diagram-graph.ts";
 export type { PresentationLogo, SlideAlign } from "../presentation-core/slide-environment.ts";
 export type { SlideTransition } from "../slide-transitions/slide-transition.ts";
+export type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 export type { StepEffect } from "../slide-steps/step-attributes.ts";
 
 // <div morph="database"> pairs two elements on neighbouring slides when the text or source does not match.

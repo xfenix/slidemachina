@@ -18,6 +18,7 @@ import {
 } from "./slide-environment.ts";
 import { useSlideNavigation } from "../slide-navigation/slide-navigation.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
+import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { SlideNavigator } from "../presentation-interface/slide-navigator.tsx";
 import { buildSlideOutline } from "./slide-outline.tsx";
 import { useSwipeControls } from "../slide-navigation/swipe-controls.ts";
@@ -30,6 +31,8 @@ export type PresentationProperties = {
   align?: SlideAlign;
   logo?: PresentationLogo;
   transition?: SlideTransition;
+  // "fast", "normal", "slow" or how many times faster than normal; a slide can set its own.
+  speed?: TransitionSpeed;
   // Read by the build, which typographs the slide text; false keeps the text exactly as written.
   typography?: boolean;
   // "2026-07-31": read by the list of a presentation repository, which puts the newest first.
@@ -46,6 +49,7 @@ export function Presentation({
   align = "left",
   logo,
   transition = "auto",
+  speed = "normal",
 }: PresentationProperties) {
   const outlinedSlides = useMemo(() => buildSlideOutline(children), [children]);
   const stepCountsReference = useRef<number[]>([]);
@@ -59,8 +63,8 @@ export function Presentation({
   const { isPrintView, printsSteps } = printPreparation;
   const typedSlideNumber = useTypedSlideNumber((slideNumber) => slideNavigation.goToSlide(slideNumber - 1));
   const presentationSettings: PresentationSettings = useMemo(
-    () => ({ align, logo, lang, transition }),
-    [align, logo, lang, transition],
+    () => ({ align, logo, lang, transition, speed }),
+    [align, logo, lang, transition, speed],
   );
   const sectionTrails = useMemo(() => outlinedSlides.map((outlinedSlide) => outlinedSlide.sectionTrail), [outlinedSlides]);
   const describeSlideEnvironment = useSlideEnvironments(sectionTrails, presentationSettings, stepCountsReference);

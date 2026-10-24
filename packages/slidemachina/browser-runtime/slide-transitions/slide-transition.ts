@@ -51,6 +51,8 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
   const documentElement = document.documentElement;
   documentElement.dataset.slideTransition = chosenTransition;
   documentElement.dataset.slideDirection = isMovingForward ? "forward" : "backward";
+  // The page root carries the transition layers, so it takes the speed of the slide whose transition plays.
+  documentElement.style.setProperty("--transition-speed", (isMovingForward ? incomingSlide : outgoingSlide).style.getPropertyValue("--transition-speed") || "1");
   // The cube turns around its centre, half a slide behind the screen; CSS cannot take that from the snapshot.
   documentElement.style.setProperty("--slide-half-width", `${outgoingSlide.offsetWidth / 2}px`);
 

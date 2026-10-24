@@ -99,9 +99,9 @@ export default (
 
 | Компонент | Пропсы |
 |---|---|
-| `Presentation` | `title`; `lang` (по умолчанию `en`); `align` (`left` или `center`, по умолчанию `left`); `logo` — строка или `{ light, dark }`; `transition`; `typography={false}` выключает типограф; `date` (`"2026-10-16"`) — для списка в репозитории |
+| `Presentation` | `title`; `lang` (по умолчанию `en`); `align` (`left` или `center`, по умолчанию `left`); `logo` — строка или `{ light, dark }`; `transition`; `speed`; `typography={false}` выключает типограф; `date` (`"2026-10-16"`) — для списка в репозитории |
 | `Section` | `title`; `cover={false}` убирает слайд раздела. Вложенный `Section` — подраздел |
-| `Slide` | `align`; `cover`; `background` — цвет или картинка; `tone` (`dark` или `light`); `transition`; `plain`; `logo={false}`; `breadcrumbs={false}` или свой текст; `number={false}`; `className` |
+| `Slide` | `align`; `cover`; `background` — цвет или картинка; `tone` (`dark` или `light`); `transition`; `speed`; `plain`; `logo={false}`; `breadcrumbs={false}` или свой текст; `number={false}`; `className` |
 | `List` | `step` (`true` или номер первого шага); `effect`; `ordered` |
 | `Step` | `at` — номер шага; `effect` |
 
@@ -273,7 +273,9 @@ export default (
 - `slide`, `zoom`, `cube`, `flip` двигают слайд целиком: с фоном, логотипом, крошками и номером. За слайдами видна сцена `--transition-stage-background`.
 - `morph` и `fade` двигают только содержимое. Фон, логотип, крошки и номер стоят на месте. Новый фон с логотипом и номером проявляется поверх старого в середине перехода, пока на экране мало текста.
 - Шаги внутри слайда идут без перехода.
-- Длительности: `--transition-duration` 0,6 с, `--morph-duration` 0,8 с, `--rotation-duration` 0,9 с для куба и переворота.
+- `speed` у `Presentation` или `Slide` — скорость переходов и шагов: `fast`, `normal` (по умолчанию) или `slow`. Число — во сколько раз быстрее `normal`: `speed={2}` вдвое быстрее, `speed={0.5}` вдвое медленнее. `fast` — 1,5, `slow` — 0,7.
+- Как и с `transition`, при листании вперёд берётся скорость входящего слайда, назад — уходящего. Шаги идут со скоростью своего слайда.
+- Длительности при `normal`: `--transition-duration` 0,4 с, `--morph-duration` 0,55 с, `--rotation-duration` 0,6 с для куба и переворота, `--step-duration` 0,3 с. Тема меняет их, `speed` делит.
 - Если в системе включено уменьшение движения, перехода нет.
 - Быстрые нажатия не теряются: прерванный переход доигрывает свой слайд, следующий начинается с него.
 

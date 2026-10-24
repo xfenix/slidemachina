@@ -8,6 +8,15 @@
     overflow: hidden;
   }
 
+  /* The theme sets durations for speed="normal"; the root takes the speed of the playing transition, a slide its own. */
+  :root,
+  [data-slide] {
+    --transition-time: calc(var(--transition-duration) / var(--transition-speed, 1));
+    --morph-time: calc(var(--morph-duration) / var(--transition-speed, 1));
+    --rotation-time: calc(var(--rotation-duration) / var(--transition-speed, 1));
+    --step-time: calc(var(--step-duration) / var(--transition-speed, 1));
+  }
+
   [data-presentation] {
     position: fixed;
     inset: 0;
@@ -129,7 +138,7 @@
 
   [data-step] {
     transition-property: opacity, translate, scale, color, visibility;
-    transition-duration: var(--step-duration);
+    transition-duration: var(--step-time);
     transition-timing-function: var(--step-easing);
   }
 

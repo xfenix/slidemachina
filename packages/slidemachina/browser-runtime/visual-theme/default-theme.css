@@ -100,11 +100,12 @@
     --scene-shadow-opacity: 0.16;
     --scene-shadow-opacity-on-dark: 0.5;
 
-    --transition-duration: 0.6s;
-    --morph-duration: 0.8s;
-    --rotation-duration: 0.9s;
+    /* Durations at speed="normal"; the speed of the presentation or slide divides them. */
+    --transition-duration: 0.4s;
+    --morph-duration: 0.55s;
+    --rotation-duration: 0.6s;
     --transition-easing: cubic-bezier(0.65, 0, 0.35, 1);
-    --step-duration: 0.45s;
+    --step-duration: 0.3s;
     --step-easing: cubic-bezier(0.2, 0.7, 0.2, 1);
     --step-rise-distance: 0.6em;
     --dim-opacity: 0.35;

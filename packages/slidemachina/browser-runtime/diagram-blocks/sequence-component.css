@@ -31,7 +31,7 @@
     justify-content: center;
     margin-bottom: calc(var(--sequence-row-gap) * 0.25);
     transition-property: opacity, translate, scale, visibility;
-    transition-duration: var(--step-duration);
+    transition-duration: var(--step-time);
     transition-timing-function: var(--step-easing);
   }
 
@@ -59,7 +59,7 @@
     gap: 16px;
     margin-inline: calc(100% / var(--message-span) / 2);
     transition-property: opacity, translate, scale, visibility;
-    transition-duration: var(--step-duration);
+    transition-duration: var(--step-time);
     transition-timing-function: var(--step-easing);
   }
 
@@ -101,8 +101,8 @@
     translate: 0 -1px;
     transform-origin: 0 50%;
     transition:
-      scale calc(var(--step-duration) * 1.4) var(--step-easing),
-      border-color var(--step-duration);
+      scale calc(var(--step-time) * 1.4) var(--step-easing),
+      border-color var(--step-time);
   }
 
   [data-slide] [data-reply] [data-message-line]:before {
