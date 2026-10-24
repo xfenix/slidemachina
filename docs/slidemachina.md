@@ -517,7 +517,7 @@ shared-between-runtimes/        чистый JS без зависимостей:
 
 1. `node-tooling/command-line/slidemachina.ts` разбирает команду и описание сайта: одна презентация или репозиторий.
 2. Vite получает настройки из `node-tooling/development-server/vite-configuration.ts`. Страницы `index.html` на диске нет: плагин `slidemachina` отдаёт её dev-серверу и сборке.
-3. Страница грузит виртуальный модуль входа `/@slidemachina/entry.js` (в репозитории — `/@slidemachina/entry/<папка>.js`). Он подключает CSS движка списком из `entry-modules.ts`, потом `theme/style.css`, потом `style.css` презентации, потом `index.tsx`. Стили редактора — только в dev.
+3. Страница грузит виртуальный модуль входа `/@slidemachina/entry.js` (в репозитории — `/@slidemachina/entry/<папка>.js`). Он подключает CSS движка: сначала `engine-layout.css` и `default-theme.css`, потом все `.css` из `browser-runtime/` (сначала мельче по вложенности, внутри — по алфавиту), потом `theme/style.css`, потом `style.css` презентации, потом `index.tsx`. Стили редактора — только в dev.
 4. Плагин `slidemachina-slide-source` из `source-transforms/` проходит по каждому `.tsx` сайта до React: подсвечивает `<Code>` Shiki, типографирует текст, в dev ставит метки `data-source-location`.
 5. `mountPresentation` из `presentation-core/presentation-mounting.tsx` рендерит элемент из `index.tsx`. Горячая замена рендерит новый элемент в тот же корень, слайд и шаг остаются.
 6. `<Presentation>` разворачивает разделы в плоский список слайдов, рисует все слайды сразу и ведёт позицию в адресе. Неактивные скрыты через `visibility: hidden` и `inert`: так у элементов есть размеры, а шаги можно посчитать по DOM.

@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const enginePackageFolder = fileURLToPath(new URL("../packages/slidemachina", import.meta.url));
-const blockFolders = ["content-blocks", "code-blocks", "diagram-blocks", "scene-blocks"];
+const blockFolderSuffix = "-blocks";
 const specifierPatterns = [
   /\bfrom\s+["']([^"']+)["']/g,
   /\bimport\s+["']([^"']+)["']/g,
@@ -48,9 +48,9 @@ function findBrokenRule(
   if (importingLocation.runtimeFolder === "browser-runtime" && importedLocation.runtimeFolder === "node-tooling") return "браузерный код не берёт код Node";
   if (importingLocation.runtimeFolder === "node-tooling" && importedLocation.runtimeFolder === "browser-runtime") return "код Node не берёт браузерные модули";
   if (importingLocation.runtimeFolder !== "browser-runtime" || importedLocation.runtimeFolder !== "browser-runtime") return undefined;
-  const importsBlock = blockFolders.includes(importedLocation.featureFolder);
+  const importsBlock = importedLocation.featureFolder.endsWith(blockFolderSuffix);
   if (importingLocation.featureFolder === "presentation-core" && importsBlock) return "ядро не зависит от блоков";
-  if (blockFolders.includes(importingLocation.featureFolder) && importsBlock && importedLocation.featureFolder !== importingLocation.featureFolder) {
+  if (importingLocation.featureFolder.endsWith(blockFolderSuffix) && importsBlock && importedLocation.featureFolder !== importingLocation.featureFolder) {
     return "блоки не зависят друг от друга";
   }
   return undefined;
