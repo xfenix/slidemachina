@@ -148,7 +148,7 @@ test("демо листается, показывает шаги и навига
     await expect(currentSlide(page).locator("[data-logo], [data-breadcrumbs], [data-slide-number]")).toHaveCount(0);
   });
 
-  await test.step("блоки: колонки и строки таблицы по шагам, источник над крошками", async () => {
+  await test.step("блоки: колонки и строки таблицы по шагам, источник сноской под блоком", async () => {
     await jumpToSlide(page, 12);
     const columnElements = currentSlide(page).locator("[data-column]");
     await expect(columnElements).toHaveCount(3);
@@ -156,13 +156,13 @@ test("демо листается, показывает шаги и навига
     await page.keyboard.press("ArrowRight");
     await expect(columnElements.nth(0)).toHaveAttribute("data-step-reached");
     await expect(columnElements.nth(1)).not.toHaveAttribute("data-step-reached");
-    // The source is a footnote: --caption-gap above the capitals of the breadcrumbs, below the content area.
-    const sourceBox = await currentSlide(page).locator("[data-source]").boundingBox();
-    const contentBox = await currentSlide(page).locator("[data-content]").boundingBox();
-    const breadcrumbsBox = await currentSlide(page).locator("[data-breadcrumbs]").boundingBox();
+    // The source is a footnote right under the blocks it cites, set apart by a hairline.
+    const sourceElement = currentSlide(page).locator("[data-source]");
+    const sourceBox = await sourceElement.boundingBox();
+    const columnsBox = await currentSlide(page).locator("[data-columns]").boundingBox();
     const slideScale = (await currentSlide(page).boundingBox())!.height / 1080;
-    expect(breadcrumbsBox!.y - (sourceBox!.y + sourceBox!.height)).toBeCloseTo(24 * slideScale, 0);
-    expect(sourceBox!.y).toBeGreaterThan(contentBox!.y + contentBox!.height);
+    expect(sourceBox!.y - (columnsBox!.y + columnsBox!.height)).toBeCloseTo(80 * slideScale, 0);
+    await expect(sourceElement).toHaveCSS("border-top-width", "1px");
 
     await jumpToSlide(page, 13);
     await expect(currentSlide(page).locator("thead th")).toHaveCount(3);
