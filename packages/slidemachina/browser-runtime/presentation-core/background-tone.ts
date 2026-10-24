@@ -1,11 +1,16 @@
 import { useEffect, useLayoutEffect, useState, type RefObject } from "react";
 
-export type SlideTone = "dark" | "light";
-
 const samplingSize = 8;
+const colorChannelCount = 4;
 const darkLuminanceLimit = 0.55;
+const redLuminanceShare = 0.2126;
+const greenLuminanceShare = 0.7152;
+const blueLuminanceShare = 0.0722;
+const brightestLevel = 255;
 // A picture is measured once; thumbnails and printed pages get its tone in the first frame.
 const pictureTones = new Map<string, SlideTone>();
+
+export type SlideTone = "dark" | "light";
 
 export function isBackgroundColor(backgroundValue: string): boolean {
   return CSS.supports("color", backgroundValue);
@@ -62,11 +67,13 @@ function measureTone(backgroundColor: string, backgroundImage?: HTMLImageElement
   try {
     const pixelBytes = drawingContext.getImageData(0, 0, samplingSize, samplingSize).data;
     let luminanceTotal = 0;
-    for (let byteOffset = 0; byteOffset < pixelBytes.length; byteOffset += 4) {
+    for (let byteOffset = 0; byteOffset < pixelBytes.length; byteOffset += colorChannelCount) {
       luminanceTotal +=
-        0.2126 * pixelBytes[byteOffset] + 0.7152 * pixelBytes[byteOffset + 1] + 0.0722 * pixelBytes[byteOffset + 2];
+        redLuminanceShare * pixelBytes[byteOffset] +
+        greenLuminanceShare * pixelBytes[byteOffset + 1] +
+        blueLuminanceShare * pixelBytes[byteOffset + 2];
     }
-    return luminanceTotal / (samplingSize * samplingSize) / 255 < darkLuminanceLimit ? "dark" : "light";
+    return luminanceTotal / (samplingSize * samplingSize) / brightestLevel < darkLuminanceLimit ? "dark" : "light";
   } catch {
     // Images from other sites taint the canvas; keep the color-based guess.
     return backgroundImage === undefined ? "light" : measureTone(backgroundColor);

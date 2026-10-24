@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
+import { backgroundLoadingPause, idleCallbackTimeout } from "./settings.ts";
 import { useSlideEnvironment } from "./slide-environment.ts";
 
-// Long enough for the first screen to settle; then Cmd+P still finds every diagram laid out and every scene loaded.
-const backgroundLoadingPause = 5000;
 let backgroundLoadingRequest: Promise<void> | undefined;
 
 function waitForBackgroundLoading(): Promise<void> {
@@ -10,7 +9,7 @@ function waitForBackgroundLoading(): Promise<void> {
     // Safari has no requestIdleCallback; there the pause alone does.
     const startAfterPause = () =>
       setTimeout(() => {
-        if ("requestIdleCallback" in window) requestIdleCallback(() => resolveBackgroundLoading(), { timeout: 2000 });
+        if ("requestIdleCallback" in window) requestIdleCallback(() => resolveBackgroundLoading(), { timeout: idleCallbackTimeout });
         else resolveBackgroundLoading();
       }, backgroundLoadingPause);
     if (document.readyState === "complete") startAfterPause();

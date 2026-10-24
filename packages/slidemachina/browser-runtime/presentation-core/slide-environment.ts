@@ -3,6 +3,8 @@ import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 
+export const SlideEnvironmentContext = createContext<SlideEnvironment | null>(null);
+
 export type SlideAlign = "left" | "center";
 
 // Keys name the slide tone: "dark" is the logo for dark slides. Without it the light logo is recoloured by a filter.
@@ -16,6 +18,8 @@ export type PresentationSettings = {
   speed: TransitionSpeed;
 };
 
+type SlideState = { slideIndex: number; isCurrentSlide: boolean; isSlideNearby: boolean; isSlideCopy: boolean; revealedStep: number };
+
 type SlideEnvironment = {
   slideNumber: number;
   sectionTrail: string[];
@@ -28,8 +32,6 @@ type SlideEnvironment = {
   presentationSettings: PresentationSettings;
 };
 
-export const SlideEnvironmentContext = createContext<SlideEnvironment | null>(null);
-
 export function useSlideEnvironment(): SlideEnvironment {
   const slideEnvironment = useContext(SlideEnvironmentContext);
   if (slideEnvironment === null) {
@@ -37,8 +39,6 @@ export function useSlideEnvironment(): SlideEnvironment {
   }
   return slideEnvironment;
 }
-
-type SlideState = { slideIndex: number; isCurrentSlide: boolean; isSlideNearby: boolean; isSlideCopy: boolean; revealedStep: number };
 
 // A slide whose state did not change gets the same environment object, so a key press re-renders only the slides it changes.
 export function useSlideEnvironments(

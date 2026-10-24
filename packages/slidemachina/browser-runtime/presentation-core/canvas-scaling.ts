@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-
-const canvasHeight = 1080;
-const narrowestAspectRatio = 4 / 3;
-const widestAspectRatio = 21 / 9;
+import { canvasHeight, narrowestAspectRatio, widestAspectRatio } from "./settings.ts";
 
 type CanvasMeasurement = {
   canvasWidth: number;
