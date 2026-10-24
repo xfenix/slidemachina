@@ -24,6 +24,11 @@ import { buildSlideOutline } from "./slide-outline.tsx";
 import { useSwipeControls } from "../slide-navigation/swipe-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
 
+// The list of a repository shows /talk/?cover in a frame, and the build photographs it: the first slide alone, every step shown.
+const isCoverPreview = new URLSearchParams(location.search).has("cover");
+// A slide two slides away or closer starts its heavy parts.
+const nearbySlideDistance = 2;
+
 export type PresentationProperties = {
   children?: ReactNode;
   title?: string;
@@ -38,9 +43,6 @@ export type PresentationProperties = {
   // "2026-07-31": read by the list of a presentation repository, which puts the newest first.
   date?: string;
 };
-
-// The list of a repository shows /talk/?cover in a frame, and the build photographs it: the first slide alone, every step shown.
-const isCoverPreview = new URLSearchParams(location.search).has("cover");
 
 export function Presentation({
   children,
@@ -97,7 +99,7 @@ export function Presentation({
     const isCurrentSlide = !isSlideCopy && slideIndex === currentPosition.slideIndex;
     const slidesAhead = slideIndex - currentPosition.slideIndex;
     const liveStep = slidesAhead < 0 ? Infinity : slidesAhead === 0 ? currentPosition.stepIndex : 0;
-    const isSlideNearby = !isSlideCopy && Math.abs(slidesAhead) <= 2;
+    const isSlideNearby = !isSlideCopy && Math.abs(slidesAhead) <= nearbySlideDistance;
     const slideEnvironment = describeSlideEnvironment({ slideIndex, isCurrentSlide, isSlideNearby, isSlideCopy, revealedStep: copiedStep ?? liveStep });
     return (
       <SlideEnvironmentContext key={outlinedSlide.slideKey} value={slideEnvironment}>

@@ -4,6 +4,17 @@ import { waitForPrintedPages } from "./print-readiness.ts";
 const printedPageWidth = 1920;
 const printViewMargin = 48;
 
+type PrintedPage = { slideIndex: number; revealedStep: number };
+
+type PrintPagesProperties = {
+  slideCount: number;
+  printsSteps: boolean;
+  isPrintView: boolean;
+  countSteps: (slideIndex: number) => number;
+  renderPrintedSlide: (slideIndex: number, revealedStep: number) => ReactNode;
+  renderPrintViewBar: (pageCount: number) => ReactNode;
+};
+
 // In the print view a page fills the window width, but never grows past its own size.
 function usePrintViewScale(isPrintView: boolean): number {
   const measureScale = () => Math.min(1, (document.documentElement.clientWidth - 2 * printViewMargin) / printedPageWidth);
@@ -18,8 +29,6 @@ function usePrintViewScale(isPrintView: boolean): number {
   return printViewScale;
 }
 
-type PrintedPage = { slideIndex: number; revealedStep: number };
-
 // One page per slide in its final state, or one page per step: code lines and diagram steps included.
 export function listPrintedPages(slideCount: number, printsSteps: boolean, countSteps: (slideIndex: number) => number): PrintedPage[] {
   const printedPages: PrintedPage[] = [];
@@ -32,15 +41,6 @@ export function listPrintedPages(slideCount: number, printsSteps: boolean, count
   }
   return printedPages;
 }
-
-type PrintPagesProperties = {
-  slideCount: number;
-  printsSteps: boolean;
-  isPrintView: boolean;
-  countSteps: (slideIndex: number) => number;
-  renderPrintedSlide: (slideIndex: number, revealedStep: number) => ReactNode;
-  renderPrintViewBar: (pageCount: number) => ReactNode;
-};
 
 export function PrintPages({ slideCount, printsSteps, isPrintView, countSteps, renderPrintedSlide, renderPrintViewBar }: PrintPagesProperties) {
   const pagesElementReference = useRef<HTMLDivElement>(null);

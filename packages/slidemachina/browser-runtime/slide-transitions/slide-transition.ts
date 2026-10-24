@@ -13,9 +13,9 @@ import {
   type NamedLayer,
 } from "./transition-layers.ts";
 
-export type SlideTransition = "auto" | "morph" | "slide" | "fade" | "zoom" | "cube" | "flip" | "none";
-
 const wholeSlideTransitions = new Set(["slide", "zoom", "cube", "flip"]);
+
+export type SlideTransition = "auto" | "morph" | "slide" | "fade" | "zoom" | "cube" | "flip" | "none";
 
 let activeNamedLayers: NamedLayer[] = [];
 // Word wrappers and code piece names are taken back by these functions when a transition ends.
