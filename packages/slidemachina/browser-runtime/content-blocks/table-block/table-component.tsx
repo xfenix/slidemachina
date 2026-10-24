@@ -1,5 +1,5 @@
 import { Children, cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
-import { createSequenceStepAttributes, type StepAttributes, type StepEffect } from "../slide-steps/step-attributes.ts";
+import { createSequenceStepAttributes, type StepAttributes, type StepEffect } from "../../slide-steps/step-attributes.ts";
 
 export type TableProperties = {
   children?: ReactNode;

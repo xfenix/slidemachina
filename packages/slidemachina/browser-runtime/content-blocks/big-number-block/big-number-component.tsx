@@ -1,6 +1,6 @@
 import { useRef, type ReactNode } from "react";
-import { pickSourceMarks } from "../presentation-core/source-marks.ts";
-import { useWidthFitting, type WidthFitting } from "../presentation-core/width-fitting.ts";
+import { pickSourceMarks } from "../../presentation-core/source-marks.ts";
+import { useWidthFitting, type WidthFitting } from "../../presentation-core/width-fitting.ts";
 
 // A number wider than its column gets a smaller font, so neighbouring numbers never run into each other.
 const numberWidthFitting: WidthFitting = {

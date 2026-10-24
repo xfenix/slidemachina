@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { useSlideEnvironment } from "../presentation-core/slide-environment.ts";
-import { MediaFrame, rememberProportions, type MediaPlacement } from "./media-frame.tsx";
+import { useSlideEnvironment } from "../../presentation-core/slide-environment.ts";
+import { MediaFrame, rememberProportions, type MediaPlacement } from "../media-frame.tsx";
 
 export type VideoProperties = MediaPlacement & {
   src: string;

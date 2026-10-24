@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { listMarkupElements } from "../presentation-core/markup-elements.ts";
+import { listMarkupElements } from "../../presentation-core/markup-elements.ts";
 import {
   Arrow,
   Box,
@@ -9,7 +9,7 @@ import {
   type BoxProperties,
   type FocusProperties,
   type GroupProperties,
-} from "./diagram-parts.tsx";
+} from "../diagram-parts.tsx";
 
 type BoxPart = { partKind: "box"; nodeIdentifier: string; boxProperties: BoxProperties };
 type GroupPart = { partKind: "group"; nodeIdentifier: string; groupProperties: GroupProperties; innerParts: DiagramPart[] };

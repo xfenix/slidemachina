@@ -487,6 +487,7 @@ browser-runtime/                всё, что работает на стран�
   element-morphing/             пары для морфинга, дуги, морфинг слов и кода
   presentation-interface/       панель управления, навигатор, меню печати, тексты интерфейса
   content-blocks/               <Image>, <Video>, <Columns>, <Table>, <Quote>, <BigNumber>, <Caption>, <Source>
+    table-block/                у каждого компонента своя папка: компонент, его стили и его модули
   code-blocks/                  <Code>, строки по шагам
   diagram-blocks/               <Diagram> с <Box>, <Arrow>, <Group>, <Focus>; <Sequence> с <Actor>, <Message>; ELK в воркере
   scene-blocks/                 <Scene> с <Cube>, <Sphere>, <Text>, <Light>, <Camera>, <Move> на three.js
@@ -504,7 +505,7 @@ node-tooling/                   всё, что работает в Node
 shared-between-runtimes/        чистый JS без зависимостей: общие константы и выбор ru/en
 ```
 
-Публичный компонент лежит в файле `<имя>-component.tsx` (`table-component.tsx` — это `<Table>`), его стили — рядом, в `<имя>-component.css`. Индексных файлов в папках нет.
+Публичный компонент лежит в своей папке `<имя>-block/`: компонент `<имя>-component.tsx` (`table-block/table-component.tsx` — это `<Table>`), его стили `<имя>-component.css` и модули, которые нужны только ему. Модули, нужные нескольким компонентам папки, остаются на верхнем уровне. Индексных файлов в папках нет.
 
 Правила проверяет `workspace-checks/import-boundaries.ts` в `npm run check`:
 - `browser-runtime` не берёт код из `node-tooling` и модули `node:*`, а `node-tooling` — модули `browser-runtime`;

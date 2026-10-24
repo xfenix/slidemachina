@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { pickInterfaceTexts } from "./interface-texts.ts";
-import { ToolbarButton } from "./presentation-toolbar.tsx";
+import { pickInterfaceTexts } from "../interface-texts.ts";
+import { ToolbarButton } from "../presentation-toolbar/presentation-toolbar.tsx";
 
 export const printShortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd+P" : "Ctrl+P";
 

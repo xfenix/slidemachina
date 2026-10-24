@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
-import { stepChangeEventName } from "../slide-steps/step-visibility.ts";
+import { stepChangeEventName } from "../../slide-steps/step-visibility.ts";
 
 type LineScroll = ScrollBehavior | "keep";
 
