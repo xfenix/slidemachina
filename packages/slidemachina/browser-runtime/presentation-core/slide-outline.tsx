@@ -35,7 +35,9 @@ export function buildSlideOutline(
         parentSectionNumber === "" ? String(sectionCount).padStart(2, "0") : `${parentSectionNumber}.${sectionCount}`;
       const sectionSlides = buildSlideOutline(sectionProperties.children, nestedTrail, childKey, sectionNumber);
       if (sectionProperties.cover === false) return sectionSlides;
-      const sectionCover = (
+      const sectionCover = isValidElement(sectionProperties.cover) ? (
+        sectionProperties.cover
+      ) : (
         <Slide cover background="var(--section-background)">
           <h1 data-section-number={sectionNumber}>{sectionProperties.title}</h1>
           <SectionNumber sectionNumber={sectionNumber} />

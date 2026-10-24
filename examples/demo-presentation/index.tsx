@@ -534,7 +534,15 @@ export default (
       </Machina.Slide>
     </Machina.Section>
 
-    <Machina.Section title="3D">
+    <Machina.Section
+      title="3D"
+      cover={
+        <Machina.Slide cover background="var(--dark-background)">
+          <h1>3D</h1>
+          <p className="text-(--muted-color)">Свою обложку раздела задаёт cover</p>
+        </Machina.Slide>
+      }
+    >
       <Machina.Slide background="var(--dark-background)" transition="zoom">
         <h2>Сцена в 3D</h2>
         <p className="text-(--muted-color)">Куб, сфера, текст и свет пишутся тегами</p>
