@@ -1,64 +1,64 @@
-import { Arrow, Box, Caption, Code, Diagram, List, Presentation, Section, Slide } from "slidemachina";
+import * as Machina from "slidemachina";
 import logoOnDarkPicture from "../theme/logo-on-dark.svg";
 import logoPicture from "../theme/logo.svg";
 
 export default (
-  <Presentation title="Python 3.15: что нового" date="2026-10-02" lang="ru" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
-    <Slide cover background="#2B2D33">
+  <Machina.Presentation title="Python 3.15: что нового" date="2026-10-02" lang="ru" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
+    <Machina.Slide cover background="#2B2D33">
       <h1>Python 3.15</h1>
       <p className="text-(--muted-color)">Что нового для нашего кода</p>
-    </Slide>
+    </Machina.Slide>
 
-    <Section title="Ленивый импорт">
-      <Slide>
+    <Machina.Section title="Ленивый импорт">
+      <Machina.Slide>
         <h2>Было</h2>
-        <Code lang="py">{`
+        <Machina.Code lang="py">{`
           import json
           from pathlib import Path
 
           def load_settings(file_name):
               return json.loads(Path(file_name).read_text())
-        `}</Code>
-        <Caption>Модули грузятся на старте, даже если функция не вызвана</Caption>
-      </Slide>
+        `}</Machina.Code>
+        <Machina.Caption>Модули грузятся на старте, даже если функция не вызвана</Machina.Caption>
+      </Machina.Slide>
 
-      <Slide>
+      <Machina.Slide>
         <h2>Стало</h2>
-        <Code lang="py">{`
+        <Machina.Code lang="py">{`
           lazy import json
           lazy from pathlib import Path
 
           def load_settings(file_name):
               return json.loads(Path(file_name).read_text())
-        `}</Code>
-        <Caption>Модуль загрузится при первом обращении. Консольные утилиты стартуют быстрее</Caption>
-      </Slide>
+        `}</Machina.Code>
+        <Machina.Caption>Модуль загрузится при первом обращении. Консольные утилиты стартуют быстрее</Machina.Caption>
+      </Machina.Slide>
 
-      <Slide>
+      <Machina.Slide>
         <h2>Как это работает</h2>
-        <Diagram>
-          <Box id="name">json<small>имя в модуле</small></Box>
-          <Box id="proxy">Заглушка</Box>
-          <Box id="module">Модуль json</Box>
-          <Arrow from="name" to="proxy" />
-          <Arrow from="proxy" to="module" label="первое обращение" step />
-        </Diagram>
-      </Slide>
-    </Section>
+        <Machina.Diagram>
+          <Machina.Box id="name">json<small>имя в модуле</small></Machina.Box>
+          <Machina.Box id="proxy">Заглушка</Machina.Box>
+          <Machina.Box id="module">Модуль json</Machina.Box>
+          <Machina.Arrow from="name" to="proxy" />
+          <Machina.Arrow from="proxy" to="module" label="первое обращение" step />
+        </Machina.Diagram>
+      </Machina.Slide>
+    </Machina.Section>
 
-    <Section title="Ещё">
-      <Slide>
+    <Machina.Section title="Ещё">
+      <Machina.Slide>
         <h2>Что ещё</h2>
-        <List step>
+        <Machina.List step>
           <li>UTF-8 по умолчанию: open() без encoding читает и пишет UTF-8</li>
           <li>profiling.sampling: профилировщик, который подключается к запущенному процессу</li>
-        </List>
-      </Slide>
-    </Section>
+        </Machina.List>
+      </Machina.Slide>
+    </Machina.Section>
 
-    <Slide cover>
+    <Machina.Slide cover>
       <h1>Обновляемся</h1>
       <p className="text-(--muted-color)">Вопросы?</p>
-    </Slide>
-  </Presentation>
+    </Machina.Slide>
+  </Machina.Presentation>
 );

@@ -38,7 +38,10 @@ export function walkSyntaxTree(syntaxNode, visitNode, ancestorNodes = []) {
  */
 export function readElementName(elementNode) {
   const nameNode = elementNode.openingElement.name;
-  return nameNode.type === "JSXIdentifier" ? nameNode.name : undefined;
+  if (nameNode.type === "JSXIdentifier") return nameNode.name;
+  // <Machina.Slide> after import * as Machina from "slidemachina".
+  if (nameNode.type === "JSXMemberExpression" && nameNode.object.type === "JSXIdentifier") return `${nameNode.object.name}.${nameNode.property.name}`;
+  return undefined;
 }
 
 /**
@@ -66,7 +69,7 @@ export function readStringAttribute(elementNode, attributeName) {
   return undefined;
 }
 
-// <Code as Snippet> still works: names are taken from the import of "slidemachina".
+// <Code as Snippet> and <Machina.Code> still work: names are taken from the import of "slidemachina".
 /**
  * @param {SyntaxNode} syntaxTree
  * @returns {Record<string, string>}
@@ -74,13 +77,19 @@ export function readStringAttribute(elementNode, attributeName) {
 export function findEngineNames(syntaxTree) {
   /** @type {Record<string, string>} */
   const engineNames = {};
+  /** @type {string | undefined} */
+  let namespaceName;
   for (const statementNode of syntaxTree.body) {
     if (statementNode.type !== "ImportDeclaration" || statementNode.source.value !== "slidemachina") continue;
     for (const specifierNode of statementNode.specifiers) {
       if (specifierNode.type === "ImportSpecifier") engineNames[specifierNode.imported.name] = specifierNode.local.name;
+      if (specifierNode.type === "ImportNamespaceSpecifier") namespaceName = specifierNode.local.name;
     }
   }
-  return engineNames;
+  if (namespaceName === undefined) return engineNames;
+  return new Proxy(engineNames, {
+    get: (importedNames, partName) => importedNames[/** @type {string} */ (partName)] ?? `${namespaceName}.${String(partName)}`,
+  });
 }
 
 /** @param {SyntaxNode} syntaxNode */

@@ -23,18 +23,20 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 
 ## Слайды
 
+Компоненты берутся одним импортом: `import * as Machina from "slidemachina"`. Дальше `<Machina.Slide>`, `<Machina.Image>` и так далее, в таблице ниже приставка опущена.
+
 ```tsx
-<Presentation title="Мой доклад" lang="ru" logo={{ light: logo, dark: logoOnDark }}>
-  <Slide cover>
+<Machina.Presentation title="Мой доклад" lang="ru" logo={{ light: logo, dark: logoOnDark }}>
+  <Machina.Slide cover>
     <h1>Мой доклад</h1>
-  </Slide>
-  <Section title="Начало">
-    <Slide>
+  </Machina.Slide>
+  <Machina.Section title="Начало">
+    <Machina.Slide>
       <h2>Заголовок</h2>
       <p>Обычный текст</p>
-    </Slide>
-  </Section>
-</Presentation>
+    </Machina.Slide>
+  </Machina.Section>
+</Machina.Presentation>
 ```
 
 - `Section` — раздел. Из разделов получаются обложки, хлебные крошки и оглавление в навигаторе.
