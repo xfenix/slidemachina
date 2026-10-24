@@ -10,7 +10,13 @@
   }
 
   /* A caption belongs to the block above it: the gap is measured from the block to the caption's capitals. */
-  [data-slide] :is([data-media], [data-media-frame], [data-code], [data-table]) + [data-caption] {
+  [data-slide] :is([data-media], [data-media-frame], [data-code], [data-table], [data-scene], [data-diagram], [data-sequence], [data-big-number], [data-quote]) + [data-caption] {
     margin-top: calc(var(--caption-gap) - var(--block-gap));
+  }
+
+  /* A scene draws its objects in the middle of its canvas, so its caption stands centred under them. */
+  [data-slide] [data-scene="block"] + [data-caption] {
+    align-self: center;
+    text-align: center;
   }
 }
