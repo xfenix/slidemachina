@@ -23,12 +23,12 @@
     padding-top: 0;
     border-bottom-color: color-mix(in srgb, var(--text-color) 40%, transparent);
     font-size: var(--caption-size);
-    font-weight: 600;
+    font-weight: 700;
   }
 
   [data-slide] [data-table] tbody th {
     color: var(--table-heading-color);
-    font-weight: 600;
+    font-weight: 700;
   }
 
   [data-slide] [data-table] tbody tr:last-child > * {

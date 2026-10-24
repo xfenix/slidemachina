@@ -357,7 +357,7 @@ export default (
         <h2>Морфинг без разметки</h2>
         <div morph="story-card" className="flex w-[760px] flex-col gap-12 rounded-[48px] bg-(--code-background) p-16">
           <p morph="story-label" className="m-0 text-(--muted-color)">Выручка за год</p>
-          <p morph="story-number" className="m-0 text-[160px] leading-none font-bold tracking-tight text-(--accent-color)">+42%</p>
+          <p morph="story-number" className="m-0 text-(length:--display-size) leading-none font-bold tracking-tight text-(--accent-color)">+42%</p>
           <div className="flex h-44 items-end gap-5">
             <div morph="story-bar-1" className="h-[30%] w-20 rounded-2xl bg-(--accent-color) opacity-40" />
             <div morph="story-bar-2" className="h-[55%] w-20 rounded-2xl bg-(--accent-color) opacity-60" />
@@ -373,7 +373,7 @@ export default (
         <div morph="story-card" className="flex w-full flex-1 flex-col gap-12 rounded-[48px] bg-(--code-background) p-16">
           <div className="flex items-baseline justify-between">
             <p morph="story-label" className="m-0 text-(--muted-color)">Выручка за год</p>
-            <p morph="story-number" className="m-0 text-[88px] leading-none font-bold tracking-tight text-(--accent-color)">+42%</p>
+            <p morph="story-number" className="m-0 text-(length:--heading-size) leading-none font-bold tracking-tight text-(--accent-color)">+42%</p>
           </div>
           <div className="flex flex-1 items-end gap-10">
             <div morph="story-bar-1" className="h-[30%] flex-1 rounded-3xl bg-(--accent-color) opacity-40" />
@@ -387,19 +387,19 @@ export default (
 
       <Slide align="center">
         <h2>Морфинг без разметки</h2>
-        <p morph="story-number" className="m-0 text-[360px] leading-none font-bold tracking-tight text-(--accent-color)">+42%</p>
+        <p morph="story-number" className="m-0 text-(length:--display-size) leading-none font-bold tracking-tight text-(--accent-color)">+42%</p>
         <p morph="story-label" className="text-(--muted-color)">Выручка за год</p>
         <Caption>График стал большой цифрой. Пары задаёт атрибут morph</Caption>
       </Slide>
 
       <Slide align="center">
         <h2>Версия 0.1</h2>
-        <p className="text-[96px] leading-tight font-semibold">Слайды листаются</p>
+        <p className="text-(length:--display-size) leading-tight font-bold">Слайды листаются</p>
       </Slide>
 
       <Slide align="center">
         <h2>Версия 0.2</h2>
-        <p className="text-[96px] leading-tight font-semibold">Слайды листаются и перетекают</p>
+        <p className="text-(length:--display-size) leading-tight font-bold">Слайды листаются и перетекают</p>
         <p className="text-(--muted-color)">Общие слова переезжают, новые проявляются</p>
       </Slide>
 
