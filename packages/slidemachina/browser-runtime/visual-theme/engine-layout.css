@@ -184,4 +184,9 @@
     inset: 0;
     background: #000;
   }
+
+  /* A block that ends the slide reaches the bottom edge of the content area. */
+  [data-slide] [data-content] > :is([data-code], [data-media-frame], [data-columns], [data-table], [data-quote]):last-child {
+    margin-bottom: 0;
+  }
 }
