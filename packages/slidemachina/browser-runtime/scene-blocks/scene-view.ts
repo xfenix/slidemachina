@@ -24,14 +24,15 @@ function readReachedPartPositions(figureElement: HTMLElement): Set<number> | und
   return reachedPartPositions;
 }
 
-// Device pixels of the canvas on screen, with the slide's own scale; printed pages are drawn sharper for zooming in a PDF.
+// Device pixels of the canvas on screen, with the slide's own scale; printed pages are drawn sharper for zooming in a PDF,
+// whatever their scale in the print view.
 function measureFramePixels(canvasElement: HTMLCanvasElement): [number, number] | undefined {
   const layoutWidth = canvasElement.offsetWidth;
   const layoutHeight = canvasElement.offsetHeight;
   if (layoutWidth === 0 || layoutHeight === 0) return undefined;
   const displayScale = canvasElement.getBoundingClientRect().width / layoutWidth;
   const isPrinted = canvasElement.closest("[data-print-pages]") !== null;
-  const pixelRatio = displayScale * (isPrinted ? printedPixelRatio : Math.min(window.devicePixelRatio, largestPixelRatio));
+  const pixelRatio = isPrinted ? printedPixelRatio : displayScale * Math.min(window.devicePixelRatio, largestPixelRatio);
   const sizeLimit = Math.min(1, largestFramePixels / (Math.max(layoutWidth, layoutHeight) * pixelRatio));
   return [Math.max(1, Math.round(layoutWidth * pixelRatio * sizeLimit)), Math.max(1, Math.round(layoutHeight * pixelRatio * sizeLimit))];
 }

@@ -26,6 +26,41 @@
     overflow: hidden;
   }
 
+  /* The print view shows every page in a column, scaled to the window; the slides and their toolbar stay mounted but hidden. */
+  @media screen {
+    [data-presentation][data-print-view] {
+      overflow-y: auto;
+      background: var(--navigator-background);
+    }
+
+    [data-presentation][data-print-view] > :not([data-print-pages], [data-print-view-bar]) {
+      display: none;
+    }
+
+    [data-print-pages][data-print-view] {
+      position: static;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      width: auto;
+      height: auto;
+      padding: 48px 0 120px;
+      overflow: visible;
+    }
+
+    /* Scaled pages keep their 1920 px layout; negative margins shrink the space they take to the scaled size. */
+    [data-print-view] > [data-print-page] {
+      flex: none;
+      margin: 0 calc(var(--canvas-width) * (var(--print-view-scale) - 1) * 1px) calc(1080px * (var(--print-view-scale) - 1)) 0;
+      scale: var(--print-view-scale);
+      transform-origin: 0 0;
+      box-shadow:
+        0 0 0 1px rgb(255 255 255 / 0.1),
+        0 24px 64px rgb(0 0 0 / 0.4);
+    }
+  }
+
   @media print {
     :root {
       print-color-adjust: exact;
@@ -63,6 +98,12 @@
 
     [data-print-page]:last-child {
       break-after: auto;
+    }
+
+    /* A canvas redrawn after beforeprint is printed by replaying its drawing calls, and the replay erases the slide background
+       under a scene. With pixelated rendering Chrome prints the finished picture instead, still at its full resolution. */
+    [data-print-page] [data-scene-canvas] {
+      image-rendering: pixelated;
     }
 
     /* Chrome writes blurred shadows and mask images into a PDF as soft masks, and macOS Preview draws most of them as solid patches. */
