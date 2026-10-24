@@ -49,11 +49,12 @@ function wrapTextNodeWords(textNode: Text, wordElements: HTMLSpanElement[]): () 
   }
   wrappedFragment.append(textNode.data.slice(copiedLength));
   const insertedNodes = [...wrappedFragment.childNodes];
+  const [firstInsertedNode] = insertedNodes;
   textNode.replaceWith(wrappedFragment);
   return () => {
     // React may have replaced the whole text meanwhile; then there is nothing to put back.
-    if (!insertedNodes[0].isConnected) return;
-    insertedNodes[0].before(textNode);
+    if (firstInsertedNode?.isConnected !== true) return;
+    firstInsertedNode.before(textNode);
     for (const insertedNode of insertedNodes) insertedNode.remove();
   };
 }

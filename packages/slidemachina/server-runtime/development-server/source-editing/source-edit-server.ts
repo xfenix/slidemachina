@@ -26,7 +26,7 @@ function resolveSourceLocation(siteLayout: SiteLayout, sourceLocation: string): 
   if (locationMatch === null) throw new SourceEditProblem("elementMissing");
   let filePath;
   try {
-    filePath = realpathSync(path.resolve(siteLayout.rootFolder, locationMatch[1]));
+    filePath = realpathSync(path.resolve(siteLayout.rootFolder, locationMatch[1]!));
   } catch {
     throw new SourceEditProblem("elementMissing");
   }
@@ -69,20 +69,16 @@ async function applySourceEdit(siteLayout: SiteLayout, editRequest: EditRequest)
     await writeFile(filePath, moveDiagramBox(sourceCode, filePath, sourcePlace, boxPlacement));
     return;
   }
-  if (editRequest.editKind === "picture") {
-    const pictureBytes = Buffer.from(editRequest.pictureContent, "base64");
-    if (pictureBytes.length > largestPictureBytes) throw new SourceEditProblem("pictureTooLarge");
-    const presentationFolder = findPresentationFolder(siteLayout, filePath) ?? siteLayout.rootFolder;
-    const { picturePath, needsWriting } = await choosePicturePath(presentationFolder, editRequest.pictureName, pictureBytes);
-    const editedSource = rewritePictureSource(sourceCode, filePath, sourcePlace, toImportPath(path.dirname(filePath), picturePath));
-    if (needsWriting) {
-      await mkdir(path.dirname(picturePath), { recursive: true });
-      await writeFile(picturePath, pictureBytes);
-    }
-    await writeFile(filePath, editedSource);
-    return;
+  const pictureBytes = Buffer.from(editRequest.pictureContent, "base64");
+  if (pictureBytes.length > largestPictureBytes) throw new SourceEditProblem("pictureTooLarge");
+  const presentationFolder = findPresentationFolder(siteLayout, filePath) ?? siteLayout.rootFolder;
+  const { picturePath, needsWriting } = await choosePicturePath(presentationFolder, editRequest.pictureName, pictureBytes);
+  const editedSource = rewritePictureSource(sourceCode, filePath, sourcePlace, toImportPath(path.dirname(filePath), picturePath));
+  if (needsWriting) {
+    await mkdir(path.dirname(picturePath), { recursive: true });
+    await writeFile(picturePath, pictureBytes);
   }
-  throw new SourceEditProblem("elementMissing");
+  await writeFile(filePath, editedSource);
 }
 
 export function installSourceEditing(developmentServer: ViteDevServer, siteLayout: SiteLayout): void {

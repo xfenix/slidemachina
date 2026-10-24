@@ -107,7 +107,7 @@ function resolveColorOnce(builtScene: BuiltScene, cssColor: string): Color {
 // Sets where everything is heading; a snap puts it there at once, for a frame that is not on screen yet.
 export function aimScene(builtScene: BuiltScene, scenePoses: ScenePoses, frameAspect: number, snapsAtOnce: boolean) {
   for (const [partPosition, objectMotion] of builtScene.objectMotions) {
-    const objectPart = builtScene.sceneParts[partPosition];
+    const objectPart = builtScene.sceneParts[partPosition]!;
     const objectPose = scenePoses.objectPoses.get(partPosition)!;
     const defaultColor = objectPart.partKind === "text" ? builtScene.sceneLook.textColor : builtScene.sceneLook.objectColor;
     aimObjectMotion(objectMotion, objectPose, resolveColorOnce(builtScene, objectPose.color ?? defaultColor));

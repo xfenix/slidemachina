@@ -11,22 +11,23 @@ function normalizeTypedText(shownText: string) {
 // The same text nodes go back after typing: React keeps references to them.
 export function beginTextEditing(textElement: HTMLElement, editingCallbacks: TextEditingCallbacks) {
   const reactNodes = [...textElement.childNodes];
-  const reactValues = reactNodes.map((reactNode) => reactNode.nodeValue);
-  const shownText = normalizeTypedText(textElement.textContent ?? "");
+  const reactTexts = reactNodes.map((reactNode) => ({ reactNode, reactValue: reactNode.nodeValue }));
+  const shownText = normalizeTypedText(textElement.textContent);
   let isFinished = false;
 
   const restoreReactNodes = (firstValue?: string) => {
     textElement.replaceChildren(...reactNodes);
-    reactNodes.forEach((reactNode, nodePosition) => {
-      if (reactNode.nodeType === Node.TEXT_NODE) reactNode.nodeValue = reactValues[nodePosition];
-    });
-    if (firstValue !== undefined && reactNodes.length === 1 && reactNodes[0].nodeType === Node.TEXT_NODE) reactNodes[0].nodeValue = firstValue;
+    for (const { reactNode, reactValue } of reactTexts) {
+      if (reactNode.nodeType === Node.TEXT_NODE) reactNode.nodeValue = reactValue;
+    }
+    const [onlyReactNode] = reactNodes;
+    if (firstValue !== undefined && reactNodes.length === 1 && onlyReactNode?.nodeType === Node.TEXT_NODE) onlyReactNode.nodeValue = firstValue;
   };
 
   const finishTyping = (keepsText: boolean) => {
     if (isFinished) return;
     isFinished = true;
-    const typedText = normalizeTypedText(textElement.textContent ?? "");
+    const typedText = normalizeTypedText(textElement.textContent);
     textElement.removeEventListener("keydown", handleKeydown);
     textElement.removeEventListener("blur", handleBlur);
     textElement.removeAttribute("contenteditable");

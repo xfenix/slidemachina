@@ -59,6 +59,10 @@ const editorTextsByLanguage = {
 export type EditorTexts = (typeof editorTextsByLanguage)["en"];
 export type SourceEditProblemCode = keyof EditorTexts["problems"];
 
+export function isSourceEditProblemCode(editorTexts: EditorTexts, problemCode: string): problemCode is SourceEditProblemCode {
+  return Object.hasOwn(editorTexts.problems, problemCode);
+}
+
 export function pickEditorTexts(languageCode: string): EditorTexts {
   return editorTextsByLanguage[pickTextLanguage(languageCode)];
 }

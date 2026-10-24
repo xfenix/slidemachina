@@ -38,21 +38,22 @@ export function isOwnPageRequest(incomingRequest: IncomingMessage): boolean {
 }
 
 // Every field goes into a source file, so each one is checked by type first.
-function checkEditRequest(editRequest: Record<string, unknown> | undefined): EditRequest {
+function checkEditRequest(parsedBody: unknown): EditRequest {
+  const editRequest: Record<string, unknown> = typeof parsedBody === "object" && parsedBody !== null ? { ...parsedBody } : {};
   const isString = (candidateField: unknown) => typeof candidateField === "string";
   const isMissingOr = (candidateField: unknown, isValidField: (checkedField: unknown) => boolean) =>
     candidateField === undefined || isValidField(candidateField);
   const isColumnNumber = (candidateField: unknown) => typeof candidateField === "number" && Number.isInteger(candidateField) && candidateField >= 1;
-  const editKind = editRequest?.editKind;
+  const editKind = editRequest.editKind;
   const isWellFormed =
-    isString(editRequest?.sourceLocation) &&
-    isMissingOr(editRequest?.sourceVersion, isString) &&
-    ((editKind === "text" && isString(editRequest?.typedText)) ||
-      (editKind === "picture" && isString(editRequest?.pictureName) && isString(editRequest?.pictureContent)) ||
+    isString(editRequest.sourceLocation) &&
+    isMissingOr(editRequest.sourceVersion, isString) &&
+    ((editKind === "text" && isString(editRequest.typedText)) ||
+      (editKind === "picture" && isString(editRequest.pictureName) && isString(editRequest.pictureContent)) ||
       (editKind === "box" &&
-        isMissingOr(editRequest?.columnNumber, isColumnNumber) &&
-        isMissingOr(editRequest?.anchorLocation, isString) &&
-        isMissingOr(editRequest?.anchorSide, (candidateField) => anchorSides.has(candidateField))));
+        isMissingOr(editRequest.columnNumber, isColumnNumber) &&
+        isMissingOr(editRequest.anchorLocation, isString) &&
+        isMissingOr(editRequest.anchorSide, (candidateField) => anchorSides.has(candidateField))));
   if (!isWellFormed) throw new SourceEditProblem("wrongRequest");
   return editRequest as EditRequest;
 }

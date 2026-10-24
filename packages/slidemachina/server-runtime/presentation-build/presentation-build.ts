@@ -142,7 +142,8 @@ export async function buildPresentation(
       }
       builtPages.push(singleFileFolder);
     }
-    if (processBuiltPage !== undefined) await processBuiltPage(builtPages[0], nameStepTitle);
+    const [firstBuiltPage] = builtPages;
+    if (processBuiltPage !== undefined && firstBuiltPage !== undefined) await processBuiltPage(firstBuiltPage, nameStepTitle);
   } finally {
     rmSync(temporaryFolder, { recursive: true, force: true });
   }

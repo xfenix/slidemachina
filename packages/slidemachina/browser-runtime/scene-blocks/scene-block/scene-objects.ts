@@ -90,7 +90,7 @@ export function buildSceneLights(sceneParts: ScenePart[], sceneLook: SceneLook):
   if (sceneLights.length === 0) {
     sceneLights.push({ partPosition: undefined, fullIntensity: defaultLightIntensity, ...createDirectionalLight(defaultLightPosition, undefined, sceneLook) });
   }
-  const shadowLight = sceneLights[0].directionalLight;
+  const shadowLight = sceneLights[0]!.directionalLight;
   shadowLight.castShadow = true;
   shadowLight.shadow.mapSize.set(shadowMapSize, shadowMapSize);
   shadowLight.shadow.radius = shadowRadius;

@@ -22,7 +22,7 @@ function listCodeLines(codeElement: HTMLElement): HTMLElement[][] {
 }
 
 function readPieceTexts(codePieces: HTMLElement[]): string[] {
-  return codePieces.map((codePiece) => codePiece.textContent ?? "");
+  return codePieces.map((codePiece) => codePiece.textContent);
 }
 
 // The longest common subsequence keeps the order, so matched pieces never cross each other on the way.
@@ -34,8 +34,8 @@ function matchSequences(outgoingTexts: string[], incomingTexts: string[]): Array
       const cellIndex = outgoingPosition * rowLength + incomingPosition;
       commonLengths[cellIndex] =
         outgoingTexts[outgoingPosition] === incomingTexts[incomingPosition]
-          ? commonLengths[cellIndex + rowLength + 1] + 1
-          : Math.max(commonLengths[cellIndex + rowLength], commonLengths[cellIndex + 1]);
+          ? commonLengths[cellIndex + rowLength + 1]! + 1
+          : Math.max(commonLengths[cellIndex + rowLength]!, commonLengths[cellIndex + 1]!);
     }
   }
   const matchedPositions: Array<[number, number]> = [];
@@ -47,7 +47,7 @@ function matchSequences(outgoingTexts: string[], incomingTexts: string[]): Array
       matchedPositions.push([outgoingPosition, incomingPosition]);
       outgoingPosition += 1;
       incomingPosition += 1;
-    } else if (commonLengths[cellIndex + rowLength] >= commonLengths[cellIndex + 1]) {
+    } else if (commonLengths[cellIndex + rowLength]! >= commonLengths[cellIndex + 1]!) {
       outgoingPosition += 1;
     } else {
       incomingPosition += 1;
@@ -65,14 +65,14 @@ function matchCodeLines(outgoingLines: HTMLElement[][], incomingLines: HTMLEleme
   const pieceMatches: PieceMatch[] = [];
   const matchPieces = (outgoingPieces: HTMLElement[], incomingPieces: HTMLElement[]) => {
     for (const [outgoingPosition, incomingPosition] of matchSequences(readPieceTexts(outgoingPieces), readPieceTexts(incomingPieces))) {
-      pieceMatches.push({ outgoingPiece: outgoingPieces[outgoingPosition], incomingPiece: incomingPieces[incomingPosition] });
+      pieceMatches.push({ outgoingPiece: outgoingPieces[outgoingPosition]!, incomingPiece: incomingPieces[incomingPosition]! });
     }
   };
   let outgoingGapStart = 0;
   let incomingGapStart = 0;
-  for (const [outgoingLineIndex, incomingLineIndex] of [...lineAnchors, [outgoingLines.length, incomingLines.length]]) {
+  for (const [outgoingLineIndex, incomingLineIndex] of [...lineAnchors, [outgoingLines.length, incomingLines.length] as const]) {
     matchPieces(outgoingLines.slice(outgoingGapStart, outgoingLineIndex).flat(), incomingLines.slice(incomingGapStart, incomingLineIndex).flat());
-    if (outgoingLineIndex < outgoingLines.length) matchPieces(outgoingLines[outgoingLineIndex], incomingLines[incomingLineIndex]);
+    if (outgoingLineIndex < outgoingLines.length) matchPieces(outgoingLines[outgoingLineIndex]!, incomingLines[incomingLineIndex]!);
     outgoingGapStart = outgoingLineIndex + 1;
     incomingGapStart = incomingLineIndex + 1;
   }

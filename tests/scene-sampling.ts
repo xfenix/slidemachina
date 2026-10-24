@@ -9,7 +9,7 @@ export function sampleSceneCanvas(sceneCanvas: Locator) {
     sampleContext.drawImage(canvasElement, 0, 0, 96, 54);
     const samplePixels = sampleContext.getImageData(0, 0, 96, 54).data;
     let paintedPixels = 0;
-    for (let alphaIndex = 3; alphaIndex < samplePixels.length; alphaIndex += 4) if (samplePixels[alphaIndex] > 0) paintedPixels += 1;
+    for (let alphaIndex = 3; alphaIndex < samplePixels.length; alphaIndex += 4) if (samplePixels[alphaIndex]! > 0) paintedPixels += 1;
     return { paintedPixels, frameFingerprint: samplePixels.join(",") };
   });
 }

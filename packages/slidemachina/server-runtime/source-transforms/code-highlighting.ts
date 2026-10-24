@@ -20,7 +20,7 @@ async function loadHighlighter(languageName: string) {
 // Code inside JSX is indented with the markup; the slide shows it from the left edge.
 function dedentCode(codeText: string): string {
   const codeLines = codeText.replace(/\r\n?/g, "\n").split("\n");
-  while (codeLines.length > 0 && codeLines[0].trim() === "") codeLines.shift();
+  while (codeLines[0]?.trim() === "") codeLines.shift();
   while (codeLines.length > 0 && codeLines.at(-1)?.trim() === "") codeLines.pop();
   const indentWidths = codeLines.filter((codeLine) => codeLine.trim() !== "").map((codeLine) => codeLine.search(/\S/));
   const commonIndent = indentWidths.length > 0 ? Math.min(...indentWidths) : 0;

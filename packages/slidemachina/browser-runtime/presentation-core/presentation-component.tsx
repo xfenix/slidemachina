@@ -94,7 +94,7 @@ export function Presentation({
 
   // A copy is a thumbnail or a printed page: it is never current and shows the step it is given.
   const renderSlide = (slideIndex: number, copiedStep?: number) => {
-    const outlinedSlide = outlinedSlides[slideIndex];
+    const outlinedSlide = outlinedSlides[slideIndex]!;
     const isSlideCopy = copiedStep !== undefined;
     const isCurrentSlide = !isSlideCopy && slideIndex === currentPosition.slideIndex;
     const slidesAhead = slideIndex - currentPosition.slideIndex;

@@ -4,6 +4,8 @@ import { pickTextLanguage } from "../../shared-between-runtimes/text-language.ts
 // A neighbouring element is out of sight for the typographer, so a stand-in word keeps the space next to it.
 const neighbourStandIn = "Ограда";
 
+const entityPattern = /&(#x[\da-f]+|#\d+|\w+);/gi;
+
 const namedEntities: Record<string, string> = {
   amp: "&",
   lt: "<",
@@ -34,15 +36,15 @@ function pickTypographer(languageCode: string): Typograf {
 
 // Returns undefined for an entity it does not know, so that text is left alone.
 export function decodeEntities(encodedText: string): string | undefined {
-  let hasUnknownEntity = false;
-  const decodedText = encodedText.replace(/&(#x[\da-f]+|#\d+|\w+);/gi, (entityText: string, entityBody: string) => {
-    if (entityBody.startsWith("#x") || entityBody.startsWith("#X")) return String.fromCodePoint(Number.parseInt(entityBody.slice(2), 16));
-    if (entityBody.startsWith("#")) return String.fromCodePoint(Number.parseInt(entityBody.slice(1), 10));
-    if (entityBody in namedEntities) return namedEntities[entityBody];
-    hasUnknownEntity = true;
-    return entityText;
-  });
-  return hasUnknownEntity ? undefined : decodedText;
+  const entityBodies = [...encodedText.matchAll(entityPattern)].map((entityMatch) => entityMatch[1]!);
+  if (!entityBodies.every((entityBody) => decodeEntity(entityBody) !== undefined)) return undefined;
+  return encodedText.replace(entityPattern, (_entityText: string, entityBody: string) => decodeEntity(entityBody)!);
+}
+
+function decodeEntity(entityBody: string): string | undefined {
+  if (entityBody.startsWith("#x") || entityBody.startsWith("#X")) return String.fromCodePoint(Number.parseInt(entityBody.slice(2), 16));
+  if (entityBody.startsWith("#")) return String.fromCodePoint(Number.parseInt(entityBody.slice(1), 10));
+  return Object.hasOwn(namedEntities, entityBody) ? namedEntities[entityBody] : undefined;
 }
 
 // The same whitespace rules the JSX compiler applies: lines are trimmed and joined with one space.

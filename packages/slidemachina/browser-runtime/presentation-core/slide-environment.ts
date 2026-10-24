@@ -56,7 +56,7 @@ export function useSlideEnvironments(
       if (cachedEnvironment !== undefined) return cachedEnvironment;
       const slideEnvironment: SlideEnvironment = {
         slideNumber: slideIndex + 1,
-        sectionTrail: sectionTrails[slideIndex],
+        sectionTrail: sectionTrails[slideIndex] ?? [],
         isCurrentSlide,
         isSlideNearby,
         isSlideCopy,

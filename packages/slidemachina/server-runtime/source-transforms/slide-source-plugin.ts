@@ -64,7 +64,7 @@ export function createSlideSourcePlugin(siteLayout: SiteLayout): Plugin {
       installSourceEditing(developmentServer, siteLayout);
     },
     async transform(sourceCode, moduleId) {
-      const filePath = moduleId.split("?")[0];
+      const filePath = moduleId.replace(/\?.*$/, "");
       if (!isSlideSourceFile(siteLayout, filePath)) return undefined;
 
       const syntaxTree = parseSlideSource(sourceCode, filePath);

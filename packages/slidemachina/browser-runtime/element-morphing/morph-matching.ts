@@ -36,7 +36,7 @@ function describeMorphKey(candidateElement: HTMLElement): string | undefined {
     const mediaSource = candidateElement.getAttribute("src");
     return mediaSource ? `${candidateElement.tagName}:${mediaSource}` : undefined;
   }
-  const normalizedText = candidateElement.textContent?.replace(/\s+/g, " ").trim();
+  const normalizedText = candidateElement.textContent.replace(/\s+/g, " ").trim();
   return normalizedText ? `${candidateElement.tagName}:${normalizedText}` : undefined;
 }
 
@@ -89,7 +89,7 @@ export function findRewordedPairs(outgoingSlide: HTMLElement, incomingSlide: HTM
     for (const { incomingElement, incomingWords } of incomingCandidates) {
       if (incomingElement.tagName !== outgoingElement.tagName || pairedElements.has(incomingElement)) continue;
       const wordMatches = matchWords(outgoingWords, incomingWords);
-      const sharedWordCount = countRealWords(wordMatches.map((wordMatch) => outgoingWords[wordMatch.outgoingWordPosition]));
+      const sharedWordCount = countRealWords(wordMatches.map((wordMatch) => outgoingWords[wordMatch.outgoingWordPosition]!));
       const longerWordCount = Math.max(countRealWords(outgoingWords), countRealWords(incomingWords));
       const sharesEnoughWords = sharedWordCount > 0 && sharedWordCount * 2 >= longerWordCount;
       if (sharesEnoughWords && wordMatches.length > (bestPair?.wordMatches.length ?? 0)) {

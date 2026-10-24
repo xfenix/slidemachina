@@ -9,7 +9,7 @@ export function resolveSceneColor(probeElement: HTMLElement, cssColor: string): 
   colorSamplingContext.clearRect(0, 0, 1, 1);
   colorSamplingContext.fillStyle = getComputedStyle(probeElement).color;
   colorSamplingContext.fillRect(0, 0, 1, 1);
-  const [redLevel, greenLevel, blueLevel] = colorSamplingContext.getImageData(0, 0, 1, 1).data;
+  const [redLevel = 0, greenLevel = 0, blueLevel = 0] = colorSamplingContext.getImageData(0, 0, 1, 1).data;
   return new Color().setRGB(redLevel / 255, greenLevel / 255, blueLevel / 255, SRGBColorSpace);
 }
 

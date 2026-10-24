@@ -19,7 +19,8 @@
     "typescript/await-thenable": "error",
     "typescript/no-unnecessary-type-assertion": "error",
     "typescript/switch-exhaustiveness-check": "error",
-    "typescript/prefer-promise-reject-errors": "error"
+    "typescript/prefer-promise-reject-errors": "error",
+    "typescript/no-unnecessary-condition": "error"
   },
   "env": {
     "builtin": true

@@ -65,13 +65,13 @@ test("репозиторий презентаций: список с облож�
       await expect(page.locator("[data-list-meta] time").first()).toHaveText("23 октября 2026");
       for (const [cardIndex, presentationTitle] of presentationTitles.entries()) {
         const coverFrame = page.frameLocator("[data-list-cover] iframe").nth(cardIndex);
-        await expect(coverFrame.locator("[data-cover-preview] [data-slide] h1")).toHaveText(presentationTitle.split(":")[0]);
+        await expect(coverFrame.locator("[data-cover-preview] [data-slide] h1")).toHaveText(presentationTitle.split(":")[0]!);
       }
       await expect(page.frameLocator("[data-list-cover] iframe").first().locator("[data-toolbar]")).toHaveCount(0);
       expect(requestedAddresses.filter((requestedAddress) => heavyRequestPattern.test(requestedAddress))).toEqual([]);
       // The cards share the width of the page instead of huddling in the left corner.
       const cardWidths = await page.locator("[data-list-card]").evaluateAll((cardElements) => cardElements.map((cardElement) => cardElement.getBoundingClientRect().width));
-      expect(cardWidths[0] * cardWidths.length, "карточки занимают ширину страницы").toBeGreaterThan(1440 * 0.8);
+      expect(cardWidths[0]! * cardWidths.length, "карточки занимают ширину страницы").toBeGreaterThan(1440 * 0.8);
     });
 
     await test.step("клик по карточке открывает презентацию, тема: движок → общая → своя", async () => {

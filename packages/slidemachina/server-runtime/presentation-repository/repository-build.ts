@@ -39,7 +39,7 @@ function describeBuiltCard(presentationCard: PresentationCard, chosenVariants: B
   const opensPage = chosenVariants.some((variantName) => pageVariantNames.includes(variantName));
   return {
     ...presentationCard,
-    pageAddress: opensPage ? toListAddress(outputPaths.html) : downloads[0].downloadAddress,
+    pageAddress: opensPage ? toListAddress(outputPaths.html) : downloads[0]!.downloadAddress,
     isProtected: chosenVariants.includes("protected"),
     coverKind: hasCover ? "picture" : "none",
     coverAddress: toListAddress(coverFileName),

@@ -263,3 +263,21 @@ SVG стоит после `h1`, а не внутри: иначе цифры по
 Правила `react/immutability` и `react/set-state-in-effect` включены. Три точечных отключения с причиной: кэш в `useSlideEnvironments` и два места, где state задаётся из замера DOM или ref в layout-эффекте (`background-tone.ts`, `print-pages.tsx`). React такой приём разрешает, а порт правила в Oxlint об этом не знает. Отключения правил `react/` компилятор не считает поводом пропустить компонент.
 
 Сборка демо идёт 0,4–0,9 с, как и без компилятора. Ускорение на клавише не мерили.
+
+## Доступ по индексу
+
+В `tsconfig.json` включили `noUncheckedIndexedAccess`. Теперь `array[index]` и `record[key]` имеют тип `T | undefined`: TypeScript заставляет проверить, что элемент есть. Вместе с опцией включили `typescript/no-unnecessary-condition`. Без неё правило считало лишней каждую нашу проверку `array[index] === undefined`.
+
+Опция дала 82 ошибки `tsc`. Как разбирали:
+- где индекс гарантирован условием цикла или проверкой длины, поставили `!`, как уже было принято в коде (`routePoints.at(-1)!`);
+- где можно, переписали без индекса: `codeLines[0]?.trim()`, `findLastIndex` в `source-marking.ts`, деструктуризация с проверкой в `word-morphing.ts`, пары узел-значение в `text-editing.ts`, `moduleId.replace` вместо `split("?")[0]`;
+- где элемента может не быть, добавили проверку: миниатюра в навигаторе, первая собранная страница в `presentation-build.ts`.
+
+Нашлась настоящая ошибка: `decodeEntities` проверял сущность через `entityBody in namedEntities`, а `in` смотрит и в прототип объекта. Текст `&constructor;` превращался в `function Object() { [native code] }`. Теперь проверка через `Object.hasOwn`, и неизвестная сущность оставляет текст как есть.
+
+Что правило нашло после этого:
+- `?? ""` после `textContent` у `HTMLElement` лишний: там всегда строка;
+- `checkEditRequest` принимал `Record<string, unknown> | undefined`, хотя на входе результат `JSON.parse`. Теперь параметр `unknown`, и он сначала приводится к объекту;
+- код ошибки правки приходит от сервера строкой. Раньше клиент сразу считал его известным кодом. Теперь `isSourceEditProblemCode` проверяет код, незнакомый показывается как `writeFailed`;
+- последняя ветка `applySourceEdit` проверяла `editKind === "picture"`, хотя других вариантов уже нет. Проверку и недостижимый `throw` убрали: новый вид правки теперь не соберётся, пока его не обработают;
+- `document.startViewTransition` по типам есть всегда, а в старых браузерах его нет. Проверка теперь через `"startViewTransition" in document`.

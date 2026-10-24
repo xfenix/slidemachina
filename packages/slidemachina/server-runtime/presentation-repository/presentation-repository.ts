@@ -46,7 +46,7 @@ export function findPresentationFolder(siteLayout: SiteLayout, filePath: string)
   const relativePath = path.relative(siteLayout.rootFolder, filePath);
   if (relativePath !== "" && !isInsideFolder(siteLayout.rootFolder, filePath)) return undefined;
   if (!siteLayout.isRepository) return siteLayout.rootFolder;
-  const presentationFolder = path.join(siteLayout.rootFolder, relativePath.split(path.sep)[0]);
+  const presentationFolder = path.join(siteLayout.rootFolder, relativePath.split(path.sep)[0]!);
   return existsSync(path.join(presentationFolder, presentationFileName)) ? presentationFolder : undefined;
 }
 

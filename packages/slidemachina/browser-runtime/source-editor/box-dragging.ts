@@ -46,7 +46,7 @@ function collectColumnSlots(levelNodes: LevelNode[], draggedNode: LevelNode): Co
   for (const columnSlot of sortedSlots) columnSlot.members.sort((firstNode, secondNode) => firstNode.axisFrame.crossStart - secondNode.axisFrame.crossStart);
   const lastSlot = sortedSlots.at(-1)!;
   const draggedFlowSize = draggedNode.axisFrame.flowEnd - draggedNode.axisFrame.flowStart;
-  const columnGap = sortedSlots.length > 1 ? sortedSlots[1].flowStart - sortedSlots[0].flowEnd : draggedFlowSize / 2;
+  const columnGap = sortedSlots.length > 1 ? sortedSlots[1]!.flowStart - sortedSlots[0]!.flowEnd : draggedFlowSize / 2;
   const newSlotStart = lastSlot.flowEnd + columnGap;
   sortedSlots.push({ columnNumber: lastSlot.columnNumber + 1, flowStart: newSlotStart, flowEnd: newSlotStart + draggedFlowSize, members: [] });
   return sortedSlots;
@@ -54,10 +54,10 @@ function collectColumnSlots(levelNodes: LevelNode[], draggedNode: LevelNode): Co
 
 function findInsertionCross(columnMembers: LevelNode[], insertionIndex: number): number | undefined {
   if (columnMembers.length === 0) return undefined;
-  const memberGap = columnMembers.length > 1 ? columnMembers[1].axisFrame.crossStart - columnMembers[0].axisFrame.crossEnd : largestMemberGap;
-  if (insertionIndex === 0) return columnMembers[0].axisFrame.crossStart - memberGap / 2;
+  const memberGap = columnMembers.length > 1 ? columnMembers[1]!.axisFrame.crossStart - columnMembers[0]!.axisFrame.crossEnd : largestMemberGap;
+  if (insertionIndex === 0) return columnMembers[0]!.axisFrame.crossStart - memberGap / 2;
   if (insertionIndex === columnMembers.length) return columnMembers.at(-1)!.axisFrame.crossEnd + memberGap / 2;
-  return (columnMembers[insertionIndex - 1].axisFrame.crossEnd + columnMembers[insertionIndex].axisFrame.crossStart) / 2;
+  return (columnMembers[insertionIndex - 1]!.axisFrame.crossEnd + columnMembers[insertionIndex]!.axisFrame.crossStart) / 2;
 }
 
 // The box snaps to the nearest column and slides freely across it; a line shows where it lands among the other boxes.
@@ -121,7 +121,7 @@ export function beginBoxDrag(boxElement: HTMLElement, startX: number, startY: nu
       insertionCross === undefined
         ? draggedCrossCenter - draggedCrossSize / 2
         : chosenIndex < columnMembers.length
-          ? columnMembers[chosenIndex].axisFrame.crossStart
+          ? columnMembers[chosenIndex]!.axisFrame.crossStart
           : 2 * insertionCross - columnMembers.at(-1)!.axisFrame.crossEnd;
     const landingShift = shiftBox(snappedFlowStart, landingCrossStart);
     heldPlace = { left: laidOutPlace.left + landingShift.shiftX, top: laidOutPlace.top + landingShift.shiftY };

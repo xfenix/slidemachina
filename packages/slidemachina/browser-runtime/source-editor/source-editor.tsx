@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { beginBoxDrag, type BoxDragGuides } from "./box-dragging.ts";
 import { findLiveTarget, followOutlines, isAgentationPicking, type InteractionState, type ShownOutline } from "./editor-outlines.ts";
-import { pickEditorTexts } from "./editor-texts.ts";
+import { isSourceEditProblemCode, pickEditorTexts } from "./editor-texts.ts";
 import { choosePictureFile, replacePicture } from "./picture-replacement.ts";
 import { readSourceFile, sendSourceEdit, SourceEditFailure, type SourceEditRequest } from "./source-edit-requests.ts";
 import { beginTextEditing } from "./text-editing.ts";
@@ -36,7 +36,7 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
         return true;
       } catch (editFailure) {
         const problemCode = editFailure instanceof SourceEditFailure ? editFailure.problemCode : "writeFailed";
-        setEditorStatus({ statusTone: "problem", statusText: editorTexts.problems[problemCode] ?? editorTexts.problems.writeFailed });
+        setEditorStatus({ statusTone: "problem", statusText: editorTexts.problems[isSourceEditProblemCode(editorTexts, problemCode) ? problemCode : "writeFailed"] });
         return false;
       }
     };

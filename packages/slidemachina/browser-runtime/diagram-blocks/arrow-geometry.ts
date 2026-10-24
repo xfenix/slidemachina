@@ -32,11 +32,11 @@ export function drawArrow(routePoints: ElkPoint[], cornerRadius: number): ArrowD
   const beforeTipPoint = routePoints.at(-2) ?? tipPoint;
   const lineEndPoint = moveToward(tipPoint, beforeTipPoint, arrowHeadLength * lineInsideHeadShare);
   const linePoints = [...routePoints.slice(0, -1), lineEndPoint];
-  let linePath = `M${formatPoint(linePoints[0])}`;
+  let linePath = `M${formatPoint(linePoints[0]!)}`;
   for (let pointPosition = 1; pointPosition < linePoints.length - 1; pointPosition += 1) {
-    const previousPoint = linePoints[pointPosition - 1];
-    const bendPoint = linePoints[pointPosition];
-    const nextPoint = linePoints[pointPosition + 1];
+    const previousPoint = linePoints[pointPosition - 1]!;
+    const bendPoint = linePoints[pointPosition]!;
+    const nextPoint = linePoints[pointPosition + 1]!;
     const bendRadius = Math.min(cornerRadius, measureDistance(previousPoint, bendPoint) / 2, measureDistance(bendPoint, nextPoint) / 2);
     linePath += ` L${formatPoint(moveToward(bendPoint, previousPoint, bendRadius))}`;
     linePath += ` Q${formatPoint(bendPoint)} ${formatPoint(moveToward(bendPoint, nextPoint, bendRadius))}`;
@@ -59,7 +59,7 @@ export function drawArrow(routePoints: ElkPoint[], cornerRadius: number): ArrowD
 
 // The label sits on the longest straight run across the flow; columns are spaced to fit it.
 export function placeArrowLabel(routePoints: ElkPoint[], labelWidth: number, labelHeight: number, flowsRight: boolean, labelDistance: number): LabelFrame {
-  const routeSegments = routePoints.slice(1).map((endPoint, segmentPosition) => ({ startPoint: routePoints[segmentPosition], endPoint }));
+  const routeSegments = routePoints.slice(1).map((endPoint, segmentPosition) => ({ startPoint: routePoints[segmentPosition]!, endPoint }));
   const runsAlongFlow = (startPoint: ElkPoint, endPoint: ElkPoint) => (flowsRight ? startPoint.y === endPoint.y : startPoint.x === endPoint.x);
   const preferredSegments = routeSegments.filter(({ startPoint, endPoint }) => runsAlongFlow(startPoint, endPoint));
   const candidateSegments = preferredSegments.length > 0 ? preferredSegments : routeSegments;

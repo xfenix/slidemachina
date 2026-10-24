@@ -120,7 +120,9 @@ function groupSlidesBySection(outlinedSlides: OutlinedSlide[]): SlideGroup[] {
 
 // Groups make rows of different length, so the next row is found on screen, not by arithmetic.
 function findVerticalNeighbour(thumbnailElements: HTMLButtonElement[], selectedSlideIndex: number, rowDirection: 1 | -1) {
-  const selectedBox = thumbnailElements[selectedSlideIndex].getBoundingClientRect();
+  const selectedThumbnail = thumbnailElements[selectedSlideIndex];
+  if (selectedThumbnail === undefined) return selectedSlideIndex;
+  const selectedBox = selectedThumbnail.getBoundingClientRect();
   let nearestSlideIndex = selectedSlideIndex;
   let nearestDistance = Infinity;
   thumbnailElements.forEach((thumbnailElement, slideIndex) => {

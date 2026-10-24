@@ -1,4 +1,3 @@
-import type { SourceEditProblemCode } from "./editor-texts.ts";
 import { sourceEditEndpoint } from "../../shared-between-runtimes/engine-constants.js";
 
 const longestUpdateWait = 4000;
@@ -16,7 +15,7 @@ export type SourceEditRequest =
   | { editKind: "box"; sourceLocation: string; columnNumber?: number; anchorLocation?: string; anchorSide?: "before" | "after" };
 
 export class SourceEditFailure extends Error {
-  constructor(readonly problemCode: SourceEditProblemCode) {
+  constructor(readonly problemCode: string) {
     super(problemCode);
   }
 }
@@ -58,7 +57,7 @@ async function sendQueuedEdit(editRequest: SourceEditRequest) {
     throw new SourceEditFailure("serverUnreachable");
   });
   if (!editResponse.ok) {
-    const problemAnswer = (await editResponse.json().catch(() => ({}))) as { problemCode?: SourceEditProblemCode };
+    const problemAnswer = (await editResponse.json().catch(() => ({}))) as { problemCode?: string };
     throw new SourceEditFailure(problemAnswer.problemCode ?? "writeFailed");
   }
   await waitForSourceUpdate(sourceFile, sourceVersion);

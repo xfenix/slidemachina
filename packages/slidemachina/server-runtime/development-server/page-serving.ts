@@ -32,7 +32,7 @@ function findRequestedPresentation(siteLayout: SiteLayout, requestedPath: string
   if (pageMatch === null) return undefined;
   let folderName;
   try {
-    folderName = decodeURIComponent(pageMatch[1]);
+    folderName = decodeURIComponent(pageMatch[1]!);
   } catch {
     return undefined;
   }

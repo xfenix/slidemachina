@@ -70,9 +70,9 @@ function measureTone(backgroundColor: string, backgroundImage?: HTMLImageElement
     let luminanceTotal = 0;
     for (let byteOffset = 0; byteOffset < pixelBytes.length; byteOffset += colorChannelCount) {
       luminanceTotal +=
-        redLuminanceShare * pixelBytes[byteOffset] +
-        greenLuminanceShare * pixelBytes[byteOffset + 1] +
-        blueLuminanceShare * pixelBytes[byteOffset + 2];
+        redLuminanceShare * pixelBytes[byteOffset]! +
+        greenLuminanceShare * pixelBytes[byteOffset + 1]! +
+        blueLuminanceShare * pixelBytes[byteOffset + 2]!;
     }
     return luminanceTotal / (samplingSize * samplingSize) / brightestLevel < darkLuminanceLimit ? "dark" : "light";
   } catch {

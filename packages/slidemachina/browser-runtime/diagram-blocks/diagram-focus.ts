@@ -57,8 +57,8 @@ export function useFocusSteps(diagramElementReference: RefObject<HTMLElement | n
   // Runs after every render: hot reload brings new parts without the focus marks.
   useLayoutEffect(() => {
     const diagramElement = diagramElementReference.current;
-    const slideElement = diagramElement?.closest<HTMLElement>("[data-slide]");
-    if (diagramElement === null || diagramElement === undefined || slideElement === null || slideElement === undefined) return;
+    const slideElement = diagramElement?.closest<HTMLElement>("[data-slide]") ?? null;
+    if (diagramElement === null || slideElement === null) return;
     const showReachedFocus = () => applyFocus(diagramElement);
     showReachedFocus();
     slideElement.addEventListener(stepChangeEventName, showReachedFocus);

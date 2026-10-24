@@ -24,9 +24,8 @@ export function findLineStarts(sourceCode: string): number[] {
 
 // Lines and columns count from 1, as editors and terminals show them: index.tsx:42:7.
 function describeOffset(lineStarts: number[], sourceOffset: number): string {
-  let lineIndex = lineStarts.length - 1;
-  while (lineStarts[lineIndex] > sourceOffset) lineIndex -= 1;
-  return `${lineIndex + 1}:${sourceOffset - lineStarts[lineIndex] + 1}`;
+  const lineIndex = lineStarts.findLastIndex((lineStart) => lineStart <= sourceOffset);
+  return `${lineIndex + 1}:${sourceOffset - lineStarts[lineIndex]! + 1}`;
 }
 
 function hasReplaceablePicture(elementNode: SyntaxNode): boolean {

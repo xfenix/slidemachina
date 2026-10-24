@@ -32,7 +32,7 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
   const outgoingSlide = slideElements[outgoingSlideIndex];
   const incomingSlide = slideElements[incomingSlideIndex];
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (document.startViewTransition === undefined || prefersReducedMotion || !outgoingSlide || !incomingSlide) {
+  if (!("startViewTransition" in document) || prefersReducedMotion || !outgoingSlide || !incomingSlide) {
     updateSlides();
     return;
   }

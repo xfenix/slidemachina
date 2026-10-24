@@ -55,9 +55,9 @@ test("редактор правит текст, двигает блок схем
     await test.step("метки «файл:строка» ведут на свой тег", async () => {
       await page.goto(`${editorServerAddress}/#1`);
       const sourceLocation = await currentSlide(page).locator("h1").getAttribute("data-source-location");
-      const [, lineNumber, columnNumber] = sourceLocation!.split(":").map(Number);
+      const [, lineNumber = 0, columnNumber = 0] = sourceLocation!.split(":").map(Number);
       const markedLine = (await readPresentation()).split("\n")[lineNumber - 1];
-      expect(markedLine.slice(columnNumber - 1)).toMatch(/^<h1>slidemachina<\/h1>/);
+      expect(markedLine?.slice(columnNumber - 1)).toMatch(/^<h1>slidemachina<\/h1>/);
       await expect(currentSlide(page).locator("[data-typography-probe]")).toHaveText(/^Пишите align="center"\sи\s«кавычки»$/);
     });
 

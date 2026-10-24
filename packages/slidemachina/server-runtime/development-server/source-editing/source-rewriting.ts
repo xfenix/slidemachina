@@ -37,12 +37,12 @@ function locateElements(sourceCode: string, filePath: string, sourcePlaces: Sour
 }
 
 function escapeJsxText(typedText: string): string {
-  return typedText.replace(/&(?=#?[a-zA-Z0-9]+;)/g, "&amp;").replace(/[{}<>]/g, (escapedCharacter) => jsxTextEscapes[escapedCharacter]);
+  return typedText.replace(/&(?=#?[a-zA-Z0-9]+;)/g, "&amp;").replace(/[{}<>]/g, (escapedCharacter) => jsxTextEscapes[escapedCharacter]!);
 }
 
 // Whitespace around the text stays as written, so a multi-line element keeps its shape.
 export function rewriteElementText(sourceCode: string, filePath: string, sourcePlace: SourcePlace, typedText: string): string {
-  const { elementNode } = locateElements(sourceCode, filePath, [sourcePlace]).foundElements[0];
+  const { elementNode } = locateElements(sourceCode, filePath, [sourcePlace]).foundElements[0]!;
   if (!isPlainTextElement(elementNode)) throw new SourceEditProblem("textHasMarkup");
   const firstChild = elementNode.children[0];
   const lastChild = elementNode.children.at(-1);
@@ -59,7 +59,7 @@ export function rewriteElementText(sourceCode: string, filePath: string, sourceP
 // src={picture} changes the import of picture, so every slide showing it gets the new file; src="…" changes in place.
 export function rewritePictureSource(sourceCode: string, filePath: string, sourcePlace: SourcePlace, pictureImportPath: string): string {
   const { syntaxTree, foundElements } = locateElements(sourceCode, filePath, [sourcePlace]);
-  const pictureValue = findAttribute(foundElements[0].elementNode, "src")?.value;
+  const pictureValue = findAttribute(foundElements[0]!.elementNode, "src")?.value;
   let pictureLiteral = pictureValue?.type === "Literal" ? pictureValue : undefined;
   if (pictureValue?.type === "JSXExpressionContainer" && pictureValue.expression.type === "Identifier") {
     const importedName = pictureValue.expression.name;
@@ -88,7 +88,7 @@ function findMovedRange(sourceCode: string, elementNode: SyntaxNode): { rangeSta
 
 function removeAttribute(editedSource: MagicString, sourceCode: string, attributeNode: SyntaxNode): void {
   let removalStart = attributeNode.start;
-  while (removalStart > 0 && /[ \t]/.test(sourceCode[removalStart - 1])) removalStart -= 1;
+  while (removalStart > 0 && /[ \t]/.test(sourceCode.charAt(removalStart - 1))) removalStart -= 1;
   editedSource.remove(removalStart, attributeNode.end);
 }
 
@@ -111,7 +111,7 @@ function pinColumn(editedSource: MagicString, elementNode: SyntaxNode, sourceCod
 export function moveDiagramBox(sourceCode: string, filePath: string, sourcePlace: SourcePlace, boxPlacement: BoxPlacement): string {
   const { anchorPlace, anchorSide, columnNumber } = boxPlacement;
   const sourcePlaces = anchorPlace === undefined ? [sourcePlace] : [sourcePlace, anchorPlace];
-  const [boxElement, anchorElement] = locateElements(sourceCode, filePath, sourcePlaces).foundElements;
+  const [boxElement, anchorElement] = locateElements(sourceCode, filePath, sourcePlaces).foundElements as [FoundElement, FoundElement?];
   if (anchorElement !== undefined && anchorElement.parentNode !== boxElement.parentNode) throw new SourceEditProblem("boxOutsideLevel");
   const editedSource = new MagicString(sourceCode);
   if (columnNumber !== undefined) pinColumn(editedSource, boxElement.elementNode, sourceCode, columnNumber);

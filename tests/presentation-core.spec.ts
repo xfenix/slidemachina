@@ -321,8 +321,8 @@ test("демо листается, показывает шаги и навига
     const actorBoxes = await sequenceElement.locator("[data-actor] > [data-box]").evaluateAll((boxElements) =>
       boxElements.map((boxElement) => boxElement.getBoundingClientRect().toJSON() as DOMRect),
     );
-    expect(requestBox!.x).toBeCloseTo(actorBoxes[1].x + actorBoxes[1].width / 2, 0);
-    expect(requestBox!.x + requestBox!.width).toBeCloseTo(actorBoxes[2].x + actorBoxes[2].width / 2, 0);
+    expect(requestBox!.x).toBeCloseTo(actorBoxes[1]!.x + actorBoxes[1]!.width / 2, 0);
+    expect(requestBox!.x + requestBox!.width).toBeCloseTo(actorBoxes[2]!.x + actorBoxes[2]!.width / 2, 0);
   });
 
   await test.step("морфинг сам включается, когда у слайдов есть общие элементы", async () => {
