@@ -117,7 +117,7 @@ export default (
         <h2>Большие числа</h2>
         <Columns step>
           <BigNumber label="переходов между слайдами">8</BigNumber>
-          <BigNumber label="весит подсветка кода в браузере">0 КБ</BigNumber>
+          <BigNumber label="кода подсветки в браузере">0 КБ</BigNumber>
           <BigNumber label="файл на всю презентацию">1</BigNumber>
         </Columns>
         <Source>Замеры сборки этого демо, октябрь 2026</Source>
