@@ -9,7 +9,7 @@
   }
 
   [data-slide] [data-table] :is(th, td) {
-    padding: 24px 48px 24px 0;
+    padding: 16px 48px 16px 0;
     border-bottom: 1px solid var(--hairline-color);
     text-align: start;
     vertical-align: baseline;
