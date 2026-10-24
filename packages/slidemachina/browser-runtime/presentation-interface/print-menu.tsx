@@ -5,13 +5,15 @@ import { ToolbarButton } from "./presentation-toolbar.tsx";
 type PrintMenuProperties = {
   languageCode: string;
   printsSteps: boolean;
-  printPresentation: (withSteps: boolean) => void;
+  choosePrintedSteps: (withSteps: boolean) => void;
+  printPresentation: () => void;
+  openPrintView: () => void;
 };
 
-const printShortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd+P" : "Ctrl+P";
+export const printShortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd+P" : "Ctrl+P";
 
-// The chosen option is remembered: Cmd+P prints the same way next time.
-export function PrintMenu({ languageCode, printsSteps, printPresentation }: PrintMenuProperties) {
+// The steps switch is remembered: Cmd+P and the print view use it next time too.
+export function PrintMenu({ languageCode, printsSteps, choosePrintedSteps, printPresentation, openPrintView }: PrintMenuProperties) {
   const interfaceTexts = pickInterfaceTexts(languageCode);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const menuAnchorReference = useRef<HTMLDivElement>(null);
@@ -35,15 +37,10 @@ export function PrintMenu({ languageCode, printsSteps, printPresentation }: Prin
     };
   }, [isMenuOpen]);
 
-  const choosePrint = (withSteps: boolean) => {
+  const runAndClose = (menuAction: () => void) => () => {
     setMenuOpen(false);
-    printPresentation(withSteps);
+    menuAction();
   };
-
-  const printOptions = [
-    { withSteps: false, title: interfaceTexts.printSlidesTitle, hint: interfaceTexts.printSlidesHint, icon: <SinglePageIcon /> },
-    { withSteps: true, title: interfaceTexts.printStepsTitle, hint: interfaceTexts.printStepsHint, icon: <StackedPagesIcon /> },
-  ];
 
   return (
     <div data-print-anchor ref={menuAnchorReference}>
@@ -56,30 +53,34 @@ export function PrintMenu({ languageCode, printsSteps, printPresentation }: Prin
       </ToolbarButton>
       {isMenuOpen && (
         <div data-print-menu role="menu" aria-label={interfaceTexts.printButton}>
-          {printOptions.map((printOption) => (
-            <button
-              key={String(printOption.withSteps)}
-              type="button"
-              role="menuitemradio"
-              aria-checked={printOption.withSteps === printsSteps}
-              onClick={() => choosePrint(printOption.withSteps)}
-            >
-              {printOption.icon}
-              <span data-print-option-text>
-                <span data-print-option-title>{printOption.title}</span>
-                <span data-print-option-hint>{printOption.hint}</span>
-              </span>
-              <CheckIcon />
-            </button>
-          ))}
-          <p data-print-menu-footnote>{interfaceTexts.printShortcutHint(printShortcut, printsSteps)}</p>
+          <button type="button" role="menuitem" onClick={runAndClose(printPresentation)}>
+            <PrinterIcon />
+            <span data-print-option-title>{interfaceTexts.printNowTitle}</span>
+            <kbd data-print-option-shortcut>{printShortcut}</kbd>
+          </button>
+          <button type="button" role="menuitem" onClick={runAndClose(openPrintView)}>
+            <PageSheetIcon />
+            <span data-print-option-text>
+              <span data-print-option-title>{interfaceTexts.printViewTitle}</span>
+              <span data-print-option-hint>{interfaceTexts.printViewHint}</span>
+            </span>
+          </button>
+          <span data-print-menu-divider />
+          <button type="button" role="menuitemcheckbox" aria-checked={printsSteps} onClick={() => choosePrintedSteps(!printsSteps)}>
+            <StackedPagesIcon />
+            <span data-print-option-text>
+              <span data-print-option-title>{interfaceTexts.printStepsTitle}</span>
+              <span data-print-option-hint>{interfaceTexts.printStepsHint}</span>
+            </span>
+            <span data-print-switch />
+          </button>
         </div>
       )}
     </div>
   );
 }
 
-function PrinterIcon() {
+export function PrinterIcon() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
       <path d="M6 7.5V3.5h8v4M6 14H4.5A1.5 1.5 0 0 1 3 12.5v-3.5A1.5 1.5 0 0 1 4.5 7.5h11A1.5 1.5 0 0 1 17 9v3.5a1.5 1.5 0 0 1-1.5 1.5H14" />
@@ -88,27 +89,20 @@ function PrinterIcon() {
   );
 }
 
-function SinglePageIcon() {
+function PageSheetIcon() {
   return (
-    <svg data-print-option-icon viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="3" y="6" width="18" height="12" rx="2.5" />
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="5" y="3" width="14" height="18" rx="2.5" />
+      <path d="M8.5 8h7M8.5 12h7M8.5 16h4" />
     </svg>
   );
 }
 
 function StackedPagesIcon() {
   return (
-    <svg data-print-option-icon viewBox="0 0 24 24" aria-hidden="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <rect x="3" y="9" width="15" height="10" rx="2.5" />
       <path d="M7 5.5h11.5A2.5 2.5 0 0 1 21 8v7" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg data-print-option-check viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M5 10.5l3.2 3L15 6.5" />
     </svg>
   );
 }

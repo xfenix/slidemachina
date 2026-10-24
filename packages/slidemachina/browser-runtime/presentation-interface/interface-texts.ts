@@ -10,12 +10,13 @@ const interfaceTextsByLanguage = {
     backToListButton: "All presentations",
     jumpPrompt: "Go to slide",
     printButton: "Print",
-    printSlidesTitle: "Slides",
-    printSlidesHint: "One page per slide",
-    printStepsTitle: "Slides by steps",
-    printStepsHint: "One page per step",
-    printShortcutHint: (printShortcut: string, printsSteps: boolean) =>
-      `${printShortcut} prints one page per ${printsSteps ? "step" : "slide"}`,
+    printNowTitle: "Print",
+    printViewTitle: "Print view",
+    printViewHint: "All pages in the browser",
+    printStepsTitle: "Every step",
+    printStepsHint: "A page per step, not per slide",
+    printViewBackButton: "Back to slides · Esc",
+    printViewPageCount: (pageCount: number) => `${pageCount} ${pageCount === 1 ? "page" : "pages"}`,
     slideOutsidePresentation: "<Slide> works only inside <Presentation>.",
     missingArrowEnd: (partIdentifier: string) => `The arrow is not drawn: there is no "${partIdentifier}" on the diagram.`,
   },
@@ -29,16 +30,24 @@ const interfaceTextsByLanguage = {
     backToListButton: "Все презентации",
     jumpPrompt: "Перейти к слайду",
     printButton: "Печать",
-    printSlidesTitle: "Слайды",
-    printSlidesHint: "Страница на слайд",
-    printStepsTitle: "Слайды по шагам",
+    printNowTitle: "Распечатать",
+    printViewTitle: "Печатная версия",
+    printViewHint: "Все страницы в браузере",
+    printStepsTitle: "Раскадровка",
     printStepsHint: "Страница на каждый шаг",
-    printShortcutHint: (printShortcut: string, printsSteps: boolean) =>
-      `${printShortcut} печатает страницу на каждый ${printsSteps ? "шаг" : "слайд"}`,
+    printViewBackButton: "К презентации · Esc",
+    printViewPageCount: (pageCount: number) => `${pageCount} ${pickRussianPlural(pageCount, ["страница", "страницы", "страниц"])}`,
     slideOutsidePresentation: "<Slide> работает только внутри <Presentation>.",
     missingArrowEnd: (partIdentifier: string) => `Стрелка не нарисована: на схеме нет «${partIdentifier}».`,
   },
 };
+
+const russianPluralRules = new Intl.PluralRules("ru");
+
+function pickRussianPlural(itemCount: number, [oneForm, fewForm, manyForm]: [string, string, string]): string {
+  const pluralCategory = russianPluralRules.select(itemCount);
+  return pluralCategory === "one" ? oneForm : pluralCategory === "few" ? fewForm : manyForm;
+}
 
 export function pickInterfaceTexts(languageCode: string) {
   return interfaceTextsByLanguage[pickTextLanguage(languageCode)];

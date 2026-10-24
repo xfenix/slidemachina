@@ -43,7 +43,7 @@ function countPrintedPages(page: Page) {
   });
 }
 
-test("сборка: один HTML-файл листается без сервера, папка держит ELK и three.js отдельно, PDF по шагам", async ({ page }) => {
+test("сборка: один HTML-файл листается без сервера, папка держит ELK и three.js отдельно, печатная версия и PDF по шагам", async ({ page }) => {
   const outputFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-build-"));
   try {
     await runCommand(process.execPath, [commandLineScript, "build", path.join(examplesFolder, demoFolderName), "--html", "--folder", "--steps", "--out", outputFolder]);
@@ -111,15 +111,24 @@ test("сборка: один HTML-файл листается без серве�
       }
     });
 
-    await test.step("PDF по шагам: страница на каждый шаг, как при печати из браузера", async () => {
+    await test.step("печатная версия и PDF по шагам: страница на каждый шаг, раскадровка выключается", async () => {
       const pdfBytes = await readFile(path.join(outputFolder, "demo-presentation-steps.pdf"));
       const pdfPageCount = countPdfPages(pdfBytes);
       // Blurred shadows, masks and gradient text become soft masks, and macOS Preview draws them as grey and blue patches.
       expect(pdfBytes.toString("latin1").match(/\/S\s*\/(Luminosity|Alpha)/g), "мягкие маски в PDF").toBeNull();
-      await page.evaluate(() => localStorage.setItem("slidemachina-print-steps", "true"));
-      await page.reload();
-      expect(await countPrintedPages(page)).toBe(pdfPageCount);
-      expect(pdfPageCount).toBeGreaterThan(await page.locator("[data-canvas] > [data-slide]").count());
+      await page.emulateMedia({ media: "screen" });
+      await page.goto(`${pathToFileURL(singleFile).href}?print=steps`);
+      await expect(page.locator("[data-print-pages][data-print-view]")).toHaveAttribute("data-print-ready");
+      await expect(page.locator("[data-print-page]")).toHaveCount(pdfPageCount);
+      await expect(page.locator("[data-canvas]")).toBeHidden();
+      const slideCount = await page.locator("[data-canvas] > [data-slide]").count();
+      expect(pdfPageCount).toBeGreaterThan(slideCount);
+      await page.getByRole("switch").click();
+      await expect(page.locator("[data-print-page]")).toHaveCount(slideCount);
+      await expect(page).toHaveURL(/\?print(#|$)/);
+      await page.keyboard.press("Escape");
+      await expect(page.locator("[data-canvas]")).toBeVisible();
+      await expect(page.locator("[data-print-page]")).toHaveCount(0);
     });
 
     await test.step("папка: первый экран не грузит ELK, three.js и видео", async () => {

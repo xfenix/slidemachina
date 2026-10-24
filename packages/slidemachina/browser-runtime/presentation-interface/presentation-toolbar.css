@@ -1,6 +1,6 @@
 @layer slidemachina {
-  /* Outside the canvas, so the toolbar keeps its screen size; centred on the cap height of the frame text. */
-  [data-toolbar] {
+  /* Outside the canvas, so the toolbar keeps its screen size; centred on the cap height of the frame text. The print view bar wears the same capsule. */
+  :is([data-toolbar], [data-print-view-bar]) {
     --toolbar-size: 44px;
     position: absolute;
     left: 50%;
@@ -20,7 +20,7 @@
       inset 0 0 0 1px rgb(255 255 255 / 0.08);
   }
 
-  [data-toolbar] :is(button, [data-list-return]) {
+  :is([data-toolbar], [data-print-view-bar]) :is(button, [data-list-return]) {
     all: unset;
     display: grid;
     place-items: center;
@@ -34,12 +34,12 @@
       background-color 0.2s;
   }
 
-  [data-toolbar] :is(button, [data-list-return]):is(:hover, :focus-visible, [aria-pressed="true"]) {
+  :is([data-toolbar], [data-print-view-bar]) :is(button, [data-list-return]):is(:hover, :focus-visible, [aria-pressed="true"]) {
     color: #fff;
     background: rgb(255 255 255 / 0.1);
   }
 
-  [data-toolbar] svg {
+  :is([data-toolbar], [data-print-view-bar]) svg {
     width: 20px;
     height: 20px;
     fill: none;

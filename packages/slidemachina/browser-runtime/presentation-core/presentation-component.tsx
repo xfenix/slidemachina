@@ -5,7 +5,9 @@ import { EditorSwitch } from "../source-editor/editor-switch.tsx";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
 import { PresentationToolbar, useToolbarHiding } from "../presentation-interface/presentation-toolbar.tsx";
 import { PrintMenu } from "../presentation-interface/print-menu.tsx";
-import { PrintPages, usePrintPreparation } from "../slide-printing/print-pages.tsx";
+import { PrintViewBar } from "../presentation-interface/print-view-bar.tsx";
+import { PrintPages } from "../slide-printing/print-pages.tsx";
+import { usePrintPreparation } from "../slide-printing/print-preparation.ts";
 import { useKeyboardControls } from "../slide-navigation/keyboard-controls.ts";
 import {
   SlideEnvironmentContext,
@@ -53,7 +55,8 @@ export function Presentation({
   const [isNavigatorOpen, setNavigatorOpen] = useState(false);
   const [isBlackedOut, setBlackedOut] = useState(false);
   const { isToolbarHidden, toggleToolbar } = useToolbarHiding();
-  const { isPrintPrepared, printsSteps, printPresentation } = usePrintPreparation();
+  const printPreparation = usePrintPreparation();
+  const { isPrintView, printsSteps } = printPreparation;
   const typedSlideNumber = useTypedSlideNumber((slideNumber) => slideNavigation.goToSlide(slideNumber - 1));
   const presentationSettings: PresentationSettings = useMemo(
     () => ({ align, logo, lang, transition }),
@@ -79,9 +82,9 @@ export function Presentation({
       typeDigit: typedSlideNumber.appendDigit,
       confirmTypedNumber: typedSlideNumber.digits === "" ? undefined : typedSlideNumber.confirmNumber,
     },
-    !isNavigatorOpen,
+    !isNavigatorOpen && !isPrintView,
   );
-  useSwipeControls(slideNavigation.goForward, slideNavigation.goBackward, !isNavigatorOpen);
+  useSwipeControls(slideNavigation.goForward, slideNavigation.goBackward, !isNavigatorOpen && !isPrintView);
 
   // A copy is a thumbnail or a printed page: it is never current and shows the step it is given.
   const renderSlide = (slideIndex: number, copiedStep?: number) => {
@@ -110,7 +113,7 @@ export function Presentation({
   }
 
   return (
-    <div data-presentation style={canvasStyle}>
+    <div data-presentation data-print-view={isPrintView || undefined} style={canvasStyle}>
       {title !== undefined && <title>{title}</title>}
       <div data-canvas>
         {[...outlinedSlides.keys()].map((slideIndex) => renderSlide(slideIndex))}
@@ -139,7 +142,13 @@ export function Presentation({
         toggleNavigator={() => setNavigatorOpen((wasNavigatorOpen) => !wasNavigatorOpen)}
         toggleFullscreen={toggleFullscreen}
       >
-        <PrintMenu languageCode={lang} printsSteps={printsSteps} printPresentation={printPresentation} />
+        <PrintMenu
+          languageCode={lang}
+          printsSteps={printsSteps}
+          choosePrintedSteps={printPreparation.choosePrintedSteps}
+          printPresentation={printPreparation.printPresentation}
+          openPrintView={printPreparation.openPrintView}
+        />
         {import.meta.env.DEV && (
           <>
             <span data-toolbar-divider />
@@ -148,12 +157,23 @@ export function Presentation({
           </>
         )}
       </PresentationToolbar>
-      {isPrintPrepared && (
+      {printPreparation.isPrintPrepared && (
         <PrintPages
           slideCount={outlinedSlides.length}
           printsSteps={printsSteps}
+          isPrintView={isPrintView}
           countSteps={(slideIndex) => stepCountsReference.current[slideIndex] ?? 0}
           renderPrintedSlide={renderSlide}
+          renderPrintViewBar={(pageCount) => (
+            <PrintViewBar
+              languageCode={lang}
+              pageCount={pageCount}
+              printsSteps={printsSteps}
+              choosePrintedSteps={printPreparation.choosePrintedSteps}
+              printPresentation={printPreparation.printPresentation}
+              closePrintView={printPreparation.closePrintView}
+            />
+          )}
         />
       )}
       {isBlackedOut && <div data-blackout onClick={() => setBlackedOut(false)} />}
