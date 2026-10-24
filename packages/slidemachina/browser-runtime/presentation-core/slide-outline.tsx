@@ -1,5 +1,6 @@
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from "react";
 import { Section, type SectionProperties } from "./section-component.tsx";
+import { SectionNumber } from "./section-number.tsx";
 import { Slide } from "./slide-component.tsx";
 
 export type OutlinedSlide = {
@@ -37,6 +38,7 @@ export function buildSlideOutline(
       const sectionCover = (
         <Slide cover background="var(--section-background)">
           <h1 data-section-number={sectionNumber}>{sectionProperties.title}</h1>
+          <SectionNumber sectionNumber={sectionNumber} />
         </Slide>
       );
       return [{ slideKey: `${childKey}/cover`, slideElement: sectionCover, sectionTrail: nestedTrail }, ...sectionSlides];

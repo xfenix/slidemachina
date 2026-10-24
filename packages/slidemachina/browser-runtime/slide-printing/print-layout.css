@@ -64,5 +64,63 @@
     [data-print-page]:last-child {
       break-after: auto;
     }
+
+    /* Chrome writes blurred shadows and mask images into a PDF as soft masks, and macOS Preview draws most of them as solid patches. */
+    [data-print-page] [data-slide] [data-box] {
+      isolation: isolate;
+      background: none;
+      box-shadow: none;
+    }
+
+    /* The shadow is cast by a layer under the label: a filter turns its element into a picture, and the label stays text. */
+    [data-print-page] [data-slide] [data-box]:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: var(--diagram-box-background);
+      filter: var(--diagram-box-print-shadow);
+    }
+
+    [data-print-page] [data-slide] :is([data-box][data-focus="on"], [data-actor][data-focus="on"] > [data-box]) {
+      box-shadow: 0 0 0 4px var(--diagram-focus-ring);
+    }
+
+    [data-print-page] [data-slide] [data-media] {
+      box-shadow: 0 0 0 1px var(--hairline-color);
+      filter: var(--media-print-shadow);
+    }
+
+    [data-print-page] [data-slide] [data-media-frame="full"] > [data-media] {
+      box-shadow: none;
+      filter: none;
+    }
+
+    /* Instead of a mask, cut lines fade under strips of the code box colour that stay at the edges of the scrolled view. */
+    [data-print-page] [data-slide] [data-code-viewport] {
+      mask-image: none;
+    }
+
+    [data-print-page] [data-slide] [data-code-viewport][data-clipped-top]:before,
+    [data-print-page] [data-slide] [data-code-viewport][data-clipped-bottom]:after {
+      content: "";
+      position: sticky;
+      z-index: 1;
+      display: block;
+      height: 2lh;
+    }
+
+    [data-print-page] [data-slide] [data-code-viewport][data-clipped-top]:before {
+      top: 0;
+      margin-bottom: -2lh;
+      background: linear-gradient(var(--code-fade-color), transparent);
+    }
+
+    [data-print-page] [data-slide] [data-code-viewport][data-clipped-bottom]:after {
+      bottom: 0;
+      margin-top: -2lh;
+      background: linear-gradient(transparent, var(--code-fade-color));
+    }
   }
 }

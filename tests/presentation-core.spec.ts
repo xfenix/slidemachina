@@ -274,7 +274,9 @@ test("демо листается, показывает шаги и навига
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "morph");
     const morphAnimations = await collectTransitionAnimations(page);
     expect(morphAnimations).toEqual(expect.arrayContaining(["::view-transition-group(morph-0) -ua-view-transition-group-anim-morph-0"]));
-    expect(morphAnimations.some((morphAnimation) => morphAnimation.startsWith("::view-transition-old(apart-out-"))).toBe(true);
+    // Arrows of both slides morph as pairs; only the arrows the new layout adds arrive on their own.
+    expect(morphAnimations.some((morphAnimation) => morphAnimation.startsWith("::view-transition-new(apart-in-"))).toBe(true);
+    expect(morphAnimations.some((morphAnimation) => morphAnimation.startsWith("::view-transition-old(apart-out-"))).toBe(false);
     await expect.poll(() => listTransitionAnimations(page)).toEqual([]);
     await expect(page.locator("[style*=view-transition]")).toHaveCount(0);
 

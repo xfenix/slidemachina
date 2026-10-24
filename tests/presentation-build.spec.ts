@@ -112,7 +112,10 @@ test("сборка: один HTML-файл листается без серве�
     });
 
     await test.step("PDF по шагам: страница на каждый шаг, как при печати из браузера", async () => {
-      const pdfPageCount = countPdfPages(await readFile(path.join(outputFolder, "demo-presentation-steps.pdf")));
+      const pdfBytes = await readFile(path.join(outputFolder, "demo-presentation-steps.pdf"));
+      const pdfPageCount = countPdfPages(pdfBytes);
+      // Blurred shadows, masks and gradient text become soft masks, and macOS Preview draws them as grey and blue patches.
+      expect(pdfBytes.toString("latin1").match(/\/S\s*\/(Luminosity|Alpha)/g), "мягкие маски в PDF").toBeNull();
       await page.evaluate(() => localStorage.setItem("slidemachina-print-steps", "true"));
       await page.reload();
       expect(await countPrintedPages(page)).toBe(pdfPageCount);

@@ -66,11 +66,12 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
   }
   const outgoingLayerRestorers = nameMovingParts(rewordedPairs, codePairs, "outgoing");
   activeLayerRestorers = outgoingLayerRestorers;
-  const movingLayers: MovingLayer[] = morphPairs.map(({ outgoingElement }, pairPosition) => ({
-    layerName: `morph-${pairPosition}`,
-    outgoingElement,
-    startBox: outgoingElement.getBoundingClientRect(),
-  }));
+  // Apart parts such as diagram arrows cover the whole diagram: they would all look like crossing paths.
+  const movingLayers: MovingLayer[] = morphPairs.flatMap(({ outgoingElement, incomingElement }, pairPosition) =>
+    outgoingElement.hasAttribute("data-morph-apart")
+      ? []
+      : [{ layerName: `morph-${pairPosition}`, outgoingElement, incomingElement, startBox: outgoingElement.getBoundingClientRect() }],
+  );
   const viewTransition = document.startViewTransition(() => {
     updateSlides();
     for (const namedLayer of namedLayers) {
@@ -83,7 +84,7 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
       nameLayer(namedLayer.incomingElement, namedLayer);
     }
     activeLayerRestorers = nameMovingParts(rewordedPairs, codePairs, "incoming");
-    morphPairs.forEach(({ incomingElement }, pairPosition) => (movingLayers[pairPosition].endBox = incomingElement.getBoundingClientRect()));
+    for (const movingLayer of movingLayers) movingLayer.endBox = movingLayer.incomingElement.getBoundingClientRect();
   });
   // A quick next press skips this transition on purpose; the browser would report it as an error.
   viewTransition.ready.then(() => bendCrossingPaths(movingLayers), () => {});
