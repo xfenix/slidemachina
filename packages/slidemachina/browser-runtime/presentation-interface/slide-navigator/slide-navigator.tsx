@@ -16,7 +16,6 @@ type SlideGroup = {
   sectionTrail: string[];
   slideIndexes: number[];
 };
-
 type SlideNavigatorProperties = {
   outlinedSlides: OutlinedSlide[];
   currentSlideIndex: number;

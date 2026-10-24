@@ -1,5 +1,4 @@
 export type StepEffect = "fade" | "rise" | "scale" | "highlight" | "dim";
-
 export type StepAttributes = {
   "data-step": string;
   "data-step-effect": StepEffect;

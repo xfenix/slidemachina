@@ -16,7 +16,6 @@ type PresentationToolbarProperties = {
   toggleFullscreen: () => void;
   children?: ReactNode;
 };
-
 type ToolbarButtonProperties = {
   label: string;
   isPressed?: boolean;

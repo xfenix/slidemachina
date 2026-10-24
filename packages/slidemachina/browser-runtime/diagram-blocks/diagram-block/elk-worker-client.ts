@@ -10,7 +10,6 @@ type PendingLayout = {
   resolveLayout: (laidOutGraph: ElkNode) => void;
   rejectLayout: (layoutError: unknown) => void;
 };
-
 type WorkerAnswer = { id: number; data?: ElkNode; error?: unknown };
 
 // A blob URL makes the inlined worker same-origin, also on file://.

@@ -9,7 +9,6 @@ export type MorphPair = {
   outgoingElement: HTMLElement;
   incomingElement: HTMLElement;
 };
-
 export type RewordedPair = MorphPair & {
   wordMatches: WordMatch[];
 };

@@ -12,9 +12,7 @@ const largestGeometryCount = 300;
 const runningLayouts = new Map<string, Promise<DiagramGeometry>>();
 
 export type NodeFrame = LabelFrame;
-
 type ArrowRoute = { routePoints: ElkPoint[]; labelFrame?: NodeFrame };
-
 export type DiagramGeometry = {
   diagramWidth: number;
   diagramHeight: number;

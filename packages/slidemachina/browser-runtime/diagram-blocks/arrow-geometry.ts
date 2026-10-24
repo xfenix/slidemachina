@@ -7,7 +7,6 @@ const lineInsideHeadShare = 0.7;
 const headNotchShare = 0.75;
 
 type ArrowDrawing = { linePath: string; headPath: string };
-
 export type LabelFrame = { x: number; y: number; width: number; height: number };
 
 function measureDistance(startPoint: ElkPoint, endPoint: ElkPoint): number {

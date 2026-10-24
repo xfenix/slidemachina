@@ -3,7 +3,6 @@ import { printedPageWidth, printViewMargin } from "../presentation-core/settings
 import { waitForPrintedPages } from "./print-readiness.ts";
 
 type PrintedPage = { slideIndex: number; revealedStep: number };
-
 type PrintPagesProperties = {
   slideCount: number;
   printsSteps: boolean;

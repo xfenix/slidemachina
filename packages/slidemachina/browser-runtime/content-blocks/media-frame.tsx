@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
 export type MediaFit = "contain" | "cover";
-
 export type MediaPlacement = {
   stretch?: boolean;
   full?: boolean;

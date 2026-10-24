@@ -18,7 +18,6 @@ export type DiagramProperties = {
   children?: ReactNode;
   direction?: DiagramDirection;
 };
-
 type DrawingContext = {
   diagramGeometry: DiagramGeometry | undefined;
   groupChains: Map<string, string[]>;

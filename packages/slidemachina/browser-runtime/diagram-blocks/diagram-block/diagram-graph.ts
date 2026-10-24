@@ -11,7 +11,6 @@ const titleSpacePaddingShare = 0.75;
 
 export type DiagramDirection = "right" | "down";
 export type MeasuredSize = { width: number; height: number };
-
 type DiagramMeasurements = {
   boxSizes: Map<string, MeasuredSize>;
   groupTitleSizes: Map<string, MeasuredSize>;

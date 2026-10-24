@@ -9,7 +9,6 @@ export type SlideAlign = "left" | "center";
 
 // Keys name the slide tone: "dark" is the logo for dark slides. Without it the light logo is recoloured by a filter.
 export type PresentationLogo = string | { light: string; dark?: string };
-
 export type PresentationSettings = {
   align: SlideAlign;
   logo?: PresentationLogo;
@@ -17,9 +16,7 @@ export type PresentationSettings = {
   transition: SlideTransition;
   speed: TransitionSpeed;
 };
-
 type SlideState = { slideIndex: number; isCurrentSlide: boolean; isSlideNearby: boolean; isSlideCopy: boolean; revealedStep: number };
-
 type SlideEnvironment = {
   slideNumber: number;
   sectionTrail: string[];

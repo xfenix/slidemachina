@@ -45,7 +45,6 @@ export type SceneLook = {
   fontWeight: string;
   shadowOpacity: number;
 };
-
 export type SceneLight = {
   partPosition: number | undefined;
   directionalLight: DirectionalLight;

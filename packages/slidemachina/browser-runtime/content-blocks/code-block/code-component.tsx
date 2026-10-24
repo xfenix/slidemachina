@@ -16,11 +16,9 @@ const codeWidthFitting: WidthFitting = {
 
 // [text, colour on light slides, colour on dark slides]; whitespace is a plain string.
 type CodeFragment = string | [string, string | undefined, string | undefined];
-
 type HighlightedCode = {
   lines: Array<{ tokens: CodeFragment[]; marked: boolean }>;
 };
-
 export type CodeProperties = {
   children?: string;
   lang?: string;

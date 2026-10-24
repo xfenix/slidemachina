@@ -36,7 +36,6 @@ export type BuiltScene = {
   cameraMotion: CameraMotion;
   resolvedColors: Map<string, Color>;
 };
-
 export type SceneSettings = {
   showsFloor: boolean;
   orbitDegrees: number;

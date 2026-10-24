@@ -5,7 +5,6 @@ type StepProperties = {
   step?: boolean | number;
   effect?: StepEffect;
 };
-
 export type BoxProperties = StepProperties & {
   id: string;
   children?: ReactNode;
@@ -13,20 +12,17 @@ export type BoxProperties = StepProperties & {
   first?: boolean;
   last?: boolean;
 };
-
 export type GroupProperties = StepProperties & {
   id?: string;
   title?: string;
   children?: ReactNode;
 };
-
 export type ArrowProperties = StepProperties & {
   from: string;
   to: string;
   id?: string;
   label?: string;
 };
-
 export type FocusProperties = {
   on?: string[];
   step?: boolean | number;

@@ -10,19 +10,16 @@ export type ObjectPose = {
   scale: number;
   color?: string;
 };
-
 export type CameraPose = {
   position?: ScenePoint;
   target?: ScenePoint;
   fov?: number;
 };
-
 export type ScenePoses = {
   objectPoses: Map<number, ObjectPose>;
   shownLights: Set<number>;
   cameraPose: CameraPose;
 };
-
 type ReachablePlace = { partPosition: number; position: ScenePoint; rotation: ScenePoint; scale: number };
 
 function isPartReached(scenePart: ScenePart, partPosition: number, reachedPartPositions: Set<number>) {

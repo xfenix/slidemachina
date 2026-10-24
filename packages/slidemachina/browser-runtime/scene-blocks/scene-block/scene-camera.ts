@@ -12,7 +12,6 @@ const smallestSceneRadius = 0.5;
 const boxCornerCount = 8;
 
 type ScenePlace = { geometry: BufferGeometry; position: ScenePoint; rotation: ScenePoint; scale: number };
-
 export type SceneBounds = { sceneBox: Box3; sceneCentre: Vector3; sceneRadius: number; floorLevel: number };
 
 export function measureSceneBounds(scenePlaces: ScenePlace[]): SceneBounds {

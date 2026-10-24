@@ -28,14 +28,12 @@ const selfLoop = drawArrow(
 export type SequenceProperties = {
   children?: ReactNode;
 };
-
 export type ActorProperties = {
   id: string;
   children?: ReactNode;
   step?: boolean | number;
   effect?: StepEffect;
 };
-
 export type MessageProperties = {
   from: string;
   to: string;

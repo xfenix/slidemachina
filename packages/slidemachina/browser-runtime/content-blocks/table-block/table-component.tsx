@@ -6,7 +6,6 @@ export type TableProperties = {
   step?: boolean | number;
   effect?: StepEffect;
 };
-
 type RowElement = ReactElement<{ children?: ReactNode } & Partial<StepAttributes>>;
 
 function isHeadRow(tableRow: RowElement | undefined): boolean {

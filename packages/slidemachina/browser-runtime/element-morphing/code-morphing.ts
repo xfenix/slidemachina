@@ -4,7 +4,6 @@ type PieceMatch = {
   outgoingPiece: HTMLElement;
   incomingPiece: HTMLElement;
 };
-
 export type CodePair = MorphPair & {
   pieceMatches: PieceMatch[];
 };

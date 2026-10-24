@@ -12,7 +12,6 @@ export type SceneProperties = {
   floor?: boolean;
   full?: boolean;
 };
-
 type SceneViewModule = typeof import("./scene-view.ts");
 
 const defaultOrbitDegrees = 8;

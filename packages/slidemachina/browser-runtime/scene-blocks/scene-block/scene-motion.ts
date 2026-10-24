@@ -21,9 +21,7 @@ export type ObjectMotion = {
   scale: [number, number];
   appearance: [number, number];
 };
-
 export type LightMotion = { sceneLight: SceneLight; brightness: [number, number] };
-
 export type CameraMotion = {
   sceneCamera: PerspectiveCamera;
   position: { current: Vector3; target: Vector3 };

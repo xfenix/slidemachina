@@ -5,14 +5,12 @@ const largestMemberGap = 24;
 const layoutWaitLimit = 1500;
 
 export type ScreenFrame = { left: number; top: number; width: number; height: number };
-
 export type BoxDragGuides = {
   columnBand: ScreenFrame;
   insertionLine?: ScreenFrame;
   columnNumber: number;
   placeNumber: number;
 };
-
 type BoxDropPlan = {
   columnNumber?: number;
   anchorLocation?: string;
