@@ -1,6 +1,6 @@
 import { useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 import type { ElkPoint } from "elkjs/lib/elk-api";
-import { drawArrow } from "../arrow-geometry.ts";
+import { arrowHeadWidth, drawArrow, type LabelFrame } from "../arrow-geometry.ts";
 import { useFocusSteps } from "../diagram-focus.ts";
 import type { DiagramDirection } from "./diagram-graph.ts";
 import type { DiagramGeometry, NodeFrame } from "./diagram-layout.ts";
@@ -12,6 +12,7 @@ import { pickSourceMarks } from "../../presentation-core/source-marks.ts";
 import { createPartStepAttributes } from "../../slide-steps/step-attributes.ts";
 
 const arrowCornerRadius = 16;
+const arrowFramePadding = arrowHeadWidth;
 
 export type DiagramProperties = {
   children?: ReactNode;
@@ -27,6 +28,19 @@ type DrawingContext = {
   containerOrigin: ElkPoint;
 };
 
+// The arrow's layer is only as large as its line, head and label: a morph moves it with the boxes it joins, not with the whole diagram.
+function frameArrow(routePoints: ElkPoint[], labelFrame: LabelFrame | undefined): LabelFrame {
+  const framedPoints = [...routePoints];
+  if (labelFrame !== undefined) {
+    framedPoints.push({ x: labelFrame.x, y: labelFrame.y }, { x: labelFrame.x + labelFrame.width, y: labelFrame.y + labelFrame.height });
+  }
+  const leftEdge = Math.min(...framedPoints.map((framedPoint) => framedPoint.x)) - arrowFramePadding;
+  const topEdge = Math.min(...framedPoints.map((framedPoint) => framedPoint.y)) - arrowFramePadding;
+  const rightEdge = Math.max(...framedPoints.map((framedPoint) => framedPoint.x)) + arrowFramePadding;
+  const bottomEdge = Math.max(...framedPoints.map((framedPoint) => framedPoint.y)) + arrowFramePadding;
+  return { x: leftEdge, y: topEdge, width: rightEdge - leftEdge, height: bottomEdge - topEdge };
+}
+
 function placeFrame(nodeFrame: NodeFrame | undefined): CSSProperties | undefined {
   if (nodeFrame === undefined) return undefined;
   return { left: nodeFrame.x, top: nodeFrame.y, width: nodeFrame.width, height: nodeFrame.height };
@@ -38,11 +52,12 @@ function DiagramArrow({ arrowPart, drawingContext }: { arrowPart: ArrowPart; dra
   const arrowRoute = diagramGeometry?.arrowRoutes[arrowIdentifier];
   const arrowDrawing = arrowRoute && drawArrow(arrowRoute.routePoints, arrowCornerRadius);
   const labelFrame = arrowRoute?.labelFrame;
-  const arrowStyle = {
-    left: -containerOrigin.x,
-    top: -containerOrigin.y,
-    width: diagramGeometry?.diagramWidth,
-    height: diagramGeometry?.diagramHeight,
+  const arrowFrame = arrowRoute && frameArrow(arrowRoute.routePoints, labelFrame);
+  const arrowStyle = arrowFrame && {
+    left: arrowFrame.x - containerOrigin.x,
+    top: arrowFrame.y - containerOrigin.y,
+    width: arrowFrame.width,
+    height: arrowFrame.height,
   };
   return (
     <div
@@ -55,14 +70,19 @@ function DiagramArrow({ arrowPart, drawingContext }: { arrowPart: ArrowPart; dra
       style={arrowStyle}
       {...createPartStepAttributes(arrowProperties.step, arrowProperties.effect, "fade")}
     >
-      {arrowDrawing !== undefined && diagramGeometry !== undefined && (
-        <svg width={diagramGeometry.diagramWidth} height={diagramGeometry.diagramHeight} aria-hidden>
+      {arrowDrawing !== undefined && arrowFrame !== undefined && (
+        <svg
+          width={arrowFrame.width}
+          height={arrowFrame.height}
+          viewBox={`${arrowFrame.x} ${arrowFrame.y} ${arrowFrame.width} ${arrowFrame.height}`}
+          aria-hidden
+        >
           <path data-arrow-line d={arrowDrawing.linePath} pathLength={1} />
           <path data-arrow-head d={arrowDrawing.headPath} />
         </svg>
       )}
       {arrowProperties.label !== undefined && (
-        <span data-arrow-label style={labelFrame && { left: labelFrame.x, top: labelFrame.y }}>
+        <span data-arrow-label style={labelFrame && arrowFrame && { left: labelFrame.x - arrowFrame.x, top: labelFrame.y - arrowFrame.y }}>
           {arrowProperties.label}
         </span>
       )}
