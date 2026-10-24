@@ -92,7 +92,7 @@ export function usePrintPreparation() {
     isPrintView,
     isPrintPrepared: isPrintPrepared || isPrintView,
     printsSteps,
-    printPresentation,
+    printPresentation: () => void printPresentation(),
     choosePrintedSteps: (withSteps: boolean) => {
       setPrintsSteps(withSteps);
       if (isPrintView) history.replaceState(history.state, "", describePrintViewAddress(true, withSteps));

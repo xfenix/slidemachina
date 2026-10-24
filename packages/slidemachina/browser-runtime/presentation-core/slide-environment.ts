@@ -46,6 +46,7 @@ export function useSlideEnvironments(
   presentationSettings: PresentationSettings,
   stepCountsReference: RefObject<number[]>,
 ) {
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- the cache is dropped whenever any of these change
   const environmentCache = useMemo(() => new Map<string, SlideEnvironment>(), [sectionTrails, presentationSettings, stepCountsReference]);
   return ({ slideIndex, isCurrentSlide, isSlideNearby, isSlideCopy, revealedStep }: SlideState): SlideEnvironment => {
     const cacheKey = `${slideIndex} ${isCurrentSlide} ${isSlideNearby} ${isSlideCopy} ${revealedStep}`;

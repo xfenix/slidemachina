@@ -66,27 +66,31 @@ export function createSlidemachinaPlugin(siteLayout: SiteLayout, builtPageHtml: 
     },
     configureServer(developmentServer) {
       installFeedbackServerCheck(developmentServer);
-      developmentServer.middlewares.use(async (incomingRequest, serverResponse, nextMiddleware) => {
-        const requestedUrl = incomingRequest.url ?? "/";
-        const requestedAddress = new URL(requestedUrl, "http://localhost");
-        const requestedPath = requestedAddress.pathname;
-        const sendPage = async (pageHtml: string) => {
-          serverResponse.setHeader("Content-Type", "text/html; charset=utf-8");
-          serverResponse.end(await developmentServer.transformIndexHtml(requestedUrl, pageHtml));
+      // Connect does not wait for a promise: a failed page goes to Vite's error handler instead of stopping the server.
+      developmentServer.middlewares.use((incomingRequest, serverResponse, nextMiddleware) => {
+        const servePage = async () => {
+          const requestedUrl = incomingRequest.url ?? "/";
+          const requestedAddress = new URL(requestedUrl, "http://localhost");
+          const requestedPath = requestedAddress.pathname;
+          const sendPage = async (pageHtml: string) => {
+            serverResponse.setHeader("Content-Type", "text/html; charset=utf-8");
+            serverResponse.end(await developmentServer.transformIndexHtml(requestedUrl, pageHtml));
+          };
+          const isSiteRoot = requestedPath === "/" || requestedPath === "/index.html";
+          if (!siteLayout.isRepository) {
+            return isSiteRoot ? sendPage(createPresentationPageHtml(siteLayout, siteLayout.rootFolder)) : nextMiddleware();
+          }
+          if (isSiteRoot) return sendPage(createDevelopmentListPage(siteLayout, listModuleId));
+          const requestedPresentation = findRequestedPresentation(siteLayout, requestedPath);
+          if (requestedPresentation === undefined) return nextMiddleware();
+          // Relative links on the page need the trailing slash: /talk → /talk/.
+          if (!requestedPresentation.hasTrailingPart) {
+            serverResponse.writeHead(redirectStatus, { Location: `${requestedPath}/${requestedAddress.search}` });
+            return serverResponse.end();
+          }
+          return sendPage(createPresentationPageHtml(siteLayout, requestedPresentation.presentationFolder));
         };
-        const isSiteRoot = requestedPath === "/" || requestedPath === "/index.html";
-        if (!siteLayout.isRepository) {
-          return isSiteRoot ? sendPage(createPresentationPageHtml(siteLayout, siteLayout.rootFolder)) : nextMiddleware();
-        }
-        if (isSiteRoot) return sendPage(createDevelopmentListPage(siteLayout, listModuleId));
-        const requestedPresentation = findRequestedPresentation(siteLayout, requestedPath);
-        if (requestedPresentation === undefined) return nextMiddleware();
-        // Relative links on the page need the trailing slash: /talk → /talk/.
-        if (!requestedPresentation.hasTrailingPart) {
-          serverResponse.writeHead(redirectStatus, { Location: `${requestedPath}/${requestedAddress.search}` });
-          return serverResponse.end();
-        }
-        return sendPage(createPresentationPageHtml(siteLayout, requestedPresentation.presentationFolder));
+        servePage().catch(nextMiddleware);
       });
     },
   };

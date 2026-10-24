@@ -217,3 +217,33 @@ SVG стоит после `h1`, а не внутри: иначе цифры по
 `Section` принимает в `cover` свой слайд: `cover={<Slide cover background={photo}>…</Slide>}`. Он встаёт вместо стандартной обложки с номером раздела. Хлебные крошки и группа в навигаторе остаются. `cover={false}` по-прежнему убирает обложку. В демо так сделан раздел «3D».
 
 `tsconfig.json` больше не проверяет папки `dist`: собранный `examples/dist` ломал `npm run check`.
+
+## Линтеры
+
+`node-tooling/` переименовали в `server-runtime/`. Пара `browser-runtime` и `server-runtime` читается проще.
+
+Самописную проверку `workspace-checks/import-boundaries.ts` заменили на dependency-cruiser. Правила раскладки лежат в `.dependency-cruiser.cjs`. Он же ловит циклы и модули, которые никто не импортирует. TypeScript 7 он пока не читает, поэтому исходники разбирает swc (`parser: "swc"`). Без него он молча проверяет 0 модулей.
+
+Для CSS отдельной проверки нет. Стили движка `@import` не используют: их подключает `entry-modules.ts`. Готового линтера для границ между CSS-файлами нет, а `@import` в стилях презентаций нужен.
+
+Добавили Oxlint с tsgolint, конфиг — `.oxlintrc.json`. Это единственный линтер, который проверяет по типам на TypeScript 7: `typescript-eslint` поддерживает только TS ниже 6.1. Включены правила `correctness`, хуки React, доступность и правила про промисы.
+
+Что нашёл и что поправили:
+- middleware dev-сервера был async-функцией, которую connect не ждёт. Ошибка при сборке страницы уронила бы процесс. Теперь она уходит в обработчик ошибок Vite;
+- `printPresentation` уходил в `onClick` как промис, теперь как `() => void`;
+- `FileReader` отклонял промис значением, которое может быть `null`;
+- параметр `useBuiltPage` назывался как хук, теперь это `processBuiltPage`.
+
+Отключили:
+- `react/immutability` и `react/set-state-in-effect`. Они для React Compiler, а он не подключён. Срабатывали на кэше в `useMemo` и замере DOM в layout-эффекте;
+- `jsx-a11y/prefer-tag-over-role`. `<dialog>` вместо `role="dialog"` приносит стили браузера и ломает навигатор;
+- `jsx-a11y/control-has-associated-label`. Срабатывал на пустом угловом `<th>`.
+
+Не включили `typescript/no-unnecessary-condition`. Без `noUncheckedIndexedAccess` он считает лишней каждую проверку `array[index] === undefined`. А с этой опцией `tsc` выдаёт 82 ошибки по всему коду.
+Не включили `typescript/no-unsafe-argument`. Синтаксическое дерево у нас нарочно типизировано через `any`, и все 12 замечаний были об этом.
+
+Не взяли:
+- Biome: его правила почти совпадают с Oxlint, а по типам он не проверяет;
+- форматтеры: Biome, Prettier и oxfmt переписали бы 127 файлов из 129;
+- Knip: без своего конфига много ложных срабатываний из-за виртуальных модулей;
+- publint: пакет сейчас чистый, понадобится перед публикацией.

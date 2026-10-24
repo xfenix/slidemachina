@@ -136,7 +136,7 @@ npm run build             # спросит, что собрать
 ```bash
 npm install
 npm run demo     # демо со всеми возможностями
-npm run check    # TypeScript и границы модулей
+npm run check    # TypeScript, Oxlint и границы модулей
 npm test         # интеграционные тесты на Playwright
 ```
 

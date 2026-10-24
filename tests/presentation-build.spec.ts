@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { createServer } from "node:http";
+import { createServer, type ServerResponse } from "node:http";
 import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -17,19 +17,21 @@ const keptFontFile = /^(onest|jetbrains-mono)-(latin|cyrillic)-wght-normal-.*\.w
 
 // The folder build runs only from a web server, as on a real site.
 function serveFolder(servedFolder: string) {
-  const folderServer = createServer(async (request, response) => {
-    const requestedPath = decodeURIComponent(new URL(request.url!, "http://localhost").pathname);
-    try {
-      const fileBytes = await readFile(path.join(servedFolder, requestedPath.endsWith("/") ? `${requestedPath}index.html` : requestedPath));
-      const fileType = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" }[path.extname(requestedPath) || ".html"];
-      response.writeHead(200, fileType === undefined ? {} : { "content-type": fileType });
-      response.end(fileBytes);
-    } catch {
-      response.writeHead(404);
-      response.end();
-    }
-  });
+  const folderServer = createServer((request, response) => void sendServedFile(servedFolder, request.url!, response));
   return new Promise<typeof folderServer>((resolveServer) => folderServer.listen(0, () => resolveServer(folderServer)));
+}
+
+async function sendServedFile(servedFolder: string, requestedUrl: string, response: ServerResponse) {
+  try {
+    const requestedPath = decodeURIComponent(new URL(requestedUrl, "http://localhost").pathname);
+    const fileBytes = await readFile(path.join(servedFolder, requestedPath.endsWith("/") ? `${requestedPath}index.html` : requestedPath));
+    const fileType = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" }[path.extname(requestedPath) || ".html"];
+    response.writeHead(200, fileType === undefined ? {} : { "content-type": fileType });
+    response.end(fileBytes);
+  } catch {
+    response.writeHead(404);
+    response.end();
+  }
 }
 
 function countPdfPages(pdfBytes: Buffer) {

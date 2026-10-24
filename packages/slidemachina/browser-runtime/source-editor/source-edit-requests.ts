@@ -68,10 +68,10 @@ export function readFileContent(pictureFile: File) {
   return new Promise<string>((resolveContent, rejectContent) => {
     const fileReader = new FileReader();
     fileReader.onload = () => {
-      const dataAddress = String(fileReader.result);
+      const dataAddress = fileReader.result as string;
       resolveContent(dataAddress.slice(dataAddress.indexOf(",") + 1));
     };
-    fileReader.onerror = () => rejectContent(fileReader.error);
+    fileReader.onerror = () => rejectContent(fileReader.error!);
     fileReader.readAsDataURL(pictureFile);
   });
 }

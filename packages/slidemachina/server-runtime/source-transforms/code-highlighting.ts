@@ -28,7 +28,7 @@ function dedentCode(codeText: string): string {
 }
 
 function readStyleColor(inlineStyle: unknown, propertyName: string): string | undefined {
-  return new RegExp(`${propertyName}:([^;]+)`).exec(String(inlineStyle ?? ""))?.[1];
+  return new RegExp(`${propertyName}:([^;]+)`).exec(typeof inlineStyle === "string" ? inlineStyle : "")?.[1];
 }
 
 // A token is [text, light colour, dark colour]; whitespace stays a plain string so it never becomes a morph layer.

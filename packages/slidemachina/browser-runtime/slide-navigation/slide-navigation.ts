@@ -37,9 +37,10 @@ export function useSlideNavigation(slideCount: number, stepCountsReference: RefO
     applyPosition(chooseNextPosition({ slideIndex, stepIndex: Math.min(stepIndex, countSteps(slideIndex)) }));
   };
 
+  const { slideIndex: currentSlideIndex, stepIndex: currentStepIndex } = currentPosition;
   useEffect(() => {
-    writePositionToHash(currentPosition);
-  }, [currentPosition.slideIndex, currentPosition.stepIndex]);
+    writePositionToHash({ slideIndex: currentSlideIndex, stepIndex: currentStepIndex });
+  }, [currentSlideIndex, currentStepIndex]);
 
   useEffect(() => {
     const followHashChange = () => applyPosition(fitPosition(readPositionFromHash(), lastSlideIndex));

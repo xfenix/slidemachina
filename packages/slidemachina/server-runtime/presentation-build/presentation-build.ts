@@ -93,7 +93,7 @@ export async function buildPresentation(
   chosenVariants: BuildVariant[],
   outputPaths: OutputPaths,
   buildContext: BuildContext,
-  useBuiltPage?: (builtFolder: string, stepTitle: StepTitler) => Promise<void>,
+  processBuiltPage?: (builtFolder: string, stepTitle: StepTitler) => Promise<void>,
 ): Promise<void> {
   const { buildReport, isInteractive, pageSecret, stepPrefix } = buildContext;
   const projectFolder = presentationLayout.rootFolder;
@@ -142,7 +142,7 @@ export async function buildPresentation(
       }
       builtPages.push(singleFileFolder);
     }
-    if (useBuiltPage !== undefined) await useBuiltPage(builtPages[0], nameStepTitle);
+    if (processBuiltPage !== undefined) await processBuiltPage(builtPages[0], nameStepTitle);
   } finally {
     rmSync(temporaryFolder, { recursive: true, force: true });
   }

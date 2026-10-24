@@ -248,7 +248,7 @@ test("демо листается, показывает шаги и навига
     const diagramElement = currentSlide(page).locator("[data-diagram]");
     await expect(diagramElement).toHaveAttribute("data-laid-out");
     const loadedFiles = await page.evaluate(() => performance.getEntriesByType("resource").map((resourceEntry) => resourceEntry.name));
-    expect(loadedFiles.filter((loadedFile) => /elk-worker\.min\.js$/.test(loadedFile))).toHaveLength(1);
+    expect(loadedFiles.filter((loadedFile) => loadedFile.endsWith("elk-worker.min.js"))).toHaveLength(1);
     const firstBoxBox = await diagramElement.locator("[data-box]").first().boundingBox();
     const contentBox = await currentSlide(page).locator("[data-content]").boundingBox();
     expect(firstBoxBox!.x).toBeCloseTo(contentBox!.x, 0);

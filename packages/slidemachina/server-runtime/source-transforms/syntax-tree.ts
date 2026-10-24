@@ -4,7 +4,7 @@ import { parseAst } from "vite";
 export type SyntaxNode = { type: string, start: number, end: number, [nodeField: string]: any };
 
 export function parseSlideSource(sourceCode: string, filePath: string): SyntaxNode {
-  return parseAst(sourceCode, { lang: filePath.endsWith(".jsx") ? "jsx" : "tsx" }) as unknown as SyntaxNode;
+  return parseAst(sourceCode, { lang: filePath.endsWith(".jsx") ? "jsx" : "tsx" });
 }
 
 export function walkSyntaxTree(syntaxNode: unknown, visitNode: (visitedNode: SyntaxNode, ancestorNodes: SyntaxNode[]) => void, ancestorNodes: SyntaxNode[] = []): void {

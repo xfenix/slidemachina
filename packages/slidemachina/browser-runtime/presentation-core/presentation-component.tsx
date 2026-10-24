@@ -182,7 +182,7 @@ export function Presentation({
           )}
         />
       )}
-      {isBlackedOut && <div data-blackout onClick={() => setBlackedOut(false)} />}
+      {isBlackedOut && <div data-blackout aria-hidden="true" onClick={() => setBlackedOut(false)} />}
     </div>
   );
 }

@@ -467,6 +467,7 @@ examples/                       репозиторий из трёх презе�
   theme/                        общая тема: style.css для всех, yellow-brand.css для докладов
 tests/                          интеграционные тесты и их помощники
 .dependency-cruiser.cjs         правила раскладки для npm run check
+.oxlintrc.json                  правила Oxlint для npm run check
 ```
 
 Пакет движка публикуется исходниками TypeScript, сборки нет: CLI запускает Vite 8, Vite компилирует движок вместе с презентацией. Node 26 запускает .ts напрямую, но Node не стирает типы в node_modules: опубликованному пакету понадобится шаг сборки.
@@ -551,7 +552,7 @@ shared-between-runtimes/        чистый JS без зависимостей:
 - `tests/source-editor.spec.ts` — редактор на копии демо.
 - `tests/presentation-repository.spec.ts` — репозиторий на копии `examples/`: список из трёх презентаций, обложки, тема, сборка.
 
-Тесты поднимают свои dev-серверы на копиях во временной папке: 5199 для демо (копию всей папки `examples/` делает `playwright.config.ts`), 5198 для редактора, 5197 для репозитория. Настоящие файлы демо тесты не правят. Общие помощники — `tests/test-helpers.ts` и `tests/scene-sampling.ts`. `npm run check` — `tsc --noEmit` с `noUnusedLocals` и `noUnusedParameters` и проверка правил раскладки.
+Тесты поднимают свои dev-серверы на копиях во временной папке: 5199 для демо (копию всей папки `examples/` делает `playwright.config.ts`), 5198 для редактора, 5197 для репозитория. Настоящие файлы демо тесты не правят. Общие помощники — `tests/test-helpers.ts` и `tests/scene-sampling.ts`. `npm run check` — `tsc --noEmit` с `noUnusedLocals` и `noUnusedParameters`, Oxlint с проверкой по типам и проверка правил раскладки.
 
 ## Ограничения и что осталось
 

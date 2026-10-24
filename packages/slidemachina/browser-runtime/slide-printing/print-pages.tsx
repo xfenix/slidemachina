@@ -47,6 +47,7 @@ export function PrintPages({ slideCount, printsSteps, isPrintView, countSteps, r
   const printedPages = listPrintedPages(slideCount, printsSteps, countSteps);
 
   // Slides count their steps once they mount; pages opened right at load are listed again with those counts.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- step counts live in a ref, so the check runs after every render
   useLayoutEffect(() => {
     const countedPageTotal = listPrintedPages(slideCount, printsSteps, countSteps).length;
     if (countedPageTotal !== printedPages.length) setStepCountVersion((stepCountVersion) => stepCountVersion + 1);
