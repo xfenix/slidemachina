@@ -1,8 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { printedPageWidth, printViewMargin } from "../presentation-core/settings.ts";
 import { waitForPrintedPages } from "./print-readiness.ts";
-
-const printedPageWidth = 1920;
-const printViewMargin = 48;
 
 type PrintedPage = { slideIndex: number; revealedStep: number };
 

@@ -3,6 +3,14 @@ import { placeArrowLabel, type LabelFrame } from "./arrow-geometry.ts";
 import type { DiagramDirection, MeasuredSize } from "./diagram-graph.ts";
 import { layOutWithElk } from "./elk-worker-client.ts";
 
+const labelDistance = 12;
+
+// The navigator and hot reload mount the same diagram again; a known graph is drawn at once, without a flash.
+const finishedGeometries = new Map<string, DiagramGeometry>();
+// Enough for every diagram and step of a long talk; hot reload adds graphs, so the oldest go.
+const largestGeometryCount = 300;
+const runningLayouts = new Map<string, Promise<DiagramGeometry>>();
+
 export type NodeFrame = LabelFrame;
 
 type ArrowRoute = { routePoints: ElkPoint[]; labelFrame?: NodeFrame };
@@ -14,8 +22,6 @@ export type DiagramGeometry = {
   nodeFrames: Record<string, NodeFrame>;
   arrowRoutes: Record<string, ArrowRoute>;
 };
-
-const labelDistance = 12;
 
 function readGeometry(laidOutGraph: ElkNode, labelSizes: Map<string, MeasuredSize>, flowsRight: boolean): DiagramGeometry {
   const turnPoint = ({ x, y }: ElkPoint): ElkPoint => (flowsRight ? { x, y } : { x: y, y: x });
@@ -41,12 +47,6 @@ function readGeometry(laidOutGraph: ElkNode, labelSizes: Map<string, MeasuredSiz
   const diagramSize = turnPoint({ x: laidOutGraph.width ?? 0, y: laidOutGraph.height ?? 0 });
   return { diagramWidth: diagramSize.x, diagramHeight: diagramSize.y, nodeFrames, arrowRoutes };
 }
-
-// The navigator and hot reload mount the same diagram again; a known graph is drawn at once, without a flash.
-const finishedGeometries = new Map<string, DiagramGeometry>();
-// Enough for every diagram and step of a long talk; hot reload adds graphs, so the oldest go.
-const largestGeometryCount = 300;
-const runningLayouts = new Map<string, Promise<DiagramGeometry>>();
 
 export function findFinishedGeometry(graphKey: string): DiagramGeometry | undefined {
   return finishedGeometries.get(graphKey);

@@ -3,6 +3,17 @@ import { parseLineSteps, useCodeLineSteps } from "./code-line-steps.ts";
 import { createStepAttributes } from "../slide-steps/step-attributes.ts";
 import { useWidthFitting, type WidthFitting } from "../presentation-core/width-fitting.ts";
 
+// Long lines get a smaller font down to 20 px, then wrap: code never sticks out of its block.
+const codeWidthFitting: WidthFitting = {
+  findTextElement: (codeElement) => codeElement.querySelector("code"),
+  measureRoom: (codeElement) => {
+    const codeStyle = getComputedStyle(codeElement);
+    const horizontalPadding = Number.parseFloat(codeStyle.paddingLeft) + Number.parseFloat(codeStyle.paddingRight);
+    return (codeElement.parentElement?.clientWidth ?? 0) - horizontalPadding;
+  },
+  smallestFontSize: 20,
+};
+
 // [text, colour on light slides, colour on dark slides]; whitespace is a plain string.
 type CodeFragment = string | [string, string | undefined, string | undefined];
 
@@ -34,17 +45,6 @@ function renderCodeFragment(codeFragment: CodeFragment, fragmentIndex: number) {
     </span>
   );
 }
-
-// Long lines get a smaller font down to 20 px, then wrap: code never sticks out of its block.
-const codeWidthFitting: WidthFitting = {
-  findTextElement: (codeElement) => codeElement.querySelector("code"),
-  measureRoom: (codeElement) => {
-    const codeStyle = getComputedStyle(codeElement);
-    const horizontalPadding = Number.parseFloat(codeStyle.paddingLeft) + Number.parseFloat(codeStyle.paddingRight);
-    return (codeElement.parentElement?.clientWidth ?? 0) - horizontalPadding;
-  },
-  smallestFontSize: 20,
-};
 
 export function Code({ children, lang, src, lines, title, highlightedCode }: CodeProperties) {
   const codeElementReference = useRef<HTMLPreElement>(null);

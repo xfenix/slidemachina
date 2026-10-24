@@ -1,9 +1,14 @@
 import type { ElkPoint } from "elkjs/lib/elk-api";
 
-type ArrowDrawing = { linePath: string; headPath: string };
-
 export const arrowHeadLength = 15;
 export const arrowHeadWidth = 13;
+// The line ends inside the head, the notch cuts half-way to its base.
+const lineInsideHeadShare = 0.7;
+const headNotchShare = 0.75;
+
+type ArrowDrawing = { linePath: string; headPath: string };
+
+export type LabelFrame = { x: number; y: number; width: number; height: number };
 
 function measureDistance(startPoint: ElkPoint, endPoint: ElkPoint): number {
   return Math.hypot(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
@@ -25,7 +30,7 @@ function formatPoint(drawnPoint: ElkPoint): string {
 export function drawArrow(routePoints: ElkPoint[], cornerRadius: number): ArrowDrawing {
   const tipPoint = routePoints.at(-1)!;
   const beforeTipPoint = routePoints.at(-2) ?? tipPoint;
-  const lineEndPoint = moveToward(tipPoint, beforeTipPoint, arrowHeadLength * 0.7);
+  const lineEndPoint = moveToward(tipPoint, beforeTipPoint, arrowHeadLength * lineInsideHeadShare);
   const linePoints = [...routePoints.slice(0, -1), lineEndPoint];
   let linePath = `M${formatPoint(linePoints[0])}`;
   for (let pointPosition = 1; pointPosition < linePoints.length - 1; pointPosition += 1) {
@@ -39,7 +44,7 @@ export function drawArrow(routePoints: ElkPoint[], cornerRadius: number): ArrowD
   linePath += ` L${formatPoint(lineEndPoint)}`;
 
   const headBase = moveToward(tipPoint, beforeTipPoint, arrowHeadLength);
-  const headNotch = moveToward(tipPoint, beforeTipPoint, arrowHeadLength * 0.75);
+  const headNotch = moveToward(tipPoint, beforeTipPoint, arrowHeadLength * headNotchShare);
   const headSideX = ((tipPoint.y - headBase.y) / arrowHeadLength) * (arrowHeadWidth / 2);
   const headSideY = ((headBase.x - tipPoint.x) / arrowHeadLength) * (arrowHeadWidth / 2);
   const headPath = [
@@ -51,8 +56,6 @@ export function drawArrow(routePoints: ElkPoint[], cornerRadius: number): ArrowD
   ].join(" ");
   return { linePath, headPath };
 }
-
-export type LabelFrame = { x: number; y: number; width: number; height: number };
 
 // The label sits on the longest straight run across the flow; columns are spaced to fit it.
 export function placeArrowLabel(routePoints: ElkPoint[], labelWidth: number, labelHeight: number, flowsRight: boolean, labelDistance: number): LabelFrame {

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const typingPauseLimit = 3000;
+import { typingPauseLimit } from "../presentation-core/settings.ts";
 
 // Digits typed on a slide and confirmed with Enter jump to the slide with that number.
 export function useTypedSlideNumber(jumpToSlideNumber: (slideNumber: number) => void) {

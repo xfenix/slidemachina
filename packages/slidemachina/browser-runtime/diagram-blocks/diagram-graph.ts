@@ -1,6 +1,14 @@
 import type { ElkExtendedEdge, ElkNode, LayoutOptions } from "elkjs/lib/elk-api";
 import { listNodeParts, type ArrowPart, type DiagramPart } from "./diagram-outline.ts";
 
+// Far apart, so ELK's interactive layering reads them only as column and order, never as overlapping shapes.
+const positionStride = 10000;
+// Labels need more room than nodes, edges less; the title takes part of the group padding.
+const labelRoomGapShare = 1.6;
+const edgeNodeGapShare = 0.6;
+const edgeEdgeGapShare = 0.5;
+const titleSpacePaddingShare = 0.75;
+
 export type DiagramDirection = "right" | "down";
 
 export type MeasuredSize = { width: number; height: number };
@@ -15,15 +23,12 @@ type DiagramMeasurements = {
   groupPadding: number;
 };
 
-// Far apart, so ELK's interactive layering reads them only as column and order, never as overlapping shapes.
-const positionStride = 10000;
-
 // Columns come from the markup as fixed positions; ELK skips labels in this mode, so they are placed afterwards.
 function describeLevelOptions(measurements: DiagramMeasurements, diagramDirection: DiagramDirection): LayoutOptions {
   const labelSizes = [...measurements.arrowLabelSizes.values()];
   const labelRoom = diagramDirection === "right"
-    ? Math.max(0, ...labelSizes.map((labelSize) => labelSize.width + measurements.nodeGap * 1.6))
-    : Math.max(0, ...labelSizes.map((labelSize) => labelSize.height + measurements.nodeGap * 1.6));
+    ? Math.max(0, ...labelSizes.map((labelSize) => labelSize.width + measurements.nodeGap * labelRoomGapShare))
+    : Math.max(0, ...labelSizes.map((labelSize) => labelSize.height + measurements.nodeGap * labelRoomGapShare));
   return {
     "elk.layered.layering.strategy": "INTERACTIVE",
     "elk.layered.crossingMinimization.strategy": "INTERACTIVE",
@@ -31,10 +36,10 @@ function describeLevelOptions(measurements: DiagramMeasurements, diagramDirectio
     "elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
     "elk.spacing.nodeNode": String(measurements.nodeGap),
     "elk.layered.spacing.nodeNodeBetweenLayers": String(Math.max(measurements.columnGap, labelRoom)),
-    "elk.spacing.edgeNode": String(measurements.nodeGap * 0.6),
-    "elk.layered.spacing.edgeNodeBetweenLayers": String(measurements.nodeGap * 0.6),
-    "elk.spacing.edgeEdge": String(measurements.nodeGap * 0.5),
-    "elk.layered.spacing.edgeEdgeBetweenLayers": String(measurements.nodeGap * 0.5),
+    "elk.spacing.edgeNode": String(measurements.nodeGap * edgeNodeGapShare),
+    "elk.layered.spacing.edgeNodeBetweenLayers": String(measurements.nodeGap * edgeNodeGapShare),
+    "elk.spacing.edgeEdge": String(measurements.nodeGap * edgeEdgeGapShare),
+    "elk.layered.spacing.edgeEdgeBetweenLayers": String(measurements.nodeGap * edgeEdgeGapShare),
   };
 }
 
@@ -81,7 +86,7 @@ export function buildElkGraph(
       if (nodePart.partKind === "box") return { id: nodePart.nodeIdentifier, ...givenPosition, ...turnSize(boxSizes.get(nodePart.nodeIdentifier)!) };
       const titleSize = measurements.groupTitleSizes.get(nodePart.nodeIdentifier) ?? { width: 0, height: 0 };
       const { groupPadding } = measurements;
-      const titleSpace = titleSize.height > 0 ? titleSize.height + groupPadding * 0.75 : 0;
+      const titleSpace = titleSize.height > 0 ? titleSize.height + groupPadding * titleSpacePaddingShare : 0;
       const titleSide = flowsRight ? "top" : "left";
       const groupMinimum = turnSize({ width: titleSize.width + groupPadding * 2, height: 0 });
       return {

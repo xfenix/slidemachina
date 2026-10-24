@@ -56,7 +56,7 @@ async function highlightCodeElement(codeElement, filePath, pluginContext, rememb
  * @param {import("../presentation-repository/presentation-repository.js").SiteLayout} siteLayout
  * @returns {import("vite").Plugin}
  */
-export function slideSourcePlugin(siteLayout) {
+export function createSlideSourcePlugin(siteLayout) {
   const { rootFolder } = siteLayout;
   /** @type {Map<string, Set<string>>} */
   const slideFilesByCodeFile = new Map();

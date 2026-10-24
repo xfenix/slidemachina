@@ -15,6 +15,28 @@ import type { ScenePart, SceneObjectPart } from "./scene-outline.ts";
 import type { SceneMaterial, ScenePoint } from "./scene-parts.tsx";
 import { createTextMesh } from "./scene-text.ts";
 
+const defaultLightPosition: ScenePoint = [-4, 7, 5];
+const defaultLightIntensity = 1.6;
+const shadowReachShare = 1.8;
+const metalRoughness = 0.28;
+const glossyRoughness = 0.22;
+const glossyClearcoatRoughness = 0.06;
+const matteRoughness = 0.5;
+const matteClearcoat = 0.35;
+const matteClearcoatRoughness = 0.45;
+const sphereWidthSegments = 96;
+const sphereHeightSegments = 64;
+// Rounded edges catch the light along the rims, the way product renders look.
+const roundedEdgeSegments = 5;
+const roundedEdgeShare = 0.12;
+const shadowMapSize = 2048;
+const shadowRadius = 14;
+const shadowBlurSampleCount = 24;
+const shadowBias = -0.0004;
+const lightDistanceShare = 3;
+const shadowNearLevel = 0.1;
+const shadowFarShare = 6;
+
 export type SceneLook = {
   probeElement: HTMLElement;
   objectColor: string;
@@ -31,22 +53,17 @@ export type SceneLight = {
   lightDirection: Vector3;
 };
 
-const defaultLightPosition: ScenePoint = [-4, 7, 5];
-const defaultLightIntensity = 1.6;
-const shadowReachShare = 1.8;
-
 function createSurfaceMaterial(materialName: SceneMaterial | undefined): Material {
-  if (materialName === "metal") return new MeshPhysicalMaterial({ metalness: 1, roughness: 0.28 });
-  if (materialName === "glossy") return new MeshPhysicalMaterial({ roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.06 });
-  return new MeshPhysicalMaterial({ roughness: 0.5, clearcoat: 0.35, clearcoatRoughness: 0.45 });
+  if (materialName === "metal") return new MeshPhysicalMaterial({ metalness: 1, roughness: metalRoughness });
+  if (materialName === "glossy") return new MeshPhysicalMaterial({ roughness: glossyRoughness, clearcoat: 1, clearcoatRoughness: glossyClearcoatRoughness });
+  return new MeshPhysicalMaterial({ roughness: matteRoughness, clearcoat: matteClearcoat, clearcoatRoughness: matteClearcoatRoughness });
 }
 
 function createSolidGeometry(objectPart: Exclude<SceneObjectPart, { partKind: "text" }>): BufferGeometry {
-  if (objectPart.partKind === "sphere") return new SphereGeometry((objectPart.partProperties.size ?? 1) / 2, 96, 64);
+  if (objectPart.partKind === "sphere") return new SphereGeometry((objectPart.partProperties.size ?? 1) / 2, sphereWidthSegments, sphereHeightSegments);
   const cubeSize = objectPart.partProperties.size ?? 1;
   const [cubeWidth, cubeHeight, cubeDepth] = typeof cubeSize === "number" ? [cubeSize, cubeSize, cubeSize] : cubeSize;
-  // Rounded edges catch the light along the rims, the way product renders look.
-  return new RoundedBoxGeometry(cubeWidth, cubeHeight, cubeDepth, 5, Math.min(cubeWidth, cubeHeight, cubeDepth) * 0.12);
+  return new RoundedBoxGeometry(cubeWidth, cubeHeight, cubeDepth, roundedEdgeSegments, Math.min(cubeWidth, cubeHeight, cubeDepth) * roundedEdgeShare);
 }
 
 export function buildObjectMesh(objectPart: SceneObjectPart, sceneLook: SceneLook): Mesh {
@@ -75,10 +92,10 @@ export function buildSceneLights(sceneParts: ScenePart[], sceneLook: SceneLook):
   }
   const shadowLight = sceneLights[0].directionalLight;
   shadowLight.castShadow = true;
-  shadowLight.shadow.mapSize.set(2048, 2048);
-  shadowLight.shadow.radius = 14;
-  shadowLight.shadow.blurSamples = 24;
-  shadowLight.shadow.bias = -0.0004;
+  shadowLight.shadow.mapSize.set(shadowMapSize, shadowMapSize);
+  shadowLight.shadow.radius = shadowRadius;
+  shadowLight.shadow.blurSamples = shadowBlurSampleCount;
+  shadowLight.shadow.bias = shadowBias;
   return sceneLights;
 }
 
@@ -86,10 +103,10 @@ export function buildSceneLights(sceneParts: ScenePart[], sceneLook: SceneLook):
 export function aimSceneLight(sceneLight: SceneLight, sceneCentre: Vector3, sceneRadius: number) {
   const { directionalLight, lightDirection } = sceneLight;
   directionalLight.target.position.copy(sceneCentre);
-  directionalLight.position.copy(sceneCentre).addScaledVector(lightDirection, sceneRadius * 3);
+  directionalLight.position.copy(sceneCentre).addScaledVector(lightDirection, sceneRadius * lightDistanceShare);
   const shadowCamera = directionalLight.shadow.camera;
   const shadowReach = sceneRadius * shadowReachShare;
-  Object.assign(shadowCamera, { left: -shadowReach, right: shadowReach, top: shadowReach, bottom: -shadowReach, near: 0.1, far: sceneRadius * 6 });
+  Object.assign(shadowCamera, { left: -shadowReach, right: shadowReach, top: shadowReach, bottom: -shadowReach, near: shadowNearLevel, far: sceneRadius * shadowFarShare });
   shadowCamera.updateProjectionMatrix();
 }
 

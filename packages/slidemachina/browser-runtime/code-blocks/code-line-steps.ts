@@ -1,6 +1,8 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
 import { stepChangeEventName } from "../slide-steps/step-visibility.ts";
 
+type LineScroll = ScrollBehavior | "keep";
+
 // "1 | 3-4 | 6": line 1 first, then lines 3 and 4 on the next step, then line 6. An empty part lights every line.
 export function parseLineSteps(linesSpecification: string | undefined, codeLineCount: number): Array<Set<number>> {
   if (linesSpecification === undefined) return [new Set()];
@@ -30,8 +32,6 @@ function scrollToLitLines(viewportElement: HTMLElement, litLineElements: HTMLEle
   viewportElement.toggleAttribute("data-clipped-bottom", targetScrollTop < largestScrollTop - 1);
   viewportElement.scrollTo({ top: targetScrollTop, behavior: scrollBehavior });
 }
-
-type LineScroll = ScrollBehavior | "keep";
 
 function lightLines(codeElement: HTMLElement, litLineNumbers: Set<number>, lineScroll: LineScroll) {
   const lineElements = [...codeElement.querySelectorAll<HTMLElement>("[data-code-line]")];

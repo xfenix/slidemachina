@@ -11,6 +11,12 @@ import { moveDiagramBox, rewriteElementText, rewritePictureSource, SourceEditPro
 
 const pictureFolderName = "images";
 const pictureExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".avif", ".gif", ".svg"]);
+const methodNotAllowedStatus = 405;
+const foreignOriginStatus = 403;
+const successStatus = 200;
+const staleVersionStatus = 409;
+const rejectedEditStatus = 422;
+const failedEditStatus = 500;
 
 /**
  * @param {import("../../presentation-repository/presentation-repository.js").SiteLayout} siteLayout
@@ -111,19 +117,19 @@ export function installSourceEditing(developmentServer, siteLayout) {
       serverResponse.end(JSON.stringify(answerBody));
     };
     const isJsonPost = incomingRequest.method === "POST" && incomingRequest.headers["content-type"]?.startsWith("application/json");
-    if (!isJsonPost) return sendAnswer(405, { problemCode: "wrongRequest" });
-    if (!isOwnPageRequest(incomingRequest)) return sendAnswer(403, { problemCode: "wrongRequest" });
+    if (!isJsonPost) return sendAnswer(methodNotAllowedStatus, { problemCode: "wrongRequest" });
+    if (!isOwnPageRequest(incomingRequest)) return sendAnswer(foreignOriginStatus, { problemCode: "wrongRequest" });
     // One edit at a time: the second one sees the file the first has written and checks its version against it.
     editQueue = editQueue.then(async () => {
       try {
         await applySourceEdit(siteLayout, parseEditRequest(await readRequestBody(incomingRequest)));
-        sendAnswer(200, {});
+        sendAnswer(successStatus, {});
       } catch (editError) {
         const isKnownProblem = editError instanceof SourceEditProblem;
         if (!isKnownProblem) developmentServer.config.logger.error(editError instanceof Error ? String(editError.stack ?? editError) : String(editError));
         const problemCode = isKnownProblem ? editError.problemCode : "writeFailed";
         const problemDetail = editError instanceof Error ? editError.message : String(editError);
-        sendAnswer(problemCode === "fileChanged" ? 409 : isKnownProblem ? 422 : 500, { problemCode, problemDetail });
+        sendAnswer(problemCode === "fileChanged" ? staleVersionStatus : isKnownProblem ? rejectedEditStatus : failedEditStatus, { problemCode, problemDetail });
       }
     });
   });

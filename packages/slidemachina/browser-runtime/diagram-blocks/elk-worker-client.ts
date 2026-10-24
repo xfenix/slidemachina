@@ -2,16 +2,16 @@ import type { ElkNode } from "elkjs/lib/elk-api";
 // Only an address: the 1.5 MB layout engine is fetched by the worker, and only once a diagram asks for it.
 import elkWorkerAddress from "elkjs/lib/elk-worker.min.js?url";
 
+const pendingLayouts = new Map<number, PendingLayout>();
+let layoutWorker: Worker | undefined;
+let lastRequestNumber = 0;
+
 type PendingLayout = {
   resolveLayout: (laidOutGraph: ElkNode) => void;
   rejectLayout: (layoutError: unknown) => void;
 };
 
 type WorkerAnswer = { id: number; data?: ElkNode; error?: unknown };
-
-const pendingLayouts = new Map<number, PendingLayout>();
-let layoutWorker: Worker | undefined;
-let lastRequestNumber = 0;
 
 // A blob URL makes the inlined worker same-origin, also on file://.
 function createWorkerAddress(): string {

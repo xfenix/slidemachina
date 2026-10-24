@@ -10,6 +10,9 @@ import {
 } from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
+// A soft room, blurred: the environment lights the scene without mirroring it.
+const environmentBlur = 0.04;
+
 type SharedRenderer = {
   webglRenderer: WebGLRenderer;
   offscreenCanvas: OffscreenCanvas;
@@ -31,7 +34,7 @@ function prepareSharedRenderer(): SharedRenderer {
   webglRenderer.shadowMap.type = VSMShadowMap;
   const environmentGenerator = new PMREMGenerator(webglRenderer);
   const roomEnvironment = new RoomEnvironment();
-  const environmentTexture = environmentGenerator.fromScene(roomEnvironment, 0.04).texture;
+  const environmentTexture = environmentGenerator.fromScene(roomEnvironment, environmentBlur).texture;
   roomEnvironment.dispose();
   environmentGenerator.dispose();
   sharedRenderer = { webglRenderer, offscreenCanvas, environmentTexture };

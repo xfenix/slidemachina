@@ -7,6 +7,23 @@ const hiddenToolbarStorageKey = "slidemachina-toolbar-hidden";
 // The address of the list page, when the presentation belongs to a repository; mountPresentation sets it.
 export const PresentationListAddressContext = createContext<string | undefined>(undefined);
 
+type PresentationToolbarProperties = {
+  languageCode: string;
+  isHidden: boolean;
+  toggleHidden: () => void;
+  isNavigatorOpen: boolean;
+  toggleNavigator: () => void;
+  toggleFullscreen: () => void;
+  children?: ReactNode;
+};
+
+type ToolbarButtonProperties = {
+  label: string;
+  isPressed?: boolean;
+  onPress: () => void;
+  children: ReactNode;
+};
+
 export function useToolbarHiding() {
   const [isToolbarHidden, setToolbarHidden] = useState(() => localStorage.getItem(hiddenToolbarStorageKey) === "true");
   useEffect(() => {
@@ -17,16 +34,6 @@ export function useToolbarHiding() {
     toggleToolbar: () => setToolbarHidden((wasToolbarHidden) => !wasToolbarHidden),
   };
 }
-
-type PresentationToolbarProperties = {
-  languageCode: string;
-  isHidden: boolean;
-  toggleHidden: () => void;
-  isNavigatorOpen: boolean;
-  toggleNavigator: () => void;
-  toggleFullscreen: () => void;
-  children?: ReactNode;
-};
 
 // A hidden toolbar leaves an arrow in its place; the children (Agentation) unmount with it.
 export function PresentationToolbar({
@@ -74,13 +81,6 @@ export function PresentationToolbar({
     </div>
   );
 }
-
-type ToolbarButtonProperties = {
-  label: string;
-  isPressed?: boolean;
-  onPress: () => void;
-  children: ReactNode;
-};
 
 // Mouse clicks do not focus the button, otherwise the next Space would press it again instead of moving forward.
 export function ToolbarButton({ label, isPressed, onPress, children }: ToolbarButtonProperties) {

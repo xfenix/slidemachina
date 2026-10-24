@@ -1,6 +1,8 @@
 import type { SourceEditProblemCode } from "./editor-texts.ts";
 import { sourceEditEndpoint } from "../../shared-between-runtimes/engine-constants.js";
 
+const longestUpdateWait = 4000;
+
 declare global {
   interface Window {
     // Set by every slide module in slidemachina dev: which version of the file the page was built from.
@@ -18,8 +20,6 @@ export class SourceEditFailure extends Error {
     super(problemCode);
   }
 }
-
-const longestUpdateWait = 4000;
 
 export function readSourceFile(sourceLocation: string) {
   return sourceLocation.replace(/:\d+:\d+$/, "");

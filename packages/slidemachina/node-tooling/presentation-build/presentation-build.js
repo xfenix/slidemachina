@@ -115,7 +115,7 @@ export async function buildPresentation(presentationLayout, chosenVariants, outp
   const { buildReport, isInteractive, pageSecret, stepPrefix } = buildContext;
   const projectFolder = presentationLayout.rootFolder;
   /** @type {StepTitler} */
-  const stepTitle = (shownTitle) => (stepPrefix === undefined ? shownTitle : `${stepPrefix} · ${shownTitle}`);
+  const nameStepTitle = (shownTitle) => (stepPrefix === undefined ? shownTitle : `${stepPrefix} · ${shownTitle}`);
   const temporaryFolder = mkdtempSync(path.join(os.tmpdir(), "slidemachina-build-"));
   /** @type {string[]} */
   const builtPages = [];
@@ -123,7 +123,7 @@ export async function buildPresentation(presentationLayout, chosenVariants, outp
     if (chosenVariants.includes("folder") || chosenVariants.includes("zip")) {
       const folderBuild = path.join(temporaryFolder, "folder");
       await runBuildStep(
-        stepTitle(commandLineTexts.buildingFiles(false)),
+        nameStepTitle(commandLineTexts.buildingFiles(false)),
         () => build(createBuildConfiguration(presentationLayout, folderBuild, false, buildReport)),
         isInteractive,
       );
@@ -137,7 +137,7 @@ export async function buildPresentation(presentationLayout, chosenVariants, outp
     if (chosenVariants.some((variantName) => singleFileVariants.has(variantName))) {
       const singleFileFolder = path.join(temporaryFolder, "single-file");
       await runBuildStep(
-        stepTitle(commandLineTexts.buildingFiles(true)),
+        nameStepTitle(commandLineTexts.buildingFiles(true)),
         () => build(createBuildConfiguration(presentationLayout, singleFileFolder, true, buildReport)),
         isInteractive,
       );
@@ -146,7 +146,7 @@ export async function buildPresentation(presentationLayout, chosenVariants, outp
       if (pageSecret !== undefined) {
         const presentationTitle = readPresentationFile(projectFolder).presentationTitle ?? path.basename(projectFolder);
         await runBuildStep(
-          stepTitle(commandLineTexts.encryptingFile),
+          nameStepTitle(commandLineTexts.encryptingFile),
           () => encryptPage(builtPage, outputPaths.protected, pageSecret, presentationTitle),
           isInteractive,
         );
@@ -154,14 +154,14 @@ export async function buildPresentation(presentationLayout, chosenVariants, outp
       for (const pdfVariant of pdfVariantNames.filter((variantName) => chosenVariants.includes(variantName))) {
         const printsSteps = pdfVariant === "pdf-steps";
         await runBuildStep(
-          stepTitle(commandLineTexts.printingPdf(printsSteps)),
+          nameStepTitle(commandLineTexts.printingPdf(printsSteps)),
           () => printPdf(builtPage, outputPaths[pdfVariant], printsSteps),
           isInteractive,
         );
       }
       builtPages.push(singleFileFolder);
     }
-    if (useBuiltPage !== undefined) await useBuiltPage(builtPages[0], stepTitle);
+    if (useBuiltPage !== undefined) await useBuiltPage(builtPages[0], nameStepTitle);
   } finally {
     rmSync(temporaryFolder, { recursive: true, force: true });
   }

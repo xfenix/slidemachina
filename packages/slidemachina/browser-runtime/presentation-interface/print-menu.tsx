@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { pickInterfaceTexts } from "./interface-texts.ts";
 import { ToolbarButton } from "./presentation-toolbar.tsx";
 
+export const printShortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd+P" : "Ctrl+P";
+
 type PrintMenuProperties = {
   languageCode: string;
   printsSteps: boolean;
@@ -9,8 +11,6 @@ type PrintMenuProperties = {
   printPresentation: () => void;
   openPrintView: () => void;
 };
-
-export const printShortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd+P" : "Ctrl+P";
 
 // The steps switch is remembered: Cmd+P and the print view use it next time too.
 export function PrintMenu({ languageCode, printsSteps, choosePrintedSteps, printPresentation, openPrintView }: PrintMenuProperties) {

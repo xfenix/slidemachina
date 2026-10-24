@@ -4,15 +4,17 @@ import { poseScene } from "./scene-poses.ts";
 import { drawSceneFrame } from "./scene-renderer.ts";
 import { stepChangeEventName } from "../slide-steps/step-visibility.ts";
 
+const largestPixelRatio = 2;
+const printedPixelRatio = 1.5;
+const largestFramePixels = 4096;
+// A background tab freezes the clock: one frame never eases faster than this.
+const longestFrameSeconds = 0.1;
+
 type SceneViewSettings = {
   showsFloor: boolean;
   orbitDegrees: number;
   isSlideCopy: boolean;
 };
-
-const largestPixelRatio = 2;
-const printedPixelRatio = 1.5;
-const largestFramePixels = 4096;
 
 // Markers without a step number have not been counted by the slide yet: the slide's step event follows.
 function readReachedPartPositions(figureElement: HTMLElement): Set<number> | undefined {
@@ -61,7 +63,7 @@ export function createSceneView(figureElement: HTMLElement, sceneParts: ScenePar
 
   const runAnimationFrame = (frameTime: number) => {
     animationFrameRequest = requestAnimationFrame(runAnimationFrame);
-    const elapsedSeconds = Math.min(Math.max(frameTime - lastFrameTime, 0) / 1000, 0.1);
+    const elapsedSeconds = Math.min(Math.max(frameTime - lastFrameTime, 0) / 1000, longestFrameSeconds);
     lastFrameTime = frameTime;
     const hasMoved = builtScene !== undefined && advanceScene(builtScene, elapsedSeconds);
     if (!hasMoved && !needsDrawing) return;
