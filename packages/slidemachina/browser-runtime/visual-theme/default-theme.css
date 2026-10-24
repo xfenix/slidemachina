@@ -35,7 +35,8 @@
     --frame-padding: 64px;
     --frame-top: 88px;
     --content-top: var(--frame-top);
-    --content-bottom: calc(var(--frame-padding) + 96px);
+    /* The content ends --heading-gap above the capitals of the breadcrumbs, as it starts --heading-gap under the heading. */
+    --content-bottom: calc(var(--frame-padding) + var(--frame-text-size) * var(--text-cap-height) + var(--heading-gap));
     --content-max-width: 2200px;
     --text-max-width: 60ch;
     --logo-height: 48px;
@@ -43,21 +44,22 @@
     --logo-filter-on-dark: brightness(0) invert(1);
     --breadcrumbs-separator: "›";
 
-    /* Three faces: the text font regular and bold, the code font regular. Five sizes: small, secondary, main, heading, display.
+    /* Three faces: the text font regular and bold, the code font regular. Four sizes: secondary, main, heading, display.
        Blocks take theirs from these. */
     --text-size: 40px;
+    /* Height of the capitals of --font-text as a share of its size: the frame is measured to visible letters. */
+    --text-cap-height: 0.71;
     --secondary-text-size: 28px;
-    --small-text-size: 24px;
     --heading-size: 56px;
     --display-size: 112px;
-    --frame-text-size: var(--small-text-size);
+    --frame-text-size: var(--secondary-text-size);
     --cover-heading-size: var(--display-size);
     --code-size: var(--secondary-text-size);
-    --code-title-size: var(--small-text-size);
+    --code-title-size: var(--secondary-text-size);
     --command-size: var(--code-size);
     --command-prompt: "$ ";
     --caption-size: var(--secondary-text-size);
-    --source-size: var(--small-text-size);
+    --source-size: var(--secondary-text-size);
     --table-text-size: var(--secondary-text-size);
     --quote-size: var(--display-size);
     --quote-author-size: var(--secondary-text-size);
@@ -74,8 +76,8 @@
     --code-dim-opacity: 0.45;
 
     --diagram-text-size: var(--secondary-text-size);
-    --diagram-label-size: var(--small-text-size);
-    --diagram-title-size: var(--small-text-size);
+    --diagram-label-size: var(--secondary-text-size);
+    --diagram-title-size: var(--secondary-text-size);
     --diagram-max-scale: 1.6;
     --diagram-label-width: 320px;
     --diagram-box-min-width: 224px;
