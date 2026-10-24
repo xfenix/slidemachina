@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { printedStepsStorageKey, printViewParameter, printViewStepsValue } from "../../shared-between-runtimes/engine-constants.js";
 import { waitForPrintedPages } from "./print-readiness.ts";
+import { describeAddressWithParameter } from "../presentation-core/page-address.ts";
 
 function readPrintViewRequest(): { isPrintView: boolean; printsSteps?: boolean } {
   const searchParameters = new URLSearchParams(location.search);
@@ -12,11 +13,8 @@ function readPrintViewRequest(): { isPrintView: boolean; printsSteps?: boolean }
 
 // "?print" or "?print=steps"; the slide position in the hash stays.
 function describePrintViewAddress(isPrintView: boolean, printsSteps: boolean): string {
-  const pageAddress = new URL(location.href);
-  pageAddress.searchParams.delete(printViewParameter);
-  if (isPrintView) pageAddress.searchParams.set(printViewParameter, printsSteps ? printViewStepsValue : "");
-  pageAddress.search = pageAddress.search.replace(new RegExp(`([?&]${printViewParameter})=(?=&|$)`), "$1");
-  return pageAddress.href;
+  const printViewValue = printsSteps ? printViewStepsValue : "";
+  return describeAddressWithParameter(printViewParameter, isPrintView ? printViewValue : undefined);
 }
 
 // Pages appear synchronously on beforeprint. Chrome may lay them out again until its dialog closes, so they go on the next press on the page.

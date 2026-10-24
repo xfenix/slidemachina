@@ -431,8 +431,10 @@ test("демо листается, показывает шаги и навига
     const navigatorButton = page.getByRole("button", { name: "Все слайды · Esc" });
     await navigatorButton.click();
     await expect(slideNavigator).toBeVisible();
+    await expect(page).toHaveURL(/\/\?overview#39$/);
     await navigatorButton.click();
     await expect(slideNavigator).toHaveCount(0);
+    await expect(page).toHaveURL(/\/#39$/);
     const feedbackStandIn = page.locator("body > .slidemachina-feedback");
     await page.getByRole("button", { name: "Скрыть панель · H" }).click();
     await expect(navigatorButton).toHaveCount(0);

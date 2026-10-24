@@ -20,14 +20,13 @@ import { useSlideNavigation } from "../slide-navigation/slide-navigation.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { SlideNavigator } from "../presentation-interface/slide-navigator/slide-navigator.tsx";
+import { useOverviewAddress } from "../presentation-interface/slide-navigator/overview-address.ts";
 import { buildSlideOutline } from "./slide-outline.tsx";
 import { useSwipeControls } from "../slide-navigation/swipe-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
 
 // The list of a repository shows /talk/?cover in a frame, and the build photographs it: the first slide alone, every step shown.
 const isCoverPreview = new URLSearchParams(location.search).has("cover");
-// /talk/?overview opens on the navigator: a showcase of every slide that grows with the presentation.
-const opensOnOverview = new URLSearchParams(location.search).has("overview");
 // A slide two slides away or closer starts its heavy parts.
 const nearbySlideDistance = 2;
 
@@ -63,7 +62,7 @@ export function Presentation({
   const slideNavigation = useSlideNavigation(outlinedSlides.length, stepCountsReference);
   const { currentPosition } = slideNavigation;
   const { canvasWidth, canvasScale } = useCanvasScaling();
-  const [isNavigatorOpen, setNavigatorOpen] = useState(opensOnOverview);
+  const [isNavigatorOpen, setNavigatorOpen] = useOverviewAddress();
   const [isBlackedOut, setBlackedOut] = useState(false);
   const { isToolbarHidden, toggleToolbar } = useToolbarHiding();
   const printPreparation = usePrintPreparation();
