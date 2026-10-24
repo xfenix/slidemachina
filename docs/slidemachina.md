@@ -469,7 +469,7 @@ tests/                          интеграционные тесты и их 
 workspace-checks/               проверка правил раскладки (входит в npm run check)
 ```
 
-Пакет движка публикуется исходниками TypeScript, сборки нет: CLI запускает Vite 8, Vite компилирует движок вместе с презентацией.
+Пакет движка публикуется исходниками TypeScript, сборки нет: CLI запускает Vite 8, Vite компилирует движок вместе с презентацией. Node 26 запускает .ts напрямую, но Node не стирает типы в node_modules: опубликованному пакету понадобится шаг сборки.
 
 ### Раскладка движка
 
@@ -506,7 +506,7 @@ shared-between-runtimes/        чистый JS без зависимостей:
 
 Публичный компонент лежит в файле `<имя>-component.tsx` (`table-component.tsx` — это `<Table>`), его стили — рядом, в `<имя>-component.css`. Индексных файлов в папках нет.
 
-Правила проверяет `workspace-checks/import-boundaries.js` в `npm run check`:
+Правила проверяет `workspace-checks/import-boundaries.ts` в `npm run check`:
 - `browser-runtime` не берёт код из `node-tooling` и модули `node:*`, а `node-tooling` — модули `browser-runtime`;
 - `shared-between-runtimes` не зависит ни от остального движка, ни от пакетов;
 - `presentation-core` не зависит от блоков;
@@ -514,16 +514,16 @@ shared-between-runtimes/        чистый JS без зависимостей:
 
 ### Как всё устроено
 
-1. `node-tooling/command-line/slidemachina.js` разбирает команду и описание сайта: одна презентация или репозиторий.
-2. Vite получает настройки из `node-tooling/development-server/vite-configuration.js`. Страницы `index.html` на диске нет: плагин `slidemachina` отдаёт её dev-серверу и сборке.
-3. Страница грузит виртуальный модуль входа `/@slidemachina/entry.js` (в репозитории — `/@slidemachina/entry/<папка>.js`). Он подключает CSS движка списком из `entry-modules.js`, потом `theme/style.css`, потом `style.css` презентации, потом `index.tsx`. Стили редактора — только в dev.
+1. `node-tooling/command-line/slidemachina.ts` разбирает команду и описание сайта: одна презентация или репозиторий.
+2. Vite получает настройки из `node-tooling/development-server/vite-configuration.ts`. Страницы `index.html` на диске нет: плагин `slidemachina` отдаёт её dev-серверу и сборке.
+3. Страница грузит виртуальный модуль входа `/@slidemachina/entry.js` (в репозитории — `/@slidemachina/entry/<папка>.js`). Он подключает CSS движка списком из `entry-modules.ts`, потом `theme/style.css`, потом `style.css` презентации, потом `index.tsx`. Стили редактора — только в dev.
 4. Плагин `slidemachina-slide-source` из `source-transforms/` проходит по каждому `.tsx` сайта до React: подсвечивает `<Code>` Shiki, типографирует текст, в dev ставит метки `data-source-location`.
 5. `mountPresentation` из `presentation-core/presentation-mounting.tsx` рендерит элемент из `index.tsx`. Горячая замена рендерит новый элемент в тот же корень, слайд и шаг остаются.
 6. `<Presentation>` разворачивает разделы в плоский список слайдов, рисует все слайды сразу и ведёт позицию в адресе. Неактивные скрыты через `visibility: hidden` и `inert`: так у элементов есть размеры, а шаги можно посчитать по DOM.
 7. Шаги — атрибуты `data-step` в DOM. Слайд размечает достигнутые шаги и шлёт событие `slidemachina-steps`. Код, схемы и сцены по нему ставят подсветку, фокус и позы прямо в DOM, без перерисовки React.
 8. Переход — View Transitions API. Движок перед снимком старого слайда и внутри обновления раздаёт элементам имена слоёв, после перехода снимает.
 
-Код Node написан на JavaScript с JSDoc-типами, `npm run check` проверяет его через `checkJs` вместе с TypeScript.
+Код Node написан на TypeScript без стёртых типов: Node 26 запускает .ts напрямую, `npm run check` проверяет его тем же `tsc`.
 
 ### Ключевые решения
 

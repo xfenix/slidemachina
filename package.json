@@ -10,7 +10,7 @@
     "demo": "slidemachina dev examples/demo-presentation",
     "examples": "slidemachina dev examples",
     "build-demo": "slidemachina build examples/demo-presentation",
-    "check": "tsc --noEmit && node workspace-checks/import-boundaries.js",
+    "check": "tsc --noEmit && node workspace-checks/import-boundaries.ts",
     "test": "playwright test"
   },
   "devDependencies": {
