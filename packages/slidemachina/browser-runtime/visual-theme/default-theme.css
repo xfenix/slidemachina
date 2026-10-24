@@ -56,7 +56,7 @@
     --cover-heading-size: var(--display-size);
     --code-size: var(--secondary-text-size);
     --code-title-size: var(--secondary-text-size);
-    --command-size: var(--code-size);
+    --command-size: var(--text-size);
     --command-prompt: "$ ";
     --caption-size: var(--secondary-text-size);
     --source-size: var(--secondary-text-size);
