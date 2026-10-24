@@ -3,6 +3,12 @@
   [data-navigator] {
     position: absolute;
     inset: 0;
+    /* <dialog> comes with a border, padding and a fit-content box from the browser. */
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: none;
     background: var(--navigator-background);
     color: var(--text-color-on-dark);
   }

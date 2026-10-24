@@ -71,7 +71,7 @@ export function SlideNavigator({
   } as CSSProperties;
 
   return (
-    <div data-navigator role="dialog" aria-label={pickInterfaceTexts(languageCode).navigatorLabel} style={navigatorStyle}>
+    <dialog open data-navigator aria-label={pickInterfaceTexts(languageCode).navigatorLabel} style={navigatorStyle}>
       <div data-navigator-scroller style={{ padding: navigatorPadding }}>
         {groupSlidesBySection(outlinedSlides).map((slideGroup) => (
           <section data-navigator-group key={slideGroup.slideIndexes[0]}>
@@ -103,7 +103,7 @@ export function SlideNavigator({
           </section>
         ))}
       </div>
-    </div>
+    </dialog>
   );
 }
 

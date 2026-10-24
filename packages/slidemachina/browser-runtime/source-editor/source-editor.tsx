@@ -164,10 +164,10 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
   return (
     <>
       {editorStatus !== undefined && (
-        <div data-editor-status={editorStatus.statusTone} role="status" aria-live="polite" key={editorStatus.statusText}>
+        <output data-editor-status={editorStatus.statusTone} aria-live="polite" key={editorStatus.statusText}>
           <span data-editor-status-mark aria-hidden="true" />
           {editorStatus.statusText}
-        </div>
+        </output>
       )}
       {createPortal(
         <div data-editor-overlay>
