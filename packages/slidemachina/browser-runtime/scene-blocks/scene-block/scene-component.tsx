@@ -1,9 +1,9 @@
 import { useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
-import { createPartStepAttributes } from "../slide-steps/step-attributes.ts";
-import { useHeavyPartsAllowed } from "../presentation-core/heavy-part-loading.ts";
+import { createPartStepAttributes } from "../../slide-steps/step-attributes.ts";
+import { useHeavyPartsAllowed } from "../../presentation-core/heavy-part-loading.ts";
 import { outlineSceneParts } from "./scene-outline.ts";
-import { useSlideEnvironment } from "../presentation-core/slide-environment.ts";
-import { pickSourceMarks } from "../presentation-core/source-marks.ts";
+import { useSlideEnvironment } from "../../presentation-core/slide-environment.ts";
+import { pickSourceMarks } from "../../presentation-core/source-marks.ts";
 
 export type SceneProperties = {
   children?: ReactNode;

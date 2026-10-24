@@ -1,5 +1,5 @@
 import { createContext, use, useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
-import { pickInterfaceTexts } from "./interface-texts.ts";
+import { pickInterfaceTexts } from "../interface-texts.ts";
 import { useToolbarIdle } from "./toolbar-idle.ts";
 
 const hiddenToolbarStorageKey = "slidemachina-toolbar-hidden";

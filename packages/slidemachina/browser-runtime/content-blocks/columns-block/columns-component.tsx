@@ -1,5 +1,5 @@
 import { Children, type CSSProperties, type ReactNode } from "react";
-import { createSequenceStepAttributes, type StepEffect } from "../slide-steps/step-attributes.ts";
+import { createSequenceStepAttributes, type StepEffect } from "../../slide-steps/step-attributes.ts";
 
 export type ColumnsProperties = {
   children?: ReactNode;

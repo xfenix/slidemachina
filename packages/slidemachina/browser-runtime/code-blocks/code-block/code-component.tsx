@@ -1,7 +1,7 @@
 import { useMemo, useRef, type CSSProperties } from "react";
 import { parseLineSteps, useCodeLineSteps } from "./code-line-steps.ts";
-import { createStepAttributes } from "../slide-steps/step-attributes.ts";
-import { useWidthFitting, type WidthFitting } from "../presentation-core/width-fitting.ts";
+import { createStepAttributes } from "../../slide-steps/step-attributes.ts";
+import { useWidthFitting, type WidthFitting } from "../../presentation-core/width-fitting.ts";
 
 // Long lines get a smaller font down to 20 px, then wrap: code never sticks out of its block.
 const codeWidthFitting: WidthFitting = {

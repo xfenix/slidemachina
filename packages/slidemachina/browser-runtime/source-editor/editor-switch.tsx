@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState, type ComponentType } from "react";
 import { pickEditorTexts } from "./editor-texts.ts";
 import { useWindowKeydown } from "../slide-navigation/keyboard-listener.ts";
-import { ToolbarButton } from "../presentation-interface/presentation-toolbar.tsx";
+import { ToolbarButton } from "../presentation-interface/presentation-toolbar/presentation-toolbar.tsx";
 
 // The condition is folded at build time, like Agentation's: a built presentation carries no editor code.
 const SourceEditor = lazy<ComponentType<{ languageCode: string }>>(() =>

@@ -1,15 +1,15 @@
 import { useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 import type { ElkPoint } from "elkjs/lib/elk-api";
-import { drawArrow } from "./arrow-geometry.ts";
-import { useFocusSteps } from "./diagram-focus.ts";
+import { drawArrow } from "../arrow-geometry.ts";
+import { useFocusSteps } from "../diagram-focus.ts";
 import type { DiagramDirection } from "./diagram-graph.ts";
 import type { DiagramGeometry, NodeFrame } from "./diagram-layout.ts";
 import { prepareDiagramLayout, useDiagramGeometry } from "./diagram-measuring.ts";
 import { outlineDiagramParts, type ArrowPart, type DiagramPart } from "./diagram-outline.ts";
-import { FocusMarker } from "./diagram-parts.tsx";
+import { FocusMarker } from "../diagram-parts.tsx";
 import { useDiagramScaling } from "./diagram-scaling.ts";
-import { pickSourceMarks } from "../presentation-core/source-marks.ts";
-import { createPartStepAttributes } from "../slide-steps/step-attributes.ts";
+import { pickSourceMarks } from "../../presentation-core/source-marks.ts";
+import { createPartStepAttributes } from "../../slide-steps/step-attributes.ts";
 
 const arrowCornerRadius = 16;
 

@@ -2,7 +2,7 @@ import { advanceScene, aimScene, buildScene, releaseScene, type BuiltScene, type
 import type { ScenePart } from "./scene-outline.ts";
 import { poseScene } from "./scene-poses.ts";
 import { drawSceneFrame } from "./scene-renderer.ts";
-import { stepChangeEventName } from "../slide-steps/step-visibility.ts";
+import { stepChangeEventName } from "../../slide-steps/step-visibility.ts";
 
 const largestPixelRatio = 2;
 const printedPixelRatio = 1.5;

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { pickSourceMarks } from "../presentation-core/source-marks.ts";
+import { pickSourceMarks } from "../../presentation-core/source-marks.ts";
 
 export type QuoteProperties = {
   children?: ReactNode;

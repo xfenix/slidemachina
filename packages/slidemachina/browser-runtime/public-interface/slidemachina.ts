@@ -3,17 +3,17 @@ export { Section, type SectionProperties } from "../presentation-core/section-co
 export { Slide, type SlideProperties } from "../presentation-core/slide-component.tsx";
 export { List, type ListProperties } from "../slide-steps/list-component.tsx";
 export { Step, type StepProperties } from "../slide-steps/step-component.tsx";
-export { Code, type CodeProperties } from "../code-blocks/code-component.tsx";
-export { Image, type ImageProperties } from "../content-blocks/image-component.tsx";
-export { Video, type VideoProperties } from "../content-blocks/video-component.tsx";
+export { Code, type CodeProperties } from "../code-blocks/code-block/code-component.tsx";
+export { Image, type ImageProperties } from "../content-blocks/image-block/image-component.tsx";
+export { Video, type VideoProperties } from "../content-blocks/video-block/video-component.tsx";
 export type { MediaFit } from "../content-blocks/media-frame.tsx";
-export { Columns, type ColumnsProperties } from "../content-blocks/columns-component.tsx";
-export { Table, type TableProperties } from "../content-blocks/table-component.tsx";
-export { Quote, type QuoteProperties } from "../content-blocks/quote-component.tsx";
-export { BigNumber, type BigNumberProperties } from "../content-blocks/big-number-component.tsx";
-export { Caption, type CaptionProperties } from "../content-blocks/caption-component.tsx";
-export { Source, type SourceProperties } from "../content-blocks/source-component.tsx";
-export { Diagram, type DiagramProperties } from "../diagram-blocks/diagram-component.tsx";
+export { Columns, type ColumnsProperties } from "../content-blocks/columns-block/columns-component.tsx";
+export { Table, type TableProperties } from "../content-blocks/table-block/table-component.tsx";
+export { Quote, type QuoteProperties } from "../content-blocks/quote-block/quote-component.tsx";
+export { BigNumber, type BigNumberProperties } from "../content-blocks/big-number-block/big-number-component.tsx";
+export { Caption, type CaptionProperties } from "../content-blocks/caption-block/caption-component.tsx";
+export { Source, type SourceProperties } from "../content-blocks/source-block/source-component.tsx";
+export { Diagram, type DiagramProperties } from "../diagram-blocks/diagram-block/diagram-component.tsx";
 export {
   Arrow,
   Box,
@@ -24,8 +24,8 @@ export {
   type FocusProperties,
   type GroupProperties,
 } from "../diagram-blocks/diagram-parts.tsx";
-export { Actor, Message, Sequence, type ActorProperties, type MessageProperties, type SequenceProperties } from "../diagram-blocks/sequence-component.tsx";
-export { Scene, type SceneProperties } from "../scene-blocks/scene-component.tsx";
+export { Actor, Message, Sequence, type ActorProperties, type MessageProperties, type SequenceProperties } from "../diagram-blocks/sequence-block/sequence-component.tsx";
+export { Scene, type SceneProperties } from "../scene-blocks/scene-block/scene-component.tsx";
 export {
   Camera,
   Cube,
@@ -41,8 +41,8 @@ export {
   type ScenePoint,
   type SphereProperties,
   type TextProperties,
-} from "../scene-blocks/scene-parts.tsx";
-export type { DiagramDirection } from "../diagram-blocks/diagram-graph.ts";
+} from "../scene-blocks/scene-block/scene-parts.tsx";
+export type { DiagramDirection } from "../diagram-blocks/diagram-block/diagram-graph.ts";
 export type { PresentationLogo, SlideAlign } from "../presentation-core/slide-environment.ts";
 export type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 export type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";

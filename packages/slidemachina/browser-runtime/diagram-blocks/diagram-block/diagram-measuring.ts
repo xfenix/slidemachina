@@ -3,8 +3,8 @@ import { assignDiagramColumns } from "./diagram-columns.ts";
 import { listArrowParts, mapEnclosingGroups, type ArrowPart, type DiagramPart } from "./diagram-outline.ts";
 import { buildElkGraph, type DiagramDirection, type MeasuredSize } from "./diagram-graph.ts";
 import { findFinishedGeometry, layOutDiagram, type DiagramGeometry } from "./diagram-layout.ts";
-import { useHeavyPartsAllowed } from "../presentation-core/heavy-part-loading.ts";
-import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
+import { useHeavyPartsAllowed } from "../../presentation-core/heavy-part-loading.ts";
+import { pickInterfaceTexts } from "../../presentation-interface/interface-texts.ts";
 
 type DiagramLayoutInput = {
   diagramParts: DiagramPart[];
