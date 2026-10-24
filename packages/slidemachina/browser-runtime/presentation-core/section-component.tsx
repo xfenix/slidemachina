@@ -1,8 +1,9 @@
-import type { ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 
 export type SectionProperties = {
   title: string;
-  cover?: boolean;
+  // false drops the cover slide; a <Slide> replaces the generated one and keeps the breadcrumbs of the section.
+  cover?: boolean | ReactElement;
   children?: ReactNode;
 };
 
