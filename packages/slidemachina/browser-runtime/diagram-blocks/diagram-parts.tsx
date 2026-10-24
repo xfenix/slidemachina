@@ -34,11 +34,8 @@ export type FocusProperties = {
 
 // Parts only describe the diagram: <Diagram> and <Sequence> read their props and draw everything together.
 export const Box: (boxProperties: BoxProperties) => null = () => null;
-
 export const Group: (groupProperties: GroupProperties) => null = () => null;
-
 export const Arrow: (arrowProperties: ArrowProperties) => null = () => null;
-
 export const Focus: (focusProperties: FocusProperties) => null = () => null;
 
 // A focus marker is an empty hidden step; the diagram reads which markers are reached and lights their parts.

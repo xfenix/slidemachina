@@ -54,13 +54,8 @@ export type MoveProperties = SceneStepProperties & {
 
 // Parts only describe the scene: <Scene> reads their props and draws everything with three.js.
 export const Cube: (cubeProperties: CubeProperties) => null = () => null;
-
 export const Sphere: (sphereProperties: SphereProperties) => null = () => null;
-
 export const Text: (textProperties: TextProperties) => null = () => null;
-
 export const Light: (lightProperties: LightProperties) => null = () => null;
-
 export const Camera: (cameraProperties: CameraProperties) => null = () => null;
-
 export const Move: (moveProperties: MoveProperties) => null = () => null;

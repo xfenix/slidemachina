@@ -47,7 +47,6 @@ export type MessageProperties = {
 };
 
 export const Actor: (actorProperties: ActorProperties) => null = () => null;
-
 export const Message: (messageProperties: MessageProperties) => null = () => null;
 
 function MessageArrow({ messageDirection }: { messageDirection: "right" | "left" | "self" }) {

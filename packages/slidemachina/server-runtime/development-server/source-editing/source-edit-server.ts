@@ -12,7 +12,6 @@ import type { SiteLayout } from "../../presentation-repository/presentation-repo
 import type { ViteDevServer } from "vite";
 
 const pictureFolderName = "images";
-
 const pictureExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".avif", ".gif", ".svg"]);
 const methodNotAllowedStatus = 405;
 const foreignOriginStatus = 403;
