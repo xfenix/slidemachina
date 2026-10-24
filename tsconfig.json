@@ -18,5 +18,5 @@
       "slidemachina": ["./packages/slidemachina/browser-runtime/public-interface/slidemachina.ts"]
     }
   },
-  "include": ["packages/slidemachina", "workspace-checks", "packages/create-slidemachina/*.js", "examples", "tests", "playwright.config.ts"]
+  "include": ["packages/slidemachina", "workspace-checks", "packages/create-slidemachina/*.ts", "examples", "tests", "playwright.config.ts"]
 }

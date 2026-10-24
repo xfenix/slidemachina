@@ -5,10 +5,10 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "create-slidemachina": "./create-project.js"
+    "create-slidemachina": "./create-project.ts"
   },
   "files": [
-    "create-project.js",
+    "create-project.ts",
     "template",
     "theme"
   ],
