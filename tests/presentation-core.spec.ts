@@ -514,7 +514,7 @@ test("демо листается, показывает шаги и навига
     const typographedParagraph = currentSlide(page).locator("[data-column] > p").last();
     await editFileWhile(
       demoPresentationFile,
-      (originalPresentation) => originalPresentation.replace('<Presentation title="slidemachina"', '<Presentation typography={false} title="slidemachina"'),
+      (originalPresentation) => originalPresentation.replace('<Machina.Presentation title="slidemachina"', '<Machina.Presentation typography={false} title="slidemachina"'),
       () => expect(typographedParagraph).toHaveText(/^Пишете "кавычки" и тире - как на клавиатуре/),
     );
     await expect(typographedParagraph).toHaveText(/^Пишете «кавычки»/);
