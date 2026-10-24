@@ -2,12 +2,13 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { sampleSceneCanvas } from "./scene-sampling.ts";
-import { currentSlide } from "./test-helpers.ts";
+import { currentSlide, workspaceFolder } from "./test-helpers.ts";
 
 // playwright.config.ts serves a copy of the demo: edits here never reach the real files or the dev server on 5173.
 const demoCopyFolder = process.env.SLIDEMACHINA_TEST_DEMO_COPY!;
 const demoPresentationFile = path.join(demoCopyFolder, "index.tsx");
 const demoCodeFile = path.join(demoCopyFolder, "examples", "agent.py");
+const publicInterfaceFile = path.join(workspaceFolder, "packages", "slidemachina", "browser-runtime", "public-interface", "slidemachina.ts");
 
 async function editFileWhile(filePath: string, editText: (originalText: string) => string, checkEditedPage: () => Promise<void>) {
   const originalText = await readFile(filePath, "utf8");
@@ -75,6 +76,16 @@ test("демо листается, показывает шаги и навига
   await page.addInitScript(() => addEventListener("error", (errorEvent) => (window as unknown as { reportPageError: (errorMessage: string) => void }).reportPageError(errorEvent.message)));
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
+
+  // The demo opened with ?overview is the published showcase, so a new component has to appear in it.
+  await test.step("каждый компонент движка есть в демо", async () => {
+    const publicInterfaceSource = await readFile(publicInterfaceFile, "utf8");
+    const componentNames = [...publicInterfaceSource.matchAll(/^export \{([^}]+)\}/gm)].flatMap((exportMatch) =>
+      exportMatch[1]!.split(",").map((exportedName) => exportedName.trim()).filter((exportedName) => exportedName !== "" && !exportedName.startsWith("type ")),
+    );
+    const demoSource = await readFile(demoPresentationFile, "utf8");
+    expect(componentNames.filter((componentName) => !demoSource.includes(`Machina.${componentName}`)), "компоненты, которых нет в демо").toEqual([]);
+  });
 
   await test.step("обложка, тема и Tailwind", async () => {
     await expect(page).toHaveURL(/#1$/);
@@ -430,6 +441,12 @@ test("демо листается, показывает шаги и навига
     await page.keyboard.press("h");
     await expect(navigatorButton).toBeVisible();
     await expect(feedbackStandIn).toHaveCSS("visibility", "visible");
+    const overviewPage = await page.context().newPage();
+    await overviewPage.goto("/?overview");
+    await expect(overviewPage.locator("[data-navigator] [data-thumbnail]")).toHaveCount(57);
+    await overviewPage.keyboard.press("Escape");
+    await expect(overviewPage.locator("[data-navigator]")).toHaveCount(0);
+    await overviewPage.close();
   });
 
   await test.step("панель гаснет без движения мыши и возвращается при движении, Agentation — вместе с ней", async () => {
