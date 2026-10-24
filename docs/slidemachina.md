@@ -101,7 +101,7 @@ export default (
 
 | Компонент | Пропсы |
 |---|---|
-| `Presentation` | `title`; `lang` (по умолчанию `en`); `align` (`left` или `center`, по умолчанию `left`); `logo` — строка или `{ light, dark }`; `transition`; `speed`; `typography={false}` выключает типограф; `date` (`"2026-10-16"`) — для списка в репозитории |
+| `Presentation` | `title`; `lang` (по умолчанию `en`); `align` (`left` или `center`, по умолчанию `left`); `logo` — строка или `{ light, dark }`; `transition`; `speed`; `breadcrumbsSeparator` — разделитель раздела и подраздела в крошках и навигаторе, по умолчанию `›`; `typography={false}` выключает типограф; `date` (`"2026-10-16"`) — для списка в репозитории |
 | `Section` | `title`; `cover={false}` убирает слайд раздела, `cover={<Slide>…</Slide>}` ставит свой слайд вместо стандартного, крошки и навигатор остаются. Вложенный `Section` — подраздел |
 | `Slide` | `align`; `cover`; `background` — цвет или картинка; `tone` (`dark` или `light`); `transition`; `speed`; `plain`; `logo={false}`; `breadcrumbs={false}` или свой текст; `number={false}`; `className` |
 | `List` | `step` (`true` или номер первого шага); `effect`; `ordered` |

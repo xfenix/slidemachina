@@ -38,6 +38,8 @@ export type PresentationProperties = {
   transition?: SlideTransition;
   // "fast", "normal", "slow" or how many times faster than normal; a slide can set its own.
   speed?: TransitionSpeed;
+  // Stands between a section and its subsection in the breadcrumbs and the navigator: "/", "·", "→".
+  breadcrumbsSeparator?: string;
   // Read by the build, which typographs the slide text; false keeps the text exactly as written.
   typography?: boolean;
   // "2026-07-31": read by the list of a presentation repository, which puts the newest first.
@@ -52,6 +54,7 @@ export function Presentation({
   logo,
   transition = "auto",
   speed = "normal",
+  breadcrumbsSeparator,
 }: PresentationProperties) {
   const outlinedSlides = useMemo(() => buildSlideOutline(children), [children]);
   const stepCountsReference = useRef<number[]>([]);
@@ -108,7 +111,11 @@ export function Presentation({
     );
   };
 
-  const canvasStyle = { "--canvas-width": canvasWidth, "--canvas-scale": canvasScale } as CSSProperties;
+  const canvasStyle = {
+    "--canvas-width": canvasWidth,
+    "--canvas-scale": canvasScale,
+    ...(breadcrumbsSeparator === undefined ? {} : { "--breadcrumbs-separator": JSON.stringify(breadcrumbsSeparator) }),
+  } as CSSProperties;
 
   if (isCoverPreview) {
     return (
