@@ -3,7 +3,7 @@ export { Section, type SectionProperties } from "../presentation-core/section-co
 export { Slide, type SlideProperties } from "../presentation-core/slide-component.tsx";
 export { List, type ListProperties } from "../slide-steps/list-component.tsx";
 export { Step, type StepProperties } from "../slide-steps/step-component.tsx";
-export { Code, type CodeProperties } from "../code-blocks/code-block/code-component.tsx";
+export { Code, type CodeProperties } from "../content-blocks/code-block/code-component.tsx";
 export { Image, type ImageProperties } from "../content-blocks/image-block/image-component.tsx";
 export { Video, type VideoProperties } from "../content-blocks/video-block/video-component.tsx";
 export type { MediaFit } from "../content-blocks/media-frame.tsx";

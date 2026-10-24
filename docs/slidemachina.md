@@ -486,9 +486,8 @@ browser-runtime/                всё, что работает на стран�
   slide-transitions/            переходы, имена слоёв, переход «список → слайд»
   element-morphing/             пары для морфинга, дуги, морфинг слов и кода
   presentation-interface/       панель управления, навигатор, меню печати, тексты интерфейса
-  content-blocks/               <Image>, <Video>, <Columns>, <Table>, <Quote>, <BigNumber>, <Caption>, <Source>
+  content-blocks/               <Code>, <Image>, <Video>, <Columns>, <Table>, <Quote>, <BigNumber>, <Caption>, <Source>
     table-block/                у каждого компонента своя папка: компонент, его стили и его модули
-  code-blocks/                  <Code>, строки по шагам
   diagram-blocks/               <Diagram> с <Box>, <Arrow>, <Group>, <Focus>; <Sequence> с <Actor>, <Message>; ELK в воркере
   scene-blocks/                 <Scene> с <Cube>, <Sphere>, <Text>, <Light>, <Camera>, <Move> на three.js
   slide-printing/               страницы печати
@@ -511,7 +510,7 @@ shared-between-runtimes/        чистый JS без зависимостей:
 - `browser-runtime` не берёт код из `node-tooling` и модули `node:*`, а `node-tooling` — модули `browser-runtime`;
 - `shared-between-runtimes` не зависит ни от остального движка, ни от пакетов;
 - `presentation-core` не зависит от блоков;
-- блоки (`content-blocks`, `code-blocks`, `diagram-blocks`, `scene-blocks`) не зависят друг от друга.
+- блоки (`content-blocks`, `diagram-blocks`, `scene-blocks`) не зависят друг от друга.
 
 ### Как всё устроено
 
