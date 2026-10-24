@@ -46,25 +46,29 @@ export function useSlideEnvironments(
   presentationSettings: PresentationSettings,
   stepCountsReference: RefObject<number[]>,
 ) {
-  // oxlint-disable-next-line react-hooks/exhaustive-deps -- the cache is dropped whenever any of these change
-  const environmentCache = useMemo(() => new Map<string, SlideEnvironment>(), [sectionTrails, presentationSettings, stepCountsReference]);
-  return ({ slideIndex, isCurrentSlide, isSlideNearby, isSlideCopy, revealedStep }: SlideState): SlideEnvironment => {
-    const cacheKey = `${slideIndex} ${isCurrentSlide} ${isSlideNearby} ${isSlideCopy} ${revealedStep}`;
-    const cachedEnvironment = environmentCache.get(cacheKey);
-    if (cachedEnvironment !== undefined) return cachedEnvironment;
-    const slideEnvironment: SlideEnvironment = {
-      slideNumber: slideIndex + 1,
-      sectionTrail: sectionTrails[slideIndex],
-      isCurrentSlide,
-      isSlideNearby,
-      isSlideCopy,
-      revealedStep,
-      reportStepCount: (stepCount) => {
-        stepCountsReference.current[slideIndex] = stepCount;
-      },
-      presentationSettings,
+  // The cache grows during render on purpose; React Compiler cannot keep these objects stable across positions.
+  "use no memo";
+  return useMemo(() => {
+    const environmentCache = new Map<string, SlideEnvironment>();
+    return ({ slideIndex, isCurrentSlide, isSlideNearby, isSlideCopy, revealedStep }: SlideState): SlideEnvironment => {
+      const cacheKey = `${slideIndex} ${isCurrentSlide} ${isSlideNearby} ${isSlideCopy} ${revealedStep}`;
+      const cachedEnvironment = environmentCache.get(cacheKey);
+      if (cachedEnvironment !== undefined) return cachedEnvironment;
+      const slideEnvironment: SlideEnvironment = {
+        slideNumber: slideIndex + 1,
+        sectionTrail: sectionTrails[slideIndex],
+        isCurrentSlide,
+        isSlideNearby,
+        isSlideCopy,
+        revealedStep,
+        reportStepCount: (stepCount) => {
+          stepCountsReference.current[slideIndex] = stepCount;
+        },
+        presentationSettings,
+      };
+      // oxlint-disable-next-line react/immutability -- the hook opts out of React Compiler above
+      environmentCache.set(cacheKey, slideEnvironment);
+      return slideEnvironment;
     };
-    environmentCache.set(cacheKey, slideEnvironment);
-    return slideEnvironment;
-  };
+  }, [sectionTrails, presentationSettings, stepCountsReference]);
 }

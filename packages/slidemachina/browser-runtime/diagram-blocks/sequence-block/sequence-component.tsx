@@ -78,7 +78,11 @@ export function Sequence({ children }: SequenceProperties) {
       .filter((markupElement) => markupElement.type === Actor)
       .map((markupElement, actorPosition) => [(markupElement.props as ActorProperties).id, actorPosition + 1]),
   );
-  let messageCount = 0;
+  const drawnMessagePositions = markupElements.flatMap((markupElement, partPosition) => {
+    if (markupElement.type !== Message) return [];
+    const messageProperties = markupElement.props as MessageProperties;
+    return actorColumns.has(messageProperties.from) && actorColumns.has(messageProperties.to) ? [partPosition] : [];
+  });
   const drawnParts = markupElements.map((markupElement, partPosition) => {
     if (markupElement.type === Focus) return <FocusMarker key={partPosition} focusProperties={markupElement.props as FocusProperties} />;
     if (markupElement.type === Actor) {
@@ -105,13 +109,13 @@ export function Sequence({ children }: SequenceProperties) {
     const sourceColumn = actorColumns.get(messageProperties.from);
     const targetColumn = actorColumns.get(messageProperties.to);
     if (sourceColumn === undefined || targetColumn === undefined) return null;
-    messageCount += 1;
+    const messageNumber = drawnMessagePositions.indexOf(partPosition) + 1;
     const messageDirection = sourceColumn === targetColumn ? "self" : targetColumn > sourceColumn ? "right" : "left";
     const firstColumn = Math.min(sourceColumn, targetColumn);
     const lastColumn = Math.max(sourceColumn, targetColumn);
     const messageStyle = {
       gridColumn: `${firstColumn} / ${lastColumn + 1}`,
-      gridRow: messageCount + 1,
+      gridRow: messageNumber + 1,
       "--message-span": lastColumn - firstColumn + 1,
     } as CSSProperties;
     return (
@@ -129,7 +133,7 @@ export function Sequence({ children }: SequenceProperties) {
       </div>
     );
   });
-  const sequenceStyle = { "--actor-count": actorColumns.size, "--message-count": messageCount } as CSSProperties;
+  const sequenceStyle = { "--actor-count": actorColumns.size, "--message-count": drawnMessagePositions.length } as CSSProperties;
   return (
     <figure ref={sequenceElementReference} data-sequence style={sequenceStyle}>
       {drawnParts}

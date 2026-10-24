@@ -12,8 +12,6 @@
   "rules": {
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "error",
-    "react/immutability": "off",
-    "react/set-state-in-effect": "off",
     "jsx-a11y/prefer-tag-over-role": "off",
     "jsx-a11y/control-has-associated-label": "off",
     "typescript/no-floating-promises": "error",

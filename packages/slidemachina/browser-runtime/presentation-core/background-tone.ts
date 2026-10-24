@@ -39,6 +39,7 @@ export function useBackgroundTone(
     if (slideElement === null) return;
     const backgroundColor = getComputedStyle(slideElement).backgroundColor;
     const pictureToneKey = `${backgroundColor} ${backgroundValue}`;
+    // oxlint-disable-next-line react/set-state-in-effect -- the tone is measured from the rendered slide
     setDetectedTone(pictureTones.get(pictureToneKey) ?? measureTone(backgroundColor));
     if (backgroundValue === undefined || isBackgroundColor(backgroundValue) || pictureTones.has(pictureToneKey)) return;
     let isOutdated = false;

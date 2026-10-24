@@ -17,7 +17,7 @@ export function createViteConfiguration(siteLayout: SiteLayout, serverOptions: S
   return {
     configFile: false,
     root: siteLayout.rootFolder,
-    plugins: [createSlideSourcePlugin(siteLayout), react(), tailwindcss(), createSlidemachinaPlugin(siteLayout, undefined)],
+    plugins: [createSlideSourcePlugin(siteLayout), react({ compiler: true }), tailwindcss(), createSlidemachinaPlugin(siteLayout, undefined)],
     resolve: engineResolution,
     // SLIDEMACHINA_AGENTATION=off turns the notes toolbar off, as the tests do.
     define: { "import.meta.env.SLIDEMACHINA_AGENTATION": JSON.stringify(process.env.SLIDEMACHINA_AGENTATION ?? "on") },
@@ -57,7 +57,7 @@ export function createBuildConfiguration(siteLayout: SiteLayout, buildFolder: st
     base: "./",
     plugins: [
       createSlideSourcePlugin(siteLayout),
-      react(),
+      react({ compiler: true }),
       tailwindcss(),
       createSlidemachinaPlugin(siteLayout, builtPageHtml),
       createImageCompressionPlugin(buildReport),
