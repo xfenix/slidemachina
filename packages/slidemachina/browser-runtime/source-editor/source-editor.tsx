@@ -7,10 +7,10 @@ import { choosePictureFile, replacePicture } from "./picture-replacement.ts";
 import { readSourceFile, sendSourceEdit, SourceEditFailure, type SourceEditRequest } from "./source-edit-requests.ts";
 import { beginTextEditing } from "./text-editing.ts";
 
-type EditorStatus = { statusTone: "hint" | "saving" | "saved" | "problem"; statusText: string };
-
 const dragThreshold = 4;
 const statusDurations = { hint: 5000, saving: Infinity, saved: 2400, problem: 7000 };
+
+type EditorStatus = { statusTone: "hint" | "saving" | "saved" | "problem"; statusText: string };
 
 // The editor of slidemachina dev: texts, pictures and diagram boxes change on the slide and are written to the source.
 export default function SourceEditor({ languageCode }: { languageCode: string }) {

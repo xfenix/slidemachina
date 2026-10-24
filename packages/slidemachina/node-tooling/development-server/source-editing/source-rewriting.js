@@ -7,6 +7,9 @@ import { findAttribute, isPlainTextElement, isStringContainer, parseSlideSource,
 /** @typedef {{ elementNode: SyntaxNode, parentNode: SyntaxNode | undefined }} FoundElement */
 /** @typedef {{ columnNumber?: number, anchorPlace?: SourcePlace, anchorSide?: "before" | "after" }} BoxPlacement */
 
+/** @type {Record<string, string>} */
+const jsxTextEscapes = { "{": "&#123;", "}": "&#125;", "<": "&lt;", ">": "&gt;" };
+
 // The code names what went wrong; the page shows it in the presentation's language.
 export class SourceEditProblem extends Error {
   /**
@@ -41,9 +44,6 @@ function locateElements(sourceCode, filePath, sourcePlaces) {
   if (foundElements.includes(undefined)) throw new SourceEditProblem("elementMissing");
   return { syntaxTree, foundElements: /** @type {FoundElement[]} */ (foundElements) };
 }
-
-/** @type {Record<string, string>} */
-const jsxTextEscapes = { "{": "&#123;", "}": "&#125;", "<": "&lt;", ">": "&gt;" };
 
 /** @param {string} typedText */
 function escapeJsxText(typedText) {

@@ -7,6 +7,9 @@ const navigatorPadding = 64;
 const thumbnailGap = 32;
 // Six columns on a 16:9 screen: a deck of fifty slides fits in three screens.
 const minimumThumbnailWidth = 240;
+const minimumColumnCount = 2;
+// Rows matter more than columns when the next row is found among groups of different length.
+const rowDistanceWeight = 100_000;
 
 type SlideGroup = {
   trailKey: string;
@@ -59,7 +62,7 @@ export function SlideNavigator({
     return true;
   }, true);
 
-  const columnCount = Math.max(2, Math.floor((canvasWidth - 2 * navigatorPadding + thumbnailGap) / (minimumThumbnailWidth + thumbnailGap)));
+  const columnCount = Math.max(minimumColumnCount, Math.floor((canvasWidth - 2 * navigatorPadding + thumbnailGap) / (minimumThumbnailWidth + thumbnailGap)));
   const thumbnailWidth = (canvasWidth - 2 * navigatorPadding - (columnCount - 1) * thumbnailGap) / columnCount;
   const navigatorStyle = {
     "--navigator-columns": columnCount,
@@ -124,7 +127,7 @@ function findVerticalNeighbour(thumbnailElements: HTMLButtonElement[], selectedS
     const candidateBox = thumbnailElement.getBoundingClientRect();
     const verticalDistance = (candidateBox.top - selectedBox.top) * rowDirection;
     if (verticalDistance < 1) return;
-    const combinedDistance = verticalDistance * 100_000 + Math.abs(candidateBox.left - selectedBox.left);
+    const combinedDistance = verticalDistance * rowDistanceWeight + Math.abs(candidateBox.left - selectedBox.left);
     if (combinedDistance < nearestDistance) {
       nearestDistance = combinedDistance;
       nearestSlideIndex = slideIndex;

@@ -2,12 +2,12 @@ import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
-import { allowedFolders, engineResolution } from "./engine-resolution.js";
+import { listAllowedFolders, engineResolution } from "./engine-resolution.js";
 import { listModuleId } from "./entry-modules.js";
-import { imageCompressionPlugin } from "../presentation-build/image-compression.js";
-import { createPresentationPageHtml, pageFileName, slidemachinaPlugin } from "./page-serving.js";
+import { createImageCompressionPlugin } from "../presentation-build/image-compression.js";
+import { createPresentationPageHtml, pageFileName, createSlidemachinaPlugin } from "./page-serving.js";
 import { renderListPage } from "../presentation-repository/presentation-list-page.js";
-import { slideSourcePlugin } from "../source-transforms/slide-source-plugin.js";
+import { createSlideSourcePlugin } from "../source-transforms/slide-source-plugin.js";
 
 /**
  * @param {import("../presentation-repository/presentation-repository.js").SiteLayout} siteLayout
@@ -18,7 +18,7 @@ export function createViteConfiguration(siteLayout, serverOptions) {
   return {
     configFile: false,
     root: siteLayout.rootFolder,
-    plugins: [slideSourcePlugin(siteLayout), react(), tailwindcss(), slidemachinaPlugin(siteLayout, undefined)],
+    plugins: [createSlideSourcePlugin(siteLayout), react(), tailwindcss(), createSlidemachinaPlugin(siteLayout, undefined)],
     resolve: engineResolution,
     // SLIDEMACHINA_AGENTATION=off turns the notes toolbar off, as the tests do.
     define: { "import.meta.env.SLIDEMACHINA_AGENTATION": JSON.stringify(process.env.SLIDEMACHINA_AGENTATION ?? "on") },
@@ -42,7 +42,7 @@ export function createViteConfiguration(siteLayout, serverOptions) {
     },
     server: {
       ...serverOptions,
-      fs: { allow: allowedFolders(siteLayout) },
+      fs: { allow: listAllowedFolders(siteLayout) },
     },
   };
 }
@@ -65,11 +65,11 @@ export function createBuildConfiguration(siteLayout, buildFolder, isSingleFile, 
     logLevel: "warn",
     base: "./",
     plugins: [
-      slideSourcePlugin(siteLayout),
+      createSlideSourcePlugin(siteLayout),
       react(),
       tailwindcss(),
-      slidemachinaPlugin(siteLayout, builtPageHtml),
-      imageCompressionPlugin(buildReport),
+      createSlidemachinaPlugin(siteLayout, builtPageHtml),
+      createImageCompressionPlugin(buildReport),
       isSingleFile && viteSingleFile({ removeViteModuleLoader: true }),
     ],
     resolve: engineResolution,

@@ -5,6 +5,26 @@ import { listMarkupElements } from "../presentation-core/markup-elements.ts";
 import { Focus, FocusMarker, type FocusProperties } from "./diagram-parts.tsx";
 import { createPartStepAttributes, type StepEffect } from "../slide-steps/step-attributes.ts";
 
+const selfLoopWidth = 56;
+const selfLoopHeight = 40;
+const selfLoopCornerRadius = 14;
+
+const horizontalHead = drawArrow(
+  [{ x: 0, y: arrowHeadWidth / 2 }, { x: arrowHeadLength, y: arrowHeadWidth / 2 }],
+  0,
+);
+
+// A message to oneself leaves to the right and comes back to the same lifeline a little lower.
+const selfLoop = drawArrow(
+  [
+    { x: 0, y: 1 },
+    { x: selfLoopWidth, y: 1 },
+    { x: selfLoopWidth, y: selfLoopHeight },
+    { x: 0, y: selfLoopHeight },
+  ],
+  selfLoopCornerRadius,
+);
+
 export type SequenceProperties = {
   children?: ReactNode;
 };
@@ -29,25 +49,6 @@ export type MessageProperties = {
 export const Actor: (actorProperties: ActorProperties) => null = () => null;
 
 export const Message: (messageProperties: MessageProperties) => null = () => null;
-
-const selfLoopWidth = 56;
-const selfLoopHeight = 40;
-
-const horizontalHead = drawArrow(
-  [{ x: 0, y: arrowHeadWidth / 2 }, { x: arrowHeadLength, y: arrowHeadWidth / 2 }],
-  0,
-);
-
-// A message to oneself leaves to the right and comes back to the same lifeline a little lower.
-const selfLoop = drawArrow(
-  [
-    { x: 0, y: 1 },
-    { x: selfLoopWidth, y: 1 },
-    { x: selfLoopWidth, y: selfLoopHeight },
-    { x: 0, y: selfLoopHeight },
-  ],
-  14,
-);
 
 function MessageArrow({ messageDirection }: { messageDirection: "right" | "left" | "self" }) {
   if (messageDirection === "self") {

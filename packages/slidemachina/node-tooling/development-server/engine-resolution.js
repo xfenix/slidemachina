@@ -10,13 +10,6 @@ export const enginePackageFolder = fileURLToPath(new URL("../..", import.meta.ur
 const sharedPackageNames = ["react", "react-dom", "three", "agentation", "tailwindcss"];
 const packageRequire = createRequire(path.join(enginePackageFolder, "package.json"));
 
-/** @param {string} packageName */
-function findPackageFolder(packageName) {
-  const searchedFolders = packageRequire.resolve.paths(packageName) ?? [];
-  const modulesFolder = searchedFolders.find((candidateFolder) => existsSync(path.join(candidateFolder, packageName, "package.json")));
-  return modulesFolder === undefined ? undefined : path.join(modulesFolder, packageName);
-}
-
 const sharedPackageFolders = sharedPackageNames.flatMap((packageName) => {
   const packageLocation = findPackageFolder(packageName);
   return packageLocation === undefined ? [] : [{ packageName, packageLocation }];
@@ -29,9 +22,16 @@ export const engineResolution = {
   ],
 };
 
+/** @param {string} packageName */
+function findPackageFolder(packageName) {
+  const searchedFolders = packageRequire.resolve.paths(packageName) ?? [];
+  const modulesFolder = searchedFolders.find((candidateFolder) => existsSync(path.join(candidateFolder, packageName, "package.json")));
+  return modulesFolder === undefined ? undefined : path.join(modulesFolder, packageName);
+}
+
 // The engine's dependencies may lie next to it rather than inside it, as in the npx cache.
 /** @param {import("../presentation-repository/presentation-repository.js").SiteLayout} siteLayout */
-export function allowedFolders(siteLayout) {
+export function listAllowedFolders(siteLayout) {
   const repositoryFolder = siteLayout.themeStylesheet === undefined ? [] : [path.dirname(path.dirname(siteLayout.themeStylesheet))];
   const dependencyFolders = sharedPackageFolders.map(({ packageLocation }) => path.dirname(packageLocation));
   return [...new Set([siteLayout.rootFolder, enginePackageFolder, ...repositoryFolder, ...dependencyFolders])];

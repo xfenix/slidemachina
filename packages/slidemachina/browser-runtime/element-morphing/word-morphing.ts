@@ -1,6 +1,11 @@
 // Punctuation is a word of its own, so "пункта" still pairs with "пункта:"; dots inside "3.14" stay.
 const wordPattern = /[^\s.,:;!?…«»()"]+(?:[.,:][^\s.,:;!?…«»()"]+)*|[.,:;!?…«»()"]+/gu;
 
+export type WordMatch = {
+  outgoingWordPosition: number;
+  incomingWordPosition: number;
+};
+
 function listVisibleTextNodes(textElement: HTMLElement): Text[] {
   const textWalker = document.createTreeWalker(textElement, NodeFilter.SHOW_TEXT);
   const visibleTextNodes: Text[] = [];
@@ -15,11 +20,6 @@ function listVisibleTextNodes(textElement: HTMLElement): Text[] {
 export function listTextWords(textElement: HTMLElement): string[] {
   return listVisibleTextNodes(textElement).flatMap((textNode) => textNode.data.match(wordPattern) ?? []);
 }
-
-export type WordMatch = {
-  outgoingWordPosition: number;
-  incomingWordPosition: number;
-};
 
 // Repeated words pair up in order, like repeated elements in morph-matching.ts.
 export function matchWords(outgoingWords: string[], incomingWords: string[]): WordMatch[] {

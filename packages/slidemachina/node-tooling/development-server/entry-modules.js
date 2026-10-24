@@ -37,7 +37,7 @@ const listStylesheets = ["node-tooling/presentation-repository/presentation-list
  * @param {import("../presentation-repository/presentation-repository.js").SiteLayout} siteLayout
  * @param {string} presentationFolder
  */
-export function entryModuleIdFor(siteLayout, presentationFolder) {
+export function nameEntryModuleId(siteLayout, presentationFolder) {
   return `${entryModulePrefix}${toSitePath(siteLayout, presentationFolder)}.js`;
 }
 

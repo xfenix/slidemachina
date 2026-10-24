@@ -6,6 +6,8 @@ import type { SceneLight } from "./scene-objects.ts";
 const smoothingRate = 5;
 const settledDistance = 1e-4;
 const appearanceRise = 0.4;
+const smallestVisibleShare = 0.001;
+const smallestScaleShare = 0.0001;
 const verticalAxis = new Vector3(0, 1, 0);
 
 export type ObjectMotion = {
@@ -91,10 +93,10 @@ export function advanceObjectMotion(objectMotion: ObjectMotion, smoothingFactor:
 export function applyObjectMotion(objectMotion: ObjectMotion) {
   const { objectMesh, appearance } = objectMotion;
   const shownShare = appearance[0];
-  objectMesh.visible = shownShare > 0.001;
+  objectMesh.visible = shownShare > smallestVisibleShare;
   objectMesh.position.copy(objectMotion.position.current);
   objectMesh.position.y -= (1 - shownShare) * appearanceRise;
-  objectMesh.scale.setScalar(Math.max(objectMotion.scale[0] * shownShare, 0.0001));
+  objectMesh.scale.setScalar(Math.max(objectMotion.scale[0] * shownShare, smallestScaleShare));
   objectMesh.quaternion.setFromAxisAngle(verticalAxis, objectMotion.spinAngle).multiply(objectMotion.orientation.current);
   (objectMesh.material as MeshBasicMaterial).color.copy(objectMotion.color.current);
 }

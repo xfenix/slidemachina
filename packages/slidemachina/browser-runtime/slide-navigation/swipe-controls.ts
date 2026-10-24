@@ -1,6 +1,5 @@
 import { useEffect, useEffectEvent } from "react";
-
-const shortestSwipeDistance = 50;
+import { shortestSwipeDistance } from "../presentation-core/settings.ts";
 
 export function useSwipeControls(goForward: () => void, goBackward: () => void, isEnabled: boolean) {
   const finishSwipe = useEffectEvent((horizontalDistance: number) => {

@@ -12,6 +12,8 @@ import { readPresentationFile } from "../source-transforms/presentation-settings
 // The transition opt-in sits in the page: in dev the stylesheets arrive after the browser has decided on the transition.
 export const pageTransitionStyle = `<style>@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }</style>`;
 
+const lockIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>`;
+
 // The list speaks the language of the presentations, not of the terminal that built it.
 const listTextsByLanguage = {
   en: {
@@ -99,8 +101,6 @@ export function readPresentationCards(repositoryFolder) {
     })
     .sort(comparePresentationCards);
 }
-
-const lockIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>`;
 
 /**
  * @param {ListedCard} presentationCard

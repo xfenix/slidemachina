@@ -18,6 +18,14 @@ import { isSceneObjectPart, type ScenePart } from "./scene-outline.ts";
 import { listReachablePlaces, type ScenePoses } from "./scene-poses.ts";
 import { readEnvironmentTexture } from "./scene-renderer.ts";
 
+const defaultSpinDegrees = 24;
+const defaultShadowOpacity = 0.2;
+// Soft fill from every side; the key light adds the shape. Stronger fill washes theme colours out.
+const environmentIntensityLevel = 0.55;
+const floorGap = 0.002;
+const nearestClipShare = 0.01;
+const farthestClipShare = 100;
+
 export type BuiltScene = {
   threeScene: ThreeScene;
   sceneParts: ScenePart[];
@@ -36,8 +44,6 @@ export type SceneSettings = {
   keepsStill: boolean;
 };
 
-const defaultSpinDegrees = 24;
-
 function readSceneLook(figureElement: HTMLElement): SceneLook {
   const figureStyle = getComputedStyle(figureElement);
   return {
@@ -46,7 +52,7 @@ function readSceneLook(figureElement: HTMLElement): SceneLook {
     textColor: "var(--scene-text-color, var(--text-color))",
     fontFamily: figureStyle.getPropertyValue("--scene-font").trim() || figureStyle.fontFamily,
     fontWeight: figureStyle.getPropertyValue("--scene-font-weight").trim() || "700",
-    shadowOpacity: readSceneNumber(figureElement, "--scene-shadow-opacity", 0.2),
+    shadowOpacity: readSceneNumber(figureElement, "--scene-shadow-opacity", defaultShadowOpacity),
   };
 }
 
@@ -55,8 +61,7 @@ export function buildScene(figureElement: HTMLElement, sceneParts: ScenePart[], 
   const sceneLook = readSceneLook(figureElement);
   const threeScene = new ThreeScene();
   threeScene.environment = readEnvironmentTexture();
-  // Soft fill from every side; the key light adds the shape. Stronger fill washes theme colours out.
-  threeScene.environmentIntensity = 0.55;
+  threeScene.environmentIntensity = environmentIntensityLevel;
   const objectMotions = new Map<number, ObjectMotion>();
   sceneParts.forEach((scenePart, partPosition) => {
     if (!isSceneObjectPart(scenePart)) return;
@@ -77,8 +82,8 @@ export function buildScene(figureElement: HTMLElement, sceneParts: ScenePart[], 
     threeScene.add(sceneLight.directionalLight, sceneLight.directionalLight.target);
     return { sceneLight, brightness: [0, 0] };
   });
-  if (showsFloor) threeScene.add(buildShadowFloor(sceneBounds.sceneCentre, sceneBounds.sceneRadius, sceneBounds.floorLevel - 0.002, sceneLook.shadowOpacity));
-  const sceneCamera = new PerspectiveCamera(defaultFieldOfView, 1, sceneBounds.sceneRadius * 0.01, sceneBounds.sceneRadius * 100);
+  if (showsFloor) threeScene.add(buildShadowFloor(sceneBounds.sceneCentre, sceneBounds.sceneRadius, sceneBounds.floorLevel - floorGap, sceneLook.shadowOpacity));
+  const sceneCamera = new PerspectiveCamera(defaultFieldOfView, 1, sceneBounds.sceneRadius * nearestClipShare, sceneBounds.sceneRadius * farthestClipShare);
   const cameraMotion: CameraMotion = {
     sceneCamera,
     position: { current: new Vector3(), target: new Vector3() },

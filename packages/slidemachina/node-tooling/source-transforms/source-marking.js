@@ -8,10 +8,11 @@ import { findAttribute, isPlainTextElement, readElementName, walkSyntaxTree } fr
 /** @type {Record<string, EditKind | undefined>} */
 const markedEngineParts = { Caption: "text", Source: "text", BigNumber: "text", Quote: "text", Image: "picture", Box: "box", Group: undefined };
 const unwritableTextTags = new Set(["pre", "script", "style", "textarea", "title"]);
+const sourceVersionLength = 12;
 
 /** @param {string} sourceCode */
 export function hashSourceCode(sourceCode) {
-  return createHash("sha1").update(sourceCode).digest("hex").slice(0, 12);
+  return createHash("sha1").update(sourceCode).digest("hex").slice(0, sourceVersionLength);
 }
 
 /** @param {string} sourceCode */

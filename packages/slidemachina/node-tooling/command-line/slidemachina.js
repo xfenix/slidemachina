@@ -7,6 +7,8 @@ import { commandLineTexts } from "./command-line-texts.js";
 import { describeSite } from "../presentation-repository/presentation-repository.js";
 import { createViteConfiguration } from "../development-server/vite-configuration.js";
 
+const largestPortNumber = 65536;
+
 /**
  * @param {string} problemText
  * @returns {never}
@@ -49,7 +51,7 @@ if (commandName !== "dev" && commandName !== "build") {
 
 const portText = parsedCommandLine.values.port;
 const portNumber = portText === undefined ? undefined : Number(portText);
-if (portNumber !== undefined && !(Number.isInteger(portNumber) && portNumber > 0 && portNumber < 65536)) {
+if (portNumber !== undefined && !(Number.isInteger(portNumber) && portNumber > 0 && portNumber < largestPortNumber)) {
   stopWithProblem(commandLineTexts.wrongPort(String(portText)));
 }
 

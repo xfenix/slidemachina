@@ -6,6 +6,8 @@ import { launchChrome } from "./pdf-printing.js";
 const coverOrigin = "http://cover.slidemachina.localhost";
 // Twice the width of a card on the list: sharp on retina screens, 6–8 KB in WebP.
 const coverWidth = 960;
+const coverViewport = { width: 1920, height: 1080 };
+const webpQuality = 82;
 
 /** @param {import("playwright-core").Page} coverPage */
 async function waitForStillCover(coverPage) {
@@ -33,7 +35,7 @@ export function createCoverCamera() {
     async shootCover(builtFolder, coverPath) {
       chromeLaunch ??= launchChrome();
       const chromeBrowser = await chromeLaunch;
-      const coverPage = await chromeBrowser.newPage({ viewport: { width: 1920, height: 1080 } });
+      const coverPage = await chromeBrowser.newPage({ viewport: coverViewport });
       try {
         await coverPage.route(`${coverOrigin}/**`, (interceptedRoute) => {
           const requestedPath = decodeURIComponent(new URL(interceptedRoute.request().url()).pathname);
@@ -42,7 +44,7 @@ export function createCoverCamera() {
         await coverPage.goto(`${coverOrigin}/index.html?cover`);
         await waitForStillCover(coverPage);
         const screenshotBytes = await coverPage.screenshot();
-        await sharp(screenshotBytes).resize({ width: coverWidth }).webp({ quality: 82, smartSubsample: true }).toFile(coverPath);
+        await sharp(screenshotBytes).resize({ width: coverWidth }).webp({ quality: webpQuality, smartSubsample: true }).toFile(coverPath);
       } finally {
         await coverPage.close();
       }

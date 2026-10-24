@@ -45,7 +45,7 @@ async function compressPicture(picturePath) {
  * @param {BuildReport} buildReport
  * @returns {import("vite").Plugin}
  */
-export function imageCompressionPlugin(buildReport) {
+export function createImageCompressionPlugin(buildReport) {
   return {
     name: "slidemachina-image-compression",
     enforce: "pre",

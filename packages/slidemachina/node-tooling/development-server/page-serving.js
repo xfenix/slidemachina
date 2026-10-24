@@ -1,18 +1,19 @@
 import path from "node:path";
-import { createEntryModuleCode, createListModuleCode, entryModuleIdFor, entryModulePrefix, listModuleId } from "./entry-modules.js";
+import { createEntryModuleCode, createListModuleCode, nameEntryModuleId, entryModulePrefix, listModuleId } from "./entry-modules.js";
 import { installFeedbackServerCheck } from "./feedback-server-check.js";
 import { escapeHtml } from "../presentation-build/html-escaping.js";
 import { createDevelopmentListPage, pageTransitionStyle } from "../presentation-repository/presentation-list-page.js";
 import { listPresentationFolders } from "../presentation-repository/presentation-repository.js";
 
 export const pageFileName = "index.html";
+const redirectStatus = 302;
 
 /**
  * @param {import("../presentation-repository/presentation-repository.js").SiteLayout} siteLayout
  * @param {string} presentationFolder
  */
 export function createPresentationPageHtml(siteLayout, presentationFolder) {
-  const scriptModuleId = entryModuleIdFor(siteLayout, presentationFolder);
+  const scriptModuleId = nameEntryModuleId(siteLayout, presentationFolder);
   return `<!doctype html>
 <html>
   <head>
@@ -51,7 +52,7 @@ function findRequestedPresentation(siteLayout, requestedPath) {
  * @param {string | undefined} builtPageHtml
  * @returns {import("vite").Plugin}
  */
-export function slidemachinaPlugin(siteLayout, builtPageHtml) {
+export function createSlidemachinaPlugin(siteLayout, builtPageHtml) {
   const pagePath = path.join(siteLayout.rootFolder, pageFileName);
   const isVirtualModule = (/** @type {string} */ requestedModuleId) =>
     requestedModuleId === listModuleId || (requestedModuleId.startsWith(entryModulePrefix) && requestedModuleId.endsWith(".js"));
@@ -93,7 +94,7 @@ export function slidemachinaPlugin(siteLayout, builtPageHtml) {
         if (requestedPresentation === undefined) return nextMiddleware();
         // Relative links on the page need the trailing slash: /talk → /talk/.
         if (!requestedPresentation.hasTrailingPart) {
-          serverResponse.writeHead(302, { Location: `${requestedPath}/${requestedAddress.search}` });
+          serverResponse.writeHead(redirectStatus, { Location: `${requestedPath}/${requestedAddress.search}` });
           return serverResponse.end();
         }
         return sendPage(createPresentationPageHtml(siteLayout, requestedPresentation.presentationFolder));

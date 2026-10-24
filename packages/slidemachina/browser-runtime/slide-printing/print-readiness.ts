@@ -1,6 +1,6 @@
+import { readinessCheckInterval, readinessTimeout } from "../presentation-core/settings.ts";
+
 // Failed scenes and diagrams mark themselves too; the limit only keeps a hung part from blocking the print.
-const readinessTimeout = 20000;
-const readinessCheckInterval = 50;
 
 // Diagrams lay out in a worker and scenes wait for three.js: pages printed before that show them empty.
 function arePrintedPagesReady(pagesElement: HTMLElement): boolean {

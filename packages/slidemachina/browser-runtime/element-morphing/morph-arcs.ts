@@ -52,9 +52,9 @@ export function bendCrossingPaths(movingLayers: MovingLayer[]) {
     if (!browserMove?.effect) continue;
     const { horizontalShift, verticalShift } = findCenterShift(measuredLayer.startBox, measuredLayer.endBox);
     const arcPeakShift = { horizontal: -verticalShift * arcDepth, vertical: horizontalShift * arcDepth };
-    const arcPoint = (arcShare: number) => `${arcPeakShift.horizontal * arcShare}px ${arcPeakShift.vertical * arcShare}px`;
+    const formatArcPoint = (arcShare: number) => `${arcPeakShift.horizontal * arcShare}px ${arcPeakShift.vertical * arcShare}px`;
     document.documentElement.animate(
-      { translate: [arcPoint(0), arcPoint(Math.SQRT1_2), arcPoint(1), arcPoint(Math.SQRT1_2), arcPoint(0)] },
+      { translate: [formatArcPoint(0), formatArcPoint(Math.SQRT1_2), formatArcPoint(1), formatArcPoint(Math.SQRT1_2), formatArcPoint(0)] },
       { ...browserMove.effect.getTiming(), fill: "none", pseudoElement: groupSelector },
     );
   }

@@ -4,9 +4,12 @@ import type { ScenePoint } from "./scene-parts.tsx";
 
 export const defaultFieldOfView = 30;
 // A product shot: slightly from above, so the tops of the objects and their shadows show.
-const viewingDirection = new Vector3(0, 0.36, 1).normalize();
+const viewingElevation = 0.36;
+const viewingDirection = new Vector3(0, viewingElevation, 1).normalize();
 // Air around the scene inside the frame, as a share of the tightest fit.
 const framingMargin = 1.2;
+const smallestSceneRadius = 0.5;
+const boxCornerCount = 8;
 
 type ScenePlace = { geometry: BufferGeometry; position: ScenePoint; rotation: ScenePoint; scale: number };
 
@@ -22,7 +25,7 @@ export function measureSceneBounds(scenePlaces: ScenePlace[]): SceneBounds {
   }
   if (sceneBox.isEmpty()) sceneBox.setFromCenterAndSize(new Vector3(), new Vector3(1, 1, 1));
   const boundingSphere = sceneBox.getBoundingSphere(new Sphere());
-  return { sceneBox, sceneCentre: boundingSphere.center, sceneRadius: Math.max(boundingSphere.radius, 0.5), floorLevel: sceneBox.min.y };
+  return { sceneBox, sceneCentre: boundingSphere.center, sceneRadius: Math.max(boundingSphere.radius, smallestSceneRadius), floorLevel: sceneBox.min.y };
 }
 
 // Without a <Camera position> the whole scene fits the frame on every step, whatever the frame proportions.
@@ -41,7 +44,7 @@ function measureFittingDistance(sceneBox: Box3, aimPoint: Vector3, verticalHalfA
   const rightAxis = new Vector3(0, 1, 0).cross(viewingDirection).normalize();
   const upwardAxis = viewingDirection.clone().cross(rightAxis);
   let fittingDistance = 0;
-  for (let cornerIndex = 0; cornerIndex < 8; cornerIndex += 1) {
+  for (let cornerIndex = 0; cornerIndex < boxCornerCount; cornerIndex += 1) {
     const cornerOffset = new Vector3(
       cornerIndex & 1 ? sceneBox.max.x : sceneBox.min.x,
       cornerIndex & 2 ? sceneBox.max.y : sceneBox.min.y,

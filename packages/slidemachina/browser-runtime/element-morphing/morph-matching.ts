@@ -1,5 +1,10 @@
 import { listTextWords, matchWords, type WordMatch } from "./word-morphing.ts";
 
+const textSelector = "h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption";
+const mediaSelector = "img, video, iframe";
+const codeSelector = "pre";
+const candidateSelector = `[morph], ${textSelector}, ${mediaSelector}, ${codeSelector}`;
+
 export type MorphPair = {
   outgoingElement: HTMLElement;
   incomingElement: HTMLElement;
@@ -8,11 +13,6 @@ export type MorphPair = {
 export type RewordedPair = MorphPair & {
   wordMatches: WordMatch[];
 };
-
-const textSelector = "h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption";
-const mediaSelector = "img, video, iframe";
-const codeSelector = "pre";
-const candidateSelector = `[morph], ${textSelector}, ${mediaSelector}, ${codeSelector}`;
 
 function listVisibleCandidates(slideElement: HTMLElement, selector: string): HTMLElement[] {
   const contentElement = slideElement.querySelector<HTMLElement>("[data-content]");

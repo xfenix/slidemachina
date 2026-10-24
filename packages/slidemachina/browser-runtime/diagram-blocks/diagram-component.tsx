@@ -11,6 +11,8 @@ import { useDiagramScaling } from "./diagram-scaling.ts";
 import { pickSourceMarks } from "../presentation-core/source-marks.ts";
 import { createPartStepAttributes } from "../slide-steps/step-attributes.ts";
 
+const arrowCornerRadius = 16;
+
 export type DiagramProperties = {
   children?: ReactNode;
   direction?: DiagramDirection;
@@ -24,8 +26,6 @@ type DrawingContext = {
   // Where the enclosing group sits in the diagram: arrows are routed in diagram coordinates.
   containerOrigin: ElkPoint;
 };
-
-const arrowCornerRadius = 16;
 
 function placeFrame(nodeFrame: NodeFrame | undefined): CSSProperties | undefined {
   if (nodeFrame === undefined) return undefined;

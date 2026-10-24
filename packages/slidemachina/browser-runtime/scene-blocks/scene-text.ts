@@ -3,6 +3,9 @@ import { readLargestAnisotropy } from "./scene-renderer.ts";
 
 const preferredFontPixels = 256;
 const largestTexturePixels = 4096;
+// Measured with headroom, so a longer text never needs a smaller font than measured.
+const widthHeadroom = 1.2;
+const textPaddingShare = 0.1;
 
 type TextLook = {
   fontFamily: string;
@@ -19,11 +22,11 @@ function prepareTextContext(textContext: OffscreenCanvasRenderingContext2D, font
 export function createTextMesh(textContent: string, letterSize: number, textLook: TextLook): Mesh<PlaneGeometry, MeshBasicMaterial> {
   const measuringContext = new OffscreenCanvas(1, 1).getContext("2d")!;
   prepareTextContext(measuringContext, preferredFontPixels, textLook);
-  const preferredWidth = measuringContext.measureText(textContent).width * 1.2;
+  const preferredWidth = measuringContext.measureText(textContent).width * widthHeadroom;
   const fontPixels = Math.floor(preferredFontPixels * Math.min(1, largestTexturePixels / Math.max(preferredWidth, 1)));
   prepareTextContext(measuringContext, fontPixels, textLook);
   const textMetrics = measuringContext.measureText(textContent);
-  const textPadding = Math.ceil(fontPixels * 0.1);
+  const textPadding = Math.ceil(fontPixels * textPaddingShare);
   const textureWidth = Math.ceil(textMetrics.actualBoundingBoxLeft + textMetrics.actualBoundingBoxRight) + 2 * textPadding;
   const textureHeight = Math.ceil(textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent) + 2 * textPadding;
 

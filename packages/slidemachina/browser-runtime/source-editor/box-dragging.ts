@@ -1,3 +1,9 @@
+const readCrossCenter = (axisFrame: AxisFrame) => (axisFrame.crossStart + axisFrame.crossEnd) / 2;
+const readFlowCenter = (axisFrame: { flowStart: number; flowEnd: number }) => (axisFrame.flowStart + axisFrame.flowEnd) / 2;
+const bandPadding = 12;
+const largestMemberGap = 24;
+const layoutWaitLimit = 1500;
+
 export type ScreenFrame = { left: number; top: number; width: number; height: number };
 
 export type BoxDragGuides = {
@@ -17,9 +23,7 @@ type BoxDropPlan = {
 type AxisFrame = { flowStart: number; flowEnd: number; crossStart: number; crossEnd: number };
 type LevelNode = { nodeElement: HTMLElement; flowColumn: number; axisFrame: AxisFrame };
 type ColumnSlot = { columnNumber: number; flowStart: number; flowEnd: number; members: LevelNode[] };
-
-const crossCenter = (axisFrame: AxisFrame) => (axisFrame.crossStart + axisFrame.crossEnd) / 2;
-const flowCenter = (axisFrame: { flowStart: number; flowEnd: number }) => (axisFrame.flowStart + axisFrame.flowEnd) / 2;
+export type BoxDrag = ReturnType<typeof beginBoxDrag>;
 
 function readAxisFrame(nodeElement: HTMLElement, flowsRight: boolean): AxisFrame {
   const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = nodeElement;
@@ -50,7 +54,7 @@ function collectColumnSlots(levelNodes: LevelNode[], draggedNode: LevelNode): Co
 
 function findInsertionCross(columnMembers: LevelNode[], insertionIndex: number): number | undefined {
   if (columnMembers.length === 0) return undefined;
-  const memberGap = columnMembers.length > 1 ? columnMembers[1].axisFrame.crossStart - columnMembers[0].axisFrame.crossEnd : 24;
+  const memberGap = columnMembers.length > 1 ? columnMembers[1].axisFrame.crossStart - columnMembers[0].axisFrame.crossEnd : largestMemberGap;
   if (insertionIndex === 0) return columnMembers[0].axisFrame.crossStart - memberGap / 2;
   if (insertionIndex === columnMembers.length) return columnMembers.at(-1)!.axisFrame.crossEnd + memberGap / 2;
   return (columnMembers[insertionIndex - 1].axisFrame.crossEnd + columnMembers[insertionIndex].axisFrame.crossStart) / 2;
@@ -71,7 +75,7 @@ export function beginBoxDrag(boxElement: HTMLElement, startX: number, startY: nu
   const draggedNode = levelNodes.find((levelNode) => levelNode.nodeElement === boxElement)!;
   const columnSlots = collectColumnSlots(levelNodes, draggedNode);
   const startSlot = columnSlots.find((columnSlot) => columnSlot.columnNumber === draggedNode.flowColumn)!;
-  const startIndex = startSlot.members.filter((memberNode) => crossCenter(memberNode.axisFrame) < crossCenter(draggedNode.axisFrame)).length;
+  const startIndex = startSlot.members.filter((memberNode) => readCrossCenter(memberNode.axisFrame) < readCrossCenter(draggedNode.axisFrame)).length;
   const levelCrossStart = Math.min(...levelNodes.map((levelNode) => levelNode.axisFrame.crossStart));
   const levelCrossEnd = Math.max(...levelNodes.map((levelNode) => levelNode.axisFrame.crossEnd));
   const startFrame = boxElement.getBoundingClientRect();
@@ -101,14 +105,14 @@ export function beginBoxDrag(boxElement: HTMLElement, startX: number, startY: nu
 
   const movePointerTo = (pointerX: number, pointerY: number): BoxDragGuides => {
     const [screenFlowShift, screenCrossShift] = flowsRight ? [pointerX - startX, pointerY - startY] : [pointerY - startY, pointerX - startX];
-    const draggedFlowCenter = flowCenter(draggedFrame) + screenFlowShift / localScale;
-    const draggedCrossCenter = crossCenter(draggedFrame) + screenCrossShift / localScale;
+    const draggedFlowCenter = readFlowCenter(draggedFrame) + screenFlowShift / localScale;
+    const draggedCrossCenter = readCrossCenter(draggedFrame) + screenCrossShift / localScale;
     chosenSlot = columnSlots.reduce((nearestSlot, columnSlot) =>
-      Math.abs(flowCenter(columnSlot) - draggedFlowCenter) < Math.abs(flowCenter(nearestSlot) - draggedFlowCenter) ? columnSlot : nearestSlot,
+      Math.abs(readFlowCenter(columnSlot) - draggedFlowCenter) < Math.abs(readFlowCenter(nearestSlot) - draggedFlowCenter) ? columnSlot : nearestSlot,
     );
-    chosenIndex = chosenSlot.members.filter((memberNode) => crossCenter(memberNode.axisFrame) < draggedCrossCenter).length;
+    chosenIndex = chosenSlot.members.filter((memberNode) => readCrossCenter(memberNode.axisFrame) < draggedCrossCenter).length;
     const insertionCross = findInsertionCross(chosenSlot.members, chosenIndex);
-    const snappedFlowStart = flowCenter(chosenSlot) - draggedFlowSize / 2;
+    const snappedFlowStart = readFlowCenter(chosenSlot) - draggedFlowSize / 2;
     const followingShift = shiftBox(snappedFlowStart, draggedCrossCenter - draggedCrossSize / 2);
     boxElement.style.transform = `translate(${followingShift.shiftX}px, ${followingShift.shiftY}px)`;
     // Until the new layout arrives the box takes the place of the box it lands before, or goes under the last one.
@@ -121,7 +125,6 @@ export function beginBoxDrag(boxElement: HTMLElement, startX: number, startY: nu
           : 2 * insertionCross - columnMembers.at(-1)!.axisFrame.crossEnd;
     const landingShift = shiftBox(snappedFlowStart, landingCrossStart);
     heldPlace = { left: laidOutPlace.left + landingShift.shiftX, top: laidOutPlace.top + landingShift.shiftY };
-    const bandPadding = 12;
     return {
       columnBand: toScreen(chosenSlot.flowStart - bandPadding, chosenSlot.flowEnd + bandPadding, levelCrossStart - bandPadding, levelCrossEnd + bandPadding),
       insertionLine: insertionCross === undefined ? undefined : toScreen(chosenSlot.flowStart, chosenSlot.flowEnd, insertionCross - 1 / localScale, insertionCross + 1 / localScale),
@@ -164,7 +167,7 @@ export function beginBoxDrag(boxElement: HTMLElement, startX: number, startY: nu
       if (isReleased) return;
       const currentElement = diagramElement.querySelector<HTMLElement>(`[data-node-id="${CSS.escape(nodeIdentifier)}"]`);
       const isLaidOut = currentElement !== null && (currentElement.offsetLeft !== laidOutPlace.left || currentElement.offsetTop !== laidOutPlace.top);
-      const waitsTooLong = updateTime !== undefined && performance.now() - updateTime > 1500;
+      const waitsTooLong = updateTime !== undefined && performance.now() - updateTime > layoutWaitLimit;
       if (currentElement === null || isLaidOut || waitsTooLong) {
         releaseBox();
         return;
@@ -180,5 +183,3 @@ export function beginBoxDrag(boxElement: HTMLElement, startX: number, startY: nu
 
   return { movePointerTo, finishDrag, releaseBox, holdUntilLaidOut };
 }
-
-export type BoxDrag = ReturnType<typeof beginBoxDrag>;

@@ -1,6 +1,8 @@
 import { isSceneObjectPart, type ScenePart } from "./scene-outline.ts";
 import type { ScenePoint } from "./scene-parts.tsx";
 
+const originPoint: ScenePoint = [0, 0, 0];
+
 export type ObjectPose = {
   isShown: boolean;
   position: ScenePoint;
@@ -21,14 +23,14 @@ export type ScenePoses = {
   cameraPose: CameraPose;
 };
 
-const originPoint: ScenePoint = [0, 0, 0];
+type ReachablePlace = { partPosition: number; position: ScenePoint; rotation: ScenePoint; scale: number };
 
 function isPartReached(scenePart: ScenePart, partPosition: number, reachedPartPositions: Set<number>) {
   const partStep = scenePart.partProperties.step;
   return partStep === undefined || partStep === false || reachedPartPositions.has(partPosition);
 }
 
-function definedFields<FieldRecord extends object>(fieldRecord: FieldRecord): Partial<FieldRecord> {
+function pickDefinedFields<FieldRecord extends object>(fieldRecord: FieldRecord): Partial<FieldRecord> {
   return Object.fromEntries(Object.entries(fieldRecord).filter(([, fieldValue]) => fieldValue !== undefined)) as Partial<FieldRecord>;
 }
 
@@ -50,19 +52,17 @@ export function poseScene(sceneParts: ScenePart[], reachedPartPositions: Set<num
     if (scenePart.partKind === "light") shownLights.add(partPosition);
     if (scenePart.partKind === "camera") {
       const { position, target, fov } = scenePart.partProperties;
-      cameraPose = { ...cameraPose, ...definedFields({ position, target, fov }) };
+      cameraPose = { ...cameraPose, ...pickDefinedFields({ position, target, fov }) };
     }
     if (scenePart.partKind === "move") {
       const { on, position, rotation, scale, color } = scenePart.partProperties;
       const movedPosition = objectPositionsById.get(on);
       const movedPose = movedPosition === undefined ? undefined : objectPoses.get(movedPosition);
-      if (movedPose !== undefined) objectPoses.set(movedPosition!, { ...movedPose, ...definedFields({ position, rotation, scale, color }) });
+      if (movedPose !== undefined) objectPoses.set(movedPosition!, { ...movedPose, ...pickDefinedFields({ position, rotation, scale, color }) });
     }
   });
   return { objectPoses, shownLights, cameraPose };
 }
-
-type ReachablePlace = { partPosition: number; position: ScenePoint; rotation: ScenePoint; scale: number };
 
 // Every place an object can stand on any step: the camera and the floor are fitted to all of them at once.
 export function listReachablePlaces(sceneParts: ScenePart[]): ReachablePlace[] {

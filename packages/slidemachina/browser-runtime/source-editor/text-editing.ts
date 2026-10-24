@@ -1,12 +1,12 @@
-// \s covers the typographer's non-breaking spaces: the source gets plain ones, and no line breaks.
-function normalizeTypedText(shownText: string) {
-  return shownText.replace(/\s+/g, " ").trim();
-}
-
 type TextEditingCallbacks = {
   saveText: (typedText: string) => Promise<boolean>;
   finishEditing: () => void;
 };
+
+// \s covers the typographer's non-breaking spaces: the source gets plain ones, and no line breaks.
+function normalizeTypedText(shownText: string) {
+  return shownText.replace(/\s+/g, " ").trim();
+}
 
 // The same text nodes go back after typing: React keeps references to them.
 export function beginTextEditing(textElement: HTMLElement, editingCallbacks: TextEditingCallbacks) {
