@@ -78,13 +78,13 @@
     --diagram-text-size: var(--secondary-text-size);
     --diagram-label-size: var(--secondary-text-size);
     --diagram-title-size: var(--secondary-text-size);
-    --diagram-max-scale: 1.6;
+    --diagram-max-scale: 1;
     --diagram-label-width: 320px;
-    --diagram-box-min-width: 224px;
+    --diagram-box-min-width: 176px;
     --diagram-radius: 16px;
-    --diagram-node-gap: 40px;
-    --diagram-column-gap: 112px;
-    --diagram-group-padding: 32px;
+    --diagram-node-gap: 32px;
+    --diagram-column-gap: 88px;
+    --diagram-group-padding: 24px;
     --diagram-box-background: #ffffff;
     --diagram-box-background-on-dark: rgb(255 255 255 / 0.07);
     --diagram-box-border-color: rgb(21 23 28 / 0.12);
