@@ -466,7 +466,7 @@ examples/                       репозиторий из трёх презе�
   python-news/, team-sync/      два доклада в фирменной теме
   theme/                        общая тема: style.css для всех, yellow-brand.css для докладов
 tests/                          интеграционные тесты и их помощники
-workspace-checks/               проверка правил раскладки (входит в npm run check)
+.dependency-cruiser.cjs         правила раскладки для npm run check
 ```
 
 Пакет движка публикуется исходниками TypeScript, сборки нет: CLI запускает Vite 8, Vite компилирует движок вместе с презентацией. Node 26 запускает .ts напрямую, но Node не стирает типы в node_modules: опубликованному пакету понадобится шаг сборки.
@@ -506,7 +506,7 @@ shared-between-runtimes/        чистый JS без зависимостей:
 
 Публичный компонент лежит в своей папке `<имя>-block/`: компонент `<имя>-component.tsx` (`table-block/table-component.tsx` — это `<Table>`), его стили `<имя>-component.css` и модули, которые нужны только ему. Модули, нужные нескольким компонентам папки, остаются на верхнем уровне. Индексных файлов в папках нет.
 
-Правила проверяет `workspace-checks/import-boundaries.ts` в `npm run check`:
+Правила проверяет dependency-cruiser в `npm run check`, конфиг — `.dependency-cruiser.cjs`. Он же запрещает циклы и модули, которые никто не импортирует:
 - `browser-runtime` не берёт код из `server-runtime` и модули `node:*`, а `server-runtime` — модули `browser-runtime`;
 - `shared-between-runtimes` не зависит ни от остального движка, ни от пакетов;
 - `presentation-core` не зависит от блоков;
