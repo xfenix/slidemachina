@@ -36,7 +36,7 @@
   [data-slide] [data-code-title] {
     margin: 0 0 28px;
     color: var(--muted-color);
-    font-size: calc(var(--code-size) * 0.78);
+    font-size: var(--code-title-size);
     line-height: 1;
     text-box: trim-both cap alphabetic;
   }

@@ -43,18 +43,22 @@
     --logo-filter-on-dark: brightness(0) invert(1);
     --breadcrumbs-separator: "›";
 
+    /* Three sizes of text, besides headings and display numbers: main, secondary and small. Blocks take theirs from these. */
     --text-size: 40px;
-    --frame-text-size: 24px;
+    --secondary-text-size: 28px;
+    --small-text-size: 24px;
+    --frame-text-size: var(--small-text-size);
     --heading-size: 72px;
     --cover-heading-size: 112px;
-    --code-size: 28px;
-    --command-size: 40px;
+    --code-size: var(--secondary-text-size);
+    --code-title-size: var(--small-text-size);
+    --command-size: var(--text-size);
     --command-prompt: "$ ";
-    --caption-size: 28px;
-    --source-size: 22px;
-    --table-text-size: 32px;
+    --caption-size: var(--secondary-text-size);
+    --source-size: var(--small-text-size);
+    --table-text-size: var(--secondary-text-size);
     --quote-size: 96px;
-    --quote-author-size: 32px;
+    --quote-author-size: var(--secondary-text-size);
     --table-heading-color: var(--accent-color);
     --big-number-size: 168px;
     --big-number-color: var(--accent-color);
@@ -65,9 +69,9 @@
     --media-shadow: 0 24px 56px -20px rgb(21 23 28 / 0.28);
     --code-dim-opacity: 0.45;
 
-    --diagram-text-size: 28px;
-    --diagram-label-size: 24px;
-    --diagram-title-size: 22px;
+    --diagram-text-size: var(--secondary-text-size);
+    --diagram-label-size: var(--small-text-size);
+    --diagram-title-size: var(--small-text-size);
     --diagram-max-scale: 1.6;
     --diagram-label-width: 320px;
     --diagram-box-min-width: 224px;
