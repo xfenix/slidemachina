@@ -25,6 +25,9 @@
     --hairline-color-on-dark: rgb(255 255 255 / 0.14);
     --code-background: #f4f5f8;
     --code-background-on-dark: rgb(255 255 255 / 0.06);
+    /* Printed code fades into the code box: the box over the slide background, as it looks. */
+    --code-fade-color: var(--code-background);
+    --code-fade-color-on-dark: color-mix(in srgb, var(--dark-background), #fff 6%);
     --toolbar-background: #1a1a1a;
     --toolbar-icon-color: rgb(255 255 255 / 0.72);
 
@@ -60,6 +63,8 @@
     --caption-gap: 24px;
     --block-radius: 20px;
     --media-shadow: 0 24px 56px -20px rgb(21 23 28 / 0.28);
+    /* macOS Preview loses blurred box shadows in a PDF, so print draws the same shadows with a filter. */
+    --media-print-shadow: drop-shadow(0 18px 18px rgb(21 23 28 / 0.14));
     --code-dim-opacity: 0.45;
 
     --diagram-text-size: 28px;
@@ -78,6 +83,8 @@
     --diagram-box-border-color-on-dark: rgb(255 255 255 / 0.14);
     --diagram-box-shadow: 0 1px 2px rgb(21 23 28 / 0.06), 0 14px 32px -18px rgb(21 23 28 / 0.28);
     --diagram-box-shadow-on-dark: 0 14px 32px -18px rgb(0 0 0 / 0.6);
+    --diagram-box-print-shadow: drop-shadow(0 1px 1px rgb(21 23 28 / 0.06)) drop-shadow(0 10px 10px rgb(21 23 28 / 0.1));
+    --diagram-box-print-shadow-on-dark: drop-shadow(0 10px 10px rgb(0 0 0 / 0.3));
     --diagram-group-background: color-mix(in srgb, var(--accent-color) 4%, transparent);
     --diagram-group-background-on-dark: rgb(255 255 255 / 0.03);
     --diagram-group-border-color: color-mix(in srgb, var(--accent-color) 16%, transparent);
@@ -177,27 +184,39 @@
     background-repeat: no-repeat, repeat;
   }
 
-  [data-slide] h1[data-section-number] {
-    position: relative;
+  /* The number follows the title in the markup, out of its text; the title is still trimmed as the only line on the slide. */
+  [data-slide] [data-content] > h1[data-section-number] {
+    margin-bottom: 0;
+    text-box: trim-both cap alphabetic;
   }
 
-  [data-slide] h1[data-section-number]:before {
-    content: attr(data-section-number);
+  [data-slide] [data-section-number-figure] {
+    font-family: var(--font-heading);
     position: absolute;
     left: 50%;
     top: 50%;
     z-index: -1;
-    translate: -50% -50%;
-    color: transparent;
-    background: linear-gradient(to bottom, var(--section-number-color), transparent 88%);
-    background-clip: text;
+    width: 1px;
+    height: 1px;
+    overflow: visible;
     font-size: var(--section-number-size);
     font-weight: 800;
-    line-height: 1;
     letter-spacing: -0.04em;
     font-variant-numeric: lining-nums;
-    white-space: nowrap;
     pointer-events: none;
+  }
+
+  [data-slide] [data-section-number-figure] text {
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  [data-slide] [data-section-number-figure] stop {
+    stop-color: var(--section-number-color);
+  }
+
+  [data-slide] [data-section-number-figure] stop:last-child {
+    stop-opacity: 0;
   }
 
   [data-slide] p {

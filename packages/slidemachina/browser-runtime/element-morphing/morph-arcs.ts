@@ -4,6 +4,7 @@ const arcDepth = 0.25;
 export type MovingLayer = {
   layerName: string;
   outgoingElement: HTMLElement;
+  incomingElement: HTMLElement;
   startBox: DOMRect;
   endBox?: DOMRect;
 };

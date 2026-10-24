@@ -105,25 +105,7 @@
     height: auto;
   }
 
-  /* Morph: the new background with its logo and number opens from the centre instead of blending through grey. */
-  :root[data-slide-transition="morph"]::view-transition-old(root) {
-    animation: none;
-  }
-
-  :root[data-slide-transition="morph"]::view-transition-new(root) {
-    animation-name: slidemachina-reveal;
-  }
-
-  :root[data-slide-transition="morph"][data-slide-direction="backward"]::view-transition-old(root) {
-    z-index: 1;
-    animation: slidemachina-reveal var(--morph-duration) var(--transition-easing) both reverse;
-  }
-
-  :root[data-slide-transition="morph"][data-slide-direction="backward"]::view-transition-new(root) {
-    animation: none;
-  }
-
-  /* Fade goes through the background: the old text is gone, the background and number switch, the new text appears. */
+  /* Fade goes through the background: the old text is gone, the background and number blend, the new text appears. */
   :root[data-slide-transition="fade"]::view-transition-old(slide-content-out) {
     animation-duration: calc(var(--transition-duration) * 0.5);
   }
@@ -133,13 +115,13 @@
     animation-duration: calc(var(--transition-duration) * 0.5);
   }
 
-  :root[data-slide-transition="fade"]::view-transition-old(root) {
+  /* The new background with its logo and number covers the old one in the middle, while little text is on screen. */
+  :root:is([data-slide-transition="morph"], [data-slide-transition="fade"])::view-transition-old(root) {
     animation: none;
   }
 
-  :root[data-slide-transition="fade"]::view-transition-new(root) {
-    animation-name: slidemachina-switch-halfway;
-    animation-timing-function: linear;
+  :root:is([data-slide-transition="morph"], [data-slide-transition="fade"])::view-transition-new(root) {
+    animation-name: slidemachina-blend-midway;
   }
 
   :root[data-slide-transition="none"]::view-transition-group(*),
@@ -217,21 +199,12 @@
   }
 }
 
-@keyframes slidemachina-reveal {
-  from {
-    clip-path: circle(0% at 50% 50%);
-  }
-  to {
-    clip-path: circle(71% at 50% 50%);
-  }
-}
-
-@keyframes slidemachina-switch-halfway {
+@keyframes slidemachina-blend-midway {
   0%,
-  49.9% {
+  30% {
     opacity: 0;
   }
-  50%,
+  70%,
   100% {
     opacity: 1;
   }

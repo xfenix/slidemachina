@@ -48,6 +48,7 @@ function DiagramArrow({ arrowPart, drawingContext }: { arrowPart: ArrowPart; dra
     <div
       data-arrow
       data-morph-apart
+      morph={`diagram-arrow:${arrowProperties.from}:${arrowProperties.to}`}
       data-arrow-id={arrowIdentifier}
       data-focus-id={arrowProperties.id ?? arrowIdentifier}
       data-focus-ends={`${arrowProperties.from} ${arrowProperties.to}`}
