@@ -67,7 +67,7 @@
 
     --block-gap: 40px;
     /* From the baseline of a slide heading to the capitals or the edge of the block under it. */
-    --heading-gap: 120px;
+    --heading-gap: 104px;
     --caption-gap: 24px;
     --block-radius: 20px;
     --media-shadow: 0 24px 56px -20px rgb(21 23 28 / 0.28);
