@@ -103,7 +103,7 @@ test("редактор правит текст, двигает блок схем
       await page.keyboard.type("Своя подпись");
       await page.keyboard.press("Enter");
       await expect.poll(readPresentation).toContain("<h2>Пробуем редактор &#123;вживую&#125;</h2>");
-      await expect.poll(readPresentation).toContain("<Caption>Своя подпись</Caption>");
+      await expect.poll(readPresentation).toContain("<Machina.Caption>Своя подпись</Machina.Caption>");
       await expect(slideHeading).toHaveText("Пробуем редактор {вживую}");
       await expect(slideHeading).not.toHaveAttribute("contenteditable");
       await expect(page.locator("[data-editor-status]")).toHaveText("Сохранено в index.tsx");
@@ -138,7 +138,7 @@ test("редактор правит текст, двигает блок схем
       await expect(page.locator("[data-editor-column-band]")).toBeVisible();
       await expect(page.locator("[data-editor-insertion-line]")).toBeVisible();
       await page.mouse.up();
-      await expect.poll(readPresentation).toMatch(/<Box id="file">index\.tsx<\/Box>\n\s*<Box id="picture" column=\{3\}>Картинка<\/Box>\n/);
+      await expect.poll(readPresentation).toMatch(/<Machina.Box id="file">index\.tsx<\/Machina.Box>\n\s*<Machina.Box id="picture" column=\{3\}>Картинка<\/Machina.Box>\n/);
       await expect(pictureBox).toHaveAttribute("data-flow-column", "3");
       await expect(slideDiagram.locator("[data-arrow-line]")).toHaveCount(3);
       for (const arrowLine of await slideDiagram.locator("[data-arrow-line]").all()) await expect(arrowLine).toHaveAttribute("d", /^M[\d.,-]+ L/);
