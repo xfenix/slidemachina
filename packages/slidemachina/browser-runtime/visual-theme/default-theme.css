@@ -66,6 +66,8 @@
     --big-number-color: var(--accent-color);
 
     --block-gap: 40px;
+    /* From the baseline of a slide heading to the capitals or the edge of the block under it. */
+    --heading-gap: 120px;
     --caption-gap: 24px;
     --block-radius: 20px;
     --media-shadow: 0 24px 56px -20px rgb(21 23 28 / 0.28);
@@ -128,6 +130,17 @@
 
   /* The first line starts at the cap height, so its top lines up with the logo. */
   [data-slide] [data-content] > :first-child {
+    text-box: trim-start cap alphabetic;
+  }
+
+  /* The heading ends on its baseline and the text under it starts at its capitals, so --heading-gap is the gap the eye sees. */
+  [data-slide]:not([data-cover]) [data-content] > :is(h1, h2):not(:last-child, [data-section-number]) {
+    margin-bottom: var(--heading-gap);
+    text-box: trim-both cap alphabetic;
+  }
+
+  [data-slide]:not([data-cover]) [data-content] > :is(h1, h2) + :is(p, ul, ol),
+  [data-slide]:not([data-cover]) [data-content] > :is(h1, h2) + [data-columns] > [data-column] > :is(p, ul, ol):first-child {
     text-box: trim-start cap alphabetic;
   }
 
