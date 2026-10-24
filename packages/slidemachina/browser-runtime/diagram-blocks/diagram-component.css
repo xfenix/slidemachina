@@ -47,7 +47,7 @@
     align-items: center;
     justify-content: center;
     min-width: var(--diagram-box-min-width);
-    padding: 28px 32px;
+    padding: 28px;
     border: 1px solid var(--diagram-box-border-color);
     border-radius: var(--diagram-radius);
     background: var(--diagram-box-background);

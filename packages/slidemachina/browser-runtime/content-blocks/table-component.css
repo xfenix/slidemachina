@@ -11,6 +11,7 @@
   [data-slide] [data-table] :is(th, td) {
     padding: 16px 48px 16px 0;
     border-bottom: 1px solid var(--hairline-color);
+    font-weight: inherit;
     text-align: start;
     vertical-align: baseline;
   }
@@ -22,13 +23,12 @@
   [data-slide] [data-table] thead th {
     padding-top: 0;
     border-bottom-color: color-mix(in srgb, var(--text-color) 40%, transparent);
+    color: var(--muted-color);
     font-size: var(--caption-size);
-    font-weight: 700;
   }
 
   [data-slide] [data-table] tbody th {
     color: var(--table-heading-color);
-    font-weight: 700;
   }
 
   [data-slide] [data-table] tbody tr:last-child > * {

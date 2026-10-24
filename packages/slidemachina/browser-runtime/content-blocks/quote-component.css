@@ -9,6 +9,7 @@
     position: relative;
     margin: 0;
     font-size: var(--quote-size);
+    font-weight: 700;
     line-height: 1.2;
     letter-spacing: -0.015em;
     text-wrap: balance;
