@@ -63,8 +63,6 @@
     --caption-gap: 24px;
     --block-radius: 20px;
     --media-shadow: 0 24px 56px -20px rgb(21 23 28 / 0.28);
-    /* macOS Preview loses blurred box shadows in a PDF, so print draws the same shadows with a filter. */
-    --media-print-shadow: drop-shadow(0 18px 18px rgb(21 23 28 / 0.14));
     --code-dim-opacity: 0.45;
 
     --diagram-text-size: 28px;
@@ -83,8 +81,6 @@
     --diagram-box-border-color-on-dark: rgb(255 255 255 / 0.14);
     --diagram-box-shadow: 0 1px 2px rgb(21 23 28 / 0.06), 0 14px 32px -18px rgb(21 23 28 / 0.28);
     --diagram-box-shadow-on-dark: 0 14px 32px -18px rgb(0 0 0 / 0.6);
-    --diagram-box-print-shadow: drop-shadow(0 1px 1px rgb(21 23 28 / 0.06)) drop-shadow(0 10px 10px rgb(21 23 28 / 0.1));
-    --diagram-box-print-shadow-on-dark: drop-shadow(0 10px 10px rgb(0 0 0 / 0.3));
     --diagram-group-background: color-mix(in srgb, var(--accent-color) 4%, transparent);
     --diagram-group-background-on-dark: rgb(255 255 255 / 0.03);
     --diagram-group-border-color: color-mix(in srgb, var(--accent-color) 16%, transparent);

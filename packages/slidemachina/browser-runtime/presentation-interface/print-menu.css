@@ -119,6 +119,7 @@
 
   [data-print-view-bar] > button:is([role="switch"], [data-print-view-print]) {
     display: flex;
+    border: 0;
     gap: 10px;
     width: auto;
     height: 36px;

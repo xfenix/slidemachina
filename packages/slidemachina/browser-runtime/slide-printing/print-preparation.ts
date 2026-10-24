@@ -3,11 +3,9 @@ import { flushSync } from "react-dom";
 import { printedStepsStorageKey, printViewParameter, printViewStepsValue } from "../../shared-between-runtimes/engine-constants.js";
 import { waitForPrintedPages } from "./print-readiness.ts";
 
-const revealPrintParameter = "print-pdf";
-
 function readPrintViewRequest(): { isPrintView: boolean; printsSteps?: boolean } {
   const searchParameters = new URLSearchParams(location.search);
-  const requestedValue = searchParameters.get(printViewParameter) ?? searchParameters.get(revealPrintParameter);
+  const requestedValue = searchParameters.get(printViewParameter);
   if (requestedValue === null) return { isPrintView: false };
   return { isPrintView: true, printsSteps: requestedValue === printViewStepsValue };
 }
@@ -15,7 +13,6 @@ function readPrintViewRequest(): { isPrintView: boolean; printsSteps?: boolean }
 // "?print" or "?print=steps"; the slide position in the hash stays.
 function describePrintViewAddress(isPrintView: boolean, printsSteps: boolean): string {
   const pageAddress = new URL(location.href);
-  pageAddress.searchParams.delete(revealPrintParameter);
   pageAddress.searchParams.delete(printViewParameter);
   if (isPrintView) pageAddress.searchParams.set(printViewParameter, printsSteps ? printViewStepsValue : "");
   pageAddress.search = pageAddress.search.replace(new RegExp(`([?&]${printViewParameter})=(?=&|$)`), "$1");
