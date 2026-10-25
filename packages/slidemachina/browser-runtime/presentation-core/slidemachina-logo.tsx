@@ -1,4 +1,4 @@
-// The slidemachina logo; its sources for the README and the repository avatar are in assets/logos.
+// The logo of slidemachina itself, for logo={SlidemachinaLogo}; its sources for the README and the repository avatar are in assets/logos.
 const logoViewBox = "0 0 269 56";
 const markColor = "#4c5ee8";
 const markTransform = "translate(0 2) skewY(9)";

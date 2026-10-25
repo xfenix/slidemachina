@@ -6,10 +6,9 @@ import navigatorPicture from "./images/navigator.webp";
 import presentationListPicture from "./images/presentation-list.webp";
 import sceneOrbitPoster from "./images/scene-orbit-poster.webp";
 import sceneOrbitVideo from "./images/scene-orbit.webm";
-import { SlidemachinaLogo } from "./slidemachina-logo.tsx";
 
 export default (
-  <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={SlidemachinaLogo}>
+  <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo}>
     <Machina.Slide cover>
       <h1>slidemachina</h1>
       <p className="text-(--muted-color)">Презентации на React</p>
