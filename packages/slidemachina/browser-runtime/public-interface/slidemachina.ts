@@ -14,6 +14,8 @@ export { Quote, type QuoteProperties } from "../content-blocks/quote-block/quote
 export { BigNumber, type BigNumberProperties } from "../content-blocks/big-number-block/big-number-component.tsx";
 export { Caption, type CaptionProperties } from "../content-blocks/caption-block/caption-component.tsx";
 export { Source, type SourceProperties } from "../content-blocks/source-block/source-component.tsx";
+export { QR, type QRProperties } from "../content-blocks/qr-block/qr-component.tsx";
+export type { QRCorrection } from "../content-blocks/qr-block/qr-module-shapes.ts";
 export { Diagram, type DiagramProperties } from "../diagram-blocks/diagram-block/diagram-component.tsx";
 export {
   Arrow,

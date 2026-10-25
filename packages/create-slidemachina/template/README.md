@@ -58,6 +58,7 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 | Цитата | `<Quote author="Автор">Текст</Quote>` |
 | Большое число | `<BigNumber label="подпись">42</BigNumber>` |
 | Подпись и источник | `<Caption>…</Caption>`, `<Source>…</Source>` |
+| QR-код | `<QR value="https://…" logo={logo} />` — на свободное место, фон прозрачный |
 | Схема | `<Diagram><Box id="a">A</Box><Box id="b">B</Box><Arrow from="a" to="b" /></Diagram>` |
 | Диаграмма обмена | `<Sequence><Actor id="a">A</Actor><Actor id="b">B</Actor><Message from="a" to="b" label="запрос" /></Sequence>` |
 | 3D-сцена | `<Scene orbit><Cube size={1.5} /><Sphere position={[2, 0.5, 0]} step /></Scene>` |

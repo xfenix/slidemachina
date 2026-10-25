@@ -144,6 +144,7 @@ export default (
 | `Quote` | `author` |
 | `BigNumber` | `label`; число — внутри тега |
 | `Caption`, `Source` | только текст внутри |
+| `QR` | `value` — ссылка или текст; `logo` — картинка в середине; `correction` (`L`, `M`, `Q`, `H`, по умолчанию `M`); `color`; внутри — `<Caption>` |
 | `List` | `step`, `effect`, `ordered`; маркер — шестилучевая звёздочка SVG-маской, размер 0,5 em |
 
 - `Image` без пропсов — в натуральную величину, но не больше места на слайде.
@@ -158,6 +159,10 @@ export default (
 - `BigNumber` занимает всю колонку. Число шире колонки уменьшает кегль, но не ниже 64 px.
 - `Source` — сноска к блокам над ним: стоит сразу под ними, над ним тонкая линия шириной в его текст.
 - Кавычки у `Quote` ставит CSS по языку страницы: «…» для ru, “…” для en.
+- `QR` занимает всё свободное место, как `Image stretch`, и остаётся квадратным. На слайде с `align="left"` стоит от левого края текста, на центрированном — по центру. Колонка с кодом растёт до низа контента.
+- Плотность точек задаёт `correction` — уровень коррекции ошибок. Чем он выше, тем больше точек и тем больше повреждений код переживает. Движок берёт самый маленький код для этого уровня и поднимает коррекцию, пока код не растёт: точки крупные, их видно с дальних рядов.
+- С `logo` коррекция всегда `H`. Середина кода под логотипом очищается: около 6 % площади.
+- Цвет точек — `color` или `--qr-color` в теме. По умолчанию — цвет текста: на тёмном слайде код светлый. Фон прозрачный, рамки и тени нет.
 
 ### Код
 
@@ -441,6 +446,7 @@ npx slidemachina build --html --pdf  # все презентации и спис
 | Блоки | `--heading-gap` (104 px) — от базовой линии заголовка слайда до заглавных букв или края блока под ним, `--block-gap` (40 px), `--caption-gap`, `--block-radius`, `--media-shadow`, `--code-background`, `--table-heading-color`, `--big-number-color` |
 | Раздел | `--section-texture`, `--section-number-color`, `--section-number-size` |
 | Схемы | `--diagram-*`: размеры текста, отступы, цвета блоков, групп и линий, `--diagram-dim-opacity`, `--diagram-max-scale`; `--sequence-column-width`, `--sequence-row-gap` |
+| QR | `--qr-color` — цвет точек; не задан — цвет текста слайда |
 | Сцены | `--scene-color`, `--scene-text-color`, `--scene-font`, `--scene-font-weight`, `--scene-shadow-opacity`, `--scene-shadow-opacity-on-dark` |
 | Движение | `--transition-duration`, `--morph-duration`, `--rotation-duration`, `--transition-easing`, `--step-duration`, `--step-easing`, `--step-rise-distance`, `--dim-opacity` |
 | Интерфейс | `--toolbar-background`, `--toolbar-icon-color`, `--navigator-background`, `--transition-stage-background`, `--letterbox-background`, `--breadcrumbs-separator` |
@@ -497,7 +503,7 @@ browser-runtime/                всё, что работает на стран�
   slide-transitions/            переходы, имена слоёв, переход «список → слайд»
   element-morphing/             пары для морфинга, дуги, морфинг слов и кода
   presentation-interface/       панель управления, навигатор, меню печати, тексты интерфейса
-  content-blocks/               <Code>, <Image>, <Video>, <Columns>, <Table>, <Quote>, <BigNumber>, <Caption>, <Source>
+  content-blocks/               <Code>, <Image>, <Video>, <Columns>, <Table>, <Quote>, <BigNumber>, <Caption>, <Source>, <QR>
     table-block/                у каждого компонента своя папка: компонент, его стили и его модули
   diagram-blocks/               <Diagram> с <Box>, <Arrow>, <Group>, <Focus>; <Sequence> с <Actor>, <Message>; ELK в воркере
   scene-blocks/                 <Scene> с <Cube>, <Sphere>, <Text>, <Light>, <Camera>, <Move> на three.js

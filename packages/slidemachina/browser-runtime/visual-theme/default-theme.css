@@ -154,6 +154,8 @@
     --sequence-column-width: 440px;
     --sequence-row-gap: 40px;
 
+    /* QR modules take --qr-color; unset, they follow the text of the slide tone. */
+
     /* Objects take --scene-color, text takes --scene-text-color; unset, they follow the accent and the text of the slide tone. */
     --scene-font: var(--font-heading);
     --scene-font-weight: 700;

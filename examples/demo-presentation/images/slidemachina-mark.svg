@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">slidemachina</title>
+  <linearGradient id="mark-gradient" x1="0" x2="48" y1="0" y2="0" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#7000d1"/>
+    <stop offset="1" stop-color="#007a33"/>
+  </linearGradient>
+  <g transform="translate(8 6) skewY(9)" fill="url(#mark-gradient)">
+    <path d="M16 0H44A4 4 0 0 1 48 4V32A4 4 0 0 1 44 36H43V10A7 7 0 0 0 36 3H12A4 4 0 0 1 16 0Z"/>
+    <path d="M4 8H36A4 4 0 0 1 40 12V17.25H17C3.33 17.25 3.33 32.75 17 32.75H23C28.3 32.75 28.3 35.25 23 35.25H0V12A4 4 0 0 1 4 8Z"/>
+    <path d="M0 40.75H23C36 40.75 36 27.25 23 27.25H17C11 27.25 11 22.75 17 22.75H40V40A4 4 0 0 1 36 44H4A4 4 0 0 1 0 40.75Z"/>
+  </g>
+</svg>

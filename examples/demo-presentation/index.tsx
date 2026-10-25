@@ -6,6 +6,7 @@ import navigatorPicture from "./images/navigator.webp";
 import presentationListPicture from "./images/presentation-list.webp";
 import sceneOrbitPoster from "./images/scene-orbit-poster.webp";
 import sceneOrbitVideo from "./images/scene-orbit.webm";
+import slidemachinaMarkPicture from "./images/slidemachina-mark.svg";
 
 export default (
   <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo}>
@@ -642,6 +643,20 @@ export default (
         </Machina.Columns>
       </Machina.Slide>
     </Machina.Section>
+
+    <Machina.Slide>
+      <h2>QR-код</h2>
+      <Machina.Columns>
+        <Machina.List>
+          <li>value — ссылка или текст</li>
+          <li>logo — картинка в середине</li>
+          <li>color — цвет точек, фон прозрачный</li>
+        </Machina.List>
+        <Machina.QR value="https://github.com/xfenix/slidemachina" logo={slidemachinaMarkPicture}>
+          <Machina.Caption>Исходники slidemachina</Machina.Caption>
+        </Machina.QR>
+      </Machina.Columns>
+    </Machina.Slide>
 
     <Machina.Slide cover background="var(--dark-background)">
       <h1>Спасибо</h1>

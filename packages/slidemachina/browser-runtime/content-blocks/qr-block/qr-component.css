@@ -1,0 +1,38 @@
+@layer slidemachina {
+  /* The modules stand right on the slide background: no frame or shadow of a picture, on screen and in print. */
+  [data-slide] [data-qr],
+  [data-print-page] [data-slide] [data-qr][data-media] {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  [data-slide] [data-qr] {
+    --media-ratio: 1;
+    position: relative;
+    color: var(--qr-color, var(--text-color));
+  }
+
+  /* On a left-aligned slide the code starts on the line of the text, as the text does, in a column too. */
+  [data-slide][data-align="left"] [data-media-frame]:has(> [data-media-group] > [data-qr]) {
+    place-items: start;
+  }
+
+  [data-slide] [data-qr] > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  [data-slide] [data-qr] > [data-qr-logo] {
+    position: absolute;
+    inset: var(--qr-logo-inset);
+    width: calc(100% - 2 * var(--qr-logo-inset));
+    height: calc(100% - 2 * var(--qr-logo-inset));
+    object-fit: contain;
+  }
+
+  /* Columns with a code grow to the bottom of the content area, so the code has room in its column. */
+  [data-slide] [data-columns]:has(> [data-column] [data-qr]) {
+    flex: 1 1 0;
+  }
+}

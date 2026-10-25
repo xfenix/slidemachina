@@ -425,7 +425,7 @@ test("демо листается, показывает шаги и навига
   await test.step("навигатор", async () => {
     await page.keyboard.press("o");
     const slideNavigator = page.locator("[data-navigator]");
-    await expect(slideNavigator.locator("[data-thumbnail]")).toHaveCount(57);
+    await expect(slideNavigator.locator("[data-thumbnail]")).toHaveCount(58);
     // One of the two dark steps of the theme, the same as the dark slides: --dark-background.
     await expect(slideNavigator).toHaveCSS("background-color", "rgb(20, 22, 29)");
     await expect(slideNavigator.locator("[data-thumbnail-number]").nth(37)).toHaveText("38");
@@ -461,7 +461,7 @@ test("демо листается, показывает шаги и навига
     await expect(feedbackStandIn).toHaveCSS("visibility", "visible");
     const overviewPage = await page.context().newPage();
     await overviewPage.goto("/?overview");
-    await expect(overviewPage.locator("[data-navigator] [data-thumbnail]")).toHaveCount(57);
+    await expect(overviewPage.locator("[data-navigator] [data-thumbnail]")).toHaveCount(58);
     await overviewPage.keyboard.press("Escape");
     await expect(overviewPage.locator("[data-navigator]")).toHaveCount(0);
     await overviewPage.close();
