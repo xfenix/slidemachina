@@ -26,6 +26,10 @@
     overflow: hidden;
   }
 
+  [data-printed-fade-band] {
+    display: none;
+  }
+
   /* The print view shows every page in a column, scaled to the window; the slides and their toolbar stay mounted but hidden. */
   @media screen {
     [data-presentation][data-print-view] {
@@ -105,6 +109,19 @@
     [data-print-page] [data-slide]:has(> [data-content] > h1[data-section-number]) {
       background-color: var(--section-printed-background) !important;
       background-size: cover, 0 0;
+    }
+
+    /* Chrome's PDF viewer draws a gradient on text as a grey fill, so the section number fades by stacked solid bands. */
+    [data-print-page] [data-section-number-gradient] {
+      display: none;
+    }
+
+    [data-print-page] [data-printed-fade-band] {
+      display: inline;
+    }
+
+    [data-print-page] [data-printed-fade-band] text {
+      fill: rgb(from var(--section-number-color) r g b / calc(1 - (1 - alpha * var(--band-share)) / (1 - alpha * var(--lower-band-share))));
     }
 
     /* A canvas redrawn after beforeprint is printed by replaying its drawing calls, and the replay erases the slide background
