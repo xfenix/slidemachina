@@ -2,7 +2,7 @@ import { StrictMode, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { connectCanvasToList } from "../slide-transitions/presentation-list-transition.ts";
-import { PresentationListAddressContext } from "../presentation-interface/presentation-toolbar/presentation-toolbar.tsx";
+import { PresentationListAddressContext } from "../presentation-interface/presentation-toolbar.tsx";
 
 let presentationRoot: Root | undefined;
 

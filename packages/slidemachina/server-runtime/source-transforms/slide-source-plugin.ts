@@ -5,7 +5,7 @@ import { commandLineTexts } from "../command-line/command-line-texts.ts";
 import { highlightCode } from "./code-highlighting.ts";
 import { readSettingsFor } from "./presentation-settings.ts";
 import { isSlideSourceFile } from "../presentation-repository/presentation-repository.ts";
-import { installSourceEditing } from "../development-server/source-editing/source-edit-server.ts";
+import { installSourceEditing } from "../development-server/source-edit-server.ts";
 import { markSourceLocations } from "./source-marking.ts";
 import { typographSyntaxNode } from "./slide-typography.ts";
 import { findEngineNames, parseSlideSource, readElementName, readStringAttribute, walkSyntaxTree } from "./syntax-tree.ts";

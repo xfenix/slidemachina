@@ -162,7 +162,7 @@ export default (
                 <h1>Доклад</h1>
               </Slide>
               <Slide>
-                <Code src="./examples/agent.py" lines="10-13 | 27-30" />
+                <Code src="./agent.py" lines="10-13 | 27-30" />
               </Slide>
             </Presentation>
           );
@@ -171,7 +171,7 @@ export default (
 
       <Machina.Slide background="var(--dark-background)">
         <h2>Код из файла</h2>
-        <Machina.Code src="./examples/agent.py" lines="10-13 | 16-24 | 27-30 | 32-43 | 46-48" />
+        <Machina.Code src="./agent.py" lines="10-13 | 16-24 | 27-30 | 32-43 | 46-48" />
       </Machina.Slide>
 
       <Machina.Slide>

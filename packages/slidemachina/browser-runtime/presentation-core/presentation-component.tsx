@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useCanvasScaling } from "./canvas-scaling.ts";
-import { DevelopmentFeedback } from "../development-feedback/development-feedback.tsx";
+import { DevelopmentFeedback } from "../presentation-interface/development-feedback.tsx";
 import { EditorSwitch } from "../source-editor/editor-switch.tsx";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
-import { PresentationToolbar, useToolbarHiding } from "../presentation-interface/presentation-toolbar/presentation-toolbar.tsx";
-import { PrintMenu } from "../presentation-interface/print-menu/print-menu.tsx";
-import { PrintViewBar } from "../presentation-interface/print-view-bar/print-view-bar.tsx";
+import { PresentationToolbar, useToolbarHiding } from "../presentation-interface/presentation-toolbar.tsx";
+import { PrintMenu } from "../presentation-interface/print-menu.tsx";
+import { PrintViewBar } from "../presentation-interface/print-view-bar.tsx";
 import { PrintPages } from "../slide-printing/print-pages.tsx";
 import { usePrintPreparation } from "../slide-printing/print-preparation.ts";
 import { useKeyboardControls } from "../slide-navigation/keyboard-controls.ts";
@@ -19,8 +19,8 @@ import {
 import { useSlideNavigation } from "../slide-navigation/slide-navigation.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
-import { SlideNavigator } from "../presentation-interface/slide-navigator/slide-navigator.tsx";
-import { useOverviewAddress } from "../presentation-interface/slide-navigator/overview-address.ts";
+import { SlideNavigator } from "../presentation-interface/slide-navigator.tsx";
+import { useOverviewAddress } from "../presentation-interface/overview-address.ts";
 import { buildSlideOutline } from "./slide-outline.tsx";
 import { useSwipeControls } from "../slide-navigation/swipe-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";

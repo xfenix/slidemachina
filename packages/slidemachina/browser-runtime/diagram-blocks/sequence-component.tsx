@@ -1,9 +1,9 @@
 import { useRef, type CSSProperties, type ReactNode } from "react";
-import { arrowHeadLength, arrowHeadWidth, drawArrow } from "../arrow-geometry.ts";
-import { useFocusSteps } from "../diagram-focus.ts";
-import { listMarkupElements } from "../../presentation-core/markup-elements.ts";
-import { Focus, FocusMarker, type FocusProperties } from "../diagram-parts.tsx";
-import { createPartStepAttributes, type StepEffect } from "../../slide-steps/step-attributes.ts";
+import { arrowHeadLength, arrowHeadWidth, drawArrow } from "./arrow-geometry.ts";
+import { useFocusSteps } from "./diagram-focus.ts";
+import { listMarkupElements } from "../presentation-core/markup-elements.ts";
+import { Focus, FocusMarker, type FocusProperties } from "./diagram-parts.tsx";
+import { createPartStepAttributes, type StepEffect } from "../slide-steps/step-attributes.ts";
 
 const selfLoopWidth = 56;
 const selfLoopHeight = 40;

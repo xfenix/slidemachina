@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { pickInterfaceTexts } from "../interface-texts.ts";
-import { PrinterIcon, printShortcut } from "../print-menu/print-menu.tsx";
+import { pickInterfaceTexts } from "./interface-texts.ts";
+import { PrinterIcon, printShortcut } from "./print-menu.tsx";
 
 type PrintViewBarProperties = {
   languageCode: string;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { describeAddressWithParameter } from "../../presentation-core/page-address.ts";
+import { describeAddressWithParameter } from "../presentation-core/page-address.ts";
 
 const overviewParameter = "overview";
 

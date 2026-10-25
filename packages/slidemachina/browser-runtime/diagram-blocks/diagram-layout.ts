@@ -1,5 +1,5 @@
 import type { ElkNode, ElkPoint } from "elkjs/lib/elk-api";
-import { placeArrowLabel, type LabelFrame } from "../arrow-geometry.ts";
+import { placeArrowLabel, type LabelFrame } from "./arrow-geometry.ts";
 import type { DiagramDirection, MeasuredSize } from "./diagram-graph.ts";
 import { layOutWithElk } from "./elk-worker-client.ts";
 

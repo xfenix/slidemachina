@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { pickInterfaceTexts } from "../interface-texts.ts";
-import { useWindowKeydown } from "../../slide-navigation/keyboard-listener.ts";
-import type { OutlinedSlide } from "../../presentation-core/slide-outline.tsx";
+import { pickInterfaceTexts } from "./interface-texts.ts";
+import { useWindowKeydown } from "../slide-navigation/keyboard-listener.ts";
+import type { OutlinedSlide } from "../presentation-core/slide-outline.tsx";
 
 const navigatorPadding = 64;
 const thumbnailGap = 32;

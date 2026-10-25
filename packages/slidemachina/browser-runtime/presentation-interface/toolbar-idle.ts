@@ -1,6 +1,6 @@
 import { useEffect, useState, type RefObject } from "react";
-import { toolbarIdleDelay } from "../../presentation-core/settings.ts";
-import { isFeedbackActive } from "../../development-feedback/development-feedback.tsx";
+import { toolbarIdleDelay } from "../presentation-core/settings.ts";
+import { isFeedbackActive } from "./development-feedback.tsx";
 
 // Controls fade after two seconds without the mouse, unless hovered, a menu is open or a note is being written.
 export function useToolbarIdle(toolbarReference: RefObject<HTMLElement | null>) {

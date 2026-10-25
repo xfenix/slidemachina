@@ -1,7 +1,7 @@
 import MagicString from "magic-string";
-import { findLineStarts } from "../../source-transforms/source-marking.ts";
-import { findAttribute, isPlainTextElement, isStringContainer, parseSlideSource, walkSyntaxTree } from "../../source-transforms/syntax-tree.ts";
-import type { SyntaxNode } from "../../source-transforms/syntax-tree.ts";
+import { findLineStarts } from "../source-transforms/source-marking.ts";
+import { findAttribute, isPlainTextElement, isStringContainer, parseSlideSource, walkSyntaxTree } from "../source-transforms/syntax-tree.ts";
+import type { SyntaxNode } from "../source-transforms/syntax-tree.ts";
 
 export type SourcePlace = { lineNumber: number, columnNumber: number };
 type FoundElement = { elementNode: SyntaxNode, parentNode: SyntaxNode | undefined };

@@ -1,5 +1,5 @@
 import { Children, type ReactNode } from "react";
-import { listMarkupElements } from "../../presentation-core/markup-elements.ts";
+import { listMarkupElements } from "../presentation-core/markup-elements.ts";
 import {
   Camera,
   Cube,

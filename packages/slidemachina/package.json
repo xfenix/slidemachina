@@ -14,8 +14,8 @@
   ],
   "exports": {
     ".": {
-      "types": "./browser-runtime/public-interface/slidemachina.ts",
-      "default": "./browser-runtime/public-interface/slidemachina.ts"
+      "types": "./browser-runtime/slidemachina.ts",
+      "default": "./browser-runtime/slidemachina.ts"
     }
   },
   "dependencies": {

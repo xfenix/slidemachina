@@ -10,8 +10,6 @@
 | `icon-dark.svg` | Одноцветный тёмный знак |
 | `icon-white.svg` | Белый знак на тёмном фоне |
 
-В `archive/` сохранены исходный логотип в двух цветовых версиях, первый эскиз со стопкой слайдов и вариант с Syne. Вариант Plus Jakarta Sans выбран основным и лежит в корне этой папки.
-
 Эти файлы — исходники для README, аватара репозитория и других мест вне слайдов. На слайдах логотип рисует компонент движка `Machina.SlidemachinaLogo` (`packages/slidemachina/browser-runtime/presentation-core/slidemachina-logo.tsx`). Если меняете логотип, обновите и его. Примеры с общей темой и шаблон новой презентации используют собственные логотипы.
 
-Шрифт: [Plus Jakarta Sans](https://github.com/google/fonts/tree/main/ofl/plusjakartasans), лицензия SIL Open Font License 1.1, см. `font-license.txt`. Архивный Syne распространяется по той же лицензии, см. `archive/syne-font-license.txt`.
+Шрифт: [Plus Jakarta Sans](https://github.com/google/fonts/tree/main/ofl/plusjakartasans), лицензия SIL Open Font License 1.1, см. `font-license.txt`.

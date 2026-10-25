@@ -1,14 +1,14 @@
 import { existsSync, realpathSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { sourceEditEndpoint } from "../../../shared-between-runtimes/engine-constants.ts";
-import { findPresentationFolder, isSlideSourceFile } from "../../presentation-repository/presentation-repository.ts";
-import { hashSourceCode } from "../../source-transforms/source-marking.ts";
+import { sourceEditEndpoint } from "../../shared-between-runtimes/engine-constants.ts";
+import { findPresentationFolder, isSlideSourceFile } from "../presentation-repository/presentation-repository.ts";
+import { hashSourceCode } from "../source-transforms/source-marking.ts";
 import { isOwnPageRequest, largestPictureBytes, parseEditRequest, readRequestBody } from "./edit-request-checks.ts";
 import { moveDiagramBox, rewriteElementText, rewritePictureSource, SourceEditProblem } from "./source-rewriting.ts";
 import type { SourcePlace } from "./source-rewriting.ts";
 import type { EditRequest } from "./edit-request-checks.ts";
-import type { SiteLayout } from "../../presentation-repository/presentation-repository.ts";
+import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
 import type { ViteDevServer } from "vite";
 
 const pictureFolderName = "images";

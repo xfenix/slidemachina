@@ -18,7 +18,7 @@ const sharedPackageFolders = sharedPackageNames.flatMap((packageName: string) =>
 
 export const engineResolution = {
   alias: [
-    { find: /^slidemachina$/, replacement: path.join(enginePackageFolder, "browser-runtime", "public-interface", "slidemachina.ts") },
+    { find: /^slidemachina$/, replacement: path.join(enginePackageFolder, "browser-runtime", "slidemachina.ts") },
     ...sharedPackageFolders.map(({ packageName, packageLocation }) => ({ find: new RegExp(`^${packageName}(?=/|$)`), replacement: packageLocation })),
   ],
 };

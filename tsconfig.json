@@ -16,7 +16,7 @@
     "skipLibCheck": true,
     "types": ["vite/client", "node"],
     "paths": {
-      "slidemachina": ["./packages/slidemachina/browser-runtime/public-interface/slidemachina.ts"]
+      "slidemachina": ["./packages/slidemachina/browser-runtime/slidemachina.ts"]
     }
   },
   "include": ["packages/slidemachina", "packages/create-slidemachina/*.ts", "examples", "tests", "playwright.config.ts"],

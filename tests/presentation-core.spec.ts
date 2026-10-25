@@ -7,8 +7,8 @@ import { currentSlide, workspaceFolder } from "./test-helpers.ts";
 // playwright.config.ts serves a copy of the demo: edits here never reach the real files or the dev server on 5173.
 const demoCopyFolder = process.env.SLIDEMACHINA_TEST_DEMO_COPY!;
 const demoPresentationFile = path.join(demoCopyFolder, "index.tsx");
-const demoCodeFile = path.join(demoCopyFolder, "examples", "agent.py");
-const publicInterfaceFile = path.join(workspaceFolder, "packages", "slidemachina", "browser-runtime", "public-interface", "slidemachina.ts");
+const demoCodeFile = path.join(demoCopyFolder, "agent.py");
+const publicInterfaceFile = path.join(workspaceFolder, "packages", "slidemachina", "browser-runtime", "slidemachina.ts");
 
 async function editFileWhile(filePath: string, editText: (originalText: string) => string, checkEditedPage: () => Promise<void>) {
   const originalText = await readFile(filePath, "utf8");
