@@ -43,8 +43,11 @@
 
     --slide-background: #ffffff;
     --section-background: #1c2030;
+    --section-glow-shape: 120% 90% at 85% 110%;
+    --section-glow-strength: 34%;
+    --section-glow-reach: 62%;
     /* A soft glow of the accent and a hint of grain over the section colour. */
-    --section-texture: radial-gradient(120% 90% at 85% 110%, color-mix(in srgb, var(--accent-color) 34%, transparent), transparent 62%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23grain)' opacity='0.05'/%3E%3C/svg%3E");
+    --section-texture: radial-gradient(var(--section-glow-shape), color-mix(in srgb, var(--accent-color) var(--section-glow-strength), transparent), transparent var(--section-glow-reach)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23grain)' opacity='0.05'/%3E%3C/svg%3E");
     /* Print leaves the grain out and mixes in its average instead, so the section colour stays as on screen. */
     --section-printed-background: color-mix(in srgb, var(--section-background), rgb(187 187 187) 2.5%);
     --section-number-color: color-mix(in srgb, var(--accent-color) 62%, transparent);
