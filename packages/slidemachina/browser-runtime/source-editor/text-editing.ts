@@ -8,15 +8,16 @@ function normalizeTypedText(shownText: string) {
   return shownText.replace(/\s+/g, " ").trim();
 }
 
-// The same text nodes go back after typing: React keeps references to them.
+// The same nodes go back after typing: React keeps references to them, hanging punctuation spans included.
 export function beginTextEditing(textElement: HTMLElement, editingCallbacks: TextEditingCallbacks) {
   const reactNodes = [...textElement.childNodes];
-  const reactTexts = reactNodes.map((reactNode) => ({ reactNode, reactValue: reactNode.nodeValue }));
+  const reactChildLists = [textElement, ...textElement.querySelectorAll("*")].map((reactElement) => ({ reactElement, reactChildren: [...reactElement.childNodes] }));
+  const reactTexts = reactChildLists.flatMap(({ reactChildren }) => reactChildren.map((reactNode) => ({ reactNode, reactValue: reactNode.nodeValue })));
   const shownText = normalizeTypedText(textElement.textContent);
   let isFinished = false;
 
   const restoreReactNodes = (firstValue?: string) => {
-    textElement.replaceChildren(...reactNodes);
+    for (const { reactElement, reactChildren } of reactChildLists) reactElement.replaceChildren(...reactChildren);
     for (const { reactNode, reactValue } of reactTexts) {
       if (reactNode.nodeType === Node.TEXT_NODE) reactNode.nodeValue = reactValue;
     }

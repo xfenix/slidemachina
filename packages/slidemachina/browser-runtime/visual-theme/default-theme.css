@@ -40,6 +40,8 @@
     --font-text: "Onest Variable", system-ui, sans-serif;
     --font-heading: var(--font-text);
     --font-code: "JetBrains Mono Variable", ui-monospace, monospace;
+    /* 1 hangs opening quotes and brackets at line starts outside the text, 0 keeps them inside. */
+    --hanging-punctuation: 1;
 
     --slide-background: #ffffff;
     --section-background: #1c2030;
@@ -282,6 +284,20 @@
   [data-slide] p {
     margin: 0 0 0.6em;
     text-wrap: pretty;
+  }
+
+  /* The mark has no width and sticks out to the left; mid-line the hidden copy in the space before it gives the width back. */
+  [data-hanging-mark] {
+    display: inline-flex;
+    justify-content: flex-end;
+    max-width: calc((1 - var(--hanging-punctuation)) * 100%);
+  }
+
+  /* Line breaking keeps text after an opening mark, so the zero-width space lets the line break before the visible one. */
+  [data-hanging-space]:before {
+    content: attr(data-hanging-space) "\200B";
+    visibility: hidden;
+    font-size: calc(var(--hanging-punctuation) * 1em);
   }
 
   /* Bullets start on the heading's left edge, the item text is indented after them. */

@@ -427,7 +427,7 @@ npx slidemachina build --html --pdf  # все презентации и спис
 
 | Группа | Переменные |
 |---|---|
-| Шрифты | `--font-text` (Onest), `--font-heading`, `--font-code` (JetBrains Mono) |
+| Шрифты | `--font-text` (Onest), `--font-heading`, `--font-code` (JetBrains Mono), `--hanging-punctuation` (1 — висячая пунктуация, 0 — без неё) |
 | Цвета | `--accent-color`, `--text-color`, `--muted-color`, `--slide-background`, `--section-background`, `--dark-background`, `--hairline-color`; у части есть версии `-on-dark` |
 | Сетка | `--frame-padding` (64 px), `--frame-top` (88 px), `--content-bottom`, `--content-max-width` (2200 px), `--text-max-width` (60ch), `--logo-height`, `--logo-center-height`, `--logo-clearance` |
 | Шрифты и размеры | Три начертания: текст обычный и жирный, код обычный. Четыре кегля: `--secondary-text-size` (28) — подписи, крошки, номер, источник, код, таблицы, текст и подписи схем, автор цитаты; `--text-size` (40) — основной текст, `h3` и команда в одну строку; `--heading-size` (56) — `h1` и `h2`; `--display-size` (112) — обложка, цитата, большое число. Блоки берут кегль с уровня, но каждый можно задать отдельно: `--caption-size`, `--code-size`, `--code-title-size`, `--command-size`, `--source-size`, `--table-text-size`, `--quote-size`, `--quote-author-size`, `--frame-text-size`, `--diagram-text-size`, `--diagram-label-size`, `--diagram-title-size`, `--cover-heading-size`, `--big-number-size` |
@@ -454,6 +454,7 @@ npx slidemachina build --html --pdf  # все презентации и спис
 - Не трогает `Code`, `code`, `pre`, `kbd`, `samp` и строки в `{…}`.
 - Номера строк в файле не сдвигаются.
 - В браузер typograf не попадает.
+- Висячая пунктуация: открывающие кавычки и скобки в начале строки выходят за левый край. Выключает `--hanging-punctuation: 0` в теме.
 - `<Presentation typography={false}>` выключает.
 
 ## Архитектура

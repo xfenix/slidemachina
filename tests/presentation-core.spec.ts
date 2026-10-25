@@ -246,12 +246,28 @@ test("демо листается, показывает шаги и навига
     expect(await listLitLines(page)).toEqual([2, 3, 4]);
   });
 
-  await test.step("типограф правит текст, но не код", async () => {
+  await test.step("типограф правит текст, но не код, кавычка в начале строки висит за краем", async () => {
     await jumpToSlide(page, 23);
     const typographedParagraph = currentSlide(page).locator("[data-column] > p").last();
     // toHaveText folds non-breaking spaces into plain ones, so the raw text is read.
-    expect(await typographedParagraph.textContent()).toMatch(/^Пишете «кавычки» и\u00A0тире\u00A0— как\u00A0на\u00A0клавиатуре/);
-    await expect(currentSlide(page).locator("[data-code]")).toContainText('Пишете "кавычки" и тире - как на клавиатуре.');
+    expect(await typographedParagraph.textContent()).toMatch(/^«Кавычки» и\u00A0тире\u00A0— как\u00A0на\u00A0клавиатуре/);
+    await expect(currentSlide(page).locator("[data-code]")).toContainText('"Кавычки" и тире - как на клавиатуре.');
+    const hangingEdges = await typographedParagraph.evaluate((paragraphElement) => {
+      const measureFirstCharacter = (textNode: Node) => {
+        const characterRange = document.createRange();
+        characterRange.setStart(textNode, 0);
+        characterRange.setEnd(textNode, 1);
+        return characterRange.getBoundingClientRect();
+      };
+      const markElement = paragraphElement.querySelector("[data-hanging-mark]")!;
+      return {
+        paragraphLeft: paragraphElement.getBoundingClientRect().left,
+        markRight: measureFirstCharacter(markElement.firstChild!).right,
+        letterLeft: measureFirstCharacter(markElement.nextSibling!).left,
+      };
+    });
+    expect(hangingEdges.letterLeft).toBeCloseTo(hangingEdges.paragraphLeft, 0);
+    expect(hangingEdges.markRight).toBeLessThanOrEqual(hangingEdges.paragraphLeft + 1);
   });
 
   await test.step("схемы: раскладка ELK в фоне, шаги держат место, фокус, морфинг и sequence", async () => {
@@ -534,9 +550,9 @@ test("демо листается, показывает шаги и навига
     await editFileWhile(
       demoPresentationFile,
       (originalPresentation) => originalPresentation.replace('<Machina.Presentation title="slidemachina"', '<Machina.Presentation typography={false} title="slidemachina"'),
-      () => expect(typographedParagraph).toHaveText(/^Пишете "кавычки" и тире - как на клавиатуре/),
+      () => expect(typographedParagraph).toHaveText(/^"Кавычки" и тире - как на клавиатуре/),
     );
-    await expect(typographedParagraph).toHaveText(/^Пишете «кавычки»/);
+    await expect(typographedParagraph).toHaveText(/^«Кавычки»/);
   });
 
   await test.step("холст: высота 1080, ширина от 4:3 до 21:9", async () => {

@@ -1,3 +1,4 @@
+import { isAtLineStart, writeHangingPunctuationCode } from "./hanging-punctuation.ts";
 import { readElementName } from "./syntax-tree.ts";
 import { cookJsxText, decodeEntities, typographText } from "./text-typography.ts";
 import type { SyntaxNode } from "./syntax-tree.ts";
@@ -18,6 +19,10 @@ function isInsideUntouchedElement(ancestorNodes: SyntaxNode[], codeName: string 
   });
 }
 
+function isInsideElementNamed(ancestorNodes: SyntaxNode[], elementName: string | undefined): boolean {
+  return ancestorNodes.some((ancestorNode) => ancestorNode.type === "JSXElement" && readElementName(ancestorNode) === elementName);
+}
+
 // A replaced text keeps its line breaks after it, so the following code stays on the same lines.
 function replaceKeepingLines(editedSource: MagicString, syntaxNode: SyntaxNode, replacementCode: string, originalCode: string): void {
   const lineBreakCount = originalCode.slice(syntaxNode.start, syntaxNode.end).split("\n").length - 1;
@@ -32,7 +37,13 @@ export function typographSyntaxNode(syntaxNode: SyntaxNode, ancestorNodes: Synta
     const cookedText = cookJsxText(syntaxNode.value);
     if (cookedText === undefined || cookedText === "") return;
     const typographedText = typographText(cookedText, presentationSettings.languageCode);
-    if (typographedText !== cookedText) {
+    // Scene text is drawn from plain strings, so a mark wrapped in an element would vanish from it.
+    const hangingPunctuationCode = isInsideElementNamed(ancestorNodes, engineNames.Scene)
+      ? undefined
+      : writeHangingPunctuationCode(typographedText, isAtLineStart(syntaxNode, ancestorNodes, engineNames.Step));
+    if (hangingPunctuationCode !== undefined) {
+      replaceKeepingLines(editedSource, syntaxNode, hangingPunctuationCode, sourceCode);
+    } else if (typographedText !== cookedText) {
       replaceKeepingLines(editedSource, syntaxNode, `{${JSON.stringify(typographedText)}}`, sourceCode);
     }
   }
