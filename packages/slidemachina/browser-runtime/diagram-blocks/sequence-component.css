@@ -8,7 +8,7 @@
     margin: 0 0 var(--block-gap);
     padding-bottom: var(--sequence-row-gap);
     /* Lifelines run long and are cut at the bottom of the figure; shadows on the sides stay. */
-    clip-path: inset(-1080px -4000px 0 -4000px);
+    clip-path: inset(calc(var(--canvas-height) * -1px) -4000px 0 -4000px);
   }
 
   /* On a left-aligned slide the first actor box, not its column, starts on the content edge. */

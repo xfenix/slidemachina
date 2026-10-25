@@ -93,7 +93,6 @@
   [data-list-cover] {
     position: relative;
     display: block;
-    aspect-ratio: 16 / 9;
     overflow: hidden;
     border-radius: var(--list-cover-radius);
     background: linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02));

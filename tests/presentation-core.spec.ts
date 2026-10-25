@@ -560,47 +560,55 @@ test("демо листается, показывает шаги и навига
     await expect(typographedParagraph).toHaveText(/^«Кавычки»/);
   });
 
-  await test.step("холст: высота 1080, ширина от 4:3 до 21:9", async () => {
+  const setAspectRatio = (aspectRatio: string) => (originalPresentation: string) =>
+    originalPresentation.replace('<Machina.Presentation title="slidemachina"', `<Machina.Presentation aspectRatio="${aspectRatio}" title="slidemachina"`);
+
+  await test.step("формат 16:9 по умолчанию и 9:16: окно меняет только масштаб, остальное — поля", async () => {
     const canvasElement = page.locator("[data-canvas]");
-    await expect(canvasElement).toHaveCSS("width", "1920px");
-    await page.setViewportSize({ width: 2560, height: 1080 });
-    await expect(canvasElement).toHaveCSS("width", "2520px");
     await page.setViewportSize({ width: 1024, height: 1024 });
-    await expect(canvasElement).toHaveCSS("width", "1440px");
-    const canvasBox = await canvasElement.boundingBox();
-    expect(canvasBox?.width).toBeCloseTo(1024, 0);
+    await expect(canvasElement).toHaveCSS("width", "1920px");
+    await expect(canvasElement).toHaveCSS("height", "1080px");
+    await expect.poll(async () => Math.round((await canvasElement.boundingBox())!.height)).toBe(576);
+    await editFileWhile(demoPresentationFile, setAspectRatio("9:16"), async () => {
+      await expect(canvasElement).toHaveCSS("height", "1920px");
+      await expect(canvasElement).toHaveCSS("width", "1080px");
+      await expect.poll(async () => Math.round((await canvasElement.boundingBox())!.width)).toBe(576);
+    });
+    await expect(canvasElement).toHaveCSS("width", "1920px");
   });
 
   await test.step("вёрстка на 4:3: код не обрезан, числа не слипаются, схемы занимают свободное место", async () => {
     await page.setViewportSize({ width: 1024, height: 768 });
-    await expect(page.locator("[data-canvas]")).toHaveCSS("width", "1440px");
-    await page.waitForTimeout(500);
-    const layoutProblems = await page.evaluate(() => {
-      const foundProblems: string[] = [];
-      const describeSlide = (blockElement: Element) => `слайд ${[...document.querySelectorAll("[data-canvas] > [data-slide]")].indexOf(blockElement.closest("[data-slide]")!) + 1}`;
-      for (const codeViewport of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] [data-code-viewport]")) {
-        const roomElement = codeViewport.closest(".machina-columns > div, [data-content]")!;
-        const codeRight = codeViewport.closest("[data-code]")!.getBoundingClientRect().right;
-        if (codeViewport.scrollWidth > codeViewport.clientWidth + 1) foundProblems.push(`${describeSlide(codeViewport)}: код прокручивается`);
-        if (codeRight > roomElement.getBoundingClientRect().right + 1) foundProblems.push(`${describeSlide(codeViewport)}: код шире своей области`);
-      }
-      for (const numberElement of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] .machina-big-number > p")) {
-        const numberRange = document.createRange();
-        numberRange.selectNodeContents(numberElement);
-        if (numberRange.getBoundingClientRect().right > numberElement.parentElement!.getBoundingClientRect().right + 1) {
-          foundProblems.push(`${describeSlide(numberElement)}: число «${numberElement.textContent}» шире колонки`);
+    await editFileWhile(demoPresentationFile, setAspectRatio("4:3"), async () => {
+      await expect(page.locator("[data-canvas]")).toHaveCSS("width", "1440px");
+      await page.waitForTimeout(500);
+      const layoutProblems = await page.evaluate(() => {
+        const foundProblems: string[] = [];
+        const describeSlide = (blockElement: Element) => `слайд ${[...document.querySelectorAll("[data-canvas] > [data-slide]")].indexOf(blockElement.closest("[data-slide]")!) + 1}`;
+        for (const codeViewport of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] [data-code-viewport]")) {
+          const roomElement = codeViewport.closest(".machina-columns > div, [data-content]")!;
+          const codeRight = codeViewport.closest("[data-code]")!.getBoundingClientRect().right;
+          if (codeViewport.scrollWidth > codeViewport.clientWidth + 1) foundProblems.push(`${describeSlide(codeViewport)}: код прокручивается`);
+          if (codeRight > roomElement.getBoundingClientRect().right + 1) foundProblems.push(`${describeSlide(codeViewport)}: код шире своей области`);
         }
-      }
-      for (const diagramElement of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] [data-diagram]")) {
-        const diagramBox = diagramElement.getBoundingClientRect();
-        const roomFrame = diagramElement.parentElement!.getBoundingClientRect();
-        const takesWidth = diagramBox.width >= roomFrame.width * 0.9;
-        const takesHeight = diagramBox.height >= (roomFrame.bottom - diagramBox.top) * 0.9;
-        if (!takesWidth && !takesHeight) foundProblems.push(`${describeSlide(diagramElement)}: схема не заняла свободное место`);
-      }
-      return foundProblems;
+        for (const numberElement of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] .machina-big-number > p")) {
+          const numberRange = document.createRange();
+          numberRange.selectNodeContents(numberElement);
+          if (numberRange.getBoundingClientRect().right > numberElement.parentElement!.getBoundingClientRect().right + 1) {
+            foundProblems.push(`${describeSlide(numberElement)}: число «${numberElement.textContent}» шире колонки`);
+          }
+        }
+        for (const diagramElement of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] [data-diagram]")) {
+          const diagramBox = diagramElement.getBoundingClientRect();
+          const roomFrame = diagramElement.parentElement!.getBoundingClientRect();
+          const takesWidth = diagramBox.width >= roomFrame.width * 0.9;
+          const takesHeight = diagramBox.height >= (roomFrame.bottom - diagramBox.top) * 0.9;
+          if (!takesWidth && !takesHeight) foundProblems.push(`${describeSlide(diagramElement)}: схема не заняла свободное место`);
+        }
+        return foundProblems;
+      });
+      expect(layoutProblems).toEqual([]);
     });
-    expect(layoutProblems).toEqual([]);
     expect(pageErrors).toEqual([]);
   });
 });

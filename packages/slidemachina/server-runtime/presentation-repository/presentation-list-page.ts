@@ -1,4 +1,5 @@
 import path from "node:path";
+import { defaultAspectRatio, measureCanvasSize, type CanvasSize } from "../../shared-between-runtimes/canvas-size.ts";
 import { pickTextLanguage } from "../../shared-between-runtimes/text-language.ts";
 import { commandLineLanguage } from "../command-line/command-line-texts.ts";
 import { escapeHtml } from "../presentation-build/html-escaping.ts";
@@ -6,10 +7,13 @@ import { listPresentationFolders } from "./presentation-repository.ts";
 import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
 import type { SiteLayout } from "./presentation-repository.ts";
 
-export type PresentationCard = { folderName: string, presentationTitle: string, presentationDate: string | undefined, languageCode: string };
+export type PresentationCard = { folderName: string, presentationTitle: string, presentationDate: string | undefined, languageCode: string, canvasSize: CanvasSize };
 type CardDownload = { variantName: "pdf" | "pdf-steps" | "zip", downloadAddress: string };
 export type ListedCard = PresentationCard & { pageAddress: string, coverKind: "frame" | "picture" | "none", coverAddress: string, isProtected?: boolean, downloads?: CardDownload[] };
 type ListTexts = (typeof listTextsByLanguage)["en"];
+
+// Twice the width of a card on the list: sharp on retina screens, 6–8 KB in WebP.
+export const coverWidth = 960;
 
 // The transition opt-in sits in the page: in dev the stylesheets arrive after the browser has decided on the transition.
 export const pageTransitionStyle = `<style>@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }</style>`;
@@ -69,7 +73,7 @@ export function readPresentationCards(repositoryFolder: string): PresentationCar
   return listPresentationFolders(repositoryFolder)
     .map((presentationFolder) => {
       const folderName = path.basename(presentationFolder);
-      const presentationSettings: { languageCode: string, presentationTitle?: string, presentationDate?: string } = (() => {
+      const presentationSettings: { languageCode: string, presentationTitle?: string, presentationDate?: string, aspectRatio?: string } = (() => {
         try {
           return readPresentationFile(presentationFolder);
         } catch {
@@ -81,6 +85,8 @@ export function readPresentationCards(repositoryFolder: string): PresentationCar
         presentationTitle: presentationSettings.presentationTitle ?? folderName,
         presentationDate: presentationSettings.presentationDate,
         languageCode: presentationSettings.languageCode,
+        // A wrong format fails the build of the presentation itself; its card meanwhile keeps the default one.
+        canvasSize: measureCanvasSize(presentationSettings.aspectRatio ?? defaultAspectRatio) ?? measureCanvasSize(defaultAspectRatio)!,
       };
     })
     .sort(comparePresentationCards);
@@ -94,13 +100,14 @@ function renderCover(presentationCard: ListedCard, listTexts: ListTexts): string
     return `${coverTitle}<iframe src="${escapeHtml(coverAddress)}" loading="lazy" tabindex="-1" aria-hidden="true" title=""></iframe>`;
   }
   if (coverKind === "picture") {
-    return `${coverTitle}<img src="${escapeHtml(coverAddress)}" alt="" width="960" height="540" loading="lazy" decoding="async" />`;
+    const coverHeight = Math.round((coverWidth * presentationCard.canvasSize.canvasHeight) / presentationCard.canvasSize.canvasWidth);
+    return `${coverTitle}<img src="${escapeHtml(coverAddress)}" alt="" width="${coverWidth}" height="${coverHeight}" loading="lazy" decoding="async" />`;
   }
   return coverTitle;
 }
 
 function renderCard(presentationCard: ListedCard, listTexts: ListTexts, languageCode: string): string {
-  const { presentationDate, downloads = [] } = presentationCard;
+  const { presentationDate, downloads = [], canvasSize: { canvasWidth, canvasHeight } } = presentationCard;
   const shownDate = presentationDate === undefined
     ? ""
     : `<time datetime="${escapeHtml(presentationDate)}">${escapeHtml(formatPresentationDate(presentationDate, languageCode))}</time>`;
@@ -110,7 +117,7 @@ function renderCard(presentationCard: ListedCard, listTexts: ListTexts, language
   return `
         <li data-list-card>
           <a data-list-link href="${escapeHtml(presentationCard.pageAddress)}">
-            <span data-list-cover>${renderCover(presentationCard, listTexts)}</span>
+            <span data-list-cover style="aspect-ratio: ${canvasWidth} / ${canvasHeight}">${renderCover(presentationCard, listTexts)}</span>
             <span data-list-title>${escapeHtml(presentationCard.presentationTitle)}</span>
             <span data-list-meta>${shownDate}<span data-list-folder>${escapeHtml(presentationCard.folderName)}</span></span>
           </a>${downloadLinks.length === 0 ? "" : `\n          <span data-list-downloads>${downloadLinks.join("")}</span>`}

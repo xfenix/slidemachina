@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { useCanvasScaling } from "./canvas-scaling.ts";
+import { defaultAspectRatio, measureCanvasSize, type AspectRatio } from "../../shared-between-runtimes/canvas-size.js";
+import { useCanvasScale } from "./canvas-scaling.ts";
 import { DevelopmentFeedback } from "../presentation-interface/development-feedback.tsx";
 import { EditorSwitch } from "../source-editor/editor-switch.tsx";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
@@ -45,6 +46,8 @@ export type PresentationProperties = {
   typography?: boolean;
   // "2026-07-31": read by the list of a presentation repository, which puts the newest first.
   date?: string;
+  // "16:9", "4:3", "9:16": the format of every slide, thumbnail, cover and printed page.
+  aspectRatio?: AspectRatio;
 };
 
 export function Presentation({
@@ -56,12 +59,19 @@ export function Presentation({
   transition = "auto",
   speed = "normal",
   breadcrumbsSeparator,
+  aspectRatio = defaultAspectRatio,
 }: PresentationProperties) {
   const outlinedSlides = useMemo(() => buildSlideOutline(children), [children]);
   const stepCountsReference = useRef<number[]>([]);
   const slideNavigation = useSlideNavigation(outlinedSlides.length, stepCountsReference);
   const { currentPosition } = slideNavigation;
-  const { canvasWidth, canvasScale } = useCanvasScaling();
+  const canvasSize = useMemo(() => {
+    const measuredCanvasSize = measureCanvasSize(aspectRatio);
+    if (measuredCanvasSize === undefined) throw new Error(pickInterfaceTexts(lang).wrongAspectRatio(aspectRatio));
+    return measuredCanvasSize;
+  }, [aspectRatio, lang]);
+  const { canvasWidth, canvasHeight } = canvasSize;
+  const canvasScale = useCanvasScale(canvasSize);
   const [isNavigatorOpen, setNavigatorOpen] = useOverviewAddress();
   const [isBlackedOut, setBlackedOut] = useState(false);
   const { isToolbarHidden, toggleToolbar } = useToolbarHiding();
@@ -114,6 +124,7 @@ export function Presentation({
 
   const canvasStyle = {
     "--canvas-width": canvasWidth,
+    "--canvas-height": canvasHeight,
     "--canvas-scale": canvasScale,
     ...(breadcrumbsSeparator === undefined ? {} : { "--breadcrumbs-separator": JSON.stringify(breadcrumbsSeparator) }),
   } as CSSProperties;
@@ -129,6 +140,7 @@ export function Presentation({
   return (
     <div data-presentation data-print-view={isPrintView || undefined} style={canvasStyle}>
       {title !== undefined && <title>{title}</title>}
+      <style>{`@page { size: ${canvasWidth}px ${canvasHeight}px; }`}</style>
       <div data-canvas>
         {[...outlinedSlides.keys()].map((slideIndex) => renderSlide(slideIndex))}
         {isNavigatorOpen && (
@@ -174,6 +186,7 @@ export function Presentation({
       {printPreparation.isPrintPrepared && (
         <PrintPages
           slideCount={outlinedSlides.length}
+          canvasWidth={canvasWidth}
           printsSteps={printsSteps}
           isPrintView={isPrintView}
           countSteps={(slideIndex) => stepCountsReference.current[slideIndex] ?? 0}

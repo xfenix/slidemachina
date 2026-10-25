@@ -1,26 +1,18 @@
 import { useEffect, useState } from "react";
-import { canvasHeight, narrowestAspectRatio, widestAspectRatio } from "./settings.ts";
+import type { CanvasSize } from "../../shared-between-runtimes/canvas-size.js";
 
-type CanvasMeasurement = {
-  canvasWidth: number;
-  canvasScale: number;
-};
-
-// Height is always 1080 logical pixels; width follows the screen within 4:3…21:9.
-function measureCanvas(): CanvasMeasurement {
-  const viewportAspectRatio = window.innerWidth / window.innerHeight;
-  const canvasAspectRatio = Math.min(Math.max(viewportAspectRatio, narrowestAspectRatio), widestAspectRatio);
-  const canvasWidth = Math.round(canvasHeight * canvasAspectRatio);
-  const canvasScale = Math.min(window.innerWidth / canvasWidth, window.innerHeight / canvasHeight);
-  return { canvasWidth, canvasScale };
+// The canvas keeps the format of the presentation: the window only scales it and leaves letterbox margins.
+function measureCanvasScale({ canvasWidth, canvasHeight }: CanvasSize): number {
+  return Math.min(window.innerWidth / canvasWidth, window.innerHeight / canvasHeight);
 }
 
-export function useCanvasScaling(): CanvasMeasurement {
-  const [canvasMeasurement, setCanvasMeasurement] = useState(measureCanvas);
+export function useCanvasScale(canvasSize: CanvasSize): number {
+  const [canvasScale, setCanvasScale] = useState(() => measureCanvasScale(canvasSize));
   useEffect(() => {
-    const remeasureCanvas = () => setCanvasMeasurement(measureCanvas());
+    const remeasureCanvas = () => setCanvasScale(measureCanvasScale(canvasSize));
+    remeasureCanvas();
     window.addEventListener("resize", remeasureCanvas);
     return () => window.removeEventListener("resize", remeasureCanvas);
-  }, []);
-  return canvasMeasurement;
+  }, [canvasSize]);
+  return canvasScale;
 }

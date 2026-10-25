@@ -24,6 +24,8 @@ const englishTexts = {
   missingPresentationFile: (projectFolder: string) =>
     `No index.tsx and no presentation folders in ${projectFolder}.\nRun the command in the presentation folder or pass the folder: slidemachina dev my-talk`,
   missingCodeFile: (codeFilePath: string) => `<Code src>: file ${codeFilePath} not found.`,
+  wrongAspectRatio: (aspectRatioText: string) =>
+    `<Presentation aspectRatio="${aspectRatioText}">: write the width and height as two positive numbers, like "16:9", "4:3" or "9:16".`,
   unknownFlag: (flagText: string) => `There is no flag ${flagText}`,
   wrongFlag: (flagText: string) => `Check the flag ${flagText}`,
   wrongPort: (portText: string) => `The port is a whole number from 1 to 65535, not "${portText}"`,
@@ -96,6 +98,8 @@ const russianTexts: typeof englishTexts = {
   missingPresentationFile: (projectFolder) =>
     `В папке ${projectFolder} нет ни index.tsx, ни папок с презентациями.\nЗапустите команду в папке презентации или укажите папку: slidemachina dev my-talk`,
   missingCodeFile: (codeFilePath) => `<Code src>: нет файла ${codeFilePath}.`,
+  wrongAspectRatio: (aspectRatioText) =>
+    `<Presentation aspectRatio="${aspectRatioText}">: нужны ширина и высота через двоеточие, оба числа больше нуля. Например, "16:9", "4:3" или "9:16".`,
   unknownFlag: (flagText) => `Нет флага ${flagText}`,
   wrongFlag: (flagText) => `Проверьте флаг ${flagText}`,
   wrongPort: (portText) => `Порт — целое число от 1 до 65535, а не «${portText}»`,

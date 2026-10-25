@@ -3,7 +3,7 @@ import logoOnDarkPicture from "../theme/logo-on-dark.svg";
 import logoPicture from "../theme/logo.svg";
 
 export default (
-  <Machina.Presentation title="Итоги квартала" date="2026-10-16" lang="ru" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
+  <Machina.Presentation title="Итоги квартала" date="2026-10-16" lang="ru" aspectRatio="4:3" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
     <Machina.Slide cover>
       <h1>Итоги квартала</h1>
       <p className="machina-lead">Команда платформы, октябрь 2026</p>

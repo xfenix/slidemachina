@@ -1,13 +1,12 @@
 import path from "node:path";
 import sharp from "sharp";
 import { launchChrome } from "./pdf-printing.ts";
+import { coverWidth } from "../presentation-repository/presentation-list-page.ts";
 import type { Browser, Page } from "playwright-core";
+import type { CanvasSize } from "../../shared-between-runtimes/canvas-size.ts";
 
 // A made-up address: Playwright answers it from the built folder, so a folder build needs no web server either.
 const coverOrigin = "http://cover.slidemachina.localhost";
-// Twice the width of a card on the list: sharp on retina screens, 6–8 KB in WebP.
-const coverWidth = 960;
-const coverViewport = { width: 1920, height: 1080 };
 const webpQuality = 82;
 
 async function waitForStillCover(coverPage: Page): Promise<void> {
@@ -27,10 +26,11 @@ async function waitForStillCover(coverPage: Page): Promise<void> {
 export function createCoverCamera() {
   let chromeLaunch: Promise<Browser> | undefined;
   return {
-    async shootCover(builtFolder: string, coverPath: string): Promise<void> {
+    async shootCover(builtFolder: string, coverPath: string, { canvasWidth, canvasHeight }: CanvasSize): Promise<void> {
       chromeLaunch ??= launchChrome();
       const chromeBrowser = await chromeLaunch;
-      const coverPage = await chromeBrowser.newPage({ viewport: coverViewport });
+      // A window of the canvas size shows the slide without letterbox margins.
+      const coverPage = await chromeBrowser.newPage({ viewport: { width: canvasWidth, height: canvasHeight } });
       try {
         await coverPage.route(`${coverOrigin}/**`, (interceptedRoute) => {
           const requestedPath = decodeURIComponent(new URL(interceptedRoute.request().url()).pathname);

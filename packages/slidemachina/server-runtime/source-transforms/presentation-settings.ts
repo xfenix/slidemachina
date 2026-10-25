@@ -5,9 +5,21 @@ import { findAttribute, findEngineNames, parseSlideSource, readElementName, read
 import type { SyntaxNode } from "./syntax-tree.ts";
 import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
 
-export type PresentationSettings = { languageCode: string, usesTypography: boolean, presentationTitle: string | undefined, presentationDate: string | undefined };
+export type PresentationSettings = {
+  languageCode: string,
+  usesTypography: boolean,
+  presentationTitle: string | undefined,
+  presentationDate: string | undefined,
+  aspectRatio: string | undefined,
+};
 
-const defaultPresentationSettings: PresentationSettings = { languageCode: "en", usesTypography: true, presentationTitle: undefined, presentationDate: undefined };
+const defaultPresentationSettings: PresentationSettings = {
+  languageCode: "en",
+  usesTypography: true,
+  presentationTitle: undefined,
+  presentationDate: undefined,
+  aspectRatio: undefined,
+};
 
 // lang and typography={false} live on <Presentation> in index.tsx; slides kept in other files follow them too.
 function readPresentationSettings(syntaxTree: SyntaxNode): PresentationSettings {
@@ -18,6 +30,7 @@ function readPresentationSettings(syntaxTree: SyntaxNode): PresentationSettings 
     presentationSettings.languageCode = readStringAttribute(syntaxNode, "lang") ?? "en";
     presentationSettings.presentationTitle = readStringAttribute(syntaxNode, "title");
     presentationSettings.presentationDate = readStringAttribute(syntaxNode, "date");
+    presentationSettings.aspectRatio = readStringAttribute(syntaxNode, "aspectRatio");
     const typographyValue = findAttribute(syntaxNode, "typography")?.value;
     presentationSettings.usesTypography = typographyValue?.expression?.value !== false;
   });

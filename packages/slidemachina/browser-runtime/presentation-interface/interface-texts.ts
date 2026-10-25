@@ -19,6 +19,8 @@ const interfaceTextsByLanguage = {
     printViewPageCount: (pageCount: number) => `${pageCount} ${pageCount === 1 ? "page" : "pages"}`,
     slideOutsidePresentation: "<Slide> works only inside <Presentation>.",
     missingArrowEnd: (partIdentifier: string) => `The arrow is not drawn: there is no "${partIdentifier}" on the diagram.`,
+    wrongAspectRatio: (aspectRatioText: string) =>
+      `<Presentation aspectRatio="${aspectRatioText}">: write the width and height as two positive numbers, like "16:9", "4:3" or "9:16".`,
   },
   ru: {
     navigatorLabel: "Слайды",
@@ -39,6 +41,8 @@ const interfaceTextsByLanguage = {
     printViewPageCount: (pageCount: number) => `${pageCount} ${pickRussianPlural(pageCount, ["страница", "страницы", "страниц"])}`,
     slideOutsidePresentation: "<Slide> работает только внутри <Presentation>.",
     missingArrowEnd: (partIdentifier: string) => `Стрелка не нарисована: на схеме нет «${partIdentifier}».`,
+    wrongAspectRatio: (aspectRatioText: string) =>
+      `<Presentation aspectRatio="${aspectRatioText}">: нужны ширина и высота через двоеточие, оба числа больше нуля. Например, "16:9", "4:3" или "9:16".`,
   },
 };
 

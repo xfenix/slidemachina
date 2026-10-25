@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { printedPageWidth, printViewMargin } from "../presentation-core/settings.ts";
+import { printViewMargin } from "../presentation-core/settings.ts";
 import { waitForPrintedPages } from "./print-readiness.ts";
 
 type PrintedPage = { slideIndex: number; revealedStep: number };
 type PrintPagesProperties = {
   slideCount: number;
+  canvasWidth: number;
   printsSteps: boolean;
   isPrintView: boolean;
   countSteps: (slideIndex: number) => number;
@@ -13,16 +14,19 @@ type PrintPagesProperties = {
 };
 
 // In the print view a page fills the window width, but never grows past its own size.
-function usePrintViewScale(isPrintView: boolean): number {
-  const measureScale = () => Math.min(1, (document.documentElement.clientWidth - 2 * printViewMargin) / printedPageWidth);
-  const [printViewScale, setPrintViewScale] = useState(measureScale);
+function measurePrintViewScale(canvasWidth: number): number {
+  return Math.min(1, (document.documentElement.clientWidth - 2 * printViewMargin) / canvasWidth);
+}
+
+function usePrintViewScale(isPrintView: boolean, canvasWidth: number): number {
+  const [printViewScale, setPrintViewScale] = useState(() => measurePrintViewScale(canvasWidth));
   useEffect(() => {
     if (!isPrintView) return;
-    const remeasureScale = () => setPrintViewScale(measureScale());
+    const remeasureScale = () => setPrintViewScale(measurePrintViewScale(canvasWidth));
     remeasureScale();
     window.addEventListener("resize", remeasureScale);
     return () => window.removeEventListener("resize", remeasureScale);
-  }, [isPrintView]);
+  }, [isPrintView, canvasWidth]);
   return printViewScale;
 }
 
@@ -39,9 +43,9 @@ export function listPrintedPages(slideCount: number, printsSteps: boolean, count
   return printedPages;
 }
 
-export function PrintPages({ slideCount, printsSteps, isPrintView, countSteps, renderPrintedSlide, renderPrintViewBar }: PrintPagesProperties) {
+export function PrintPages({ slideCount, canvasWidth, printsSteps, isPrintView, countSteps, renderPrintedSlide, renderPrintViewBar }: PrintPagesProperties) {
   const pagesElementReference = useRef<HTMLDivElement>(null);
-  const printViewScale = usePrintViewScale(isPrintView);
+  const printViewScale = usePrintViewScale(isPrintView, canvasWidth);
   const [printedPages, setPrintedPages] = useState(() => listPrintedPages(slideCount, printsSteps, countSteps));
 
   // Slides count their steps once they mount; pages opened right at load are listed again with those counts.

@@ -19,7 +19,7 @@ export async function launchChrome() {
 export async function printPdf(pagePath: string, printedPdfPath: string, printsSteps: boolean): Promise<void> {
   const chromeBrowser = await launchChrome();
   try {
-    // The 16:9 window matches the printed page, so printed diagrams reuse the layouts of the slides on screen.
+    // Pages take the size of the canvas from @page, whatever the window: the window only has to be wide enough for the print view.
     const printedPage = await chromeBrowser.newPage({ viewport: printedViewport });
     const printViewAddress = new URL(pathToFileURL(pagePath));
     printViewAddress.search = printsSteps ? `${printViewParameter}=${printViewStepsValue}` : printViewParameter;

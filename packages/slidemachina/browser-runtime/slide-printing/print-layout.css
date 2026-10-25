@@ -1,13 +1,11 @@
-/* Every page is a 16:9 slide on the 1080 grid, edge to edge. */
+/* Every page is a slide edge to edge; <Presentation> sets the page size to its canvas. */
 @page {
-  size: 1920px 1080px;
   margin: 0;
 }
 
 @layer slidemachina {
   /* On screen the printed pages are laid out but clipped away: diagrams measure their text and find a ready layout. */
   [data-print-pages] {
-    --canvas-width: 1920;
     position: absolute;
     width: 0;
     height: 0;
@@ -19,11 +17,13 @@
     animation: none !important;
   }
 
+  /* Containment keeps an unscaled diagram stage out of the page width: otherwise Chrome shrinks every printed page to fit it. */
   [data-print-page] {
     position: relative;
     width: calc(var(--canvas-width) * 1px);
-    height: 1080px;
+    height: calc(var(--canvas-height) * 1px);
     overflow: hidden;
+    contain: strict;
   }
 
   [data-printed-fade-band] {
@@ -53,10 +53,10 @@
       overflow: visible;
     }
 
-    /* Scaled pages keep their 1920 px layout; negative margins shrink the space they take to the scaled size. */
+    /* Scaled pages keep their canvas layout; negative margins shrink the space they take to the scaled size. */
     [data-print-view] > [data-print-page] {
       flex: none;
-      margin: 0 calc(var(--canvas-width) * (var(--print-view-scale) - 1) * 1px) calc(1080px * (var(--print-view-scale) - 1)) 0;
+      margin: 0 calc(var(--canvas-width) * (var(--print-view-scale) - 1) * 1px) calc(var(--canvas-height) * (var(--print-view-scale) - 1) * 1px) 0;
       scale: var(--print-view-scale);
       transform-origin: 0 0;
       box-shadow:

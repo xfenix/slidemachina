@@ -110,6 +110,11 @@ test("репозиторий презентаций: список с облож�
       expect(await runFailingCommand(["build", path.join(linkedFolder, "team-sync"), "--folder", "--out", path.dirname(otherCopy)])).toContain("index.tsx");
       await access(path.join(otherCopy, "index.tsx"));
       for (const folderName of ["team-sync", "python-news"]) await access(path.join(copyFolder, folderName, "index.tsx"));
+      const teamSyncFile = path.join(copyFolder, "team-sync", "index.tsx");
+      const teamSyncSource = await readFile(teamSyncFile, "utf8");
+      await writeFile(teamSyncFile, teamSyncSource.replace('aspectRatio="4:3"', 'aspectRatio="4:0"'));
+      expect(await runFailingCommand(["build", path.join(linkedFolder, "team-sync"), "--html", "--out", outputFolder])).toContain('aspectRatio="4:0"');
+      await writeFile(teamSyncFile, teamSyncSource);
       for (const wrongArguments of [["build", linkedFolder, "--pfd"], ["dev", linkedFolder, "--port", "abc"]]) {
         const commandOutput = await runFailingCommand(wrongArguments);
         expect(commandOutput).toContain(wrongArguments.at(-1));
@@ -123,11 +128,17 @@ test("репозиторий презентаций: список с облож�
       await expect(page.locator("[data-list-title]")).toHaveText(presentationTitles);
       const coverPictures = page.locator("[data-list-cover] img");
       await expect(coverPictures).toHaveCount(presentationTitles.length);
-      for (const coverPicture of await coverPictures.all()) {
-        await expect.poll(() => coverPicture.evaluate((pictureElement: HTMLImageElement) => pictureElement.naturalWidth)).toBe(960);
-      }
+      // team-sync is 4:3: its cover, card and PDF pages keep that format.
+      const coverSizes = presentationTitles.map((presentationTitle) => (presentationTitle === "Итоги квартала" ? "960×720" : "960×540"));
+      await expect
+        .poll(() => coverPictures.evaluateAll((pictureElements: HTMLImageElement[]) => pictureElements.map(({ naturalWidth, naturalHeight }) => `${naturalWidth}×${naturalHeight}`)))
+        .toEqual(coverSizes);
+      expect(await page.locator("[data-list-cover]").nth(1).evaluate((coverElement) => getComputedStyle(coverElement).aspectRatio)).toBe("1440 / 1080");
       await expect(page.locator("[data-list-downloads] a")).toHaveText(presentationTitles.map(() => "PDF"));
-      expect((await readFile(path.join(outputFolder, "team-sync", "team-sync.pdf"))).subarray(0, 4).toString()).toBe("%PDF");
+      const teamSyncPdf = (await readFile(path.join(outputFolder, "team-sync", "team-sync.pdf"))).toString("latin1");
+      expect(teamSyncPdf.startsWith("%PDF")).toBe(true);
+      // 1440×1080 CSS pixels are 1080×810 points.
+      expect(teamSyncPdf.match(/\/MediaBox\s*\[\s*0 0 ([\d.]+) ([\d.]+)/)?.slice(1)).toEqual(["1080", "810"]);
       await page.locator("[data-list-link]").nth(2).click();
       await expect(page).toHaveURL(/python-news\/index\.html#1$/);
       await expect(page.locator("[data-canvas] > [data-current] h1")).toHaveText("Python 3.15");

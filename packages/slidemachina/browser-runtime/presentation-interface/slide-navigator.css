@@ -37,7 +37,7 @@
 
   [data-thumbnail] {
     position: relative;
-    aspect-ratio: var(--canvas-width) / 1080;
+    aspect-ratio: var(--canvas-width) / var(--canvas-height);
     overflow: hidden;
     padding: 0;
     border: 0;
@@ -70,7 +70,7 @@
 
   [data-thumbnail] > [data-slide] {
     width: calc(var(--canvas-width) * 1px);
-    height: 1080px;
+    height: calc(var(--canvas-height) * 1px);
     inset: 0 auto auto 0;
     transform-origin: 0 0;
     scale: var(--thumbnail-scale);

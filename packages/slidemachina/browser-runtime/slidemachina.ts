@@ -1,6 +1,7 @@
 import type { StepEffect } from "./slide-steps/step-attributes.ts";
 
 export { Presentation, type PresentationProperties } from "./presentation-core/presentation-component.tsx";
+export type { AspectRatio } from "../shared-between-runtimes/canvas-size.js";
 export { Section, type SectionProperties } from "./presentation-core/section-component.tsx";
 export { Slide, type SlideLogoPlacement, type SlideProperties } from "./presentation-core/slide-component.tsx";
 export { Code, type CodeProperties } from "./content-blocks/code-block/code-component.tsx";

@@ -83,7 +83,7 @@ export async function buildRepository(
         if (!shootsCovers) return;
         try {
           const coverPath = path.join(presentationOutput, coverFileName);
-          await runBuildStep(stepTitle(commandLineTexts.shootingCover), () => coverCamera.shootCover(builtFolder, coverPath), isInteractive);
+          await runBuildStep(stepTitle(commandLineTexts.shootingCover), () => coverCamera.shootCover(builtFolder, coverPath, presentationCard.canvasSize), isInteractive);
           hasCover = true;
         } catch (coverError) {
           const coverProblem = coverError instanceof Error ? coverError.message : String(coverError);

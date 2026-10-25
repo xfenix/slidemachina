@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import MagicString from "magic-string";
+import { measureCanvasSize } from "../../shared-between-runtimes/canvas-size.ts";
 import { commandLineTexts } from "../command-line/command-line-texts.ts";
 import { highlightCode } from "./code-highlighting.ts";
 import { readSettingsFor } from "./presentation-settings.ts";
@@ -69,6 +70,8 @@ export function createSlideSourcePlugin(siteLayout: SiteLayout): Plugin {
 
       const syntaxTree = parseSlideSource(sourceCode, filePath);
       const presentationSettings = readSettingsFor(filePath, syntaxTree, siteLayout);
+      const { aspectRatio } = presentationSettings;
+      if (aspectRatio !== undefined && measureCanvasSize(aspectRatio) === undefined) this.error(commandLineTexts.wrongAspectRatio(aspectRatio));
       const transformContext = {
         editedSource: new MagicString(sourceCode),
         sourceCode,

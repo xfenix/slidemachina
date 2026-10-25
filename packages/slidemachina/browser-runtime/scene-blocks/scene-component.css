@@ -29,7 +29,7 @@
     left: calc(var(--frame-padding) * -1);
     z-index: -1;
     width: calc(var(--canvas-width) * 1px);
-    height: 1080px;
+    height: calc(var(--canvas-height) * 1px);
     margin: 0;
   }
 

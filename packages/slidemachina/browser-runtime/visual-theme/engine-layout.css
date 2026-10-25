@@ -26,13 +26,14 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Centred by translate alone: a half-pixel top or left would be snapped and leave a grey line at the edge of the slide. */
   [data-canvas] {
     position: absolute;
-    left: 50%;
-    top: 50%;
+    left: 0;
+    top: 0;
     width: calc(var(--canvas-width) * 1px);
-    height: 1080px;
-    translate: -50% -50%;
+    height: calc(var(--canvas-height) * 1px);
+    translate: calc((100dvw - var(--canvas-width) * 1px) / 2) calc((100dvh - var(--canvas-height) * 1px) / 2);
     scale: var(--canvas-scale);
     overflow: hidden;
   }
@@ -58,7 +59,7 @@
     visibility: visible;
   }
 
-  /* A frame on the list is 16:9 only up to a pixel: a hair of overscale hides the letterbox line at its edge. */
+  /* A frame on the list has the canvas format only up to a pixel: a hair of overscale hides the letterbox line at its edge. */
   [data-cover-preview] [data-canvas] {
     scale: calc(var(--canvas-scale) * 1.01);
   }
