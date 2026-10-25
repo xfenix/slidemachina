@@ -40,7 +40,7 @@ export function typographSyntaxNode(syntaxNode: SyntaxNode, ancestorNodes: Synta
     // Scene text is drawn from plain strings, so a mark wrapped in an element would vanish from it.
     const hangingPunctuationCode = isInsideElementNamed(ancestorNodes, engineNames.Scene)
       ? undefined
-      : writeHangingPunctuationCode(typographedText, isAtLineStart(syntaxNode, ancestorNodes, engineNames.Step));
+      : writeHangingPunctuationCode(typographedText, isAtLineStart(syntaxNode, ancestorNodes, engineNames));
     if (hangingPunctuationCode !== undefined) {
       replaceKeepingLines(editedSource, syntaxNode, hangingPunctuationCode, sourceCode);
     } else if (typographedText !== cookedText) {

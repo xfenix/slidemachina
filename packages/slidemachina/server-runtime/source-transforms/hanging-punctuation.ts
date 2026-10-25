@@ -10,14 +10,16 @@ function isFilledChild(childNode: SyntaxNode): boolean {
   return childNode.type !== "JSXText" || childNode.value.trim() !== "";
 }
 
-// The text opens a line when nothing comes before it up to the nearest block: <p>, <li> or a component.
-export function isAtLineStart(textNode: SyntaxNode, ancestorNodes: SyntaxNode[], stepName: string | undefined): boolean {
+// The text opens a line when nothing comes before it up to the nearest block: <p> or a component.
+// A list item opens with its bullet, and a mark hanging there would run into it.
+export function isAtLineStart(textNode: SyntaxNode, ancestorNodes: SyntaxNode[], engineNames: Record<string, string>): boolean {
   let childNode = textNode;
   for (const parentNode of ancestorNodes.toReversed()) {
     if (parentNode.type !== "JSXElement" && parentNode.type !== "JSXFragment") return false;
     if (parentNode.children.find(isFilledChild) !== childNode) return false;
     const elementName = parentNode.type === "JSXElement" ? readElementName(parentNode) : undefined;
-    const runsInline = parentNode.type === "JSXFragment" || elementName === stepName || inlineTextElements.has(elementName ?? "");
+    if (elementName === "li" || elementName === engineNames.List) return false;
+    const runsInline = parentNode.type === "JSXFragment" || elementName === engineNames.Step || inlineTextElements.has(elementName ?? "");
     if (!runsInline) return true;
     childNode = parentNode;
   }
