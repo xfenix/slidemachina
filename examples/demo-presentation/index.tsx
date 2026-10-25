@@ -31,32 +31,22 @@ export default (
           <Machina.List step>
             <li>Пункт списка появляется по нажатию</li>
             <li>
-              Шаг можно поставить на часть пункта: <Machina.Step effect="highlight">вот так</Machina.Step>
+              Шаг можно поставить на часть пункта: <span data-step data-step-effect="highlight">вот так</span>
             </li>
           </Machina.List>
-          <Machina.Step at={1} effect="fade">
-            <p>А этот абзац появился вместе с первым пунктом: at=&#123;1&#125;</p>
-          </Machina.Step>
+          <p data-step={1} data-step-effect="fade">
+            А этот абзац появился вместе с первым пунктом: data-step=&#123;1&#125;
+          </p>
         </Machina.Slide>
 
         <Machina.Slide>
           <h2>Эффекты шагов</h2>
           <ul>
-            <Machina.Step effect="rise">
-              <li>rise - поднимается снизу, по умолчанию</li>
-            </Machina.Step>
-            <Machina.Step effect="fade">
-              <li>fade - проявляется на месте</li>
-            </Machina.Step>
-            <Machina.Step effect="scale">
-              <li>scale - вырастает</li>
-            </Machina.Step>
-            <Machina.Step effect="highlight">
-              <li>highlight - загорается цветом</li>
-            </Machina.Step>
-            <Machina.Step effect="dim">
-              <li>dim - гаснет</li>
-            </Machina.Step>
+            <li data-step>rise - поднимается снизу, по умолчанию</li>
+            <li data-step data-step-effect="fade">fade - проявляется на месте</li>
+            <li data-step data-step-effect="scale">scale - вырастает</li>
+            <li data-step data-step-effect="highlight">highlight - загорается цветом</li>
+            <li data-step data-step-effect="dim">dim - гаснет</li>
           </ul>
         </Machina.Slide>
       </Machina.Section>

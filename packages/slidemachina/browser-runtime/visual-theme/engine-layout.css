@@ -168,16 +168,17 @@
     transition-timing-function: var(--step-easing);
   }
 
-  span[data-step] {
+  /* Inline boxes ignore translate and scale. */
+  :is(span, a, b, strong, em, i, u, s, mark, code, kbd, small, sub, sup, abbr, q, cite)[data-step] {
     display: inline-block;
   }
 
-  :is([data-step-effect="fade"], [data-step-effect="rise"], [data-step-effect="scale"]):not([data-step-reached]) {
+  :is([data-step-effect="fade"], [data-step-effect="rise"], [data-step-effect="scale"], [data-step]:not([data-step-effect])):not([data-step-reached]) {
     opacity: 0;
     visibility: hidden;
   }
 
-  [data-step-effect="rise"]:not([data-step-reached]) {
+  :is([data-step-effect="rise"], [data-step]:not([data-step-effect])):not([data-step-reached]) {
     translate: 0 var(--step-rise-distance);
   }
 

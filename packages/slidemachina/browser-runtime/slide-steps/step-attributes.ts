@@ -1,12 +1,12 @@
 export type StepEffect = "fade" | "rise" | "scale" | "highlight" | "dim";
 export type StepAttributes = {
-  "data-step": string;
+  "data-step": number | true;
   "data-step-effect": StepEffect;
 };
 
 export function createStepAttributes(stepNumber: number | true, stepEffect: StepEffect = "rise"): StepAttributes {
   return {
-    "data-step": stepNumber === true ? "" : String(stepNumber),
+    "data-step": stepNumber,
     "data-step-effect": stepEffect,
   };
 }

@@ -49,7 +49,7 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 | Блок | Пример |
 | --- | --- |
 | Список по шагам | `<List step><li>Первый</li><li>Второй</li></List>` |
-| Шаг на любом месте | `<Step effect="highlight">вот так</Step>`, эффекты `rise`, `fade`, `scale`, `highlight`, `dim` |
+| Шаг на любом месте | `<span data-step data-step-effect="highlight">вот так</span>`, эффекты `rise`, `fade`, `scale`, `highlight`, `dim` |
 | Код | `<Code lang="ts">{"const answer = 42;"}</Code>` или `<Code src="./app.py" lines="2-4 \| 8" />` — строки по шагам |
 | Картинка | `<Image src={photo} stretch />` — на свободное место, `full` — на весь слайд |
 | Видео | `<Video src={clip} poster={still} stretch />` — играет без звука, пока слайд на экране |

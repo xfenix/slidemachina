@@ -511,6 +511,8 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("перезагрузка оставляет на том же шаге", async () => {
+    await page.goto("/#6");
+    await expect(currentSlide(page).locator("li[data-step]").first()).toBeHidden();
     await page.goto("/#6.3");
     await page.reload();
     await expect(currentSlide(page).locator("h2")).toHaveText("Эффекты шагов");

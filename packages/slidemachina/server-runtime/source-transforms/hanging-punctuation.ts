@@ -19,7 +19,7 @@ export function isAtLineStart(textNode: SyntaxNode, ancestorNodes: SyntaxNode[],
     if (parentNode.children.find(isFilledChild) !== childNode) return false;
     const elementName = parentNode.type === "JSXElement" ? readElementName(parentNode) : undefined;
     if (elementName === "li" || elementName === engineNames.List) return false;
-    const runsInline = parentNode.type === "JSXFragment" || elementName === engineNames.Step || inlineTextElements.has(elementName ?? "");
+    const runsInline = parentNode.type === "JSXFragment" || inlineTextElements.has(elementName ?? "");
     if (!runsInline) return true;
     childNode = parentNode;
   }

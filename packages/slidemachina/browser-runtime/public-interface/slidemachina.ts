@@ -1,8 +1,9 @@
+import type { StepEffect } from "../slide-steps/step-attributes.ts";
+
 export { Presentation, type PresentationProperties } from "../presentation-core/presentation-component.tsx";
 export { Section, type SectionProperties } from "../presentation-core/section-component.tsx";
 export { Slide, type SlideLogoPlacement, type SlideProperties } from "../presentation-core/slide-component.tsx";
 export { List, type ListProperties } from "../slide-steps/list-component.tsx";
-export { Step, type StepProperties } from "../slide-steps/step-component.tsx";
 export { Code, type CodeProperties } from "../content-blocks/code-block/code-component.tsx";
 export { Image, type ImageProperties } from "../content-blocks/image-block/image-component.tsx";
 export { Video, type VideoProperties } from "../content-blocks/video-block/video-component.tsx";
@@ -53,5 +54,10 @@ export type { StepEffect } from "../slide-steps/step-attributes.ts";
 declare module "react" {
   interface HTMLAttributes<T> {
     morph?: string;
+  }
+  // <li data-step={2} data-step-effect="fade"> turns any element into a step.
+  interface DOMAttributes<T> {
+    "data-step"?: boolean | number;
+    "data-step-effect"?: StepEffect;
   }
 }
