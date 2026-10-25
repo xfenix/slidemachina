@@ -100,8 +100,10 @@
       break-after: auto;
     }
 
-    /* The grain of a section slide costs more to print than the rest of the deck and does not show on paper; the glow stays. */
+    /* The grain of a section slide costs more to print than the rest of the deck and does not show on paper; the glow stays.
+       The section colour comes from the slide's inline style, so only an important declaration can tint it. */
     [data-print-page] [data-slide]:has(> [data-content] > h1[data-section-number]) {
+      background-color: var(--section-printed-background) !important;
       background-size: cover, 0 0;
     }
 
