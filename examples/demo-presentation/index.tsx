@@ -12,29 +12,29 @@ export default (
   <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo}>
     <Machina.Slide cover>
       <h1>slidemachina</h1>
-      <p className="text-(--muted-color)">Презентации на React</p>
+      <p className="machina-lead">Презентации на React</p>
     </Machina.Slide>
 
     <Machina.Section title="Как устроено">
       <Machina.Slide>
         <h2>Вся презентация в одном файле</h2>
         <Machina.Code lang="bash">{`npx slidemachina dev my-talk`}</Machina.Code>
-        <Machina.List step>
+        <ul data-steps>
           <li>Слайды лежат в index.tsx</li>
           <li>Из разделов получаются хлебные крошки и навигатор</li>
           <li>Сохранили файл - слайд обновился на том же шаге</li>
-        </Machina.List>
+        </ul>
       </Machina.Slide>
 
       <Machina.Section title="Шаги">
         <Machina.Slide>
           <h2>Шаги</h2>
-          <Machina.List step>
+          <ul data-steps>
             <li>Пункт списка появляется по нажатию</li>
             <li>
               Шаг можно поставить на часть пункта: <span data-step data-step-effect="highlight">вот так</span>
             </li>
-          </Machina.List>
+          </ul>
           <p data-step={1} data-step-effect="fade">
             А этот абзац появился вместе с первым пунктом: data-step=&#123;1&#125;
           </p>
@@ -74,49 +74,62 @@ export default (
     <Machina.Section title="Блоки">
       <Machina.Slide>
         <h2>Большие числа</h2>
-        <Machina.Columns step>
-          <Machina.BigNumber label="переходов между слайдами">8</Machina.BigNumber>
-          <Machina.BigNumber label="кода подсветки в браузере">0 КБ</Machina.BigNumber>
-          <Machina.BigNumber label="файл на всю презентацию">1</Machina.BigNumber>
-        </Machina.Columns>
+        <div className="machina-columns" data-steps data-step-effect="scale">
+          <figure className="machina-big-number">
+            <p>8</p>
+            <figcaption>переходов между слайдами</figcaption>
+          </figure>
+          <figure className="machina-big-number">
+            <p>0 КБ</p>
+            <figcaption>кода подсветки в браузере</figcaption>
+          </figure>
+          <figure className="machina-big-number">
+            <p>1</p>
+            <figcaption>файл на всю презентацию</figcaption>
+          </figure>
+        </div>
         <Machina.Source>Замеры сборки этого демо, октябрь 2026</Machina.Source>
       </Machina.Slide>
 
       <Machina.Slide>
         <h2>Таблица по строкам</h2>
-        <Machina.Table step>
-          <tr>
-            <th></th>
-            <th>slidemachina</th>
-            <th>reveal.js</th>
-          </tr>
-          <tr>
-            <th>Презентация</th>
-            <td>index.tsx</td>
-            <td>index.html</td>
-          </tr>
-          <tr>
-            <th>Подсветка кода</th>
-            <td>при сборке, Shiki</td>
-            <td>в браузере, highlight.js</td>
-          </tr>
-          <tr>
-            <th>Морфинг</th>
-            <td>включается сам</td>
-            <td>data-auto-animate на обоих слайдах</td>
-          </tr>
-          <tr>
-            <th>Типограф</th>
-            <td>встроен</td>
-            <td>отдельно, например gulp</td>
-          </tr>
-        </Machina.Table>
+        <table data-steps>
+          <thead>
+            <tr>
+              <th></th>
+              <th>slidemachina</th>
+              <th>reveal.js</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Презентация</th>
+              <td>index.tsx</td>
+              <td>index.html</td>
+            </tr>
+            <tr>
+              <th>Подсветка кода</th>
+              <td>при сборке, Shiki</td>
+              <td>в браузере, highlight.js</td>
+            </tr>
+            <tr>
+              <th>Морфинг</th>
+              <td>включается сам</td>
+              <td>data-auto-animate на обоих слайдах</td>
+            </tr>
+            <tr>
+              <th>Типограф</th>
+              <td>встроен</td>
+              <td>отдельно, например gulp</td>
+            </tr>
+          </tbody>
+        </table>
       </Machina.Slide>
 
       <Machina.Slide>
         <h2>Картинка занимает всё свободное место</h2>
         <Machina.Image src={navigatorPicture} stretch alt="Навигатор по слайдам">
-          <Machina.Caption>Навигатор: Esc открывает все слайды</Machina.Caption>
+          <figcaption>Навигатор: Esc открывает все слайды</figcaption>
         </Machina.Image>
       </Machina.Slide>
 
@@ -130,9 +143,10 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide transition="fade" align="center">
-        <Machina.Quote author='Антуан де Сент-Экзюпери, "Планета людей"'>
-          Совершенство достигается не тогда, когда нечего добавить, а когда нечего убрать
-        </Machina.Quote>
+        <figure>
+          <blockquote>Совершенство достигается не тогда, когда нечего добавить, а когда нечего убрать</blockquote>
+          <figcaption>Антуан де Сент-Экзюпери, "Планета людей"</figcaption>
+        </figure>
       </Machina.Slide>
     </Machina.Section>
 
@@ -184,9 +198,9 @@ export default (
 
       <Machina.Slide>
         <h2>Типограф</h2>
-        <Machina.Columns widths="3 2">
-          <>
-            <Machina.Caption>В index.tsx</Machina.Caption>
+        <div className="machina-columns" style={{ gridTemplateColumns: "3fr 2fr" }}>
+          <div>
+            <p className="machina-note">В index.tsx</p>
             <Machina.Code lang="tsx">{`
               <p>
                 "Кавычки" и тире - как на клавиатуре.
@@ -194,36 +208,40 @@ export default (
                 а кавычка в начале встанет за край
               </p>
             `}</Machina.Code>
-          </>
-          <>
-            <Machina.Caption>На слайде</Machina.Caption>
+          </div>
+          <div>
+            <p className="machina-note">На слайде</p>
             <p>"Кавычки" и тире - как на клавиатуре. Предлог не повиснет в конце строки, а кавычка в начале встанет за край</p>
-          </>
-        </Machina.Columns>
+          </div>
+        </div>
       </Machina.Slide>
     </Machina.Section>
 
     <Machina.Section title="Схемы">
       <Machina.Slide>
         <h2>Схема из разметки</h2>
-        <Machina.Columns widths="3 2">
-          <Machina.Code lang="tsx">{`
-            <Diagram direction="down">
-              <Box id="browser">Браузер</Box>
-              <Box id="server">Сервер</Box>
-              <Box id="db">База</Box>
-              <Arrow from="browser" to="server" label="HTTP" />
-              <Arrow from="server" to="db" label="SQL" />
-            </Diagram>
-          `}</Machina.Code>
-          <Machina.Diagram direction="down">
-            <Machina.Box id="browser">Браузер</Machina.Box>
-            <Machina.Box id="server">Сервер</Machina.Box>
-            <Machina.Box id="db">База</Machina.Box>
-            <Machina.Arrow from="browser" to="server" label="HTTP" />
-            <Machina.Arrow from="server" to="db" label="SQL" />
-          </Machina.Diagram>
-        </Machina.Columns>
+        <div className="machina-columns" style={{ gridTemplateColumns: "3fr 2fr" }}>
+          <div>
+            <Machina.Code lang="tsx">{`
+              <Diagram direction="down">
+                <Box id="browser">Браузер</Box>
+                <Box id="server">Сервер</Box>
+                <Box id="db">База</Box>
+                <Arrow from="browser" to="server" label="HTTP" />
+                <Arrow from="server" to="db" label="SQL" />
+              </Diagram>
+            `}</Machina.Code>
+          </div>
+          <div>
+            <Machina.Diagram direction="down">
+              <Machina.Box id="browser">Браузер</Machina.Box>
+              <Machina.Box id="server">Сервер</Machina.Box>
+              <Machina.Box id="db">База</Machina.Box>
+              <Machina.Arrow from="browser" to="server" label="HTTP" />
+              <Machina.Arrow from="server" to="db" label="SQL" />
+            </Machina.Diagram>
+          </div>
+        </div>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -325,7 +343,7 @@ export default (
             <div morph="story-bar-4" className="h-full w-20 rounded-2xl bg-(--accent-color)" />
           </div>
         </div>
-        <Machina.Caption>Карточка</Machina.Caption>
+        <figcaption>Карточка</figcaption>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -342,14 +360,14 @@ export default (
             <div morph="story-bar-4" className="h-full flex-1 rounded-3xl bg-(--accent-color)" />
           </div>
         </div>
-        <Machina.Caption>Карточка стала графиком</Machina.Caption>
+        <figcaption>Карточка стала графиком</figcaption>
       </Machina.Slide>
 
       <Machina.Slide align="center">
         <h2>Морфинг без разметки</h2>
         <p morph="story-number" className="m-0 text-(length:--display-size) leading-none font-bold tracking-tight text-(--accent-color)">+72%</p>
         <p morph="story-label" className="text-(length:--secondary-text-size) text-(--muted-color)">Выручка за год</p>
-        <Machina.Caption>График стал большой цифрой. Пары задаёт атрибут morph</Machina.Caption>
+        <figcaption>График стал большой цифрой. Пары задаёт атрибут morph</figcaption>
       </Machina.Slide>
 
       <Machina.Slide align="center">
@@ -360,7 +378,7 @@ export default (
       <Machina.Slide align="center">
         <h2>Версия 0.2</h2>
         <p className="text-(length:--display-size) leading-tight font-bold">Слайды листаются и перетекают</p>
-        <p className="text-(--muted-color)">Общие слова переезжают, новые проявляются</p>
+        <p className="machina-lead">Общие слова переезжают, новые проявляются</p>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -388,124 +406,141 @@ export default (
     <Machina.Section title="Управление" cover={false}>
       <Machina.Slide breadcrumbs="Шпаргалка">
         <h2>Клавиши</h2>
-        <Machina.Table>
-          <tr>
-            <td><kbd>→</kbd> <kbd>Пробел</kbd> <kbd>PageDown</kbd></td>
-            <td>дальше</td>
-          </tr>
-          <tr>
-            <td><kbd>←</kbd> <kbd>PageUp</kbd></td>
-            <td>назад</td>
-          </tr>
-          <tr>
-            <td><kbd>Esc</kbd> <kbd>O</kbd></td>
-            <td>все слайды</td>
-          </tr>
-          <tr>
-            <td><kbd>12</kbd> <kbd>Enter</kbd></td>
-            <td>слайд с этим номером</td>
-          </tr>
-          <tr>
-            <td><kbd>B</kbd> <kbd>F</kbd></td>
-            <td>чёрный экран, полный экран</td>
-          </tr>
-          <tr>
-            <td><kbd>H</kbd></td>
-            <td>спрятать панель внизу</td>
-          </tr>
-          <tr>
-            <td><kbd>E</kbd></td>
-            <td>редактор в slidemachina dev</td>
-          </tr>
-          <tr>
-            <td><kbd>Cmd</kbd> <kbd>P</kbd></td>
-            <td>печать в PDF</td>
-          </tr>
-        </Machina.Table>
+        <table>
+          <tbody>
+            <tr>
+              <td><kbd>→</kbd> <kbd>Пробел</kbd> <kbd>PageDown</kbd></td>
+              <td>дальше</td>
+            </tr>
+            <tr>
+              <td><kbd>←</kbd> <kbd>PageUp</kbd></td>
+              <td>назад</td>
+            </tr>
+            <tr>
+              <td><kbd>Esc</kbd> <kbd>O</kbd></td>
+              <td>все слайды</td>
+            </tr>
+            <tr>
+              <td><kbd>12</kbd> <kbd>Enter</kbd></td>
+              <td>слайд с этим номером</td>
+            </tr>
+            <tr>
+              <td><kbd>B</kbd> <kbd>F</kbd></td>
+              <td>чёрный экран, полный экран</td>
+            </tr>
+            <tr>
+              <td><kbd>H</kbd></td>
+              <td>спрятать панель внизу</td>
+            </tr>
+            <tr>
+              <td><kbd>E</kbd></td>
+              <td>редактор в slidemachina dev</td>
+            </tr>
+            <tr>
+              <td><kbd>Cmd</kbd> <kbd>P</kbd></td>
+              <td>печать в PDF</td>
+            </tr>
+          </tbody>
+        </table>
       </Machina.Slide>
     </Machina.Section>
 
     <Machina.Section title="Печать и сборка">
       <Machina.Slide>
         <h2>Печать в PDF</h2>
-        <Machina.List step>
+        <ul data-steps>
           <li><kbd>Cmd</kbd> <kbd>P</kbd> кладёт каждый слайд на свою страницу 16:9</li>
           <li>Кнопка печати на панели внизу: страница на каждый шаг</li>
           <li>Фон, тёмные слайды и картинки печатаются как на экране</li>
-        </Machina.List>
+        </ul>
       </Machina.Slide>
 
       <Machina.Slide>
         <h2>Сборка</h2>
         <Machina.Code lang="bash">{`npx slidemachina build`}</Machina.Code>
-        <Machina.Table step>
-          <tr>
-            <th>Что получится</th>
-            <th>Флаг для CI</th>
-            <th>Зачем</th>
-          </tr>
-          <tr>
-            <th>Один HTML-файл</th>
-            <td><code>--html</code></td>
-            <td>отправить в чат или письмом</td>
-          </tr>
-          <tr>
-            <th>Файл под паролем</th>
-            <td><code>--protected</code></td>
-            <td>закрытый доклад</td>
-          </tr>
-          <tr>
-            <th>Папка или zip</th>
-            <td><code>--folder</code>, <code>--zip</code></td>
-            <td>выложить на сайт</td>
-          </tr>
-          <tr>
-            <th>PDF</th>
-            <td><code>--pdf</code>, <code>--steps</code></td>
-            <td>раздать после доклада</td>
-          </tr>
-        </Machina.Table>
+        <table data-steps>
+          <thead>
+            <tr>
+              <th>Что получится</th>
+              <th>Флаг для CI</th>
+              <th>Зачем</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Один HTML-файл</th>
+              <td><code>--html</code></td>
+              <td>отправить в чат или письмом</td>
+            </tr>
+            <tr>
+              <th>Файл под паролем</th>
+              <td><code>--protected</code></td>
+              <td>закрытый доклад</td>
+            </tr>
+            <tr>
+              <th>Папка или zip</th>
+              <td><code>--folder</code>, <code>--zip</code></td>
+              <td>выложить на сайт</td>
+            </tr>
+            <tr>
+              <th>PDF</th>
+              <td><code>--pdf</code>, <code>--steps</code></td>
+              <td>раздать после доклада</td>
+            </tr>
+          </tbody>
+        </table>
       </Machina.Slide>
 
       <Machina.Slide>
         <h2>Один файл</h2>
-        <Machina.Columns step>
-          <Machina.BigNumber label="файл: картинки, шрифты и схемы внутри">1</Machina.BigNumber>
-          <Machina.BigNumber label="секунды на сборку">0,5</Machina.BigNumber>
-          <Machina.BigNumber label="кода редактора в файле">0 КБ</Machina.BigNumber>
-        </Machina.Columns>
+        <div className="machina-columns" data-steps>
+          <figure className="machina-big-number">
+            <p>1</p>
+            <figcaption>файл: картинки, шрифты и схемы внутри</figcaption>
+          </figure>
+          <figure className="machina-big-number">
+            <p>0,5</p>
+            <figcaption>секунды на сборку</figcaption>
+          </figure>
+          <figure className="machina-big-number">
+            <p>0 КБ</p>
+            <figcaption>кода редактора в файле</figcaption>
+          </figure>
+        </div>
       </Machina.Slide>
     </Machina.Section>
 
     <Machina.Section title="Редактор">
       <Machina.Slide>
         <h2>Правка прямо на слайде</h2>
-        <Machina.List step>
+        <ul data-steps>
           <li>E или карандаш на панели включают редактор</li>
           <li>Текст: нажмите и пишите. Enter сохраняет, Esc отменяет</li>
           <li>Картинка: перетащите на неё файл, он ляжет в images/</li>
           <li>Блок схемы: тяните в другую колонку или на другое место</li>
           <li>Правка сразу записывается в index.tsx, слайд остаётся на том же шаге</li>
-        </Machina.List>
+        </ul>
       </Machina.Slide>
 
       <Machina.Slide>
         <h2>Попробуйте: нажмите E</h2>
-        <Machina.Columns>
-          <>
+        <div className="machina-columns">
+          <div>
             <Machina.Image src={editorPicture} alt="Закат" />
-            <Machina.Caption>Перетащите сюда свою картинку</Machina.Caption>
-          </>
-          <Machina.Diagram>
-            <Machina.Box id="text">Текст</Machina.Box>
-            <Machina.Box id="picture">Картинка</Machina.Box>
-            <Machina.Box id="editor">Редактор</Machina.Box>
-            <Machina.Box id="file">index.tsx</Machina.Box>
-            <Machina.Arrow from="text" to="editor" />
-            <Machina.Arrow from="picture" to="editor" />
-            <Machina.Arrow from="editor" to="file" />
-          </Machina.Diagram>
-        </Machina.Columns>
+            <figcaption>Перетащите сюда свою картинку</figcaption>
+          </div>
+          <div>
+            <Machina.Diagram>
+              <Machina.Box id="text">Текст</Machina.Box>
+              <Machina.Box id="picture">Картинка</Machina.Box>
+              <Machina.Box id="editor">Редактор</Machina.Box>
+              <Machina.Box id="file">index.tsx</Machina.Box>
+              <Machina.Arrow from="text" to="editor" />
+              <Machina.Arrow from="picture" to="editor" />
+              <Machina.Arrow from="editor" to="file" />
+            </Machina.Diagram>
+          </div>
+        </div>
       </Machina.Slide>
 
       <Machina.Slide background="var(--dark-background)">
@@ -520,7 +555,7 @@ export default (
           <Machina.Message from="browser" to="browser" label="слайд и шаг на месте" step />
           <Machina.Focus on={["write"]} step />
         </Machina.Sequence>
-        <Machina.Caption>Если файл изменили после загрузки, правка не запишется</Machina.Caption>
+        <figcaption>Если файл изменили после загрузки, правка не запишется</figcaption>
       </Machina.Slide>
     </Machina.Section>
 
@@ -529,13 +564,13 @@ export default (
       cover={
         <Machina.Slide cover background="var(--dark-background)">
           <h1>3D</h1>
-          <p className="text-(--muted-color)">Свою обложку раздела задаёт cover</p>
+          <p className="machina-lead">Свою обложку раздела задаёт cover</p>
         </Machina.Slide>
       }
     >
       <Machina.Slide background="var(--dark-background)" transition="zoom">
         <h2>Сцена в 3D</h2>
-        <p className="text-(--muted-color)">Куб, сфера, текст и свет пишутся тегами</p>
+        <p className="machina-lead">Куб, сфера, текст и свет пишутся тегами</p>
         <Machina.Scene full orbit>
           <Machina.Camera target={[0.6, 1.7, 0]} />
           <Machina.Cube size={1.5} position={[-1.9, 0.75, 0]} rotation={[0, 28, 0]} material="glossy" />
@@ -547,21 +582,23 @@ export default (
 
       <Machina.Slide>
         <h2>Шаги внутри сцены</h2>
-        <Machina.Columns>
-          <Machina.List step>
+        <div className="machina-columns">
+          <ul data-steps>
             <li>Появляется сфера</li>
             <li>Куб переезжает и поворачивается</li>
             <li>Камера заходит сбоку</li>
             <li>Над сценой встаёт текст</li>
-          </Machina.List>
-          <Machina.Scene>
-            <Machina.Cube id="cube" size={1.3} position={[0, 0.65, 0]} rotation={[0, 20, 0]} material="glossy" />
-            <Machina.Sphere size={1.1} position={[1.4, 0.55, 0.4]} color="#F2B8A0" step={1} />
-            <Machina.Move on="cube" position={[-1.4, 0.65, 0]} rotation={[0, 70, 0]} step={2} />
-            <Machina.Camera position={[5.5, 3.2, 6.5]} target={[0, 0.8, 0]} step={3} />
-            <Machina.Text position={[0, 2.3, 0]} size={0.45} step={4}>Готово</Machina.Text>
-          </Machina.Scene>
-        </Machina.Columns>
+          </ul>
+          <div>
+            <Machina.Scene>
+              <Machina.Cube id="cube" size={1.3} position={[0, 0.65, 0]} rotation={[0, 20, 0]} material="glossy" />
+              <Machina.Sphere size={1.1} position={[1.4, 0.55, 0.4]} color="#F2B8A0" step={1} />
+              <Machina.Move on="cube" position={[-1.4, 0.65, 0]} rotation={[0, 70, 0]} step={2} />
+              <Machina.Camera position={[5.5, 3.2, 6.5]} target={[0, 0.8, 0]} step={3} />
+              <Machina.Text position={[0, 2.3, 0]} size={0.45} step={4}>Готово</Machina.Text>
+            </Machina.Scene>
+          </div>
+        </div>
       </Machina.Slide>
 
       <Machina.Slide transition="flip">
@@ -574,7 +611,7 @@ export default (
           <Machina.Light position={[6, 2, 1]} color="#FFB45C" intensity={2} step />
           <Machina.Move on="ball" color="#FF6B57" step />
         </Machina.Scene>
-        <Machina.Caption>Цвет объектов — из темы. Свет и цвет меняются по шагам</Machina.Caption>
+        <figcaption>Цвет объектов — из темы. Свет и цвет меняются по шагам</figcaption>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -588,74 +625,87 @@ export default (
             <Text position={[0, 2, 0]}>Привет</Text>
           </Scene>
         `}</Machina.Code>
-        <Machina.Caption>three.js грузится, только если в презентации есть сцена</Machina.Caption>
+        <figcaption>three.js грузится, только если в презентации есть сцена</figcaption>
       </Machina.Slide>
     </Machina.Section>
 
     <Machina.Section title="Много презентаций">
       <Machina.Slide>
         <h2>Репозиторий презентаций</h2>
-        <Machina.Columns widths="1 2">
-          <Machina.Code lang="text">{`
-            talks/
-              theme/
-                style.css
-                logo.svg
-              team-sync/
-                index.tsx
-              python-news/
-                index.tsx
-                style.css
-          `}</Machina.Code>
-          <Machina.List step>
+        <div className="machina-columns" style={{ gridTemplateColumns: "1fr 2fr" }}>
+          <div>
+            <Machina.Code lang="text">{`
+              talks/
+                theme/
+                  style.css
+                  logo.svg
+                team-sync/
+                  index.tsx
+                python-news/
+                  index.tsx
+                  style.css
+            `}</Machina.Code>
+          </div>
+          <ul data-steps>
             <li>theme/ - общая тема: шрифты, цвета, логотипы</li>
             <li>style.css в папке презентации сильнее общей темы</li>
             <li>npm create slidemachina в корне добавит новую презентацию</li>
-          </Machina.List>
-        </Machina.Columns>
+          </ul>
+        </div>
       </Machina.Slide>
 
       <Machina.Slide>
         <h2>Список презентаций</h2>
         <Machina.Image src={presentationListPicture} alt="Страница со списком презентаций" stretch>
-          <Machina.Caption>Обложка — живой первый слайд, правку темы видно сразу</Machina.Caption>
+          <figcaption>Обложка — живой первый слайд, правку темы видно сразу</figcaption>
         </Machina.Image>
       </Machina.Slide>
 
       <Machina.Slide>
         <h2>Сборка всех</h2>
         <Machina.Code lang="bash">{`npx slidemachina build --protected`}</Machina.Code>
-        <Machina.Columns widths="1 2">
-          <Machina.Code lang="text">{`
-            dist/
-              index.html
-              team-sync/
+        <div className="machina-columns" style={{ gridTemplateColumns: "1fr 2fr" }}>
+          <div>
+            <Machina.Code lang="text">{`
+              dist/
                 index.html
-                cover.webp
-              python-news/
-          `}</Machina.Code>
-          <Machina.List step>
+                team-sync/
+                  index.html
+                  cover.webp
+                python-news/
+            `}</Machina.Code>
+          </div>
+          <ul data-steps>
             <li>Каждая презентация в своей папке, список - в dist/index.html</li>
             <li>Обложки для списка снимает Chrome</li>
             <li>Под паролем на карточке только название</li>
             <li>Папку dist выкладывают на сервер как есть</li>
-          </Machina.List>
-        </Machina.Columns>
+          </ul>
+        </div>
       </Machina.Slide>
     </Machina.Section>
 
     <Machina.Slide>
+      <h2>Текст</h2>
+      <p className="machina-lead">machina-lead - вводная фраза под заголовком</p>
+      <p>Обычный абзац - тег p без класса. Это основной текст слайда</p>
+      <p className="machina-note">machina-note - пометка мелким шрифтом</p>
+    </Machina.Slide>
+
+    <Machina.Slide>
       <h2>QR-код</h2>
-      <Machina.Columns>
-        <Machina.List>
+      <div className="machina-columns">
+        <ul>
           <li>value — ссылка или текст</li>
           <li>logo — картинка в середине</li>
           <li>color — цвет точек, фон прозрачный</li>
-        </Machina.List>
-        <Machina.QR value="https://github.com/xfenix/slidemachina" logo={slidemachinaMarkPicture}>
-          <Machina.Caption>Исходники slidemachina</Machina.Caption>
-        </Machina.QR>
-      </Machina.Columns>
+        </ul>
+        <div>
+          <Machina.QR value="https://github.com/xfenix/slidemachina" logo={slidemachinaMarkPicture}>
+            <figcaption>Исходники slidemachina</figcaption>
+          </Machina.QR>
+        </div>
+      </div>
     </Machina.Slide>
 
     <Machina.Slide cover background="var(--dark-background)">

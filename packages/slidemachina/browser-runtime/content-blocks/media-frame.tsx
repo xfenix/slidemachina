@@ -13,7 +13,7 @@ export function rememberProportions(mediaElement: HTMLElement, mediaWidth: numbe
 }
 
 // stretch takes the free space under the heading, like r-stretch in reveal.js; full covers the whole slide.
-// A <Caption> inside the media goes into one group with it: under the picture, from its left edge.
+// A <figcaption> inside the media goes into one group with it: under the picture, from its left edge.
 export function MediaFrame({ stretch = false, full = false, fit, caption, children }: MediaPlacement & { caption?: ReactNode; children: ReactNode }) {
   if (!stretch && !full) {
     return (

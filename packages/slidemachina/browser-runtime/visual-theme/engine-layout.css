@@ -173,16 +173,17 @@
     display: inline-block;
   }
 
-  :is([data-step-effect="fade"], [data-step-effect="rise"], [data-step-effect="scale"], [data-step]:not([data-step-effect])):not([data-step-reached]) {
+  /* A list with data-steps carries data-step-effect for its items and stays visible itself. */
+  :where([data-step]):is([data-step-effect="fade"], [data-step-effect="rise"], [data-step-effect="scale"], [data-step]:not([data-step-effect])):not([data-step-reached]) {
     opacity: 0;
     visibility: hidden;
   }
 
-  :is([data-step-effect="rise"], [data-step]:not([data-step-effect])):not([data-step-reached]) {
+  :where([data-step]):is([data-step-effect="rise"], [data-step]:not([data-step-effect])):not([data-step-reached]) {
     translate: 0 var(--step-rise-distance);
   }
 
-  [data-step-effect="scale"]:not([data-step-reached]) {
+  :where([data-step])[data-step-effect="scale"]:not([data-step-reached]) {
     scale: 0.85;
   }
 
@@ -213,7 +214,7 @@
   }
 
   /* A block that ends the slide reaches the bottom edge of the content area. */
-  [data-slide] [data-content] > :is([data-code], [data-media-frame], [data-columns], [data-table], [data-quote]):last-child {
+  [data-slide] [data-content] > :is([data-code], [data-media-frame], .machina-columns, table, figure):last-child {
     margin-bottom: 0;
   }
 }

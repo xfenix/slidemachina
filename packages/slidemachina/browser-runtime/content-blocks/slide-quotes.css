@@ -1,13 +1,14 @@
 @layer slidemachina {
-  [data-slide] [data-quote] {
-    max-width: 1600px;
+  /* A figure holds a quote with its author or a big number with its label. */
+  [data-slide] figure {
     margin: 0 0 var(--block-gap);
   }
 
   /* The opening mark hangs outside the text, so the letters stay on the grid line. */
-  [data-slide] [data-quote] blockquote {
+  [data-slide] blockquote {
     position: relative;
-    margin: 0;
+    max-width: 1600px;
+    margin: 0 0 var(--block-gap);
     font-size: var(--quote-size);
     font-weight: 700;
     line-height: 1.2;
@@ -16,26 +17,35 @@
     quotes: auto;
   }
 
-  [data-slide] [data-quote] blockquote:before {
+  [data-slide] figure:has(> blockquote) {
+    max-width: 1600px;
+  }
+
+  [data-slide] figure > blockquote {
+    max-width: none;
+    margin: 0;
+  }
+
+  [data-slide] blockquote:before {
     content: open-quote;
     position: absolute;
     translate: -100% 0;
     color: var(--accent-color);
   }
 
-  [data-slide] [data-quote] blockquote:after {
+  [data-slide] blockquote:after {
     content: close-quote;
     color: var(--accent-color);
   }
 
-  [data-slide] [data-quote] figcaption {
+  [data-slide] blockquote + figcaption {
     margin-top: 1.2em;
     color: var(--muted-color);
     font-size: var(--quote-author-size);
     text-box: trim-both cap alphabetic;
   }
 
-  [data-slide] [data-quote] figcaption:before {
+  [data-slide] blockquote + figcaption:before {
     content: "\2014\00A0";
   }
 }

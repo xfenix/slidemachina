@@ -32,7 +32,7 @@
   }
 
   /* Columns with a code grow to the bottom of the content area, so the code has room in its column. */
-  [data-slide] [data-columns]:has(> [data-column] [data-qr]) {
+  [data-slide] .machina-columns:has(> * [data-qr]) {
     flex: 1 1 0;
   }
 }

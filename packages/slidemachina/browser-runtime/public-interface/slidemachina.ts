@@ -3,16 +3,10 @@ import type { StepEffect } from "../slide-steps/step-attributes.ts";
 export { Presentation, type PresentationProperties } from "../presentation-core/presentation-component.tsx";
 export { Section, type SectionProperties } from "../presentation-core/section-component.tsx";
 export { Slide, type SlideLogoPlacement, type SlideProperties } from "../presentation-core/slide-component.tsx";
-export { List, type ListProperties } from "../slide-steps/list-component.tsx";
 export { Code, type CodeProperties } from "../content-blocks/code-block/code-component.tsx";
 export { Image, type ImageProperties } from "../content-blocks/image-block/image-component.tsx";
 export { Video, type VideoProperties } from "../content-blocks/video-block/video-component.tsx";
 export type { MediaFit } from "../content-blocks/media-frame.tsx";
-export { Columns, type ColumnsProperties } from "../content-blocks/columns-block/columns-component.tsx";
-export { Table, type TableProperties } from "../content-blocks/table-block/table-component.tsx";
-export { Quote, type QuoteProperties } from "../content-blocks/quote-block/quote-component.tsx";
-export { BigNumber, type BigNumberProperties } from "../content-blocks/big-number-block/big-number-component.tsx";
-export { Caption, type CaptionProperties } from "../content-blocks/caption-block/caption-component.tsx";
 export { Source, type SourceProperties } from "../content-blocks/source-block/source-component.tsx";
 export { QR, type QRProperties } from "../content-blocks/qr-block/qr-component.tsx";
 export type { QRCorrection } from "../content-blocks/qr-block/qr-module-shapes.ts";
@@ -58,8 +52,10 @@ declare module "react" {
     morph?: string;
   }
   // <li data-step={2} data-step-effect="fade"> turns any element into a step.
+  // <ul data-steps={3} data-step-effect="fade"> turns every item, table row or column into a step, from step 3 on.
   interface DOMAttributes<T> {
     "data-step"?: boolean | number;
+    "data-steps"?: boolean | number;
     "data-step-effect"?: StepEffect;
   }
 }

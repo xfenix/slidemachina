@@ -194,7 +194,8 @@
   }
 
   [data-slide]:not([data-cover]) [data-content] > :is(h1, h2) + :is(p, ul, ol),
-  [data-slide]:not([data-cover]) [data-content] > :is(h1, h2) + [data-columns] > [data-column] > :is(p, ul, ol):first-child {
+  [data-slide]:not([data-cover]) [data-content] > :is(h1, h2) + .machina-columns > :is(p, ul, ol),
+  [data-slide]:not([data-cover]) [data-content] > :is(h1, h2) + .machina-columns > div > :is(p, ul, ol):first-child {
     text-box: trim-start cap alphabetic;
   }
 
@@ -207,7 +208,7 @@
     margin-bottom: var(--block-gap);
   }
 
-  [data-slide] [data-content] > :is(p, ul, ol):has(+ :not(p, ul, ol, [data-caption], [data-source])) {
+  [data-slide] [data-content] > :is(p, ul, ol):has(+ :not(p, ul, ol, figcaption, .machina-note, [data-source])) {
     margin-bottom: var(--block-gap);
   }
 
@@ -319,12 +320,16 @@
   }
 
   /* A later column has no margin to hang into: its content moves over by the hang, so the gap to the neighbour is measured to the markers. */
-  [data-slide] [data-columns] > [data-column]:not(:first-child):has(> ul) {
+  [data-slide] .machina-columns > div:not(:first-child):has(> ul) {
     padding-left: calc(var(--hanging-punctuation) * var(--list-bullet-indent));
   }
 
-  [data-slide] [data-columns] > [data-column]:not(:first-child):has(> ol) {
+  [data-slide] .machina-columns > div:not(:first-child):has(> ol) {
     padding-left: calc(var(--hanging-punctuation) * var(--list-number-indent));
+  }
+
+  [data-slide] .machina-columns > :is(ul, ol):not(:first-child) {
+    margin-left: 0;
   }
 
   [data-slide] li :is(ul, ol) {

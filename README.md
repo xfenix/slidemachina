@@ -36,10 +36,10 @@ export default (
     <Machina.Section title="Как устроено">
       <Machina.Slide>
         <h2>Три шага</h2>
-        <Machina.List step>
+        <ul data-steps>
           <li>Пункт появляется по нажатию</li>
           <li>Сохранили файл — слайд обновился на том же шаге</li>
-        </Machina.List>
+        </ul>
       </Machina.Slide>
 
       <Machina.Slide>

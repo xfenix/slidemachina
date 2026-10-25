@@ -11,16 +11,6 @@ export function createStepAttributes(stepNumber: number | true, stepEffect: Step
   };
 }
 
-// <List step>, <Columns step>, <Table step>: every child is a step; step={3} puts them on steps 3, 4, 5.
-export function createSequenceStepAttributes(
-  sequenceStep: boolean | number,
-  childPosition: number,
-  stepEffect?: StepEffect,
-): StepAttributes | Record<string, never> {
-  if (sequenceStep === false) return {};
-  return createStepAttributes(sequenceStep === true ? true : sequenceStep + childPosition, stepEffect);
-}
-
 export function createPartStepAttributes(
   partStep: boolean | number | undefined,
   stepEffect: StepEffect | undefined,

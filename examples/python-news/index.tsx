@@ -6,7 +6,7 @@ export default (
   <Machina.Presentation title="Python 3.15: что нового" date="2026-10-02" lang="ru" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
     <Machina.Slide cover background="#2B2D33">
       <h1>Python 3.15</h1>
-      <p className="text-(--muted-color)">Что нового для нашего кода</p>
+      <p className="machina-lead">Что нового для нашего кода</p>
     </Machina.Slide>
 
     <Machina.Section title="Ленивый импорт">
@@ -19,7 +19,7 @@ export default (
           def load_settings(file_name):
               return json.loads(Path(file_name).read_text())
         `}</Machina.Code>
-        <Machina.Caption>Модули грузятся на старте, даже если функция не вызвана</Machina.Caption>
+        <figcaption>Модули грузятся на старте, даже если функция не вызвана</figcaption>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -31,7 +31,7 @@ export default (
           def load_settings(file_name):
               return json.loads(Path(file_name).read_text())
         `}</Machina.Code>
-        <Machina.Caption>Модуль загрузится при первом обращении. Консольные утилиты стартуют быстрее</Machina.Caption>
+        <figcaption>Модуль загрузится при первом обращении. Консольные утилиты стартуют быстрее</figcaption>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -49,16 +49,16 @@ export default (
     <Machina.Section title="Ещё">
       <Machina.Slide>
         <h2>Что ещё</h2>
-        <Machina.List step>
+        <ul data-steps>
           <li>UTF-8 по умолчанию: open() без encoding читает и пишет UTF-8</li>
           <li>profiling.sampling: профилировщик, который подключается к запущенному процессу</li>
-        </Machina.List>
+        </ul>
       </Machina.Slide>
     </Machina.Section>
 
     <Machina.Slide cover>
       <h1>Обновляемся</h1>
-      <p className="text-(--muted-color)">Вопросы?</p>
+      <p className="machina-lead">Вопросы?</p>
     </Machina.Slide>
   </Machina.Presentation>
 );

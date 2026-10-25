@@ -8,17 +8,17 @@
     margin: 0 0 var(--block-gap);
   }
 
-  [data-slide] :is([data-content], [data-column]) > [data-scene="block"]:last-child {
+  [data-slide] :is([data-content], .machina-columns > div) > [data-scene="block"]:last-child {
     margin-bottom: 0;
   }
 
   /* Objects at the edge of a column scene would touch the slide margin or the next column. */
-  [data-slide] [data-column] > [data-scene="block"] {
+  [data-slide] .machina-columns > div > [data-scene="block"] {
     margin-inline: var(--block-gap);
   }
 
   /* Columns with a scene grow to the bottom of the content area, so the scene has room in its column. */
-  [data-slide] [data-columns]:has(> [data-column] > [data-scene="block"]) {
+  [data-slide] .machina-columns:has(> div > [data-scene="block"]) {
     flex: 1 1 0;
   }
 

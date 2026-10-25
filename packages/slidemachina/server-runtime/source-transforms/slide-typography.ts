@@ -9,7 +9,7 @@ type TransformContext = { editedSource: MagicString, sourceCode: string, engineN
 
 // Text on these elements is code or markup, the typographer leaves it as written.
 const untouchedTextElements = new Set(["code", "pre", "kbd", "samp", "script", "style"]);
-const typographedAttributes = new Set(["title", "label", "author", "breadcrumbs"]);
+const typographedAttributes = new Set(["title", "label", "breadcrumbs"]);
 
 function isInsideUntouchedElement(ancestorNodes: SyntaxNode[], codeName: string | undefined): boolean {
   return ancestorNodes.some((ancestorNode) => {
@@ -40,7 +40,7 @@ export function typographSyntaxNode(syntaxNode: SyntaxNode, ancestorNodes: Synta
     // Scene text is drawn from plain strings, so a mark wrapped in an element would vanish from it.
     const hangingPunctuationCode = isInsideElementNamed(ancestorNodes, engineNames.Scene)
       ? undefined
-      : writeHangingPunctuationCode(typographedText, isAtLineStart(syntaxNode, ancestorNodes, engineNames));
+      : writeHangingPunctuationCode(typographedText, isAtLineStart(syntaxNode, ancestorNodes));
     if (hangingPunctuationCode !== undefined) {
       replaceKeepingLines(editedSource, syntaxNode, hangingPunctuationCode, sourceCode);
     } else if (typographedText !== cookedText) {

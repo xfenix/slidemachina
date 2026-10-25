@@ -161,16 +161,19 @@ test("демо листается, показывает шаги и навига
 
   await test.step("блоки: колонки и строки таблицы по шагам, источник сноской под блоком", async () => {
     await jumpToSlide(page, 12);
-    const columnElements = currentSlide(page).locator("[data-column]");
+    const columnElements = currentSlide(page).locator(".machina-columns > *");
     await expect(columnElements).toHaveCount(3);
     await expect(columnElements.and(page.locator("[data-step-reached]"))).toHaveCount(0);
+    // data-step-effect on the columns goes to every column; the columns themselves stay visible.
+    await expect(columnElements.and(page.locator("[data-step-effect=scale]"))).toHaveCount(3);
+    await expect(currentSlide(page).locator(".machina-columns")).toHaveCSS("opacity", "1");
     await page.keyboard.press("ArrowRight");
     await expect(columnElements.nth(0)).toHaveAttribute("data-step-reached");
     await expect(columnElements.nth(1)).not.toHaveAttribute("data-step-reached");
     // The source is a footnote right under the blocks it cites, set apart by a hairline.
     const sourceElement = currentSlide(page).locator("[data-source]");
     const sourceBox = await sourceElement.boundingBox();
-    const columnsBox = await currentSlide(page).locator("[data-columns]").boundingBox();
+    const columnsBox = await currentSlide(page).locator(".machina-columns").boundingBox();
     const slideScale = (await currentSlide(page).boundingBox())!.height / 1080;
     expect(sourceBox!.y - (columnsBox!.y + columnsBox!.height)).toBeCloseTo(80 * slideScale, 0);
     await expect(sourceElement).toHaveCSS("border-top-width", "1px");
@@ -189,7 +192,7 @@ test("демо листается, показывает шаги и навига
     const stretchedPicture = currentSlide(page).locator("[data-media-frame=stretch] img");
     await expect.poll(async () => (await stretchedPicture.boundingBox())?.height).toBeGreaterThan(300);
     const pictureBox = await stretchedPicture.boundingBox();
-    const captionBox = await currentSlide(page).locator("[data-caption]").boundingBox();
+    const captionBox = await currentSlide(page).locator("figcaption").boundingBox();
     expect(captionBox!.y).toBeGreaterThan(pictureBox!.y + pictureBox!.height);
     // A caption inside the picture keeps to its left edge, not to the edge of the content.
     expect(captionBox!.x).toBeCloseTo(pictureBox!.x, 0);
@@ -248,7 +251,7 @@ test("демо листается, показывает шаги и навига
 
   await test.step("типограф правит текст, но не код, кавычка в начале строки висит за краем", async () => {
     await jumpToSlide(page, 23);
-    const typographedParagraph = currentSlide(page).locator("[data-column] > p").last();
+    const typographedParagraph = currentSlide(page).locator(".machina-columns > div > p").last();
     // toHaveText folds non-breaking spaces into plain ones, so the raw text is read.
     expect(await typographedParagraph.textContent()).toMatch(/^«Кавычки» и\u00A0тире\u00A0— как\u00A0на\u00A0клавиатуре/);
     await expect(currentSlide(page).locator("[data-code]")).toContainText('"Кавычки" и тире - как на клавиатуре.');
@@ -425,7 +428,7 @@ test("демо листается, показывает шаги и навига
   await test.step("навигатор", async () => {
     await page.keyboard.press("o");
     const slideNavigator = page.locator("[data-navigator]");
-    await expect(slideNavigator.locator("[data-thumbnail]")).toHaveCount(58);
+    await expect(slideNavigator.locator("[data-thumbnail]")).toHaveCount(59);
     // One of the two dark steps of the theme, the same as the dark slides: --dark-background.
     await expect(slideNavigator).toHaveCSS("background-color", "rgb(20, 22, 29)");
     await expect(slideNavigator.locator("[data-thumbnail-number]").nth(37)).toHaveText("38");
@@ -461,7 +464,7 @@ test("демо листается, показывает шаги и навига
     await expect(feedbackStandIn).toHaveCSS("visibility", "visible");
     const overviewPage = await page.context().newPage();
     await overviewPage.goto("/?overview");
-    await expect(overviewPage.locator("[data-navigator] [data-thumbnail]")).toHaveCount(58);
+    await expect(overviewPage.locator("[data-navigator] [data-thumbnail]")).toHaveCount(59);
     await overviewPage.keyboard.press("Escape");
     await expect(overviewPage.locator("[data-navigator]")).toHaveCount(0);
     await overviewPage.close();
@@ -548,7 +551,7 @@ test("демо листается, показывает шаги и навига
 
   await test.step("typography={false} выключает типограф", async () => {
     await jumpToSlide(page, 23);
-    const typographedParagraph = currentSlide(page).locator("[data-column] > p").last();
+    const typographedParagraph = currentSlide(page).locator(".machina-columns > div > p").last();
     await editFileWhile(
       demoPresentationFile,
       (originalPresentation) => originalPresentation.replace('<Machina.Presentation title="slidemachina"', '<Machina.Presentation typography={false} title="slidemachina"'),
@@ -576,12 +579,12 @@ test("демо листается, показывает шаги и навига
       const foundProblems: string[] = [];
       const describeSlide = (blockElement: Element) => `слайд ${[...document.querySelectorAll("[data-canvas] > [data-slide]")].indexOf(blockElement.closest("[data-slide]")!) + 1}`;
       for (const codeViewport of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] [data-code-viewport]")) {
-        const roomElement = codeViewport.closest("[data-column], [data-content]")!;
+        const roomElement = codeViewport.closest(".machina-columns > div, [data-content]")!;
         const codeRight = codeViewport.closest("[data-code]")!.getBoundingClientRect().right;
         if (codeViewport.scrollWidth > codeViewport.clientWidth + 1) foundProblems.push(`${describeSlide(codeViewport)}: код прокручивается`);
         if (codeRight > roomElement.getBoundingClientRect().right + 1) foundProblems.push(`${describeSlide(codeViewport)}: код шире своей области`);
       }
-      for (const numberElement of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] [data-big-number] > p")) {
+      for (const numberElement of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] .machina-big-number > p")) {
         const numberRange = document.createRange();
         numberRange.selectNodeContents(numberElement);
         if (numberRange.getBoundingClientRect().right > numberElement.parentElement!.getBoundingClientRect().right + 1) {

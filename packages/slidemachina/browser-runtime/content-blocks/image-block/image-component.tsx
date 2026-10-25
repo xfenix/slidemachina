@@ -5,7 +5,7 @@ import { MediaFrame, rememberProportions, type MediaPlacement } from "../media-f
 export type ImageProperties = MediaPlacement & {
   src: string;
   alt?: string;
-  // A <Caption> here stays with the picture: under it and from its left edge.
+  // A <figcaption> here stays with the picture: under it and from its left edge.
   children?: ReactNode;
 };
 

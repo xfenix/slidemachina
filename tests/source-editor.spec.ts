@@ -80,7 +80,7 @@ test("редактор правит текст, двигает блок схем
 
     await page.goto(`${editorServerAddress}/#${playgroundSlideNumber}`);
     const slideHeading = currentSlide(page).locator("h2");
-    const slideCaption = currentSlide(page).locator("[data-caption]");
+    const slideCaption = currentSlide(page).locator("figcaption");
     await expect(slideHeading).toHaveText("Попробуйте: нажмите E");
 
     await test.step("E включает редактор", async () => {
@@ -103,7 +103,7 @@ test("редактор правит текст, двигает блок схем
       await page.keyboard.type("Своя подпись");
       await page.keyboard.press("Enter");
       await expect.poll(readPresentation).toContain("<h2>Пробуем редактор &#123;вживую&#125;</h2>");
-      await expect.poll(readPresentation).toContain("<Machina.Caption>Своя подпись</Machina.Caption>");
+      await expect.poll(readPresentation).toContain("<figcaption>Своя подпись</figcaption>");
       await expect(slideHeading).toHaveText("Пробуем редактор {вживую}");
       await expect(slideHeading).not.toHaveAttribute("contenteditable");
       await expect(page.locator("[data-editor-status]")).toHaveText("Сохранено в index.tsx");

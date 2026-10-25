@@ -1,6 +1,7 @@
 import { useRef, type CSSProperties, type ReactNode } from "react";
 import { isBackgroundColor, useBackgroundTone, type SlideTone } from "./background-tone.ts";
 import { useSlideEnvironment, type PresentationLogo, type SlideAlign } from "./slide-environment.ts";
+import { useBigNumberFitting } from "./width-fitting.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { useStepVisibility } from "../slide-steps/step-visibility.ts";
@@ -41,6 +42,7 @@ export function Slide({
   const slideElementReference = useRef<HTMLElement>(null);
   const detectedTone = useBackgroundTone(slideElementReference, background, className);
   useStepVisibility(slideElementReference, slideEnvironment.revealedStep, slideEnvironment.reportStepCount);
+  useBigNumberFitting(slideElementReference, children);
 
   const slideTone = tone ?? detectedTone;
   const breadcrumbTrail = typeof breadcrumbs === "string" ? [breadcrumbs] : slideEnvironment.sectionTrail;

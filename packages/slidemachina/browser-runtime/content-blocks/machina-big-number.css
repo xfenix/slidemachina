@@ -1,11 +1,10 @@
 @layer slidemachina {
-  /* The figure is as wide as its column: a number wider than that gets a smaller font in big-number-component.tsx. */
-  [data-slide] [data-big-number] {
+  /* The figure is as wide as its column: a number wider than that gets a smaller font in width-fitting.ts. */
+  [data-slide] .machina-big-number {
     align-self: stretch;
-    margin: 0 0 var(--block-gap);
   }
 
-  [data-slide] [data-big-number] > p {
+  [data-slide] .machina-big-number > p {
     margin: 0;
     color: var(--big-number-color);
     font-family: var(--font-heading);
@@ -18,11 +17,11 @@
     text-box: trim-both cap alphabetic;
   }
 
-  [data-slide][data-align="center"] [data-big-number] > figcaption {
+  [data-slide][data-align="center"] .machina-big-number > figcaption {
     margin-inline: auto;
   }
 
-  [data-slide] [data-big-number] > figcaption {
+  [data-slide] .machina-big-number > figcaption {
     max-width: 14em;
     margin-top: 36px;
     color: var(--muted-color);

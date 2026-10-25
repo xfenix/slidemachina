@@ -7,7 +7,7 @@ export type VideoProperties = MediaPlacement & {
   poster?: string;
   loop?: boolean;
   controls?: boolean;
-  // A <Caption> here stays with the video, as with <Image>.
+  // A <figcaption> here stays with the video, as with <Image>.
   children?: ReactNode;
 };
 

@@ -11,7 +11,7 @@ export type QRProperties = {
   // L, M, Q or H: a higher level survives more damage and needs more modules.
   correction?: QRCorrection;
   color?: string;
-  // A <Caption> here stays with the code: under it and from its left edge.
+  // A <figcaption> here stays with the code: under it and from its left edge.
   children?: ReactNode;
 };
 

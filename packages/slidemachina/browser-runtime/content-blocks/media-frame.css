@@ -39,13 +39,13 @@
     min-height: 0;
   }
 
-  [data-slide] [data-media-group] > [data-media] + [data-caption] {
+  [data-slide] [data-media-group] > [data-media] + figcaption {
     contain: inline-size;
     margin: var(--caption-gap) 0 0;
   }
 
   /* The picture leaves room for one line of caption, so the group ends on the bottom line of the content; a longer caption runs below it. */
-  [data-slide] [data-media-group]:has(> [data-caption]) {
+  [data-slide] [data-media-group]:has(> figcaption) {
     --media-caption-space: calc(var(--caption-gap) + 1cap);
     font-size: var(--caption-size);
   }

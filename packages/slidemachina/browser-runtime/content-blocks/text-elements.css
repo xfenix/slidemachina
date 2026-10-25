@@ -1,5 +1,7 @@
 @layer slidemachina {
-  [data-slide] [data-caption] {
+  /* A caption of a block and a note: small muted text. Captions of quotes and big numbers have their own look. */
+  [data-slide] :not(figure) > figcaption,
+  [data-slide] .machina-note {
     max-width: var(--text-max-width);
     margin: 0 0 var(--block-gap);
     color: var(--muted-color);
@@ -10,13 +12,18 @@
   }
 
   /* A caption belongs to the block above it: the gap is measured from the block to the caption's capitals. */
-  [data-slide] :is([data-media], [data-media-frame], [data-code], [data-table], [data-scene], [data-diagram], [data-sequence], [data-big-number], [data-quote]) + [data-caption] {
+  [data-slide] :is([data-media], [data-media-frame], [data-code], table, [data-scene], [data-diagram], [data-sequence], figure) + figcaption {
     margin-top: calc(var(--caption-gap) - var(--block-gap));
   }
 
   /* A scene draws its objects in the middle of its canvas, so its caption stands centred under them. */
-  [data-slide] [data-scene="block"] + [data-caption] {
+  [data-slide] [data-scene="block"] + figcaption {
     align-self: center;
     text-align: center;
+  }
+
+  /* The lead under a heading: text of the usual size in the muted colour. */
+  [data-slide] .machina-lead {
+    color: var(--muted-color);
   }
 }

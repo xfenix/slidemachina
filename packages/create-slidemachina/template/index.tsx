@@ -7,17 +7,17 @@ export default (
   <Machina.Presentation title="Мой доклад" lang="ru" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
     <Machina.Slide cover>
       <h1>Мой доклад</h1>
-      <p className="text-(--muted-color)">Имя докладчика, 2026</p>
+      <p className="machina-lead">Имя докладчика, 2026</p>
     </Machina.Slide>
 
     <Machina.Section title="Начало">
       <Machina.Slide>
         <h2>Три мысли</h2>
-        <Machina.List step>
+        <ul data-steps>
           <li>Пункт появляется по нажатию пробела</li>
           <li>Слайды лежат в index.tsx, тема - в style.css</li>
           <li>Сохранили файл - слайд обновился на том же шаге</li>
-        </Machina.List>
+        </ul>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -67,7 +67,7 @@ export default (
 
     <Machina.Slide cover>
       <h1>Спасибо</h1>
-      <p className="text-(--muted-color)">Вопросы?</p>
+      <p className="machina-lead">Вопросы?</p>
     </Machina.Slide>
   </Machina.Presentation>
 );

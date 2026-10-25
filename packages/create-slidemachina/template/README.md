@@ -48,16 +48,17 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 
 | Блок | Пример |
 | --- | --- |
-| Список по шагам | `<List step><li>Первый</li><li>Второй</li></List>` |
+| Список по шагам | `<ul data-steps><li>Первый</li><li>Второй</li></ul>`. `data-steps={3}` — с третьего шага |
 | Шаг на любом месте | `<span data-step data-step-effect="highlight">вот так</span>`, эффекты `rise`, `fade`, `scale`, `highlight`, `dim` |
 | Код | `<Code lang="ts">{"const answer = 42;"}</Code>` или `<Code src="./app.py" lines="2-4 \| 8" />` — строки по шагам |
 | Картинка | `<Image src={photo} stretch />` — на свободное место, `full` — на весь слайд |
 | Видео | `<Video src={clip} poster={still} stretch />` — играет без звука, пока слайд на экране |
-| Колонки | `<Columns widths="1 2">...</Columns>` |
-| Таблица | `<Table step><tr><th>…</th></tr>…</Table>` — строки по шагам |
-| Цитата | `<Quote author="Автор">Текст</Quote>` |
-| Большое число | `<BigNumber label="подпись">42</BigNumber>` |
-| Подпись и источник | `<Caption>…</Caption>`, `<Source>…</Source>` |
+| Колонки | `<div className="machina-columns"><div>…</div><div>…</div></div>` — каждая колонка в своём `<div>`. Ширины: `style={{ gridTemplateColumns: "1fr 2fr" }}` |
+| Таблица | `<table data-steps><thead>…</thead><tbody>…</tbody></table>` — строки по шагам |
+| Цитата | `<figure><blockquote>Текст</blockquote><figcaption>Автор</figcaption></figure>` |
+| Большое число | `<figure className="machina-big-number"><p>42</p><figcaption>подпись</figcaption></figure>` |
+| Текст | `<p className="machina-lead">` — вводная фраза, `<p>` — основной текст, `<p className="machina-note">` — пометка мелким шрифтом |
+| Подпись и источник | `<figcaption>…</figcaption>` сразу после блока, `<Source>…</Source>` |
 | QR-код | `<QR value="https://…" logo={logo} />` — на свободное место, фон прозрачный |
 | Схема | `<Diagram><Box id="a">A</Box><Box id="b">B</Box><Arrow from="a" to="b" /></Diagram>` |
 | Диаграмма обмена | `<Sequence><Actor id="a">A</Actor><Actor id="b">B</Actor><Message from="a" to="b" label="запрос" /></Sequence>` |
