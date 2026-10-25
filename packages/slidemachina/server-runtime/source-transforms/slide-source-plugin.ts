@@ -45,7 +45,7 @@ async function highlightCodeElement(
     languageName ??= path.extname(codeFilePath).slice(1);
   }
   if (codeText === undefined) return undefined;
-  return highlightCode(codeText, languageName ?? "text");
+  return highlightCode(codeText, languageName ?? "text", codeFileSource !== undefined);
 }
 
 // Build-time pass over the slide sources: highlights <Code> with Shiki and typographs the text on slides.

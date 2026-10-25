@@ -4,12 +4,16 @@ import { createStepAttributes } from "../../slide-steps/step-attributes.ts";
 import { useWidthFitting, type WidthFitting } from "../../presentation-core/width-fitting.ts";
 
 // Long lines get a smaller font down to 20 px, then wrap: code never sticks out of its block.
+// The box hangs out to the left with a negative margin, so that margin is room too; a column moved over by the hang has it as padding.
 const codeWidthFitting: WidthFitting = {
   findTextElement: (codeElement) => codeElement.querySelector("code"),
   measureRoom: (codeElement) => {
+    const roomElement = codeElement.parentElement;
+    if (roomElement === null) return 0;
     const codeStyle = getComputedStyle(codeElement);
-    const horizontalPadding = Number.parseFloat(codeStyle.paddingLeft) + Number.parseFloat(codeStyle.paddingRight);
-    return (codeElement.parentElement?.clientWidth ?? 0) - horizontalPadding;
+    const roomStyle = getComputedStyle(roomElement);
+    const takenWidths = [roomStyle.paddingLeft, roomStyle.paddingRight, codeStyle.marginLeft, codeStyle.paddingLeft, codeStyle.paddingRight];
+    return takenWidths.reduce((remainingWidth, takenWidth) => remainingWidth - Number.parseFloat(takenWidth), roomElement.clientWidth);
   },
   smallestFontSize: 20,
 };
@@ -17,13 +21,15 @@ const codeWidthFitting: WidthFitting = {
 // [text, colour on light slides, colour on dark slides]; whitespace is a plain string.
 type CodeFragment = string | [string, string | undefined, string | undefined];
 type HighlightedCode = {
-  lines: Array<{ tokens: CodeFragment[]; marked: boolean }>;
+  // number is the line in the source: a line with only a [!code …] comment is gone from the list.
+  lines: Array<{ tokens: CodeFragment[]; marked: boolean; number?: number }>;
 };
 export type CodeProperties = {
   children?: string;
   lang?: string;
   src?: string;
   lines?: string;
+  numbers?: boolean;
   title?: string;
   // Filled in by the build from Shiki; written by hand only without the slidemachina CLI.
   highlightedCode?: HighlightedCode;
@@ -44,22 +50,32 @@ function renderCodeFragment(codeFragment: CodeFragment, fragmentIndex: number) {
   );
 }
 
-export function Code({ children, lang, src, lines, title, highlightedCode }: CodeProperties) {
+export function Code({ children, lang, src, lines, numbers, title, highlightedCode }: CodeProperties) {
   const codeElementReference = useRef<HTMLPreElement>(null);
   const shownCode = highlightedCode ?? listPlainLines(children ?? "");
   const codeLineCount = shownCode.lines.length;
-  const lineSteps = useMemo(() => parseLineSteps(lines, codeLineCount), [lines, codeLineCount]);
+  const lastLineNumber = shownCode.lines.at(-1)?.number ?? codeLineCount;
+  const lineSteps = useMemo(() => parseLineSteps(lines, lastLineNumber), [lines, lastLineNumber]);
   useCodeLineSteps(codeElementReference, lineSteps);
   useWidthFitting(codeElementReference, codeWidthFitting, shownCode);
   const shownTitle = title ?? src?.split("/").at(-1);
+  const isOneLine = codeLineCount === 1 && shownTitle === undefined && numbers !== true;
+  const numberStyle = numbers === true ? ({ "--code-number-digits": String(lastLineNumber).length } as CSSProperties) : undefined;
 
   return (
-    <pre ref={codeElementReference} data-code data-lang={lang} data-one-line={codeLineCount === 1 && shownTitle === undefined ? "" : undefined}>
+    <pre
+      ref={codeElementReference}
+      data-code
+      data-lang={lang}
+      data-one-line={isOneLine ? "" : undefined}
+      data-numbered={numbers === true ? "" : undefined}
+      style={numberStyle}
+    >
       {shownTitle !== undefined && <span data-code-title>{shownTitle}</span>}
       <div data-code-viewport>
         <code>
           {shownCode.lines.map((codeLine, lineIndex) => (
-            <span key={lineIndex} data-code-line data-marked={codeLine.marked || undefined}>
+            <span key={lineIndex} data-code-line={codeLine.number ?? lineIndex + 1} data-marked={codeLine.marked || undefined}>
               {codeLine.tokens.map(renderCodeFragment)}
             </span>
           ))}

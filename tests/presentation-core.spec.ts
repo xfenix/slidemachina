@@ -226,6 +226,19 @@ test("демо листается, показывает шаги и навига
     await jumpToSlide(page, 20);
     await expect(currentSlide(page).locator("[data-code-title]")).toHaveText("agent.py");
     expect(await listLitLines(page)).toEqual([10, 11, 12, 13]);
+    // Numbers are file lines drawn by CSS: copying the code leaves them out.
+    const numberedCode = await currentSlide(page).locator("[data-code]").evaluate((codeElement) => {
+      const lineElements = [...codeElement.querySelectorAll<HTMLElement>("[data-code-line]")];
+      const selectedCode = window.getSelection()!;
+      selectedCode.selectAllChildren(codeElement.querySelector("code")!);
+      const copiedText = selectedCode.toString();
+      selectedCode.removeAllRanges();
+      return {
+        shownNumbers: lineElements.slice(0, 3).map((lineElement) => getComputedStyle(lineElement, "::before").content),
+        copiedStart: copiedText.slice(0, 11),
+      };
+    });
+    expect(numberedCode).toEqual({ shownNumbers: ['"1"', '"2"', '"3"'], copiedStart: "import json" });
     const codeViewport = currentSlide(page).locator("[data-code-viewport]");
     const firstScrollTop = await codeViewport.evaluate((scrolledViewport) => scrolledViewport.scrollTop);
     for (let stepPress = 0; stepPress < 4; stepPress += 1) await page.keyboard.press("ArrowRight");
@@ -590,6 +603,10 @@ test("демо листается, показывает шаги и навига
           const codeRight = codeViewport.closest("[data-code]")!.getBoundingClientRect().right;
           if (codeViewport.scrollWidth > codeViewport.clientWidth + 1) foundProblems.push(`${describeSlide(codeViewport)}: код прокручивается`);
           if (codeRight > roomElement.getBoundingClientRect().right + 1) foundProblems.push(`${describeSlide(codeViewport)}: код шире своей области`);
+          const textLine = roomElement.getBoundingClientRect().left + Number.parseFloat(getComputedStyle(roomElement).paddingLeft);
+          const codeStart = codeViewport.querySelector("[data-code-line]")!.getBoundingClientRect().left;
+          const hangsCode = !codeViewport.closest("[data-align='center']");
+          if (hangsCode && Math.abs(codeStart - textLine) > 1) foundProblems.push(`${describeSlide(codeViewport)}: код не на линии текста`);
         }
         for (const numberElement of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] .machina-big-number > p")) {
           const numberRange = document.createRange();

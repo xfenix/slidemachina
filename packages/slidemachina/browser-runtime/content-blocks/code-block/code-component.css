@@ -12,15 +12,20 @@
 }
 
 @layer slidemachina {
+  /* Hangs like an opening quote: the box and its padding stick out into the margin, the code starts on the text line.
+     The right edge stays on the frame line: ragged code has no line of its own there. */
   [data-slide] [data-code] {
+    --code-padding-start: var(--code-padding-inline);
+    --code-number-gutter: 0px;
+    --code-hang: calc(var(--hanging-punctuation) * (var(--code-padding-start) + var(--code-number-gutter)));
     display: flex;
     flex-direction: column;
     flex-shrink: 1;
     box-sizing: border-box;
     min-height: 0;
-    max-width: 100%;
-    margin: 0 0 var(--block-gap);
-    padding: 40px 48px;
+    max-width: calc(100% + var(--code-hang));
+    margin: 0 0 var(--block-gap) calc(-1 * var(--code-hang));
+    padding: var(--code-padding-block) var(--code-padding-inline) var(--code-padding-block) var(--code-padding-start);
     border-radius: var(--block-radius);
     background: var(--code-background);
     box-shadow: inset 0 0 0 1px var(--hairline-color);
@@ -31,6 +36,61 @@
     line-height: 1.5;
     text-align: start;
     tab-size: 4;
+  }
+
+  /* A centred slide has no text line to hang from. */
+  [data-slide][data-align="center"] [data-code] {
+    --hanging-punctuation: 0;
+  }
+
+  /* Numbers fill the margin, so the box reaches the slide edge and loses its left corners there.
+     The code stays on the text line while the numbers fit; numbers with three digits push it to the right. */
+  [data-slide] [data-code][data-numbered] {
+    --code-number-gap: 1ch;
+    --code-number-gutter: calc(var(--code-number-digits) * 1ch + var(--code-number-gap));
+    --code-number-edge: 0.5ch;
+    --code-hang: calc(var(--hanging-punctuation) * var(--frame-padding));
+    --code-padding-start: calc(
+      var(--hanging-punctuation) * max(var(--code-number-edge), var(--frame-padding) - var(--code-number-gutter)) +
+        (1 - var(--hanging-punctuation)) * var(--code-padding-inline)
+    );
+    border-start-start-radius: calc((1 - var(--hanging-punctuation)) * var(--block-radius));
+    border-end-start-radius: calc((1 - var(--hanging-punctuation)) * var(--block-radius));
+  }
+
+  [data-slide] [data-code][data-numbered] :is(code, [data-code-title]) {
+    padding-left: var(--code-number-gutter);
+  }
+
+  [data-slide] [data-code][data-numbered] [data-code-line] {
+    position: relative;
+  }
+
+  /* A generated number is not text: copying skips it, and a code morph fades it with the box instead of moving it like a word. */
+  [data-slide] [data-code][data-numbered] [data-code-line]:before {
+    content: attr(data-code-line);
+    position: absolute;
+    right: calc(100% + var(--code-number-gap));
+    color: var(--muted-color);
+    text-indent: 0;
+    user-select: none;
+  }
+
+  [data-slide] [data-code][data-numbered][data-has-lit-lines] [data-code-line][data-lit]:before {
+    color: var(--text-color);
+  }
+
+  /* The column moves over by the code's hang: the box starts on the column edge, the code keeps the column's text line. */
+  [data-slide]:not([data-align="center"]) .machina-columns > div:has(> [data-code]:not([data-one-line])) {
+    --column-code-hang: var(--code-padding-inline);
+  }
+
+  [data-slide]:not([data-align="center"]) .machina-columns > div:has(> [data-code][data-numbered]) {
+    --column-code-hang: var(--frame-padding);
+  }
+
+  [data-slide] .machina-columns > div:not(:first-child) > [data-code][data-numbered] {
+    border-radius: var(--block-radius);
   }
 
   [data-slide] [data-code-title] {
@@ -91,15 +151,26 @@
 
   /* A one-line command reads as a line of the slide: the size of the text, without the grey box. */
   [data-slide] [data-code][data-one-line] {
+    --code-hang: 0px;
     padding: 0;
     background: none;
     box-shadow: none;
     font-size: var(--command-size);
   }
 
+  [data-slide] [data-code][data-one-line] [data-code-viewport] {
+    overflow: visible;
+    mask-image: none;
+  }
+
+  /* The prompt hangs like a list bullet: zero width, sticking out to the left, the command starts on the text line. */
   [data-slide] [data-code][data-one-line]:is([data-lang="bash"], [data-lang="sh"], [data-lang="shell"], [data-lang="zsh"]) [data-code-line]:before {
     content: var(--command-prompt);
+    display: inline-flex;
+    justify-content: flex-end;
+    max-width: calc((1 - var(--hanging-punctuation)) * 100%);
     color: var(--accent-color);
+    white-space: pre;
   }
 
   /* Opacity sits on the tokens, not the line: a morph snapshot keeps the element's own opacity, not its parent's. */

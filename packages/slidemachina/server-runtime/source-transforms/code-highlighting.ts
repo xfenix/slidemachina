@@ -4,6 +4,7 @@ import type { BundledLanguage } from "shiki";
 import type { Element, Text } from "hast";
 
 type CodeToken = string | [string, string | undefined, string | undefined];
+type HighlightedLine = { tokens: CodeToken[], marked: boolean, number: number };
 
 const codeThemes = { light: "github-light-high-contrast", dark: "github-dark-default" };
 
@@ -18,9 +19,10 @@ async function loadHighlighter(languageName: string) {
 }
 
 // Code inside JSX is indented with the markup; the slide shows it from the left edge.
-function dedentCode(codeText: string): string {
+// A file keeps its leading blank lines, so line numbers stay the numbers of the file.
+function dedentCode(codeText: string, keepsLeadingLines: boolean): string {
   const codeLines = codeText.replace(/\r\n?/g, "\n").split("\n");
-  while (codeLines[0]?.trim() === "") codeLines.shift();
+  while (!keepsLeadingLines && codeLines[0]?.trim() === "") codeLines.shift();
   while (codeLines.length > 0 && codeLines.at(-1)?.trim() === "") codeLines.pop();
   const indentWidths = codeLines.filter((codeLine) => codeLine.trim() !== "").map((codeLine) => codeLine.search(/\S/));
   const commonIndent = indentWidths.length > 0 ? Math.min(...indentWidths) : 0;
@@ -32,7 +34,7 @@ function readStyleColor(inlineStyle: unknown, propertyName: string): string | un
 }
 
 // A token is [text, light colour, dark colour]; whitespace stays a plain string so it never becomes a morph layer.
-function compactLineElement(lineElement: Element): { tokens: CodeToken[], marked: boolean } {
+function compactLineElement(lineElement: Element): HighlightedLine {
   const tokenElements = lineElement.children as Element[];
   const lineTokens: CodeToken[] = tokenElements.map((tokenElement) => {
     const tokenText = (tokenElement.children as Text[]).map((textNode) => textNode.value).join("");
@@ -42,18 +44,19 @@ function compactLineElement(lineElement: Element): { tokens: CodeToken[], marked
   });
   while (typeof lineTokens.at(-1) === "string") lineTokens.pop();
   const lineClasses = [lineElement.properties.class ?? []].flat();
-  return { tokens: lineTokens, marked: lineClasses.includes("highlighted") };
+  return { tokens: lineTokens, marked: lineClasses.includes("highlighted"), number: Number(lineElement.properties.dataSourceLine) };
 }
 
 // Shiki runs only here, at build time: the browser gets coloured tokens and never loads grammars.
-export async function highlightCode(codeText: string, languageName: string): Promise<{ lines: { tokens: CodeToken[], marked: boolean }[] }> {
+export async function highlightCode(codeText: string, languageName: string, isWholeFile: boolean): Promise<{ lines: HighlightedLine[] }> {
   const { shikiHighlighter, loadedLanguage } = await loadHighlighter(languageName);
-  const codeTree = shikiHighlighter.codeToHast(dedentCode(codeText), {
+  const codeTree = shikiHighlighter.codeToHast(dedentCode(codeText, isWholeFile), {
     lang: loadedLanguage,
     themes: codeThemes,
     defaultColor: false,
     mergeWhitespaces: false,
-    transformers: [transformerNotationHighlight()],
+    // The number is taken before the notation transformer drops lines that hold only a [!code …] comment.
+    transformers: [{ line: (lineElement, sourceLineNumber) => void (lineElement.properties.dataSourceLine = sourceLineNumber) }, transformerNotationHighlight()],
   });
   const preElement = codeTree.children[0] as Element;
   const codeElement = preElement.children[0] as Element;

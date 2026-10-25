@@ -51,7 +51,7 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 | --- | --- |
 | Список по шагам | `<ul data-steps><li>Первый</li><li>Второй</li></ul>`. `data-steps={3}` — с третьего шага |
 | Шаг на любом месте | `<span data-step data-step-effect="highlight">вот так</span>`, эффекты `rise`, `fade`, `scale`, `highlight`, `dim` |
-| Код | `<Code lang="ts">{"const answer = 42;"}</Code>` или `<Code src="./app.py" lines="2-4 \| 8" />` — строки по шагам |
+| Код | `<Code lang="ts">{"const answer = 42;"}</Code>` или `<Code src="./app.py" lines="2-4 \| 8" numbers />` — строки по шагам, `numbers` — номера строк |
 | Картинка | `<Image src={photo} stretch />` — на свободное место, `full` — на весь слайд |
 | Видео | `<Video src={clip} poster={still} stretch />` — играет без звука, пока слайд на экране |
 | Колонки | `<div className="machina-columns"><div>…</div><div>…</div></div>` — каждая колонка в своём `<div>`. Ширины: `style={{ gridTemplateColumns: "1fr 2fr" }}` |

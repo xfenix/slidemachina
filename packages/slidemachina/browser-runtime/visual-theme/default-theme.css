@@ -73,6 +73,9 @@
     --hairline-color: rgb(21 23 28 / 0.14);
     --hairline-color-on-dark: rgb(255 255 255 / 0.14);
     --code-background: #f4f5f8;
+    --code-padding-block: 40px;
+    /* The code box hangs into the margin by this padding, so it must stay under --frame-padding. */
+    --code-padding-inline: 48px;
     --code-background-on-dark: rgb(255 255 255 / 0.06);
     /* Printed code fades into the code box: the box over the slide background, as it looks. */
     --code-fade-color: var(--code-background);
@@ -319,13 +322,17 @@
     margin-left: calc(var(--hanging-punctuation) * -1 * var(--list-number-indent));
   }
 
-  /* A later column has no margin to hang into: its content moves over by the hang, so the gap to the neighbour is measured to the markers. */
-  [data-slide] .machina-columns > div:not(:first-child):has(> ul) {
-    padding-left: calc(var(--hanging-punctuation) * var(--list-bullet-indent));
+  /* A later column has no margin to hang into: its content moves over by the deepest hang, so the gap to the neighbour is measured to the markers or the code box. */
+  [data-slide] .machina-columns > div:not(:first-child) {
+    padding-left: calc(var(--hanging-punctuation) * max(var(--column-list-hang, 0px), var(--column-code-hang, 0px)));
   }
 
-  [data-slide] .machina-columns > div:not(:first-child):has(> ol) {
-    padding-left: calc(var(--hanging-punctuation) * var(--list-number-indent));
+  [data-slide] .machina-columns > div:has(> ul) {
+    --column-list-hang: var(--list-bullet-indent);
+  }
+
+  [data-slide] .machina-columns > div:has(> ol) {
+    --column-list-hang: var(--list-number-indent);
   }
 
   [data-slide] .machina-columns > :is(ul, ol):not(:first-child) {

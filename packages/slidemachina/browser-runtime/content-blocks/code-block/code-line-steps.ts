@@ -4,14 +4,15 @@ import { stepChangeEventName } from "../../slide-steps/step-visibility.ts";
 type LineScroll = ScrollBehavior | "keep";
 
 // "1 | 3-4 | 6": line 1 first, then lines 3 and 4 on the next step, then line 6. An empty part lights every line.
-export function parseLineSteps(linesSpecification: string | undefined, codeLineCount: number): Array<Set<number>> {
+// Numbers are lines of the source, the same numbers the numbers prop shows.
+export function parseLineSteps(linesSpecification: string | undefined, lastLineNumber: number): Array<Set<number>> {
   if (linesSpecification === undefined) return [new Set()];
   return linesSpecification.split("|").map((stepPart) => {
     const lineNumbers = new Set<number>();
     for (const rangeText of stepPart.split(/[\s,]+/).filter(Boolean)) {
       const [firstLineText, lastLineText = firstLineText] = rangeText.split("-");
-      const lastLineNumber = Math.min(Number(lastLineText), codeLineCount);
-      for (let lineNumber = Number(firstLineText); lineNumber <= lastLineNumber; lineNumber += 1) lineNumbers.add(lineNumber);
+      const rangeEnd = Math.min(Number(lastLineText), lastLineNumber);
+      for (let lineNumber = Number(firstLineText); lineNumber <= rangeEnd; lineNumber += 1) lineNumbers.add(lineNumber);
     }
     return lineNumbers;
   });
@@ -36,7 +37,7 @@ function scrollToLitLines(viewportElement: HTMLElement, litLineElements: HTMLEle
 function lightLines(codeElement: HTMLElement, litLineNumbers: Set<number>, lineScroll: LineScroll) {
   const lineElements = [...codeElement.querySelectorAll<HTMLElement>("[data-code-line]")];
   const litLineElements = lineElements.filter(
-    (lineElement, lineIndex) => litLineNumbers.has(lineIndex + 1) || lineElement.hasAttribute("data-marked"),
+    (lineElement) => litLineNumbers.has(Number(lineElement.dataset.codeLine)) || lineElement.hasAttribute("data-marked"),
   );
   for (const lineElement of lineElements) lineElement.toggleAttribute("data-lit", litLineElements.includes(lineElement));
   codeElement.toggleAttribute("data-has-lit-lines", litLineElements.length > 0);
