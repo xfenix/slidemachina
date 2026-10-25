@@ -2,15 +2,14 @@ import * as Machina from "slidemachina";
 import duskPicture from "./images/dusk.svg";
 import editorPicture from "./images/dusk.svg";
 import glassCardsPicture from "./images/glass-cards.webp";
-import logoOnDarkPicture from "../../assets/logos/logo-on-dark.svg";
-import logoPicture from "../../assets/logos/logo-light.svg";
 import navigatorPicture from "./images/navigator.webp";
 import presentationListPicture from "./images/presentation-list.webp";
 import sceneOrbitPoster from "./images/scene-orbit-poster.webp";
 import sceneOrbitVideo from "./images/scene-orbit.webm";
+import { SlidemachinaLogo } from "./slidemachina-logo.tsx";
 
 export default (
-  <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
+  <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={SlidemachinaLogo}>
     <Machina.Slide cover>
       <h1>slidemachina</h1>
       <p className="text-(--muted-color)">Презентации на React</p>

@@ -91,6 +91,12 @@
     height: var(--logo-height);
   }
 
+  [data-logo] > svg {
+    display: block;
+    width: auto;
+    height: 100%;
+  }
+
   [data-slide][data-tone="dark"] [data-logo="light"] {
     filter: var(--logo-filter-on-dark);
   }

@@ -75,6 +75,14 @@ export function Slide({
 }
 
 function SlideLogo({ presentationLogo, slideTone }: { presentationLogo: PresentationLogo; slideTone: SlideTone }) {
+  if (typeof presentationLogo === "function") {
+    const LogoComponent = presentationLogo;
+    return (
+      <div data-logo={slideTone}>
+        <LogoComponent dark={slideTone === "dark"} />
+      </div>
+    );
+  }
   const logoVersions = typeof presentationLogo === "string" ? { light: presentationLogo } : presentationLogo;
   const darkLogo = slideTone === "dark" ? logoVersions.dark : undefined;
   return <img data-logo={darkLogo === undefined ? "light" : "dark"} src={darkLogo ?? logoVersions.light} alt="" />;

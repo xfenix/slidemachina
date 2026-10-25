@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, type RefObject } from "react";
+import { createContext, useContext, useMemo, type ComponentType, type RefObject } from "react";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
@@ -8,7 +8,8 @@ export const SlideEnvironmentContext = createContext<SlideEnvironment | null>(nu
 export type SlideAlign = "left" | "center";
 
 // Keys name the slide tone: "dark" is the logo for dark slides. Without it the light logo is recoloured by a filter.
-export type PresentationLogo = string | { light: string; dark?: string };
+// A component draws both versions itself and gets dark={true} on dark slides.
+export type PresentationLogo = string | { light: string; dark?: string } | ComponentType<{ dark: boolean }>;
 export type PresentationSettings = {
   align: SlideAlign;
   logo?: PresentationLogo;
