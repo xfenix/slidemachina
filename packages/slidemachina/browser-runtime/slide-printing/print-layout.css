@@ -109,7 +109,7 @@
     [data-print-page] [data-slide]:has(> [data-content] > h1[data-section-number]) {
       background-image: radial-gradient(
         var(--section-glow-shape),
-        color-mix(in srgb, var(--section-printed-background), var(--accent-color) var(--section-glow-strength)),
+        color-mix(in srgb, var(--section-printed-background), var(--section-glow-color) var(--section-glow-strength)),
         var(--section-printed-background) var(--section-glow-reach)
       );
     }

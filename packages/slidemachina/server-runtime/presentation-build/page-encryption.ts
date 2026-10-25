@@ -35,7 +35,7 @@ export async function encryptPage(pagePath: string, encryptedPagePath: string, p
         ["--template-error", pageTexts.error],
         ["--template-toggle-show", pageTexts.showPassword],
         ["--template-toggle-hide", pageTexts.hidePassword],
-        ["--template-color-primary", "#4c5ee8"],
+        ["--template-color-primary", "#7000d1"],
         ["--template-color-secondary", "#0e1018"],
       ].flat(),
       { env: { ...process.env, STATICRYPT_PASSWORD: pageSecret } },

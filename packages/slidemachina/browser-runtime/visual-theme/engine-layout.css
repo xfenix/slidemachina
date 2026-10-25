@@ -69,6 +69,9 @@
   }
 
   [data-slide][data-tone="dark"] {
+    --accent-color: var(--accent-color-on-dark);
+    /* Repeated here: a variable from :root keeps the accent it was computed with there. */
+    --section-number-color: color-mix(in srgb, var(--accent-color) var(--section-number-strength), transparent);
     --text-color: var(--text-color-on-dark);
     --muted-color: var(--muted-color-on-dark);
     --hairline-color: var(--hairline-color-on-dark);

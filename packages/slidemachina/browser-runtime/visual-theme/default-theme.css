@@ -43,14 +43,17 @@
 
     --slide-background: #ffffff;
     --section-background: #1c2030;
+    /* Computed here, so dark slides that swap in the light accent keep the deep one in the glow, on screen and in print. */
+    --section-glow-color: var(--accent-color);
     --section-glow-shape: 120% 90% at 85% 110%;
     --section-glow-strength: 34%;
     --section-glow-reach: 62%;
     /* A soft glow of the accent and a hint of grain over the section colour. */
-    --section-texture: radial-gradient(var(--section-glow-shape), color-mix(in srgb, var(--accent-color) var(--section-glow-strength), transparent), transparent var(--section-glow-reach)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23grain)' opacity='0.05'/%3E%3C/svg%3E");
+    --section-texture: radial-gradient(var(--section-glow-shape), color-mix(in srgb, var(--section-glow-color) var(--section-glow-strength), transparent), transparent var(--section-glow-reach)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23grain)' opacity='0.05'/%3E%3C/svg%3E");
     /* Print leaves the grain out and mixes in its average instead, so the section colour stays as on screen. */
     --section-printed-background: color-mix(in srgb, var(--section-background), rgb(187 187 187) 2.5%);
-    --section-number-color: color-mix(in srgb, var(--accent-color) 62%, transparent);
+    --section-number-strength: 62%;
+    --section-number-color: color-mix(in srgb, var(--accent-color) var(--section-number-strength), transparent);
     --section-number-size: 440px;
     --dark-background: #14161d;
     --letterbox-background: #000000;
@@ -60,7 +63,9 @@
     --muted-color: #6c7080;
     --text-color-on-dark: #f4f5f8;
     --muted-color-on-dark: #a3a8b8;
-    --accent-color: #4c5ee8;
+    --accent-color: #7000d1;
+    /* The same hue, light enough to read on dark slides and still inside sRGB; a light accent stays as it is. */
+    --accent-color-on-dark: oklch(from var(--accent-color) max(l, 0.68) min(c, 0.19) h);
     --hairline-color: rgb(21 23 28 / 0.14);
     --hairline-color-on-dark: rgb(255 255 255 / 0.14);
     --code-background: #f4f5f8;
