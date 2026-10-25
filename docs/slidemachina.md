@@ -103,7 +103,7 @@ export default (
 |---|---|
 | `Presentation` | `title`; `lang` (по умолчанию `en`); `align` (`left` или `center`, по умолчанию `left`); `logo` — строка, `{ light, dark }` или компонент с пропом `dark`; `transition`; `speed`; `breadcrumbsSeparator` — разделитель раздела и подраздела в крошках и навигаторе, по умолчанию `›`; `typography={false}` выключает типограф; `date` (`"2026-10-16"`) — для списка в репозитории |
 | `Section` | `title`; `cover={false}` убирает слайд раздела, `cover={<Slide>…</Slide>}` ставит свой слайд вместо стандартного, крошки и навигатор остаются. Вложенный `Section` — подраздел |
-| `Slide` | `align`; `cover`; `background` — цвет или картинка; `tone` (`dark` или `light`); `transition`; `speed`; `plain`; `logo={false}`; `breadcrumbs={false}` или свой текст; `number={false}`; `className` |
+| `Slide` | `align`; `cover`; `background` — цвет или картинка; `tone` (`dark` или `light`); `transition`; `speed`; `plain`; `logo` — `false` или место: `"top-right"` (по умолчанию), `"top"`, `"center"` над заголовком, `"bottom"`; `breadcrumbs={false}` или свой текст; `number={false}`; `className` |
 | `List` | `step` (`true` или номер первого шага); `effect`; `ordered` |
 | `Step` | `at` — номер шага; `effect` |
 
@@ -429,7 +429,7 @@ npx slidemachina build --html --pdf  # все презентации и спис
 |---|---|
 | Шрифты | `--font-text` (Onest), `--font-heading`, `--font-code` (JetBrains Mono) |
 | Цвета | `--accent-color`, `--text-color`, `--muted-color`, `--slide-background`, `--section-background`, `--dark-background`, `--hairline-color`; у части есть версии `-on-dark` |
-| Сетка | `--frame-padding` (64 px), `--frame-top` (88 px), `--content-bottom`, `--content-max-width` (2200 px), `--text-max-width` (60ch), `--logo-height`, `--logo-clearance` |
+| Сетка | `--frame-padding` (64 px), `--frame-top` (88 px), `--content-bottom`, `--content-max-width` (2200 px), `--text-max-width` (60ch), `--logo-height`, `--logo-center-height`, `--logo-clearance` |
 | Шрифты и размеры | Три начертания: текст обычный и жирный, код обычный. Четыре кегля: `--secondary-text-size` (28) — подписи, крошки, номер, источник, код, таблицы, текст и подписи схем, автор цитаты; `--text-size` (40) — основной текст, `h3` и команда в одну строку; `--heading-size` (56) — `h1` и `h2`; `--display-size` (112) — обложка, цитата, большое число. Блоки берут кегль с уровня, но каждый можно задать отдельно: `--caption-size`, `--code-size`, `--code-title-size`, `--command-size`, `--source-size`, `--table-text-size`, `--quote-size`, `--quote-author-size`, `--frame-text-size`, `--diagram-text-size`, `--diagram-label-size`, `--diagram-title-size`, `--cover-heading-size`, `--big-number-size` |
 | Блоки | `--heading-gap` (104 px) — от базовой линии заголовка слайда до заглавных букв или края блока под ним, `--block-gap` (40 px), `--caption-gap`, `--block-radius`, `--media-shadow`, `--code-background`, `--table-heading-color`, `--big-number-color` |
 | Раздел | `--section-texture`, `--section-number-color`, `--section-number-size` |

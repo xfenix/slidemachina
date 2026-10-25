@@ -5,6 +5,7 @@ import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { useStepVisibility } from "../slide-steps/step-visibility.ts";
 
+export type SlideLogoPlacement = "top-right" | "top" | "center" | "bottom";
 export type SlideProperties = {
   children?: ReactNode;
   align?: SlideAlign;
@@ -14,11 +15,12 @@ export type SlideProperties = {
   transition?: SlideTransition;
   speed?: TransitionSpeed;
   plain?: boolean;
-  logo?: boolean;
+  logo?: boolean | SlideLogoPlacement;
   breadcrumbs?: boolean | string;
   number?: boolean;
   className?: string;
 };
+type SlideLogoProperties = { presentationLogo: PresentationLogo; slideTone: SlideTone; logoPlacement: SlideLogoPlacement };
 
 export function Slide({
   children,
@@ -43,7 +45,8 @@ export function Slide({
   const slideTone = tone ?? detectedTone;
   const breadcrumbTrail = typeof breadcrumbs === "string" ? [breadcrumbs] : slideEnvironment.sectionTrail;
   const presentationLogo = presentationSettings.logo;
-  const showsLogo = !plain && logo && presentationLogo !== undefined;
+  const logoPlacement = logo === true ? "top-right" : logo;
+  const showsLogo = !plain && logoPlacement !== false && presentationLogo !== undefined;
   const showsBreadcrumbs = !plain && !cover && breadcrumbs !== false && breadcrumbTrail.length > 0;
   const showsNumber = !plain && !cover && number;
 
@@ -60,8 +63,11 @@ export function Slide({
       inert={!slideEnvironment.isCurrentSlide}
       style={{ ...createBackgroundStyle(background), "--transition-speed": resolveSpeedFactor(speed ?? presentationSettings.speed) } as CSSProperties}
     >
-      {showsLogo && <SlideLogo presentationLogo={presentationLogo} slideTone={slideTone} />}
-      <div data-content>{children}</div>
+      {showsLogo && logoPlacement !== "center" && <SlideLogo presentationLogo={presentationLogo} slideTone={slideTone} logoPlacement={logoPlacement} />}
+      <div data-content>
+        {showsLogo && logoPlacement === "center" && <SlideLogo presentationLogo={presentationLogo} slideTone={slideTone} logoPlacement={logoPlacement} />}
+        {children}
+      </div>
       {showsBreadcrumbs && (
         <nav data-breadcrumbs>
           {breadcrumbTrail.map((sectionTitle, trailPosition) => (
@@ -74,18 +80,18 @@ export function Slide({
   );
 }
 
-function SlideLogo({ presentationLogo, slideTone }: { presentationLogo: PresentationLogo; slideTone: SlideTone }) {
+function SlideLogo({ presentationLogo, slideTone, logoPlacement }: SlideLogoProperties) {
   if (typeof presentationLogo === "function") {
     const LogoComponent = presentationLogo;
     return (
-      <div data-logo={slideTone}>
+      <div data-logo={slideTone} data-logo-placement={logoPlacement}>
         <LogoComponent dark={slideTone === "dark"} />
       </div>
     );
   }
   const logoVersions = typeof presentationLogo === "string" ? { light: presentationLogo } : presentationLogo;
   const darkLogo = slideTone === "dark" ? logoVersions.dark : undefined;
-  return <img data-logo={darkLogo === undefined ? "light" : "dark"} src={darkLogo ?? logoVersions.light} alt="" />;
+  return <img data-logo={darkLogo === undefined ? "light" : "dark"} data-logo-placement={logoPlacement} src={darkLogo ?? logoVersions.light} alt="" />;
 }
 
 function createBackgroundStyle(backgroundValue: string | undefined): CSSProperties | undefined {

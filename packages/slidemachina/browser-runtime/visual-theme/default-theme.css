@@ -85,6 +85,7 @@
     --content-max-width: 2200px;
     --text-max-width: 60ch;
     --logo-height: 48px;
+    --logo-center-height: 96px;
     --logo-clearance: 360px;
     --logo-filter-on-dark: brightness(0) invert(1);
     --breadcrumbs-separator: "›";

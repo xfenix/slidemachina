@@ -94,6 +94,23 @@
     height: var(--logo-height);
   }
 
+  [data-logo]:is([data-logo-placement="top"], [data-logo-placement="bottom"]) {
+    right: auto;
+    left: 50%;
+    translate: -50% 0;
+  }
+
+  [data-logo][data-logo-placement="bottom"] {
+    top: auto;
+    bottom: var(--frame-padding);
+  }
+
+  /* Above the title, in the flow of the content: the title moves down to make room. */
+  [data-logo][data-logo-placement="center"] {
+    position: static;
+    height: var(--logo-center-height);
+  }
+
   [data-logo] > svg {
     display: block;
     width: auto;

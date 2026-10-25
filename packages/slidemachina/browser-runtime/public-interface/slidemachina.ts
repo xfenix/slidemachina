@@ -1,6 +1,6 @@
 export { Presentation, type PresentationProperties } from "../presentation-core/presentation-component.tsx";
 export { Section, type SectionProperties } from "../presentation-core/section-component.tsx";
-export { Slide, type SlideProperties } from "../presentation-core/slide-component.tsx";
+export { Slide, type SlideLogoPlacement, type SlideProperties } from "../presentation-core/slide-component.tsx";
 export { List, type ListProperties } from "../slide-steps/list-component.tsx";
 export { Step, type StepProperties } from "../slide-steps/step-component.tsx";
 export { Code, type CodeProperties } from "../content-blocks/code-block/code-component.tsx";
