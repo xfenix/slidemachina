@@ -2,7 +2,7 @@
 
 Движок HTML-презентаций на React. Заменяет reveal.js 4 в презентациях `~/web/private-presentations` и `~/web/conference-presentations/revealjs`.
 
-Этот документ заменяет файлы стадий `docs/stage1.md` … `docs/stage10.md`. Их копии лежат в снимках `/tmp/slidemachina-snapshots/`.
+В документе итог стадий 1–20. Файлы стадий удалены, их история — в git.
 
 ## Что это и для кого
 
