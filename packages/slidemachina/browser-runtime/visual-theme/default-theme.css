@@ -109,7 +109,13 @@
     --breadcrumbs-separator: "›";
 
     /* Three faces: the text font regular and bold, the code font regular. Four sizes: secondary, main, heading, display.
-       Blocks take theirs from these. */
+       Three colours: text, muted, accent. Blocks take theirs from these. */
+    --heading-weight: 700;
+    --heading-line-height: 1.1;
+    --heading-letter-spacing: -0.02em;
+    --text-line-height: 1.35;
+    /* Captions, notes, tables and sources: small lines need a little more air. */
+    --secondary-line-height: 1.4;
     --text-size: 40px;
     /* Height of the capitals of --font-text as a share of its size: the frame is measured to visible letters. */
     --text-cap-height: 0.71;
@@ -127,7 +133,6 @@
     --table-text-size: var(--secondary-text-size);
     --quote-size: var(--display-size);
     --quote-author-size: var(--secondary-text-size);
-    --table-heading-color: var(--accent-color);
     --compare-criteria-width: 30%;
     --compare-cell-padding: 24px;
     --big-number-size: var(--display-size);
@@ -181,7 +186,7 @@
 
     /* Objects take --scene-color, text takes --scene-text-color; unset, they follow the accent and the text of the slide tone. */
     --scene-font: var(--font-heading);
-    --scene-font-weight: 700;
+    --scene-font-weight: var(--heading-weight);
     --scene-shadow-opacity: 0.16;
     --scene-shadow-opacity-on-dark: 0.5;
 
@@ -199,9 +204,9 @@
   [data-slide] :is(h1, h2, h3) {
     margin: 0 0 0.9em;
     font-family: var(--font-heading);
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    font-weight: var(--heading-weight);
+    line-height: var(--heading-line-height);
+    letter-spacing: var(--heading-letter-spacing);
     text-wrap: balance;
   }
 
@@ -290,7 +295,7 @@
     height: 1px;
     overflow: visible;
     font-size: var(--section-number-size);
-    font-weight: 700;
+    font-weight: var(--heading-weight);
     letter-spacing: -0.04em;
     font-variant-numeric: lining-nums;
     pointer-events: none;

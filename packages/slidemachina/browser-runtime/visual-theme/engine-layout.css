@@ -46,7 +46,7 @@
     background: var(--slide-background) center / cover no-repeat;
     color: var(--text-color);
     font-size: var(--text-size);
-    line-height: 1.35;
+    line-height: var(--text-line-height);
     isolation: isolate;
   }
 

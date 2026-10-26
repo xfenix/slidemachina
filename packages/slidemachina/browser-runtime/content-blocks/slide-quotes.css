@@ -10,7 +10,7 @@
     max-width: 1600px;
     margin: 0 0 var(--block-gap);
     font-size: var(--quote-size);
-    font-weight: 700;
+    font-weight: var(--heading-weight);
     line-height: 1.2;
     letter-spacing: -0.015em;
     text-wrap: balance;

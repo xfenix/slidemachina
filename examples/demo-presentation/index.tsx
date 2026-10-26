@@ -128,9 +128,15 @@ export default (
 
       <Machina.Slide background="var(--dark-background)">
         <h2>Тёмный фон</h2>
-        <Machina.Code lang="tsx">{`<Slide background="#14161d">`}</Machina.Code>
-        <p>Текст, код и логотип светлеют сами</p>
-        <p className="machina-note">Тон фона движок считает по цвету. Задать руками: <code>tone="dark"</code></p>
+        <Machina.Code lang="tsx">{`
+          <Slide background="#14161d">
+          <Slide background={photo} tone="dark">
+        `}</Machina.Code>
+        <ul>
+          <li>Текст, код и логотип светлеют сами</li>
+          <li>Тон движок считает по цвету или картинке</li>
+          <li>Ошибся с картинкой — задайте tone, как во второй строке</li>
+        </ul>
       </Machina.Slide>
 
       <Machina.Slide background={duskPicture} plain align="center" transition="zoom">
@@ -140,10 +146,9 @@ export default (
 
       <Machina.Slide logo="center" align="center" number={false}>
         <h2>Логотип там, где нужен</h2>
-        <p>
-          <code>logo="center"</code> ставит его над заголовком
-        </p>
-        <p className="machina-note">Другие места - top и bottom. Номер слайда здесь спрятан: number=&#123;false&#125;</p>
+        <Machina.Code lang="tsx">{`<Slide logo="center" number={false}>`}</Machina.Code>
+        <p>Логотип встал над заголовком, номер слайда спрятан</p>
+        <p>Ещё есть места top и bottom</p>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -175,9 +180,9 @@ export default (
     <Machina.Section title="Блоки">
       <Machina.Slide>
         <h2>Три уровня текста</h2>
-        <p className="machina-lead">machina-lead - вводная фраза под заголовком</p>
-        <p>Обычный абзац - тег p без класса. Это основной текст слайда</p>
-        <p className="machina-note">machina-note - пометка мелким шрифтом</p>
+        <p className="machina-lead">Подзаголовок держится заголовка: класс machina-lead</p>
+        <p>Основной текст слайда - обычный тег p без класса</p>
+        <p className="machina-note">Пометка мелким шрифтом закрывает слайд: класс machina-note</p>
       </Machina.Slide>
 
       <Machina.Slide transition="fade" align="center" number={false}>

@@ -5,7 +5,7 @@
     border-collapse: collapse;
     font-size: var(--table-text-size);
     font-variant-numeric: tabular-nums;
-    line-height: 1.3;
+    line-height: var(--secondary-line-height);
   }
 
   [data-slide] table :is(th, td) {
@@ -24,11 +24,6 @@
     padding-top: 0;
     border-bottom-color: color-mix(in srgb, var(--text-color) 40%, transparent);
     color: var(--muted-color);
-    font-size: var(--caption-size);
-  }
-
-  [data-slide] table tbody th {
-    color: var(--table-heading-color);
   }
 
   [data-slide] table tbody tr:last-child > * {
@@ -48,16 +43,6 @@
   [data-slide] table.machina-compare :is(th, td):not(:first-child) {
     padding-inline: var(--compare-cell-padding);
     text-align: center;
-  }
-
-  [data-slide] table.machina-compare thead th:not(:first-child) {
-    color: var(--text-color);
-    font-size: var(--table-text-size);
-    font-weight: 700;
-  }
-
-  [data-slide] table.machina-compare tbody th {
-    color: var(--text-color);
   }
 
   /* Drawn, not typed: the text font may lack a check mark, and the marks keep one size and colour in any theme. */

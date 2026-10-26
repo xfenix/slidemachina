@@ -59,7 +59,7 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 | Сравнение | `<table className="machina-compare">` — критерии слева, два–четыре решения справа. Отметки: `<td className="machina-yes" />` и `<td className="machina-no" />` |
 | Цитата | `<figure><blockquote>Текст</blockquote><figcaption>Автор</figcaption></figure>` |
 | Большое число | `<figure className="machina-big-number"><p>42</p><figcaption>подпись</figcaption></figure>` |
-| Текст | `<p className="machina-lead">` — вводная фраза, `<p>` — основной текст, `<p className="machina-note">` — пометка мелким шрифтом |
+| Текст | `<p className="machina-lead">` — вводная фраза, под заголовком слайда — подзаголовок, `<p>` — основной текст, `<p className="machina-note">` — пометка мелким шрифтом |
 | Подпись и источник | `<figcaption>…</figcaption>` сразу после блока, `<Source>…</Source>` |
 | QR-код | `<QR value="https://…" logo={logo} />` — на свободное место, фон прозрачный. В колонках ставьте код слева |
 | Мем | `<Meme template="drake"><p>Верх</p><p>Низ</p></Meme>` — шаблон с [memegen.link](https://memegen.link), подписи по порядку полей. `animated` — версия в GIF, если она есть |

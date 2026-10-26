@@ -233,6 +233,15 @@ test("демо листается, показывает шаги и навига
     const optionHeadings = currentSlide(page).locator("table.machina-compare thead th:not(:first-child)");
     const optionWidths = await optionHeadings.evaluateAll((headingElements) => headingElements.map((headingElement) => Math.round(headingElement.getBoundingClientRect().width)));
     expect(new Set(optionWidths).size, "решения в колонках равной ширины").toBe(1);
+    // The whole table is one face and one size; only the head is muted.
+    const tableTextStyles = await currentSlide(page).locator("table :is(th, td)").evaluateAll((cellElements) =>
+      cellElements.map((cellElement) => {
+        const cellStyle = getComputedStyle(cellElement);
+        return { faceAndSize: `${cellStyle.fontWeight} ${cellStyle.fontSize}`, textColor: cellStyle.color };
+      }),
+    );
+    expect(new Set(tableTextStyles.map((tableTextStyle) => tableTextStyle.faceAndSize)).size, "одно начертание и кегль").toBe(1);
+    expect(new Set(tableTextStyles.map((tableTextStyle) => tableTextStyle.textColor)).size, "основной цвет и приглушённый у шапки").toBe(2);
   });
 
   await test.step("картинка на свободное место, обтекание и на весь слайд, видео играет только на своём слайде", async () => {
@@ -250,7 +259,11 @@ test("демо листается, показывает шаги и навига
     const [floatingPicture, wrappingText] = await measureOnCanvas(page, ["img", "p"]);
     expect(floatingPicture!.top, "верх картинки на линии заглавных букв").toBeCloseTo(wrappingText!.top, 0);
 
-    await jumpToSlide(page, await findSlideNumber(page, "[data-media-frame=full] img"));
+    // The same picture grows from the float to the full slide: its snapshot morphs, it is not drawn as an empty shape.
+    await jumpToSlide(page, (await findSlideNumber(page, "[data-media-frame=full] img")) - 1);
+    await page.keyboard.press("ArrowRight");
+    expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining(["::view-transition-new(morph-0) -ua-view-transition-fade-in"]));
+    await expect.poll(() => listTransitionAnimations(page)).toEqual([]);
     const fullPictureBox = await currentSlide(page).locator("[data-media-frame=full] img").boundingBox();
     expect(fullPictureBox).toEqual(await currentSlide(page).boundingBox());
 

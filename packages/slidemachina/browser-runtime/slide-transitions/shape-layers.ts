@@ -42,11 +42,11 @@ function paintsItself(paintedElement: Element): boolean {
   );
 }
 
-// Everything inside moves in layers of its own, so the snapshot holds only the background, border and shadow.
+// Everything inside moves in layers of its own, so the snapshot holds only the background, border and shadow; a picture is its own content.
 function isPlainShape(shapeElement: HTMLElement, layeredElements: Set<Element>): boolean {
   const shapeStyle = getComputedStyle(shapeElement);
   const sideBorders = new Set(borderSides.map((borderSide) => readSideBorder(shapeStyle, borderSide)));
-  if (shapeStyle.backgroundImage !== "none" || sideBorders.size > 1 || holdsOwnText(shapeElement)) return false;
+  if (shapeElement.matches(paintedMediaSelector) || shapeStyle.backgroundImage !== "none" || sideBorders.size > 1 || holdsOwnText(shapeElement)) return false;
   const hasPaintedInside = (parentElement: Element): boolean =>
     [...parentElement.children].some(
       (childElement) =>

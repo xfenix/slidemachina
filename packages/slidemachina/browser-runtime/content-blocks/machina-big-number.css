@@ -9,7 +9,7 @@
     color: var(--big-number-color);
     font-family: var(--font-heading);
     font-size: var(--big-number-size);
-    font-weight: 700;
+    font-weight: var(--heading-weight);
     line-height: 1;
     letter-spacing: -0.045em;
     font-variant-numeric: lining-nums;
@@ -26,7 +26,7 @@
     margin-top: 36px;
     color: var(--muted-color);
     font-size: var(--caption-size);
-    line-height: 1.35;
+    line-height: var(--secondary-line-height);
     text-wrap: balance;
     text-box: trim-both cap alphabetic;
   }
