@@ -1,12 +1,14 @@
-import { pickTextLanguage } from "../../shared-between-runtimes/text-language.ts";
+import { pickRussianPlural, pickTextLanguage } from "../../shared-between-runtimes/text-language.ts";
 
 const systemLanguage = Intl.DateTimeFormat().resolvedOptions().locale;
+
 
 const englishTexts = {
   usage: [
     "Usage:",
     "  slidemachina dev [folder] [--port 5173]   start the presentation in development mode",
     "  slidemachina build [folder] [variants]    build the presentation; without variants it asks",
+    "  slidemachina meme <query>                 find meme templates, and GIFs with a GIPHY key",
     "",
     "In a repository of presentations, a folder with presentation folders and a shared theme/:",
     "  slidemachina dev                          the list of presentations, any of them opens with a click",
@@ -20,6 +22,11 @@ const englishTexts = {
     "  --zip           the same folder in a zip archive",
     "  --pdf           PDF, a page per slide; with --steps a page per step",
     "  --out <folder>  where to put the result, dist by default",
+    "",
+    "Memes go to images/memes/ of the presentation, the command prints the markup:",
+    "  slidemachina meme --template <id> [folder]   a memegen template, captions are typed on the slide",
+    "  slidemachina meme --gif <id> [folder]        a GIF from GIPHY as MP4, needs SLIDEMACHINA_GIPHY_KEY",
+    "  slidemachina meme --url <link> [folder]      a picture or GIF from a link or from the page it is on",
   ].join("\n"),
   missingPresentationFile: (projectFolder: string) =>
     `No index.tsx and no presentation folders in ${projectFolder}.\nRun the command in the presentation folder or pass the folder: slidemachina dev my-talk`,
@@ -65,6 +72,28 @@ const englishTexts = {
   compressedPictures: (pictureCount: number, savedSize: string) => `Pictures in WebP: ${pictureCount}, the build is ${savedSize} lighter`,
   missingChrome: "PDF needs Google Chrome. Install it and run the build again",
   buildFinished: (elapsedSeconds: string) => `Done in ${elapsedSeconds} s`,
+  memeTemplateExpression: '<Meme template>: write the template as a string, like template="drake".',
+  memeTemplateFailed: (templateId: string, problemText: string) =>
+    `<Meme template="${templateId}">: the template is neither in images/memes/${templateId}/ nor on memegen.link. ${problemText}`,
+  memeFolderWithoutPresentation: (folderPath: string) =>
+    `No index.tsx in ${folderPath}. Run the command in the presentation folder or pass the folder: slidemachina meme --template drake my-talk`,
+  memeQueryMissing: 'What to look for? For example: slidemachina meme "this is fine"',
+  memeTemplatesFound: (searchQuery: string, templateCount: number) => `memegen templates for "${searchQuery}": ${templateCount}`,
+  memeTemplateLine: (templateName: string, captionCount: number, isAnimatable: boolean) =>
+    `${templateName}, ${captionCount} ${captionCount === 1 ? "caption" : "captions"}${isAnimatable ? ", has a GIF: add animated" : ""}`,
+  memeMoreTemplates: (hiddenCount: number) => `${hiddenCount} more: make the query longer`,
+  memeNoTemplates: 'No templates. Templates have English names: try "drake", "fine", "cat"',
+  memeClipsFound: (clipCount: number) => `GIFs on GIPHY: ${clipCount} · Powered by GIPHY`,
+  giphyOff: "GIF search needs a GIPHY key in SLIDEMACHINA_GIPHY_KEY. The key is free: developers.giphy.com",
+  memeSaved: (savedPath: string) => `Saved to ${savedPath}. Markup for the slide:`,
+  memeProblems: {
+    memeNetworkFailed: "No answer from the meme source. Check the internet connection",
+    memeTemplateMissing: "There is no such template on memegen.link. Find it with: slidemachina meme <query>",
+    memeLinkWrong: "The link should start with http:// or https://",
+    memeLinkNotPicture: "There is no picture or video at this link",
+    giphyKeyMissing: "GIFs need a GIPHY key in SLIDEMACHINA_GIPHY_KEY. The key is free: developers.giphy.com",
+    pictureTooLarge: "The file is larger than 80 MB",
+  } as Record<string, string>,
   passwordPage: {
     instructions: "Type the password to open the slides",
     placeholder: "Password",
@@ -81,6 +110,7 @@ const russianTexts: typeof englishTexts = {
     "Как запустить:",
     "  slidemachina dev [папка] [--port 5173]   открыть презентацию в режиме разработки",
     "  slidemachina build [папка] [варианты]    собрать презентацию; без вариантов спросит, что собрать",
+    "  slidemachina meme <запрос>               найти шаблоны мемов, а с ключом GIPHY — и GIF",
     "",
     "В репозитории презентаций, то есть в папке с папками презентаций и общей темой theme/:",
     "  slidemachina dev                         список презентаций, любая открывается по клику",
@@ -94,6 +124,11 @@ const russianTexts: typeof englishTexts = {
     "  --zip           та же папка в zip-архиве",
     "  --pdf           PDF, страница на слайд; с --steps — страница на шаг",
     "  --out <папка>   куда положить результат, по умолчанию dist",
+    "",
+    "Мемы ложатся в images/memes/ презентации, команда печатает разметку:",
+    "  slidemachina meme --template <id> [папка]   шаблон memegen, подписи пишутся на слайде",
+    "  slidemachina meme --gif <id> [папка]        GIF из GIPHY в MP4, нужен SLIDEMACHINA_GIPHY_KEY",
+    "  slidemachina meme --url <ссылка> [папка]    картинка или GIF по ссылке, в том числе со страницы",
   ].join("\n"),
   missingPresentationFile: (projectFolder) =>
     `В папке ${projectFolder} нет ни index.tsx, ни папок с презентациями.\nЗапустите команду в папке презентации или укажите папку: slidemachina dev my-talk`,
@@ -139,6 +174,28 @@ const russianTexts: typeof englishTexts = {
   compressedPictures: (pictureCount, savedSize) => `Картинки в WebP: ${pictureCount}, сборка легче на ${savedSize}`,
   missingChrome: "Для PDF нужен Google Chrome. Установите его и запустите сборку снова",
   buildFinished: (elapsedSeconds) => `Готово за ${elapsedSeconds} с`,
+  memeTemplateExpression: '<Meme template>: шаблон пишется строкой, например template="drake".',
+  memeTemplateFailed: (templateId, problemText) =>
+    `<Meme template="${templateId}">: шаблона нет ни в images/memes/${templateId}/, ни на memegen.link. ${problemText}`,
+  memeFolderWithoutPresentation: (folderPath) =>
+    `В папке ${folderPath} нет index.tsx. Запустите команду в папке презентации или укажите папку: slidemachina meme --template drake my-talk`,
+  memeQueryMissing: "Что искать? Например: slidemachina meme \"this is fine\"",
+  memeTemplatesFound: (searchQuery, templateCount) => `Шаблоны memegen по запросу «${searchQuery}»: ${templateCount}`,
+  memeTemplateLine: (templateName, captionCount, isAnimatable) =>
+    `${templateName}, ${captionCount} ${pickRussianPlural(captionCount, ["подпись", "подписи", "подписей"])}${isAnimatable ? ", есть GIF: добавьте animated" : ""}`,
+  memeMoreTemplates: (hiddenCount) => `Ещё ${hiddenCount}: уточните запрос`,
+  memeNoTemplates: "Шаблонов нет. Названия у шаблонов английские: попробуйте drake, fine, cat",
+  memeClipsFound: (clipCount) => `GIF в GIPHY: ${clipCount} · Powered by GIPHY`,
+  giphyOff: "Для поиска GIF нужен ключ GIPHY в SLIDEMACHINA_GIPHY_KEY. Ключ бесплатный: developers.giphy.com",
+  memeSaved: (savedPath) => `Сохранено в ${savedPath}. Разметка для слайда:`,
+  memeProblems: {
+    memeNetworkFailed: "Источник мемов не отвечает. Проверьте интернет",
+    memeTemplateMissing: "На memegen.link нет такого шаблона. Найти шаблон: slidemachina meme <запрос>",
+    memeLinkWrong: "Ссылка должна начинаться с http:// или https://",
+    memeLinkNotPicture: "По ссылке нет ни картинки, ни видео",
+    giphyKeyMissing: "Для GIF нужен ключ GIPHY в SLIDEMACHINA_GIPHY_KEY. Ключ бесплатный: developers.giphy.com",
+    pictureTooLarge: "Файл больше 80 МБ",
+  },
   passwordPage: {
     instructions: "Введите пароль, чтобы открыть слайды",
     placeholder: "Пароль",

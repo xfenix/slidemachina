@@ -1,4 +1,5 @@
 import { sourceEditEndpoint } from "../../shared-between-runtimes/engine-constants.js";
+import type { MemeKind } from "../../shared-between-runtimes/meme-template.js";
 
 const longestUpdateWait = 4000;
 
@@ -12,7 +13,8 @@ declare global {
 export type SourceEditRequest =
   | { editKind: "text"; sourceLocation: string; typedText: string }
   | { editKind: "picture"; sourceLocation: string; pictureName: string; pictureContent: string }
-  | { editKind: "box"; sourceLocation: string; columnNumber?: number; anchorLocation?: string; anchorSide?: "before" | "after" };
+  | { editKind: "box"; sourceLocation: string; columnNumber?: number; anchorLocation?: string; anchorSide?: "before" | "after" }
+  | { editKind: "meme"; sourceLocation: string; memeKind: MemeKind; memeValue: string };
 
 export class SourceEditFailure extends Error {
   constructor(readonly problemCode: string) {

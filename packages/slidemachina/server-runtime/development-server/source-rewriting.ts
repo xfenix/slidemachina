@@ -1,11 +1,16 @@
 import MagicString from "magic-string";
 import { findLineStarts } from "../source-transforms/source-marking.ts";
-import { findAttribute, isPlainTextElement, isStringContainer, parseSlideSource, walkSyntaxTree } from "../source-transforms/syntax-tree.ts";
+import { findAttribute, findEngineNames, isPlainTextElement, isStringContainer, parseSlideSource, walkSyntaxTree } from "../source-transforms/syntax-tree.ts";
 import type { SyntaxNode } from "../source-transforms/syntax-tree.ts";
 
 export type SourcePlace = { lineNumber: number, columnNumber: number };
 type FoundElement = { elementNode: SyntaxNode, parentNode: SyntaxNode | undefined };
 type BoxPlacement = { columnNumber?: number, anchorPlace?: SourcePlace, anchorSide?: "before" | "after" };
+export type InsertedSlide = {
+  engineParts: string[],
+  mediaImport: { importName: string, importPath: string } | undefined,
+  writeMarkup: (nameEnginePart: (partName: string) => string, mediaImportName: string | undefined) => string[],
+};
 
 const jsxTextEscapes: Record<string, string> = { "{": "&#123;", "}": "&#125;", "<": "&lt;", ">": "&gt;" };
 
@@ -36,7 +41,7 @@ function locateElements(sourceCode: string, filePath: string, sourcePlaces: Sour
   return { syntaxTree, foundElements: foundElements as FoundElement[] };
 }
 
-function escapeJsxText(typedText: string): string {
+export function escapeJsxText(typedText: string): string {
   return typedText.replace(/&(?=#?[a-zA-Z0-9]+;)/g, "&amp;").replace(/[{}<>]/g, (escapedCharacter) => jsxTextEscapes[escapedCharacter]!);
 }
 
@@ -122,6 +127,54 @@ export function moveDiagramBox(sourceCode: string, filePath: string, sourcePlace
       : { rangeStart: anchorElement.elementNode.start, rangeEnd: anchorElement.elementNode.end };
     const targetOffset = anchorSide === "after" ? anchorRange.rangeEnd : anchorRange.rangeStart;
     if (targetOffset < rangeStart || targetOffset > rangeEnd) editedSource.move(rangeStart, rangeEnd, targetOffset);
+  }
+  return editedSource.toString();
+}
+
+function readIndent(sourceCode: string, elementStart: number): string {
+  const lineStart = sourceCode.lastIndexOf("\n", elementStart - 1) + 1;
+  const leadingText = sourceCode.slice(lineStart, elementStart);
+  return leadingText.trim() === "" ? leadingText : "";
+}
+
+// Parts missing from a named import of "slidemachina" are added to it; a namespace import already has them all.
+function ensureEngineParts(syntaxTree: SyntaxNode, editedSource: MagicString, partNames: string[]): (partName: string) => string {
+  const engineNames = findEngineNames(syntaxTree);
+  const missingParts = partNames.filter((partName) => engineNames[partName] === undefined);
+  if (missingParts.length > 0) {
+    const engineImport = syntaxTree.body.find(
+      (statementNode: SyntaxNode) => statementNode.type === "ImportDeclaration" && statementNode.source.value === "slidemachina" && statementNode.specifiers.length > 0,
+    );
+    if (engineImport === undefined) editedSource.prepend(`import { ${missingParts.join(", ")} } from "slidemachina";\n`);
+    else editedSource.appendLeft(engineImport.specifiers.at(-1).end, `, ${missingParts.join(", ")}`);
+  }
+  return (partName) => engineNames[partName] ?? partName;
+}
+
+// The new slide follows the shown one; after a section's own slide (cover={<Slide>}) it opens the section.
+export function insertSlideAfter(sourceCode: string, filePath: string, slidePlace: SourcePlace, insertedSlide: InsertedSlide): string {
+  const { syntaxTree, foundElements } = locateElements(sourceCode, filePath, [slidePlace]);
+  const { elementNode: slideNode, parentNode } = foundElements[0]!;
+  const editedSource = new MagicString(sourceCode);
+  const isChildSlide = parentNode?.children?.includes(slideNode) === true;
+  const isSectionCover = !isChildSlide && parentNode?.type === "JSXElement" && slideNode.start < parentNode.openingElement.end;
+  if (!isChildSlide && !isSectionCover) throw new SourceEditProblem("slidePlaceUnknown");
+  const nameEnginePart = ensureEngineParts(syntaxTree, editedSource, ["Slide", ...insertedSlide.engineParts]);
+  const { mediaImport } = insertedSlide;
+  if (mediaImport !== undefined) {
+    const lastImport = syntaxTree.body.findLast((statementNode: SyntaxNode) => statementNode.type === "ImportDeclaration");
+    const importStatement = `import ${mediaImport.importName} from ${JSON.stringify(mediaImport.importPath)};`;
+    if (lastImport === undefined) editedSource.prepend(`${importStatement}\n`);
+    else editedSource.appendLeft(lastImport.end, `\n${importStatement}`);
+  }
+  const slideName = nameEnginePart("Slide");
+  const slideLines = [`<${slideName}>`, ...insertedSlide.writeMarkup(nameEnginePart, mediaImport?.importName).map((markupLine) => `  ${markupLine}`), `</${slideName}>`];
+  if (isChildSlide) {
+    const slideIndent = readIndent(sourceCode, slideNode.start);
+    editedSource.appendLeft(slideNode.end, `\n${slideLines.map((slideLine) => `\n${slideIndent}${slideLine}`).join("")}`);
+  } else {
+    const slideIndent = `${readIndent(sourceCode, parentNode.start)}  `;
+    editedSource.appendLeft(parentNode.openingElement.end, `${slideLines.map((slideLine) => `\n${slideIndent}${slideLine}`).join("")}\n`);
   }
   return editedSource.toString();
 }

@@ -1,18 +1,20 @@
-import { existsSync, realpathSync } from "node:fs";
+import { realpathSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { sourceEditEndpoint } from "../../shared-between-runtimes/engine-constants.ts";
 import { findPresentationFolder, isSlideSourceFile } from "../presentation-repository/presentation-repository.ts";
 import { hashSourceCode } from "../source-transforms/source-marking.ts";
 import { isOwnPageRequest, largestPictureBytes, parseEditRequest, readRequestBody } from "./edit-request-checks.ts";
-import { moveDiagramBox, rewriteElementText, rewritePictureSource, SourceEditProblem } from "./source-rewriting.ts";
+import { chooseMediaPath, pictureExtensions, toImportPath } from "./media-files.ts";
+import { insertSlideAfter, moveDiagramBox, rewriteElementText, rewritePictureSource, SourceEditProblem } from "./source-rewriting.ts";
+import { nameMediaImport, prepareMeme } from "../meme-sources/meme-markup.ts";
+import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
 import type { SourcePlace } from "./source-rewriting.ts";
 import type { EditRequest } from "./edit-request-checks.ts";
 import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
 import type { ViteDevServer } from "vite";
 
 const pictureFolderName = "images";
-const pictureExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".avif", ".gif", ".svg"]);
 const methodNotAllowedStatus = 405;
 const foreignOriginStatus = 403;
 const successStatus = 200;
@@ -33,24 +35,6 @@ function resolveSourceLocation(siteLayout: SiteLayout, sourceLocation: string): 
   return { filePath, sourcePlace: { lineNumber: Number(locationMatch[2]), columnNumber: Number(locationMatch[3]) } };
 }
 
-function toImportPath(importingFolder: string, targetFile: string): string {
-  const relativePath = path.relative(importingFolder, targetFile).split(path.sep).join("/");
-  return relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
-}
-
-// A file with the same name and other content gets a number; the same content reuses the file already there.
-async function choosePicturePath(presentationFolder: string, originalName: string, pictureBytes: Buffer): Promise<{ picturePath: string, needsWriting: boolean }> {
-  const pictureExtension = path.extname(originalName).toLowerCase();
-  if (!pictureExtensions.has(pictureExtension)) throw new SourceEditProblem("pictureType");
-  const cleanStem = path.basename(originalName, path.extname(originalName)).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "picture";
-  const pictureFolder = path.join(presentationFolder, pictureFolderName);
-  for (let copyNumber = 1; ; copyNumber += 1) {
-    const picturePath = path.join(pictureFolder, `${cleanStem}${copyNumber === 1 ? "" : `-${copyNumber}`}${pictureExtension}`);
-    if (!existsSync(picturePath)) return { picturePath, needsWriting: true };
-    if ((await readFile(picturePath)).equals(pictureBytes)) return { picturePath, needsWriting: false };
-  }
-}
-
 // The page sends the version of the file it was built from: if the file changed since, nothing is written.
 async function applySourceEdit(siteLayout: SiteLayout, editRequest: EditRequest): Promise<void> {
   const { filePath, sourcePlace } = resolveSourceLocation(siteLayout, editRequest.sourceLocation);
@@ -68,16 +52,37 @@ async function applySourceEdit(siteLayout: SiteLayout, editRequest: EditRequest)
     await writeFile(filePath, moveDiagramBox(sourceCode, filePath, sourcePlace, boxPlacement));
     return;
   }
+  const presentationFolder = findPresentationFolder(siteLayout, filePath) ?? siteLayout.rootFolder;
+  if (editRequest.editKind === "meme") {
+    await insertMemeSlide(filePath, sourcePlace, presentationFolder, editRequest);
+    return;
+  }
   const pictureBytes = Buffer.from(editRequest.pictureContent, "base64");
   if (pictureBytes.length > largestPictureBytes) throw new SourceEditProblem("pictureTooLarge");
-  const presentationFolder = findPresentationFolder(siteLayout, filePath) ?? siteLayout.rootFolder;
-  const { picturePath, needsWriting } = await choosePicturePath(presentationFolder, editRequest.pictureName, pictureBytes);
+  if (!pictureExtensions.has(path.extname(editRequest.pictureName).toLowerCase())) throw new SourceEditProblem("pictureType");
+  const { mediaPath: picturePath, needsWriting } = await chooseMediaPath(path.join(presentationFolder, pictureFolderName), editRequest.pictureName, pictureBytes);
   const editedSource = rewritePictureSource(sourceCode, filePath, sourcePlace, toImportPath(path.dirname(filePath), picturePath));
   if (needsWriting) {
     await mkdir(path.dirname(picturePath), { recursive: true });
     await writeFile(picturePath, pictureBytes);
   }
   await writeFile(filePath, editedSource);
+}
+
+// Downloading takes seconds: the file is read again afterwards, and its version checked again.
+async function insertMemeSlide(filePath: string, slidePlace: SourcePlace, presentationFolder: string, memeRequest: EditRequest & { editKind: "meme" }): Promise<void> {
+  const { languageCode } = readPresentationFile(presentationFolder);
+  const preparedMeme = await prepareMeme(presentationFolder, { memeKind: memeRequest.memeKind, memeValue: memeRequest.memeValue, isAnimated: false }, languageCode);
+  const sourceCode = await readFile(filePath, "utf8");
+  if (hashSourceCode(sourceCode) !== memeRequest.sourceVersion) throw new SourceEditProblem("fileChanged");
+  const { mediaPath } = preparedMeme;
+  const mediaImport = mediaPath === undefined
+    ? undefined
+    : {
+        importName: nameMediaImport(mediaPath, (importName) => new RegExp(`\\b${importName}\\b`).test(sourceCode)),
+        importPath: toImportPath(path.dirname(filePath), mediaPath),
+      };
+  await writeFile(filePath, insertSlideAfter(sourceCode, filePath, slidePlace, { ...preparedMeme, mediaImport }));
 }
 
 export function installSourceEditing(developmentServer: ViteDevServer, siteLayout: SiteLayout): void {

@@ -1,7 +1,10 @@
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { createServer, type Server } from "node:http";
 import os from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 import { expect, test } from "@playwright/test";
 import { commandLineScript, currentSlide, demoFolderName, examplesFolder, skipsGeneratedFiles, waitForServer, workspaceFolder } from "./test-helpers.ts";
 
@@ -11,6 +14,42 @@ const playgroundSlideNumber = 53;
 const tinyPicture = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
 
 
+
+const runCommand = promisify(execFile);
+const demoTemplateFolder = path.join(examplesFolder, demoFolderName, "images", "memes", "jd");
+const demoGifFile = path.join(examplesFolder, demoFolderName, "images", "scene-orbit.gif");
+
+// memegen.link and a page with a GIF, served from the demo's own files: the test never leaves the machine.
+async function serveMemeSources(): Promise<{ sourceServer: Server, sourceAddress: string }> {
+  const sourceServer = createServer((request, response) => {
+    const sourceAddress = `http://localhost:${(sourceServer.address() as { port: number }).port}`;
+    const requestedPath = new URL(request.url!, sourceAddress).pathname;
+    const servedFiles: Record<string, () => Promise<[string, string | Buffer]>> = {
+      "/templates": async () => [
+        "application/json",
+        JSON.stringify([
+          { id: "jd", name: "Joseph Ducreux", lines: 2, styles: [], keywords: ["Archaic Rap"], blank: `${sourceAddress}/templates/jd/default.jpg`, example: { url: `${sourceAddress}/templates/jd/default.jpg` } },
+        ]),
+      ],
+      "/templates/jd/config.yml": async () => ["text/yaml", await readFile(path.join(demoTemplateFolder, "config.yml"))],
+      "/templates/jd/default.jpg": async () => ["image/jpeg", await readFile(path.join(demoTemplateFolder, "default.jpg"))],
+      "/media/scene-orbit.gif": async () => ["image/gif", await readFile(demoGifFile)],
+      "/post": async () => ["text/html", `<html><head><meta content="${sourceAddress}/media/scene-orbit.gif" property="og:image"></head></html>`],
+    };
+    const serveFile = servedFiles[requestedPath];
+    if (serveFile === undefined) {
+      response.writeHead(404);
+      response.end();
+      return;
+    }
+    void serveFile().then(([contentType, fileContent]) => {
+      response.writeHead(200, { "content-type": contentType });
+      response.end(fileContent);
+    });
+  });
+  await new Promise<void>((resolveListening) => sourceServer.listen(0, resolveListening));
+  return { sourceServer, sourceAddress: `http://localhost:${(sourceServer.address() as { port: number }).port}` };
+}
 
 async function sendEdit(editBody: object, requestHeaders: Record<string, string> = {}) {
   const editResponse = await fetch(`${editorServerAddress}/@slidemachina/edit`, {
@@ -22,7 +61,7 @@ async function sendEdit(editBody: object, requestHeaders: Record<string, string>
 }
 
 // The editor writes to disk: a copy of the demo outside the repository, opened through a link as macOS opens /tmp.
-test("редактор правит текст, двигает блок схемы и меняет картинку прямо в файле", async ({ page }) => {
+test("редактор правит текст, двигает блок схемы, меняет картинку и вставляет мемы прямо в файл", async ({ page }) => {
   const scratchFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-editor-"));
   const examplesCopyFolder = path.join(scratchFolder, "examples");
   const copyFolder = path.join(examplesCopyFolder, demoFolderName);
@@ -44,9 +83,15 @@ test("редактор правит текст, двигает блок схем
   await writeFile(dependencyFile, refusedSource);
   await writeFile(outsideFile, refusedSource);
   await symlink(outsideFile, path.join(copyFolder, "outside-link.tsx"));
+  // Without its template the demo's meme slide makes the dev server download it, here from the local source.
+  const copiedTemplateFolder = path.join(copyFolder, "images", "memes", "jd");
+  await rm(copiedTemplateFolder, { recursive: true });
+  const { sourceServer, sourceAddress } = await serveMemeSources();
+  const memeEnvironment = { ...process.env, SLIDEMACHINA_MEMEGEN_ADDRESS: sourceAddress, SLIDEMACHINA_GIPHY_KEY: "" };
   const developmentServer = spawn(process.execPath, [commandLineScript, "dev", linkedFolder, "--port", String(editorServerPort)], {
     cwd: workspaceFolder,
     stdio: "ignore",
+    env: memeEnvironment,
   });
   try {
     await waitForServer(editorServerAddress);
@@ -174,8 +219,52 @@ test("редактор правит текст, двигает блок схем
       await slideHeading.click();
       await expect(slideHeading).not.toHaveAttribute("contenteditable");
     });
+
+    await test.step("мемы: шаблон скачивается сам, панель вставляет слайд с шаблоном и с картинкой со страницы, команда meme печатает разметку", async () => {
+      await page.goto(editorServerAddress);
+      const memeSlideNumber = await page.locator("[data-canvas] > [data-slide]").evaluateAll(
+        (slideElements) => slideElements.findIndex((slideElement) => slideElement.querySelector("[data-meme]") !== null) + 1,
+      );
+      await page.goto(`${editorServerAddress}/#${memeSlideNumber}`);
+      await expect(currentSlide(page).locator("[data-meme-field] > p")).toHaveCount(2);
+      expect(existsSync(path.join(copiedTemplateFolder, "config.yml")) && existsSync(path.join(copiedTemplateFolder, "default.jpg")), "шаблон скачан в images/memes/jd").toBe(true);
+
+      const memeButton = page.getByRole("button", { name: "Мем: найти и вставить" });
+      await memeButton.click();
+      await expect(page.getByRole("tab", { name: /Шаблоны memegen/ })).toHaveAttribute("aria-selected", "true");
+      await page.getByRole("tab", { name: /GIF/ }).click();
+      await expect(page.locator("[data-meme-note]")).toContainText("SLIDEMACHINA_GIPHY_KEY");
+      await page.getByRole("tab", { name: /Шаблоны memegen/ }).click();
+      await page.locator("[data-meme-search]").fill("archaic");
+      await page.locator("[data-meme-tile]", { hasText: "Joseph Ducreux" }).click();
+      await expect.poll(readPresentation).toMatch(
+        /<\/Machina\.Slide>\n\n\s*<Machina\.Slide>\n\s*<Machina\.Meme template="jd">\n\s*<p>disregard females<\/p>\n\s*<p>acquire currency<\/p>\n\s*<\/Machina\.Meme>\n\s*<Machina\.Source>Шаблон: Joseph Ducreux, knowyourmeme\.com\/memes\/joseph-ducreux-archaic-rap<\/Machina\.Source>/,
+      );
+      await expect(page).toHaveURL(new RegExp(`#${memeSlideNumber + 1}$`));
+      await expect(currentSlide(page).locator("[data-meme-field] > p").first()).toHaveText("disregard females");
+      await expect(page.locator("[data-meme-panel]")).toHaveCount(0);
+
+      await memeButton.click();
+      await page.getByRole("textbox", { name: /Ссылка на картинку/ }).fill(`${sourceAddress}/post`);
+      await page.keyboard.press("Enter");
+      await expect.poll(readPresentation).toContain('import sceneOrbitPicture from "./images/memes/scene-orbit.gif";');
+      expect(await readPresentation()).toMatch(/<Machina\.Image src=\{sceneOrbitPicture\} alt="" stretch \/>\n\s*<Machina\.Source>Источник: localhost:\d+\/post<\/Machina\.Source>/);
+      expect(await readFile(path.join(copyFolder, "images", "memes", "scene-orbit.gif"))).toEqual(await readFile(demoGifFile));
+      await expect(page).toHaveURL(new RegExp(`#${memeSlideNumber + 2}$`));
+      await expect(currentSlide(page).locator("img[data-media]")).toHaveAttribute("src", /scene-orbit\.gif/);
+
+      const runMeme = (memeArguments: string[]) => runCommand(process.execPath, [commandLineScript, "meme", ...memeArguments], { cwd: workspaceFolder, env: memeEnvironment });
+      const { stdout: searchOutput } = await runMeme(["ducreux"]);
+      expect(searchOutput).toContain("slidemachina meme --template jd");
+      expect(searchOutput).toContain("SLIDEMACHINA_GIPHY_KEY");
+      await rm(copiedTemplateFolder, { recursive: true });
+      const { stdout: markupOutput } = await runMeme(["--template", "jd", copyFolder]);
+      expect(markupOutput).toContain('<Machina.Meme template="jd">\n  <p>disregard females</p>\n  <p>acquire currency</p>\n</Machina.Meme>');
+      expect(existsSync(path.join(copiedTemplateFolder, "default.jpg")), "команда скачала шаблон").toBe(true);
+    });
   } finally {
     developmentServer.kill();
+    sourceServer.close();
     await rm(scratchFolder, { recursive: true, force: true });
   }
 });

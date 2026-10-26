@@ -11,6 +11,7 @@ export type { MediaFit } from "./content-blocks/media-frame.tsx";
 export { Source, type SourceProperties } from "./content-blocks/source-component.tsx";
 export { QR, type QRProperties } from "./content-blocks/qr-block/qr-component.tsx";
 export type { QRCorrection } from "./content-blocks/qr-block/qr-module-shapes.ts";
+export { Meme, type MemeProperties } from "./content-blocks/meme-block/meme-component.tsx";
 export { Diagram, type DiagramProperties } from "./diagram-blocks/diagram-component.tsx";
 export {
   Arrow,

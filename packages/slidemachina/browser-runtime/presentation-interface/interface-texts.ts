@@ -1,4 +1,4 @@
-import { pickTextLanguage } from "../../shared-between-runtimes/text-language.js";
+import { pickRussianPlural, pickTextLanguage } from "../../shared-between-runtimes/text-language.js";
 const interfaceTextsByLanguage = {
   en: {
     navigatorLabel: "Slides",
@@ -46,12 +46,6 @@ const interfaceTextsByLanguage = {
   },
 };
 
-const russianPluralRules = new Intl.PluralRules("ru");
-
-function pickRussianPlural(itemCount: number, [oneForm, fewForm, manyForm]: [string, string, string]): string {
-  const pluralCategory = russianPluralRules.select(itemCount);
-  return pluralCategory === "one" ? oneForm : pluralCategory === "few" ? fewForm : manyForm;
-}
 
 export function pickInterfaceTexts(languageCode: string) {
   return interfaceTextsByLanguage[pickTextLanguage(languageCode)];

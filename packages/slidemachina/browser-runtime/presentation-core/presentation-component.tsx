@@ -3,6 +3,7 @@ import { defaultAspectRatio, measureCanvasSize, type AspectRatio } from "../../s
 import { useCanvasScale } from "./canvas-scaling.ts";
 import { DevelopmentFeedback } from "../presentation-interface/development-feedback.tsx";
 import { EditorSwitch } from "../source-editor/editor-switch.tsx";
+import { MemePanelSwitch } from "../source-editor/meme-panel-switch.tsx";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
 import { PresentationToolbar, useToolbarHiding } from "../presentation-interface/presentation-toolbar.tsx";
 import { PrintMenu } from "../presentation-interface/print-menu.tsx";
@@ -179,6 +180,7 @@ export function Presentation({
           <>
             <span data-toolbar-divider />
             <EditorSwitch languageCode={lang} />
+            <MemePanelSwitch languageCode={lang} />
             {import.meta.env.SLIDEMACHINA_AGENTATION !== "off" && <DevelopmentFeedback />}
           </>
         )}

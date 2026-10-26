@@ -27,6 +27,10 @@ function readCommandLine() {
         pdf: { type: "boolean" },
         steps: { type: "boolean" },
         out: { type: "string" },
+        template: { type: "string" },
+        gif: { type: "string" },
+        url: { type: "string" },
+        animated: { type: "boolean" },
       },
     });
   } catch (parseError) {
@@ -39,6 +43,13 @@ function readCommandLine() {
 
 const parsedCommandLine = readCommandLine();
 const [commandName, projectFolderArgument = "."] = parsedCommandLine.positionals;
+
+if (commandName === "meme") {
+  // The meme command needs no Vite: it searches, downloads and prints markup.
+  const { runMemeCommand } = await import("./meme-command.ts");
+  await runMemeCommand(parsedCommandLine.positionals.slice(1), parsedCommandLine.values);
+  process.exit(0);
+}
 
 if (commandName !== "dev" && commandName !== "build") {
   console.log(commandLineTexts.usage);

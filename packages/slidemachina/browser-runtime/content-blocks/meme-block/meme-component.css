@@ -1,0 +1,45 @@
+@layer slidemachina {
+  /* The picture clips its captions to its rounded corners; centred captions do not hang their quotes. */
+  [data-slide] [data-meme] {
+    position: relative;
+    overflow: hidden;
+    --hanging-punctuation: 0;
+  }
+
+  [data-slide] [data-meme] > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  [data-slide] [data-meme-field] {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--meme-font);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+  }
+
+  [data-slide] [data-meme-field][data-meme-font="thin"] {
+    font-weight: 500;
+  }
+
+  /* A thirty-fifth of the field stays free at the sides, as in memegen; the caption breaks between words, not inside them. */
+  [data-slide] [data-meme-field] > * {
+    flex: 0 1 auto;
+    width: calc(100% * 34 / 35);
+    margin: 0;
+    font: inherit;
+    text-wrap: balance;
+    overflow-wrap: normal;
+  }
+
+  /* The outline goes under the fill: the letters keep their full shape, as Impact captions do. A stroke stays vector text in a PDF. */
+  [data-slide] [data-meme-field][data-meme-outline] > * {
+    -webkit-text-stroke: var(--meme-outline-width, 2px) var(--meme-outline-color);
+    paint-order: stroke fill;
+  }
+}

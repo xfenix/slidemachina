@@ -1,16 +1,19 @@
 import type { IncomingMessage } from "node:http";
 import { SourceEditProblem } from "./source-rewriting.ts";
+import type { MemeKind } from "../../shared-between-runtimes/meme-template.ts";
 
 export type EditRequest = { sourceLocation: string, sourceVersion?: string } & (
   | { editKind: "text", typedText: string }
   | { editKind: "picture", pictureName: string, pictureContent: string }
   | { editKind: "box", columnNumber?: number, anchorLocation?: string, anchorSide?: "before" | "after" }
+  | { editKind: "meme", memeKind: MemeKind, memeValue: string }
 );
 
 export const largestPictureBytes = 80 * 1024 * 1024;
 // base64 makes a file a third larger; the rest is room for the other fields of the JSON.
 const largestRequestBytes = Math.ceil((largestPictureBytes * 4) / 3) + 1024 * 1024;
 const anchorSides = new Set<unknown>(["before", "after"]);
+const memeKinds = new Set<unknown>(["template", "clip", "link"]);
 
 export function readRequestBody(incomingRequest: IncomingMessage): Promise<string> {
   return new Promise((resolveBody, rejectBody) => {
@@ -53,7 +56,8 @@ function checkEditRequest(parsedBody: unknown): EditRequest {
       (editKind === "box" &&
         isMissingOr(editRequest.columnNumber, isColumnNumber) &&
         isMissingOr(editRequest.anchorLocation, isString) &&
-        isMissingOr(editRequest.anchorSide, (candidateField) => anchorSides.has(candidateField))));
+        isMissingOr(editRequest.anchorSide, (candidateField) => anchorSides.has(candidateField))) ||
+      (editKind === "meme" && memeKinds.has(editRequest.memeKind) && isString(editRequest.memeValue)));
   if (!isWellFormed) throw new SourceEditProblem("wrongRequest");
   return editRequest as EditRequest;
 }

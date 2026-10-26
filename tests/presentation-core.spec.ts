@@ -291,6 +291,31 @@ test("демо листается, показывает шаги и навига
     await expect(currentSlide(page).locator("figcaption")).toHaveText("Антуан де Сент-Экзюпери, «Планета людей»");
   });
 
+  await test.step("мем: подписи — текст в полях шаблона, шрифт Oswald подогнан под поле", async () => {
+    const memeSlideNumber = await page.locator("[data-canvas] > [data-slide]").evaluateAll(
+      (slideElements) => slideElements.findIndex((slideElement) => slideElement.querySelector("[data-meme]") !== null) + 1,
+    );
+    await jumpToSlide(page, memeSlideNumber);
+    const memeElement = currentSlide(page).locator("[data-meme]");
+    await expect(memeElement.locator("img")).toHaveJSProperty("complete", true);
+    await expect.poll(() => page.evaluate(() => document.fonts.check('700 40px "Oswald Variable"', "Мем"))).toBe(true);
+    const memeBox = (await memeElement.boundingBox())!;
+    // jd/config.yml: two bands a fifth of the picture high, at the top and from 0.8 down.
+    for (const [fieldIndex, fieldTopShare] of [0, 0.8].entries()) {
+      const fieldElement = memeElement.locator("[data-meme-field]").nth(fieldIndex);
+      const fieldBox = (await fieldElement.boundingBox())!;
+      expect(fieldBox.y - memeBox.y).toBeCloseTo(memeBox.height * fieldTopShare, 0);
+      expect(fieldBox.height).toBeCloseTo(memeBox.height * 0.2, 0);
+      const captionBox = (await fieldElement.locator("p").boundingBox())!;
+      expect(captionBox.y).toBeGreaterThanOrEqual(fieldBox.y);
+      expect(captionBox.y + captionBox.height).toBeLessThanOrEqual(fieldBox.y + fieldBox.height);
+      expect(await fieldElement.locator("p").evaluate((captionElement) => captionElement.scrollWidth <= captionElement.clientWidth)).toBe(true);
+      expect(Number.parseFloat(await fieldElement.evaluate((fieldNode: HTMLElement) => fieldNode.style.fontSize))).toBeGreaterThan(40);
+    }
+    await expect(memeElement.locator("[data-meme-field] > p").first()).toHaveText("Извольте вставить мем");
+    await expect(memeElement.locator("[data-meme-field] > p").first()).toHaveCSS("text-transform", "uppercase");
+  });
+
   await test.step("код: подсветка при сборке, шрифт, строки по шагам с прокруткой", async () => {
     await jumpToSlide(page, 26);
     const codeElement = currentSlide(page).locator("[data-code]");
@@ -522,7 +547,7 @@ test("демо листается, показывает шаги и навига
   await test.step("навигатор", async () => {
     await page.keyboard.press("o");
     const slideNavigator = page.locator("[data-navigator]");
-    await expect(slideNavigator.locator("[data-thumbnail]")).toHaveCount(65);
+    await expect(slideNavigator.locator("[data-thumbnail]")).toHaveCount(68);
     // One of the two dark steps of the theme, the same as the dark slides: --dark-background.
     await expect(slideNavigator).toHaveCSS("background-color", "rgb(20, 22, 29)");
     await expect(slideNavigator.locator("[data-thumbnail-number]").nth(41)).toHaveText("42");
@@ -564,7 +589,7 @@ test("демо листается, показывает шаги и навига
     await expect(feedbackStandIn).toHaveCSS("visibility", "visible");
     const overviewPage = await page.context().newPage();
     await overviewPage.goto("/?overview");
-    await expect(overviewPage.locator("[data-navigator] [data-thumbnail]")).toHaveCount(65);
+    await expect(overviewPage.locator("[data-navigator] [data-thumbnail]")).toHaveCount(68);
     await overviewPage.keyboard.press("Escape");
     await expect(overviewPage.locator("[data-navigator]")).toHaveCount(0);
     await overviewPage.close();

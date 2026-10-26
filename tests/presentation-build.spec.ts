@@ -12,8 +12,8 @@ import { commandLineScript, demoFolderName, examplesFolder } from "./test-helper
 const runCommand = promisify(execFile);
 // Marks, the edit endpoint and the editor's own attributes: none of them may reach a build.
 const editorTraces = /data-source-location|@slidemachina\/edit|data-editor-status/;
-// Russian and English slides need only these subsets; Vietnamese, Greek, math and symbols only add weight.
-const keptFontFile = /^(onest|jetbrains-mono)-(latin|cyrillic)-wght-normal-.*\.woff2$/;
+// Russian and English slides need only these subsets; Vietnamese, Greek, math and symbols only add weight. Oswald comes with the demo's meme.
+const keptFontFile = /^(onest|jetbrains-mono|oswald)-(latin|cyrillic)-wght-normal-.*\.woff2$/;
 
 // The folder build runs only from a web server, as on a real site.
 function serveFolder(servedFolder: string) {
@@ -59,7 +59,7 @@ test("сборка: один HTML-файл листается без серве�
       expect(editorTraces.test(singleFileText), "редактор в файле").toBe(false);
       expect(/(src|href)="\.\/assets/.test(singleFileText), "ссылки на соседние файлы").toBe(false);
       expect(singleFileText.includes("data:image/webp;base64"), "картинка WebP внутри").toBe(true);
-      expect(singleFileText.match(/data:font\/woff2;base64/g)?.length, "внутри только латиница и кириллица Onest и JetBrains Mono").toBe(4);
+      expect(singleFileText.match(/data:font\/woff2;base64/g)?.length, "внутри только латиница и кириллица Onest, JetBrains Mono и Oswald").toBe(6);
     });
 
     await test.step("один файл открывается с диска, листается, схемы раскладываются", async () => {
@@ -99,6 +99,10 @@ test("сборка: один HTML-файл листается без серве�
     await test.step("папка: ELK и three.js отдельными файлами, в основном модуле нет ни ELK, ни three.js, ни agentation, редактора нет нигде", async () => {
       const assetNames = await readdir(assetFolder);
       expect(assetNames.filter((assetName) => assetName.endsWith(".woff2") && !keptFontFile.test(assetName))).toEqual([]);
+      // A GIF becomes an animated WebP, all frames kept: the RIFF file carries an ANIM chunk.
+      expect(assetNames.filter((assetName) => assetName.endsWith(".gif"))).toEqual([]);
+      const orbitPictureName = assetNames.find((assetName) => /^scene-orbit-[\w-]{8}\.webp$/.test(assetName))!;
+      expect((await readFile(path.join(assetFolder, orbitPictureName))).includes("ANIM"), "анимация в WebP").toBe(true);
       expect(assetNames.filter((assetName) => /^elk-worker.*\.js$/.test(assetName))).toHaveLength(1);
       const mainModuleName = assetNames.find((assetName) => /^index-.*\.js$/.test(assetName))!;
       const mainModuleText = await readFile(path.join(assetFolder, mainModuleName), "utf8");

@@ -24,6 +24,7 @@
     "@clack/prompts": "^1.8.1",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@fontsource-variable/onest": "^5.3.1",
+    "@fontsource-variable/oswald": "^5.3.0",
     "@shikijs/transformers": "^4.5.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/three": "^0.186.0",

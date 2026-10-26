@@ -1,0 +1,203 @@
+@layer slidemachina {
+  [data-meme-anchor] {
+    position: relative;
+  }
+
+  /* The panel opens above its button in the toolbar's colours, screen-sized like the print menu. */
+  [data-meme-panel] {
+    position: absolute;
+    inset: auto auto calc(100% + 12px) 50%;
+    margin: 0;
+    border: 0;
+    translate: -50% 0;
+    display: grid;
+    gap: 12px;
+    box-sizing: border-box;
+    width: min(640px, 92vw);
+    padding: 12px;
+    border-radius: 20px;
+    background: var(--toolbar-background);
+    box-shadow:
+      0 18px 48px rgb(0 0 0 / 0.28),
+      inset 0 0 0 1px rgb(255 255 255 / 0.08);
+    color: #fff;
+    font-family: var(--font-text);
+    font-size: 15px;
+    line-height: 20px;
+    animation: slidemachina-menu-in 0.16s var(--step-easing);
+  }
+
+  [data-meme-panel] input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 12px;
+    background: rgb(255 255 255 / 0.08);
+    color: #fff;
+    font: inherit;
+    outline: none;
+    transition: background-color 0.2s, box-shadow 0.2s;
+  }
+
+  [data-meme-panel] input::placeholder {
+    color: rgb(255 255 255 / 0.45);
+  }
+
+  [data-meme-panel] input:focus {
+    background: rgb(255 255 255 / 0.12);
+    box-shadow: inset 0 0 0 1.5px var(--accent-color);
+  }
+
+  [data-meme-hint],
+  [data-meme-note] {
+    margin: -6px 4px 0;
+    color: rgb(255 255 255 / 0.5);
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  [data-meme-note] {
+    margin: 4px 4px 12px;
+  }
+
+  [data-meme-results] {
+    height: min(400px, 48vh);
+    margin-inline: -4px;
+    padding-inline: 4px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+  }
+
+  [data-meme-panel] input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  /* Two tabs as a segmented switch; the GIPHY mark stands next to them while its clips are shown. */
+  [data-meme-tabs] {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  [data-meme-tabs][data-meme-tabs] > button {
+    all: unset;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    color: rgb(255 255 255 / 0.6);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  [data-meme-tabs][data-meme-tabs] > button:is(:hover, :focus-visible) {
+    color: #fff;
+  }
+
+  [data-meme-tabs][data-meme-tabs] > button[aria-selected="true"] {
+    background: rgb(255 255 255 / 0.1);
+    color: #fff;
+  }
+
+  [data-meme-count] {
+    color: rgb(255 255 255 / 0.45);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  [data-giphy-attribution] {
+    margin-left: auto;
+    padding-right: 4px;
+    color: rgb(255 255 255 / 0.7);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  [data-meme-grid] {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  /* Doubled attribute: the panel lives inside the toolbar, whose round icon buttons would win otherwise. */
+  [data-meme-tile][data-meme-tile] {
+    all: unset;
+    box-sizing: border-box;
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    padding: 6px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  [data-meme-tile][data-meme-tile]:is(:hover, :focus-visible) {
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  [data-meme-tile] > img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 10px;
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  [data-meme-tile] > span {
+    display: -webkit-box;
+    overflow: hidden;
+    padding-inline: 2px;
+    color: rgb(255 255 255 / 0.85);
+    font-size: 13px;
+    line-height: 16px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  [data-meme-link] {
+    display: flex;
+    gap: 8px;
+  }
+
+  [data-meme-link][data-meme-link] > button {
+    all: unset;
+    flex: none;
+    padding: 0 18px;
+    border-radius: 12px;
+    background: var(--accent-color);
+    color: #fff;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, opacity 0.2s;
+  }
+
+  [data-meme-link][data-meme-link] > button:is(:hover, :focus-visible) {
+    background: color-mix(in srgb, var(--accent-color) 85%, #fff);
+  }
+
+  [data-meme-link][data-meme-link] > button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  [data-meme-status] {
+    margin: -4px 4px 0;
+    color: rgb(255 255 255 / 0.7);
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  [data-meme-status="problem"] {
+    color: var(--editor-problem-color);
+  }
+}

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { pickInterfaceTexts } from "./interface-texts.ts";
+import { usePopoverClosing } from "./popover-closing.ts";
 import { ToolbarButton } from "./presentation-toolbar.tsx";
 
 export const printShortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd+P" : "Ctrl+P";
@@ -18,24 +19,7 @@ export function PrintMenu({ languageCode, printsSteps, choosePrintedSteps, print
   const [isMenuOpen, setMenuOpen] = useState(false);
   const menuAnchorReference = useRef<HTMLDivElement>(null);
 
-  // Captured before the slide keys: Escape closes the menu instead of opening the navigator.
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const closeOnEscape = (keyboardEvent: KeyboardEvent) => {
-      if (keyboardEvent.code !== "Escape") return;
-      keyboardEvent.stopPropagation();
-      setMenuOpen(false);
-    };
-    const closeOnOutsidePress = (pointerEvent: PointerEvent) => {
-      if (!menuAnchorReference.current?.contains(pointerEvent.target as Node)) setMenuOpen(false);
-    };
-    window.addEventListener("keydown", closeOnEscape, true);
-    window.addEventListener("pointerdown", closeOnOutsidePress, true);
-    return () => {
-      window.removeEventListener("keydown", closeOnEscape, true);
-      window.removeEventListener("pointerdown", closeOnOutsidePress, true);
-    };
-  }, [isMenuOpen]);
+  usePopoverClosing(isMenuOpen, menuAnchorReference, () => setMenuOpen(false));
 
   const runAndClose = (menuAction: () => void) => () => {
     setMenuOpen(false);

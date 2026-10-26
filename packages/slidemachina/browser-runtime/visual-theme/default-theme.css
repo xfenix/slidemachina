@@ -40,6 +40,9 @@
     --font-text: "Onest Variable", system-ui, sans-serif;
     --font-heading: var(--font-text);
     --font-code: "JetBrains Mono Variable", ui-monospace, monospace;
+    /* Meme captions: narrow heavy capitals with a dark outline, readable on any picture. */
+    --meme-font: "Oswald Variable", Impact, "Arial Narrow", sans-serif;
+    --meme-outline-color: #000;
     /* 1 hangs list bullets and numbers, opening quotes and brackets at line starts outside the text, 0 keeps them inside. */
     --hanging-punctuation: 1;
     --list-bullet-indent: 0.8em;

@@ -7,7 +7,7 @@ import type { Plugin } from "vite";
 
 export type BuildReport = { savedPictureBytes: Map<string, number>, videoSizes: Map<string, number> };
 
-const compressedPicturePattern = /\.(png|jpe?g)$/i;
+const compressedPicturePattern = /\.(png|jpe?g|gif)$/i;
 const videoPattern = /\.(mp4|webm|mov|m4v|ogv)$/i;
 // Twice the 1920×1080 slide: pictures stay sharp on retina screens and 4K projectors.
 const largestPictureWidth = 3840;
@@ -26,8 +26,10 @@ async function compressPicture(picturePath: string): Promise<string | undefined>
   const keptOriginalMarker = path.join(cachedFolder, "original");
   if (existsSync(compressedPath)) return compressedPath;
   if (existsSync(keptOriginalMarker)) return undefined;
-  const compressedBytes = await sharp(pictureBytes)
-    .rotate()
+  // A GIF keeps all its frames as an animated WebP; EXIF rotation applies only to photos.
+  const isAnimatable = /\.gif$/i.test(picturePath);
+  const picturePipeline = sharp(pictureBytes, { animated: isAnimatable });
+  const compressedBytes = await (isAnimatable ? picturePipeline : picturePipeline.rotate())
     .resize({ width: largestPictureWidth, height: largestPictureHeight, fit: "inside", withoutEnlargement: true })
     .webp({ quality: pictureQuality, smartSubsample: true })
     .toBuffer();
@@ -40,7 +42,7 @@ async function compressPicture(picturePath: string): Promise<string | undefined>
   return compressedPath;
 }
 
-// Imported PNG and JPEG pictures are swapped for WebP before Vite sees them; videos are only reported.
+// Imported PNG, JPEG and GIF pictures are swapped for WebP before Vite sees them; videos are only reported.
 export function createImageCompressionPlugin(buildReport: BuildReport): Plugin {
   return {
     name: "slidemachina-image-compression",

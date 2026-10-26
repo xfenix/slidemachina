@@ -12,7 +12,7 @@ export function useToolbarIdle(toolbarReference: RefObject<HTMLElement | null>) 
       idleTimer = window.setTimeout(() => {
         const toolbarElement = toolbarReference.current;
         const isToolbarInUse =
-          toolbarElement?.matches(":hover, :focus-within") === true || toolbarElement?.querySelector("[data-print-menu]") != null || isFeedbackActive();
+          toolbarElement?.matches(":hover, :focus-within") === true || toolbarElement?.querySelector("[data-print-menu], [data-meme-panel]") != null || isFeedbackActive();
         if (isToolbarInUse) scheduleIdle();
         else setToolbarIdle(true);
       }, toolbarIdleDelay);

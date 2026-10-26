@@ -63,9 +63,16 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 | Текст | `<p className="machina-lead">` — вводная фраза, `<p>` — основной текст, `<p className="machina-note">` — пометка мелким шрифтом |
 | Подпись и источник | `<figcaption>…</figcaption>` сразу после блока, `<Source>…</Source>` |
 | QR-код | `<QR value="https://…" logo={logo} />` — на свободное место, фон прозрачный. В колонках ставьте код слева |
+| Мем | `<Meme template="drake"><p>Верх</p><p>Низ</p></Meme>` — шаблон с [memegen.link](https://memegen.link), подписи по порядку полей. `animated` — версия в GIF, если она есть |
 | Схема | `<Diagram><Box id="a">A</Box><Box id="b">B</Box><Arrow from="a" to="b" /></Diagram>` |
 | Диаграмма обмена | `<Sequence><Actor id="a">A</Actor><Actor id="b">B</Actor><Message from="a" to="b" label="запрос" /></Sequence>` |
 | 3D-сцена | `<Scene orbit><Cube size={1.5} /><Sphere position={[2, 0.5, 0]} step /></Scene>` |
+
+Мем проще вставить с панели в `npm run dev`, кнопка со смайликом:
+- поиск шаблонов и GIF, вставка по ссылке;
+- мем встаёт на новый слайд после текущего, под ним — источник.
+
+Из терминала то же делает `npx slidemachina meme "запрос"`. Для GIF нужен бесплатный ключ GIPHY в `SLIDEMACHINA_GIPHY_KEY`.
 
 Два элемента на соседних слайдах перетекают друг в друга, если у них одинаковый текст или `morph="имя"`.
 

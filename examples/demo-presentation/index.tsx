@@ -4,6 +4,7 @@ import editorPicture from "./images/dusk.svg";
 import glassCardsPicture from "./images/glass-cards.webp";
 import navigatorPicture from "./images/navigator.webp";
 import presentationListPicture from "./images/presentation-list.webp";
+import sceneOrbitGif from "./images/scene-orbit.gif";
 import sceneOrbitPoster from "./images/scene-orbit-poster.webp";
 import sceneOrbitVideo from "./images/scene-orbit.webm";
 import slidemachinaMarkPicture from "./images/slidemachina-mark.svg";
@@ -787,6 +788,33 @@ export default (
         </ul>
       </div>
     </Machina.Slide>
+
+    <Machina.Section title="Мемы">
+      <Machina.Slide align="center">
+        <Machina.Meme template="jd">
+          <p>Извольте вставить мем</p>
+          <p>не покидая слайдов</p>
+        </Machina.Meme>
+        <Machina.Source>Шаблон: Joseph Ducreux, knowyourmeme.com/memes/joseph-ducreux-archaic-rap</Machina.Source>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Мем за минуту</h2>
+        <div className="machina-columns">
+          <ul>
+            <li>Панель «Мем» в режиме dev ищет шаблоны и GIF</li>
+            <li>Подойдёт и ссылка на картинку или страницу с ней</li>
+            <li>Подписи — обычный текст: правятся на слайде</li>
+            <li>Агенту — команда slidemachina meme</li>
+          </ul>
+          <div>
+            <Machina.Image src={sceneOrbitGif} alt="Сцена из демо в GIF">
+              <figcaption>В сборке GIF становится WebP</figcaption>
+            </Machina.Image>
+          </div>
+        </div>
+      </Machina.Slide>
+    </Machina.Section>
 
     <Machina.Slide cover background="var(--dark-background)">
       <h1>Спасибо</h1>

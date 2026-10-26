@@ -5,8 +5,8 @@ import type MagicString from "magic-string";
 
 type EditKind = "text" | "picture" | "box";
 
-// Engine parts that pass the marks on to their own element; a group only marks its place for moved boxes.
-const markedEngineParts: Record<string, EditKind | undefined> = { Source: "text", Image: "picture", Box: "box", Group: undefined };
+// Engine parts that pass the marks on to their own element; a group marks its place for moved boxes, a slide for slides added after it.
+const markedEngineParts: Record<string, EditKind | undefined> = { Source: "text", Image: "picture", Box: "box", Group: undefined, Slide: undefined };
 const unwritableTextTags = new Set(["pre", "script", "style", "textarea", "title"]);
 const sourceVersionLength = 12;
 

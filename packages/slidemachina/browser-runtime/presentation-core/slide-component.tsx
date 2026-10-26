@@ -1,6 +1,7 @@
 import { useRef, type CSSProperties, type ReactNode } from "react";
 import { isBackgroundColor, useBackgroundTone, type SlideTone } from "./background-tone.ts";
 import { useSlideEnvironment, type PresentationLogo, type SlideAlign } from "./slide-environment.ts";
+import { pickSourceMarks } from "./source-marks.ts";
 import { useBigNumberFitting } from "./width-fitting.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/transition-speed.ts";
@@ -39,6 +40,7 @@ export function Slide({
   breadcrumbs = true,
   number = true,
   className,
+  ...otherProperties
 }: SlideProperties) {
   const slideEnvironment = useSlideEnvironment();
   const { presentationSettings } = slideEnvironment;
@@ -67,6 +69,7 @@ export function Slide({
       data-cover={cover || undefined}
       data-transition={transition ?? presentationSettings.transition}
       data-current={slideEnvironment.isCurrentSlide || undefined}
+      {...pickSourceMarks(otherProperties)}
       inert={!slideEnvironment.isCurrentSlide}
       style={{ ...createBackgroundStyle(background), "--transition-speed": resolveSpeedFactor(speed ?? presentationSettings.speed) } as CSSProperties}
     >
