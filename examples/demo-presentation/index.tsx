@@ -69,6 +69,38 @@ export default (
         <h1>Картинка на весь слайд</h1>
         <p>plain убирает логотип, крошки и номер</p>
       </Machina.Slide>
+
+      <Machina.Slide cover align="left" valign="bottom">
+        <h1>Обложка снизу слева</h1>
+        <p className="machina-lead">
+          <code>align="left"</code> и <code>valign="bottom"</code>
+        </p>
+      </Machina.Slide>
+
+      <Machina.Slide cover align="left">
+        <Machina.Image src={navigatorPicture} alt="Навигатор по слайдам" />
+        <h1>Картинка слева</h1>
+        <p className="machina-lead">Image стоит перед текстом</p>
+      </Machina.Slide>
+
+      <Machina.Slide cover align="right" background="var(--dark-background)">
+        <h1>Картинка справа</h1>
+        <p className="machina-lead">Image стоит после текста</p>
+        <Machina.Image src={glassCardsPicture} alt="Стеклянные карточки с текстом и графиком" />
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Текст обтекает картинку</h2>
+        <Machina.Image src={presentationListPicture} float="left" alt="Список презентаций" />
+        <p>
+          <code>float="left"</code> ставит картинку слева, текст идёт справа от неё
+        </p>
+        <ul>
+          <li>Верх картинки на линии заглавных букв</li>
+          <li>Отступ до текста задаёт --float-gap в теме</li>
+          <li>Маркеры висят в отступе, как в колонках</li>
+        </ul>
+      </Machina.Slide>
     </Machina.Section>
 
     <Machina.Section title="Блоки">

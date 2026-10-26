@@ -7,9 +7,11 @@ import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/t
 import { useStepVisibility } from "../slide-steps/step-visibility.ts";
 
 export type SlideLogoPlacement = "top-right" | "top" | "center" | "bottom";
+export type SlideVerticalAlign = "top" | "center" | "bottom";
 export type SlideProperties = {
   children?: ReactNode;
   align?: SlideAlign;
+  valign?: SlideVerticalAlign;
   cover?: boolean;
   background?: string;
   tone?: SlideTone;
@@ -26,6 +28,7 @@ type SlideLogoProperties = { presentationLogo: PresentationLogo; slideTone: Slid
 export function Slide({
   children,
   align,
+  valign,
   cover = false,
   background,
   tone,
@@ -45,6 +48,7 @@ export function Slide({
   useBigNumberFitting(slideElementReference, children);
 
   const slideTone = tone ?? detectedTone;
+  const slideAlign = align ?? (cover ? "center" : presentationSettings.align);
   const breadcrumbTrail = typeof breadcrumbs === "string" ? [breadcrumbs] : slideEnvironment.sectionTrail;
   const presentationLogo = presentationSettings.logo;
   const logoPlacement = logo === true ? "top-right" : logo;
@@ -57,7 +61,8 @@ export function Slide({
       ref={slideElementReference}
       className={className}
       data-slide
-      data-align={align ?? (cover ? "center" : presentationSettings.align)}
+      data-align={slideAlign}
+      data-valign={valign ?? (cover || slideAlign === "center" ? "center" : "top")}
       data-tone={slideTone}
       data-cover={cover || undefined}
       data-transition={transition ?? presentationSettings.transition}

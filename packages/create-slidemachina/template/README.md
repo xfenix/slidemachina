@@ -40,7 +40,7 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 ```
 
 - `Section` — раздел. Из разделов получаются обложки, хлебные крошки и оглавление в навигаторе. `cover={false}` убирает обложку раздела, `cover={<Machina.Slide>…</Machina.Slide>}` заменяет её своей.
-- `Slide`: `cover` — обложка, `align="center"` — по центру, `background="#14161d"` или картинка, `plain` — без логотипа, крошек и номера, `transition` — свой переход.
+- `Slide`: `cover` — обложка, `align` — `left`, `center` или `right`, `valign` — `top`, `center` или `bottom`, `background="#14161d"` или картинка, `plain` — без логотипа, крошек и номера, `transition` — свой переход.
 - Переходы: `auto`, `morph`, `slide`, `fade`, `zoom`, `cube`, `flip`, `none`. По умолчанию `auto`: если на соседних слайдах есть общие элементы, они перетекают, если нет — слайд сдвигается.
 - Скорость переходов и шагов — `speed` у `Presentation` или `Slide`: `fast`, `normal` (по умолчанию), `slow` или число. `speed={2}` — вдвое быстрее.
 - Формат слайдов — `aspectRatio` у `Presentation`: `"16:9"` (по умолчанию), `"4:3"`, `"16:10"`, `"9:16"` или любая пара чисел. Один формат на всю презентацию: показ, навигатор и PDF. Окно меняет только масштаб, по краям остаются поля.
@@ -53,7 +53,7 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 | Список по шагам | `<ul data-steps><li>Первый</li><li>Второй</li></ul>`. `data-steps={3}` — с третьего шага |
 | Шаг на любом месте | `<span data-step data-step-effect="highlight">вот так</span>`, эффекты `rise`, `fade`, `scale`, `highlight`, `dim` |
 | Код | `<Code lang="ts">{"const answer = 42;"}</Code>` или `<Code src="./app.py" lines="2-4 \| 8" numbers />` — строки по шагам, `numbers` — номера строк |
-| Картинка | `<Image src={photo} stretch />` — на свободное место, `full` — на весь слайд |
+| Картинка | `<Image src={photo} stretch />` — на свободное место, `full` — на весь слайд. `float="left"` или `"right"` — текст обтекает картинку. На обложке `<Image>` перед текстом стоит слева от него, после — справа |
 | Видео | `<Video src={clip} poster={still} stretch />` — играет без звука, пока слайд на экране |
 | Колонки | `<div className="machina-columns"><div>…</div><div>…</div></div>` — каждая колонка в своём `<div>`. Ширины: `style={{ gridTemplateColumns: "1fr 2fr" }}` |
 | Таблица | `<table data-steps><thead>…</thead><tbody>…</tbody></table>` — строки по шагам |

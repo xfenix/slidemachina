@@ -93,4 +93,104 @@
   [data-slide] [data-media-frame="full"][data-media-fit="contain"] > [data-media] {
     object-fit: contain;
   }
+
+  /* A cover with a picture: the picture takes one half and the text the other. The picture before the text stands on the left. */
+  [data-slide][data-cover] [data-content]:has(> [data-media]) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: min-content;
+    column-gap: var(--frame-padding);
+    --cover-picture-column: 1;
+    --cover-text-column: 2;
+  }
+
+  [data-slide][data-cover] [data-content]:has(> :not([data-media], [data-logo]) ~ [data-media]) {
+    --cover-picture-column: 2;
+    --cover-text-column: 1;
+  }
+
+  [data-slide][data-cover] [data-content]:has(> [data-media]) > * {
+    grid-column: var(--cover-text-column);
+  }
+
+  /* Out of the flow, the picture spans the whole height of its column and does not stretch the rows of text. */
+  [data-slide][data-cover] [data-content] > [data-media] {
+    position: absolute;
+    inset: 0;
+    grid-column: var(--cover-picture-column) / span 1;
+    max-width: 100%;
+    max-height: 100%;
+    margin: auto auto auto 0;
+  }
+
+  [data-slide][data-cover] [data-content] > :not([data-media], [data-logo]) ~ [data-media] {
+    margin-inline: auto 0;
+  }
+
+  [data-slide][data-cover][data-valign="top"] [data-content] > [data-media] {
+    margin-top: 0;
+  }
+
+  [data-slide][data-cover][data-valign="bottom"] [data-content] > [data-media] {
+    margin-bottom: 0;
+  }
+
+  /* The picture is out of the flow, so the text is trimmed to its letters as if the picture were not there. */
+  [data-slide][data-cover] [data-content] > [data-media]:first-child + * {
+    text-box: trim-start cap alphabetic;
+  }
+
+  [data-slide][data-cover]:is([data-valign="center"], [data-valign="bottom"]) [data-content] > :has(+ [data-media]:last-child) {
+    margin-bottom: 0;
+    text-box-trim: trim-end;
+  }
+
+  [data-slide][data-cover]:is([data-valign="center"], [data-valign="bottom"]) [data-content] > :is(:first-child, [data-media]:first-child + *):is(:last-child, :has(+ [data-media]:last-child)) {
+    text-box-trim: trim-both;
+  }
+
+  /* A picture on the right keeps clear of the logo in the corner, above and below, so it stays in the middle. */
+  [data-slide][data-cover]:has(> [data-logo-placement="top-right"]) [data-content] > :not([data-media], [data-logo]) ~ [data-media] {
+    inset-block: calc(var(--logo-height) + var(--block-gap));
+  }
+
+  /* Floats need block flow: a column of flex items ignores them. */
+  [data-slide] :is([data-content], .machina-columns > div):has(> [data-media-float]) {
+    display: block;
+  }
+
+  /* Under the picture the gap is measured to the capitals of the next line, as at its side. */
+  [data-slide] [data-media][data-media-float] {
+    max-width: var(--float-max-width);
+    margin-block: 0 calc(var(--float-gap) - (1lh - 1cap) / 2);
+  }
+
+  [data-slide] [data-media][data-media-float="left"] {
+    float: left;
+    margin-inline: 0 calc(var(--float-gap) + var(--hanging-punctuation) * var(--float-list-hang, 0px));
+  }
+
+  /* Bullets and numbers hang into the gap, so the gap is measured to them, as between columns. */
+  [data-slide] [data-media-float="left"]:has(~ ul) {
+    --float-list-hang: var(--list-bullet-indent);
+  }
+
+  [data-slide] [data-media-float="left"]:has(~ ol) {
+    --float-list-hang: var(--list-number-indent);
+  }
+
+  [data-slide] [data-media][data-media-float="right"] {
+    float: right;
+    margin-inline: var(--float-gap) 0;
+  }
+
+  /* The text next to the picture starts at its capitals, level with the top edge of the picture. */
+  [data-slide] [data-media-float] + :is(p, ul, ol) {
+    text-box: trim-start cap alphabetic;
+  }
+
+  /* Blocks after the picture go under it; only text wraps around it. */
+  [data-slide] [data-media-float] ~ :not(p, ul, ol, h3) {
+    clear: both;
+  }
 }

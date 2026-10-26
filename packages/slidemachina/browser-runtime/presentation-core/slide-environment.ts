@@ -5,7 +5,7 @@ import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 
 export const SlideEnvironmentContext = createContext<SlideEnvironment | null>(null);
 
-export type SlideAlign = "left" | "center";
+export type SlideAlign = "left" | "center" | "right";
 
 // Keys name the slide tone: "dark" is the logo for dark slides. Without it the light logo is recoloured by a filter.
 // A component draws both versions itself and gets dark={true} on dark slides.

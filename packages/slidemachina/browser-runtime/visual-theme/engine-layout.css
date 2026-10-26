@@ -135,8 +135,37 @@
     inset-inline: var(--frame-padding);
     margin-inline: auto;
     align-items: center;
-    justify-content: center;
     text-align: center;
+  }
+
+  [data-slide][data-align="right"] [data-content] {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  /* justify-content places a column of blocks, align-content the rows of a cover with a picture. */
+  [data-slide][data-valign="center"] [data-content] {
+    justify-content: center;
+    align-content: center;
+  }
+
+  [data-slide][data-valign="bottom"] [data-content] {
+    justify-content: flex-end;
+    align-content: end;
+  }
+
+  /* With nothing on the bottom line of the frame the content reaches it; centred content keeps the top margin below too and stands in the middle of the slide. */
+  [data-slide]:not(:has(> :is([data-breadcrumbs], [data-slide-number], [data-logo-placement="bottom"]))) {
+    --content-bottom: var(--frame-padding);
+  }
+
+  [data-slide][data-valign="center"]:not(:has(> :is([data-breadcrumbs], [data-slide-number], [data-logo-placement="bottom"]))) {
+    --content-bottom: var(--content-top);
+  }
+
+  /* Right-aligned content at the top would run into the logo in the corner, so it starts under the logo. */
+  [data-slide][data-align="right"][data-valign="top"]:has(> [data-logo-placement="top-right"]) [data-content] {
+    padding-top: calc(var(--logo-height) + var(--block-gap));
   }
 
   [data-breadcrumbs],
