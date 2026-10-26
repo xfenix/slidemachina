@@ -1,0 +1,4 @@
+{
+  "js/ts.tsdk.path": "packages/slidemachina/node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true
+}

@@ -382,8 +382,9 @@ Agentation гаснет и прячется вместе с панелью: пр
 - В файле вынесенного слайда подсказки нет.
 - Подсказку даёт плагин TypeScript из пакета `slidemachina`. Шаблон подключает его в `tsconfig.json` строкой `"plugins": [{ "name": "slidemachina" }]` и ставит TypeScript 6 в `devDependencies`.
 - VS Code: шаблон кладёт `.vscode/settings.json` с путём к TypeScript проекта. При первом открытии папки VS Code спрашивает, брать ли его. Ответ — «Allow». Встроенный TypeScript VS Code не ищет плагины в `node_modules` проекта.
-- Zed, WebStorm и typescript-language-server в Neovim сами берут TypeScript из `node_modules`.
-- В этом репозитории корневой TypeScript — 7, на нём `npm run check`. TypeScript 6 для подсказки и теста лежит в `packages/slidemachina/node_modules/typescript`. Чтобы видеть номера в `examples/`, укажите в своём `.vscode/settings.json` `"js/ts.tsdk.path": "packages/slidemachina/node_modules/typescript/lib"` и выберите эту версию. Папка `.vscode/` в `.gitignore`.
+- Zed: шаблон кладёт `.zed/settings.json`. Zed работает через vtsls, а тот берёт TypeScript проекта, только если заданы `typescript.tsdk` и `vtsls.autoUseWorkspaceTsdk`. Без них vtsls поднимает свой TypeScript и плагина не видит. Проверено запуском vtsls без окна: подсказка «Слайд 1 · #1».
+- WebStorm и typescript-language-server в Neovim берут TypeScript из `node_modules` сами. Руками не проверяли.
+- В этом репозитории корневой TypeScript — 7, на нём `npm run check`. TypeScript 6 для подсказки и теста лежит в `packages/slidemachina/node_modules/typescript`. На него указывают `.vscode/settings.json` и `.zed/settings.json` в корне репозитория.
 
 ## Печать и PDF
 
