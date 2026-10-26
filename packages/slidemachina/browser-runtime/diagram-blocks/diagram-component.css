@@ -1,12 +1,12 @@
 @layer slidemachina {
-  /* The figure takes the free space up to --diagram-max-scale of the diagram's own size; the stage inside scales to fit. */
+  /* The figure takes the free space up to --diagram-max-scale of the diagram's own size, or a little more to reach the right line; the stage inside scales to fit. */
   [data-slide] [data-diagram] {
     position: relative;
     align-self: stretch;
     flex: 0 1 auto;
     min-height: 0;
-    max-width: calc(var(--diagram-width) * var(--diagram-max-scale) * 1px);
-    max-height: calc(var(--diagram-height) * var(--diagram-max-scale) * 1px);
+    max-width: calc(var(--diagram-width) * var(--diagram-largest-scale, var(--diagram-max-scale)) * 1px);
+    max-height: calc(var(--diagram-height) * var(--diagram-largest-scale, var(--diagram-max-scale)) * 1px);
     aspect-ratio: var(--diagram-width) / var(--diagram-height);
     margin: 0 0 var(--block-gap);
   }
@@ -47,13 +47,11 @@
     border: 1px solid var(--diagram-box-border-color);
     border-radius: var(--diagram-radius);
     background: var(--diagram-box-background);
-    box-shadow: var(--diagram-box-shadow);
     color: var(--text-color);
     font-size: var(--diagram-text-size);
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+    line-height: var(--secondary-line-height);
     text-align: center;
-    transition-property: opacity, translate, scale, visibility, border-color, box-shadow;
+    transition-property: opacity, translate, scale, visibility, border-color;
     transition-duration: var(--step-time);
     transition-timing-function: var(--step-easing);
   }
@@ -73,7 +71,6 @@
     color: var(--muted-color);
     font-size: var(--diagram-title-size);
     font-weight: 400;
-    letter-spacing: 0;
     text-box: trim-both cap alphabetic;
   }
 
@@ -97,7 +94,7 @@
     top: var(--diagram-group-padding);
     color: var(--muted-color);
     font-size: var(--diagram-title-size);
-    line-height: 1;
+    line-height: var(--secondary-line-height);
     white-space: nowrap;
     text-box: trim-both cap alphabetic;
   }
@@ -163,12 +160,12 @@
     width: max-content;
     color: var(--muted-color);
     font-size: var(--diagram-label-size);
-    line-height: 1.2;
+    line-height: var(--secondary-line-height);
     white-space: nowrap;
     text-box: trim-both cap alphabetic;
   }
 
-  /* Focus: the rest fades back, the chosen parts get the accent. */
+  /* Focus: the rest fades back, the chosen parts get the accent on their border, nothing else. */
   [data-slide] :is([data-box], [data-arrow], [data-message], [data-actor])[data-focus="off"],
   [data-slide] [data-group][data-focus="off"] > :is([data-group-frame], [data-group-title]) {
     opacity: var(--diagram-dim-opacity);
@@ -176,9 +173,6 @@
 
   [data-slide] :is([data-box][data-focus="on"], [data-actor][data-focus="on"] > [data-box]) {
     border-color: var(--accent-color);
-    box-shadow:
-      0 0 0 4px var(--diagram-focus-ring),
-      var(--diagram-box-shadow);
   }
 
   [data-slide] :is([data-arrow], [data-message])[data-focus="on"] {

@@ -49,8 +49,15 @@ export function readLargestAnisotropy(): number {
   return prepareSharedRenderer().webglRenderer.capabilities.getMaxAnisotropy();
 }
 
-// Chrome prints only a 2D canvas, and the PDF must show the scene.
-export function drawSceneFrame(threeScene: Scene, sceneCamera: Camera, targetCanvas: HTMLCanvasElement, pixelWidth: number, pixelHeight: number) {
+// Chrome prints only a 2D canvas, and the PDF must show the scene. An opaque frame colour keeps the printed frame free of a soft mask.
+export function drawSceneFrame(
+  threeScene: Scene,
+  sceneCamera: Camera,
+  targetCanvas: HTMLCanvasElement,
+  pixelWidth: number,
+  pixelHeight: number,
+  frameColor: string | undefined,
+) {
   const { webglRenderer, offscreenCanvas } = prepareSharedRenderer();
   if (offscreenCanvas.width !== pixelWidth || offscreenCanvas.height !== pixelHeight) {
     webglRenderer.setSize(pixelWidth, pixelHeight, false);
@@ -59,5 +66,9 @@ export function drawSceneFrame(threeScene: Scene, sceneCamera: Camera, targetCan
   if (targetCanvas.width !== pixelWidth || targetCanvas.height !== pixelHeight) Object.assign(targetCanvas, { width: pixelWidth, height: pixelHeight });
   const targetContext = targetCanvas.getContext("2d")!;
   targetContext.clearRect(0, 0, pixelWidth, pixelHeight);
+  if (frameColor !== undefined) {
+    targetContext.fillStyle = frameColor;
+    targetContext.fillRect(0, 0, pixelWidth, pixelHeight);
+  }
   targetContext.drawImage(offscreenCanvas, 0, 0);
 }

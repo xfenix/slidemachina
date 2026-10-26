@@ -1,7 +1,8 @@
-import { findBrowserMove } from "../element-morphing/morph-arcs.ts";
+import { readBrowserMoveTiming } from "../element-morphing/morph-arcs.ts";
 import type { NamedLayer } from "./transition-layers.ts";
 
 const paintedMediaSelector = "img, svg, video, canvas, iframe";
+const clippedMediaSelector = "img, video";
 const transparentColor = "rgba(0, 0, 0, 0)";
 const borderSides = ["top", "right", "bottom", "left"];
 
@@ -57,13 +58,16 @@ function isPlainShape(shapeElement: HTMLElement, layeredElements: Set<Element>):
 }
 
 // A stretched snapshot stretches its corners too; a plain shape is drawn by its layer group instead, so the radius stays true while the size changes.
+// A picture keeps its snapshots, and the group clips them with a radius that changes smoothly from one corner to the other.
 export function findPaintedShapes(namedLayers: NamedLayer[]): PaintedShape[] {
   const layeredElements = new Set<Element>(namedLayers.flatMap((namedLayer) => [namedLayer.outgoingElement, namedLayer.incomingElement].filter((layeredElement) => layeredElement !== null)));
   return namedLayers.flatMap((namedLayer) => {
     const { outgoingElement, incomingElement } = namedLayer;
     const isMorphedShape = namedLayer.layerClass === "morph-shape" && outgoingElement !== null && incomingElement !== null;
-    if (!isMorphedShape || !isPlainShape(outgoingElement, layeredElements) || !isPlainShape(incomingElement, layeredElements)) return [];
-    namedLayer.layerClass = "plain-shape";
+    if (!isMorphedShape) return [];
+    const isClippedMedia = outgoingElement.matches(clippedMediaSelector) && incomingElement.matches(clippedMediaSelector);
+    if (!isClippedMedia && (!isPlainShape(outgoingElement, layeredElements) || !isPlainShape(incomingElement, layeredElements))) return [];
+    namedLayer.layerClass = isClippedMedia ? "clipped-media" : "plain-shape";
     return [{ layerName: namedLayer.layerName, outgoingPaint: readShapePaint(outgoingElement), incomingElement }];
   });
 }
@@ -77,8 +81,8 @@ export function readIncomingPaints(paintedShapes: PaintedShape[]) {
 export function paintShapeGroups(paintedShapes: PaintedShape[]): Animation[] {
   return paintedShapes.flatMap(({ layerName, outgoingPaint, incomingPaint }) => {
     const groupSelector = `::view-transition-group(${layerName})`;
-    const browserMove = findBrowserMove(groupSelector);
-    if (incomingPaint === undefined || !browserMove?.effect) return [];
-    return [document.documentElement.animate([outgoingPaint, incomingPaint], { ...browserMove.effect.getTiming(), fill: "both", pseudoElement: groupSelector })];
+    const browserTiming = readBrowserMoveTiming(groupSelector);
+    if (incomingPaint === undefined || browserTiming === undefined) return [];
+    return [document.documentElement.animate([outgoingPaint, incomingPaint], { ...browserTiming, id: "slidemachina-shape-paint", fill: "both", pseudoElement: groupSelector })];
   });
 }

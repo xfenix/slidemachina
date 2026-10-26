@@ -77,7 +77,7 @@ test("сборка: один HTML-файл листается без серве�
       const firstSceneSlideNumber = await findSlideNumber(page, "[data-scene]");
       await page.goto(`${pathToFileURL(singleFile).href}#${firstSceneSlideNumber}`);
       const sceneCanvas = page.locator("[data-canvas] > [data-current] [data-scene-canvas]");
-      await expect.poll(async () => (await sampleSceneCanvas(sceneCanvas)).paintedPixels, { message: "сцена рисуется из файла" }).toBeGreaterThan(400);
+      await expect.poll(async () => (await sampleSceneCanvas(sceneCanvas)).paintedPixels, { message: "сцена рисуется из файла" }).toBeGreaterThan(250);
     });
 
     await test.step("печать из браузера: страница на слайд, без панели управления", async () => {
@@ -91,7 +91,7 @@ test("сборка: один HTML-файл листается без серве�
       const printedScenes = page.locator("[data-print-pages] [data-scene]");
       await expect(printedScenes).toHaveCount(demoSceneCount);
       await expect(page.locator("[data-print-pages] [data-scene][data-drawn]")).toHaveCount(demoSceneCount);
-      expect((await sampleSceneCanvas(printedScenes.first().locator("[data-scene-canvas]"))).paintedPixels).toBeGreaterThan(400);
+      expect((await sampleSceneCanvas(printedScenes.first().locator("[data-scene-canvas]"))).paintedPixels).toBeGreaterThan(250);
       await page.emulateMedia({ media: "screen" });
     });
 

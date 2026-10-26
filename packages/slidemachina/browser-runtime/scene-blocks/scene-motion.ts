@@ -66,6 +66,8 @@ export function aimObjectMotion(objectMotion: ObjectMotion, objectPose: ObjectPo
   const [rotationX, rotationY, rotationZ] = objectPose.rotation.map(MathUtils.degToRad);
   objectMotion.orientation.target.setFromEuler(new Euler(rotationX, rotationY, rotationZ));
   objectMotion.color.target.copy(targetColor);
+  // A hidden object takes its colour at once: growing from a point, it does not fade in from black.
+  if (objectMotion.appearance[0] === 0) objectMotion.color.current.copy(targetColor);
   objectMotion.scale[1] = objectPose.scale;
   objectMotion.appearance[1] = objectPose.isShown ? 1 : 0;
 }

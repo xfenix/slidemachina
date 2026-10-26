@@ -4,20 +4,12 @@
     display: grid;
     grid-template-columns: repeat(var(--actor-count), minmax(0, 1fr));
     row-gap: var(--sequence-row-gap);
-    width: min(100%, var(--actor-count) * var(--sequence-column-width));
-    margin: 0 0 var(--block-gap);
+    /* Columns share the content width so that the first box starts on its left edge and the last box ends on its right edge. */
+    width: calc((100% - var(--diagram-box-min-width)) * var(--actor-count) / max(var(--actor-count) - 1, 1));
+    margin: 0 0 var(--block-gap) calc((var(--diagram-box-min-width) - (100% - var(--diagram-box-min-width)) / max(var(--actor-count) - 1, 1)) / 2);
     padding-bottom: var(--sequence-row-gap);
-    /* Lifelines run long and are cut at the bottom of the figure; shadows on the sides stay. */
+    /* Lifelines run long and are cut at the bottom of the figure; the sides stay open for labels. */
     clip-path: inset(calc(var(--canvas-height) * -1px) -4000px 0 -4000px);
-  }
-
-  /* On a left-aligned slide the first actor box, not its column, starts on the content edge. */
-  [data-slide][data-align="left"] [data-sequence] {
-    margin-left: calc((var(--diagram-box-min-width) - var(--sequence-column-width)) / 2);
-  }
-
-  [data-slide][data-align="center"] [data-sequence] {
-    margin-inline: auto;
   }
 
   [data-slide] [data-actor] > [data-box] {
@@ -73,10 +65,25 @@
     order: 1;
   }
 
+  /* The last actor loops to the left: on its right is the frame line. */
+  [data-slide] [data-message="self"][data-loop-side="left"] {
+    justify-content: flex-end;
+    margin-inline: 0 50%;
+  }
+
+  [data-slide] [data-loop-side="left"] [data-message-label] {
+    order: 0;
+  }
+
+  [data-slide] [data-loop-side="left"] [data-message-loop] {
+    order: 1;
+    scale: -1 1;
+  }
+
   [data-slide] [data-message-label] {
     color: var(--text-color);
     font-size: var(--diagram-label-size);
-    line-height: 1.2;
+    line-height: var(--secondary-line-height);
     white-space: nowrap;
     text-box: trim-both cap alphabetic;
   }

@@ -6,9 +6,7 @@
     max-height: 100%;
     margin: 0 0 var(--block-gap);
     border-radius: var(--block-radius);
-    box-shadow:
-      0 0 0 1px var(--hairline-color),
-      var(--media-shadow);
+    box-shadow: var(--media-edge);
   }
 
   /* The frame takes the free space; the picture inside keeps its proportions, so corners and shadow hug it. */

@@ -164,7 +164,9 @@
     --block-radius: 12px;
     /* Inline code and keys: small boxes inside a line of text. */
     --inline-radius: calc(var(--block-radius) / 2);
-    --media-shadow: 0 24px 56px -20px rgb(21 23 28 / 0.28);
+    /* Pictures are flat, like code. On a dark slide a hairline keeps a dark picture from melting into the background. */
+    --media-edge: none;
+    --media-edge-on-dark: 0 0 0 1px var(--hairline-color-on-dark);
     --code-dim-opacity: 0.45;
 
     --diagram-text-size: var(--secondary-text-size);
@@ -181,8 +183,6 @@
     --diagram-box-background-on-dark: rgb(255 255 255 / 0.07);
     --diagram-box-border-color: rgb(21 23 28 / 0.12);
     --diagram-box-border-color-on-dark: rgb(255 255 255 / 0.14);
-    --diagram-box-shadow: 0 1px 2px rgb(21 23 28 / 0.06), 0 14px 32px -18px rgb(21 23 28 / 0.28);
-    --diagram-box-shadow-on-dark: 0 14px 32px -18px rgb(0 0 0 / 0.6);
     --diagram-group-background: color-mix(in srgb, var(--accent-color) 4%, transparent);
     --diagram-group-background-on-dark: rgb(255 255 255 / 0.03);
     --diagram-group-border-color: color-mix(in srgb, var(--accent-color) 16%, transparent);
@@ -191,9 +191,7 @@
     --diagram-line-color-on-dark: rgb(255 255 255 / 0.42);
     --diagram-lifeline-color: rgb(21 23 28 / 0.18);
     --diagram-lifeline-color-on-dark: rgb(255 255 255 / 0.2);
-    --diagram-focus-ring: color-mix(in srgb, var(--accent-color) 22%, transparent);
     --diagram-dim-opacity: 0.38;
-    --sequence-column-width: 440px;
     --sequence-row-gap: 40px;
 
     /* QR modules take --qr-color; unset, they follow the text of the slide tone. */

@@ -2,6 +2,7 @@ import type { ElkNode, ElkPoint } from "elkjs/lib/elk-api";
 import { placeArrowLabel, type LabelFrame } from "./arrow-geometry.ts";
 import type { DiagramDirection, MeasuredSize } from "./diagram-graph.ts";
 import { layOutWithElk } from "./elk-worker-client.ts";
+import { tidyLaidOutGraph } from "./layout-tidying.ts";
 
 const labelDistance = 12;
 
@@ -69,7 +70,7 @@ export function layOutDiagram(
   if (runningLayout !== undefined) return runningLayout;
   const placedGraph = layOutWithElk(elkGraph).catch(() => layOutWithElk(switchToSimplerPlacement(elkGraph)));
   const startedLayout = placedGraph.then((laidOutGraph) => {
-    const diagramGeometry = readGeometry(laidOutGraph, labelSizes, diagramDirection === "right");
+    const diagramGeometry = readGeometry(tidyLaidOutGraph(laidOutGraph), labelSizes, diagramDirection === "right");
     finishedGeometries.set(graphKey, diagramGeometry);
     if (finishedGeometries.size > largestGeometryCount) finishedGeometries.delete(finishedGeometries.keys().next().value!);
     return diagramGeometry;

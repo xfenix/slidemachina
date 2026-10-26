@@ -9,9 +9,13 @@ export type NamedLayer = {
   layerClass?: string;
 };
 
+const framePartSelectors = [":scope > [data-logo]", ":scope > [data-breadcrumbs]", ":scope > [data-slide-number]"];
+const slideNumberSelector = ":scope > [data-slide-number]";
+
 export function clearLayerName(namedElement: HTMLElement | null) {
   namedElement?.style.removeProperty("view-transition-name");
   namedElement?.style.removeProperty("view-transition-class");
+  namedElement?.removeAttribute("data-morph-clipped");
 }
 
 export function clearLayerNames(namedLayers: NamedLayer[]) {
@@ -21,13 +25,19 @@ export function clearLayerNames(namedLayers: NamedLayer[]) {
   }
 }
 
+// A clipped picture leaves its corners and edge to its layer group, which rounds and outlines both snapshots at once.
 export function nameLayer(namedElement: HTMLElement | null, namedLayer: NamedLayer) {
   namedElement?.style.setProperty("view-transition-name", namedLayer.layerName);
   if (namedLayer.layerClass) namedElement?.style.setProperty("view-transition-class", namedLayer.layerClass);
+  if (namedLayer.layerClass === "clipped-media") namedElement?.setAttribute("data-morph-clipped", "");
 }
 
 export function restoreLayers(layerRestorers: Array<() => void>) {
   for (const restoreLayer of layerRestorers) restoreLayer();
+}
+
+export function describeWordLayerPrefix(pairPosition: number): string {
+  return `morph-word-${pairPosition}`;
 }
 
 // Reworded text and code get a layer per piece; shared pieces have the same name on both slides.
@@ -38,7 +48,8 @@ export function nameMovingParts(rewordedPairs: RewordedPair[], codePairs: CodePa
       rewordedPair.wordMatches.map((wordMatch) =>
         side === "outgoing" ? wordMatch.outgoingWordPosition : wordMatch.incomingWordPosition,
       ),
-      `morph-word-${pairPosition}`,
+      describeWordLayerPrefix(pairPosition),
+      rewordedPair.keepsEveryWord ? "carried-word" : "moving-word",
       side === "outgoing" ? "leaving-word" : "arriving-word",
     ),
   );
@@ -72,33 +83,56 @@ function describeMorphClass(morphedElement: HTMLElement): string | undefined {
   return isTextElement(morphedElement) ? "morph-text" : "morph-shape";
 }
 
-// Parts marked data-morph-apart get their own layers, or they would stretch with their group's snapshot; a part with a pair of its own morphs.
+// Parts marked data-morph-apart or named with morph get their own layers, or they would stretch with their group's snapshot:
+// a new diagram box appears in its place instead of growing out of its group. A part with a pair of its own morphs.
 function describeApartLayers(morphPairs: MorphPair[]): NamedLayer[] {
   const pairedElements = new Set(morphPairs.flatMap((morphPair) => [morphPair.outgoingElement, morphPair.incomingElement]));
   const listApartParts = (pairedElement: HTMLElement) =>
-    [...pairedElement.querySelectorAll<HTMLElement>("[data-morph-apart]")].filter((apartPart) => !pairedElements.has(apartPart));
+    [...pairedElement.querySelectorAll<HTMLElement>("[data-morph-apart], [morph]")].filter((apartPart) => !pairedElements.has(apartPart));
   return morphPairs.flatMap(({ outgoingElement, incomingElement }, pairPosition) => [
     ...listApartParts(outgoingElement).map((apartPart, partPosition) => ({
       outgoingElement: apartPart,
       incomingElement: null,
       layerName: `apart-out-${pairPosition}-${partPosition}`,
-      layerClass: "leaving-part",
+      layerClass: apartPart.hasAttribute("data-morph-apart") ? "leaving-part" : "leaving-block",
     })),
     ...listApartParts(incomingElement).map((apartPart, partPosition) => ({
       outgoingElement: null,
       incomingElement: apartPart,
       layerName: `apart-in-${pairPosition}-${partPosition}`,
-      layerClass: "arriving-part",
+      layerClass: apartPart.hasAttribute("data-morph-apart") ? "arriving-part" : "arriving-block",
     })),
   ]);
 }
 
 // Slide, cube, flip and zoom move whole slides with their background, logo and number.
-export function describeWholeSlideLayers(outgoingSlide: HTMLElement, incomingSlide: HTMLElement): NamedLayer[] {
-  return [
+// Zoom moves the content apart from its slide: the old text is gone before the new one shows, so two texts never overlap.
+export function describeWholeSlideLayers(outgoingSlide: HTMLElement, incomingSlide: HTMLElement, chosenTransition: string): NamedLayer[] {
+  const slideLayers: NamedLayer[] = [
     { outgoingElement: outgoingSlide, incomingElement: null, layerName: "slide-out" },
     { outgoingElement: null, incomingElement: incomingSlide, layerName: "slide-in" },
   ];
+  if (chosenTransition !== "zoom") return slideLayers;
+  return [
+    ...slideLayers,
+    { outgoingElement: outgoingSlide.querySelector("[data-content]"), incomingElement: null, layerName: "zoom-content-out" },
+    { outgoingElement: null, incomingElement: incomingSlide.querySelector("[data-content]"), layerName: "zoom-content-in" },
+  ];
+}
+
+// A logo or breadcrumbs only one slide has, and a changed number, leave and arrive like the content: the target slide
+// shows no stray breadcrumbs, and the digits of two numbers never overlap. The rest stays in the page root and blends.
+function describeFrameLayers(outgoingSlide: HTMLElement, incomingSlide: HTMLElement): NamedLayer[] {
+  return framePartSelectors.flatMap((framePartSelector, partPosition) => {
+    const outgoingPart = outgoingSlide.querySelector<HTMLElement>(framePartSelector);
+    const incomingPart = incomingSlide.querySelector<HTMLElement>(framePartSelector);
+    const isChangedNumber = framePartSelector === slideNumberSelector && outgoingPart?.textContent !== incomingPart?.textContent;
+    if ((outgoingPart !== null) === (incomingPart !== null) && !isChangedNumber) return [];
+    return [
+      { outgoingElement: outgoingPart, incomingElement: null, layerName: `frame-out-${partPosition}`, layerClass: "leaving-frame" },
+      { outgoingElement: null, incomingElement: incomingPart, layerName: `frame-in-${partPosition}`, layerClass: "arriving-frame" },
+    ];
+  });
 }
 
 // Outgoing and incoming content move as separate layers; the frame stays in the page root with the background.
@@ -124,6 +158,7 @@ export function describeContentLayers(
   morphPairs.forEach((morphPair, pairPosition) => {
     namedLayers.push({ ...morphPair, layerName: `morph-${pairPosition}`, layerClass: describeMorphClass(morphPair.outgoingElement) });
   });
+  namedLayers.push(...describeFrameLayers(outgoingSlide, incomingSlide));
   namedLayers.push(...describeApartLayers(morphPairs));
   // The reworded element keeps what is not a word, such as a list bullet, steady while its words move.
   rewordedPairs.forEach(({ outgoingElement, incomingElement }, pairPosition) =>

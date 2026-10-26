@@ -33,6 +33,14 @@ export function findBrowserMove(groupSelector: string): Animation | undefined {
   return document.getAnimations().find((runningAnimation) => (runningAnimation.effect as KeyframeEffect | null)?.pseudoElement === groupSelector);
 }
 
+// The timing of the browser's own move of a layer group; a CSS animation keeps its easing on the keyframe, not on the timing.
+export function readBrowserMoveTiming(groupSelector: string): EffectTiming | undefined {
+  const browserEffect = findBrowserMove(groupSelector)?.effect as KeyframeEffect | null | undefined;
+  if (!browserEffect) return undefined;
+  const keyframeEasing = browserEffect.getKeyframes()[0]?.easing;
+  return { ...browserEffect.getTiming(), easing: keyframeEasing ?? browserEffect.getTiming().easing };
+}
+
 // Runs once the transition is ready: the extra translate rides on top of the browser's own move, with the same timing.
 export function bendCrossingPaths(movingLayers: MovingLayer[]) {
   const measuredLayers = movingLayers.flatMap(({ layerName, outgoingElement, startBox, endBox }) =>

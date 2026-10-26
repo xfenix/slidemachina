@@ -1,6 +1,6 @@
 import * as Machina from "slidemachina";
-import duskPicture from "./images/dusk.svg";
-import editorPicture from "./images/dusk.svg";
+import duskPicture from "./images/dusk.webp";
+import editorPicture from "./images/dusk.webp";
 import glassCardsPicture from "./images/glass-cards.webp";
 import navigatorPicture from "./images/navigator.webp";
 import presentationListPicture from "./images/presentation-list.webp";
@@ -632,11 +632,10 @@ export default (
         <h2>Сцена в 3D</h2>
         <p className="machina-lead">Куб, сфера, текст и свет пишутся тегами</p>
         <Machina.Scene full orbit>
-          <Machina.Camera target={[0.6, 1.7, 0]} />
-          <Machina.Cube size={1.5} position={[-1.9, 0.75, 0]} rotation={[0, 28, 0]} material="glossy" />
-          <Machina.Sphere size={1.6} position={[0.2, 0.8, 0.3]} color="var(--text-color)" material="glossy" />
-          <Machina.Sphere size={1} position={[2, 0.5, -0.3]} color="var(--muted-color)" material="metal" />
-          <Machina.Cube size={[0.7, 2.4, 0.7]} position={[3.4, 1.2, -1.2]} rotation={[0, 18, 0]} color="var(--second-accent-color)" />
+          <Machina.Cube size={1.5} position={[-1.7, 0.75, 0.2]} rotation={[0, 28, 0]} material="glossy" />
+          <Machina.Sphere size={1.6} position={[0.1, 0.8, 0.6]} color="var(--text-color)" material="glossy" />
+          <Machina.Sphere size={1} position={[1.5, 0.5, -0.4]} color="var(--muted-color)" material="metal" />
+          <Machina.Cube size={[0.7, 2.4, 0.7]} position={[2.5, 1.2, -1]} rotation={[0, 18, 0]} color="var(--second-accent-color)" />
         </Machina.Scene>
       </Machina.Slide>
 
@@ -654,7 +653,7 @@ export default (
               <Machina.Cube id="cube" size={1.3} position={[0, 0.65, 0]} rotation={[0, 20, 0]} material="glossy" />
               <Machina.Sphere size={1.1} position={[1.4, 0.55, 0.4]} color="var(--second-accent-color)" step={1} />
               <Machina.Move on="cube" position={[-1.4, 0.65, 0]} rotation={[0, 70, 0]} step={2} />
-              <Machina.Camera position={[5.5, 3.2, 6.5]} target={[0, 0.8, 0]} step={3} />
+              <Machina.Camera position={[4.93, 2.56, 4.99]} target={[0.49, 0.62, -0.25]} step={3} />
               <Machina.Text position={[0, 2.3, 0]} size={0.45} step={4}>Готово</Machina.Text>
             </Machina.Scene>
           </div>
@@ -968,11 +967,10 @@ export default (
       <h1>Спасибо</h1>
       <Machina.Code lang="bash">{`npm create slidemachina`}</Machina.Code>
       <Machina.Scene full orbit={12}>
-        <Machina.Camera position={[0, 3.4, 13]} target={[0, 2.6, 0]} />
-        <Machina.Cube size={1.2} position={[-3.2, 0.6, -0.6]} rotation={[0, 24, 0]} material="glossy" />
-        <Machina.Sphere size={1.3} position={[-1.5, 0.65, 1.2]} color="var(--second-accent-color)" material="glossy" />
-        <Machina.Sphere size={1.6} position={[1.7, 0.8, 0.8]} color="var(--muted-color)" material="metal" />
-        <Machina.Cube size={[0.8, 2.2, 0.8]} position={[3.3, 1.1, -0.8]} rotation={[0, 18, 0]} color="var(--text-color)" material="glossy" />
+        <Machina.Cube size={1.2} position={[-2.4, 0.6, 0]} rotation={[0, 24, 0]} material="glossy" />
+        <Machina.Sphere size={1.3} position={[-0.9, 0.65, 0.2]} color="var(--second-accent-color)" material="glossy" />
+        <Machina.Sphere size={1.6} position={[0.8, 0.8, 0]} color="var(--muted-color)" material="metal" />
+        <Machina.Cube size={[0.8, 2.2, 0.8]} position={[2.4, 1.1, -0.2]} rotation={[0, 18, 0]} color="var(--text-color)" material="glossy" />
       </Machina.Scene>
     </Machina.Slide>
   </Machina.Presentation>

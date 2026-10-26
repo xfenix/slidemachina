@@ -55,6 +55,8 @@
 
   /* Like Keynote: what leaves is gone by the middle, moving words arrive by then, and only then new text fades in. */
   :root[data-slide-transition="morph"]::view-transition-old(slide-content-out),
+  :root[data-slide-transition="morph"]::view-transition-old(*.leaving-frame),
+  :root[data-slide-transition="morph"]::view-transition-old(*.leaving-block),
   :root[data-slide-transition="morph"]::view-transition-old(*.leaving-word),
   :root[data-slide-transition="morph"]::view-transition-old(*.code-text),
   :root[data-slide-transition="morph"]::view-transition-group(*.moving-word) {
@@ -62,6 +64,8 @@
   }
 
   :root[data-slide-transition="morph"]::view-transition-new(slide-content-in),
+  :root[data-slide-transition="morph"]::view-transition-new(*.arriving-frame),
+  :root[data-slide-transition="morph"]::view-transition-new(*.arriving-block),
   :root[data-slide-transition="morph"]::view-transition-new(*.arriving-word),
   :root[data-slide-transition="morph"]::view-transition-new(*.code-text) {
     animation-delay: calc(var(--morph-time) * 0.5);
@@ -97,6 +101,17 @@
     display: none;
   }
 
+  /* A picture leaves its corners and edge to its group: the group clips both snapshots, and the radius changes smoothly. */
+  [data-morph-clipped] {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  :root[data-slide-transition="morph"]::view-transition-group(*.clipped-media) {
+    box-sizing: border-box;
+    overflow: clip;
+  }
+
   /* Text scales only with its height, that is its font: a list item in a wider list keeps its letters instead of stretching or shrinking. */
   ::view-transition-old(*.morph-text),
   ::view-transition-new(*.morph-text) {
@@ -119,11 +134,13 @@
   }
 
   /* Fade goes through the background: the old text is gone, the background and number blend, the new text appears. */
-  :root[data-slide-transition="fade"]::view-transition-old(slide-content-out) {
+  :root[data-slide-transition="fade"]::view-transition-old(slide-content-out),
+  :root[data-slide-transition="fade"]::view-transition-old(*.leaving-frame) {
     animation-duration: calc(var(--transition-time) * 0.5);
   }
 
-  :root[data-slide-transition="fade"]::view-transition-new(slide-content-in) {
+  :root[data-slide-transition="fade"]::view-transition-new(slide-content-in),
+  :root[data-slide-transition="fade"]::view-transition-new(*.arriving-frame) {
     animation-delay: calc(var(--transition-time) * 0.5);
     animation-duration: calc(var(--transition-time) * 0.5);
   }
@@ -135,6 +152,12 @@
 
   :root:is([data-slide-transition="morph"], [data-slide-transition="fade"])::view-transition-new(root) {
     animation-name: slidemachina-blend-midway;
+  }
+
+  /* Between a light and a dark slide every blend is grey: the background swaps at once, halfway, when the old text is gone. */
+  :root[data-tone-change]:is([data-slide-transition="morph"], [data-slide-transition="fade"])::view-transition-new(root) {
+    animation-name: slidemachina-appear;
+    animation-timing-function: steps(2, jump-none);
   }
 
   :root[data-slide-transition="none"]::view-transition-group(*),
@@ -163,6 +186,28 @@
 
   :root[data-slide-transition="zoom"]::view-transition-new(slide-in) {
     animation-name: slidemachina-zoom-settle;
+  }
+
+  /* The old text flies off first, so it never shows through the new slide; the new text settles in after it. */
+  :root[data-slide-transition="zoom"]::view-transition-group(zoom-content-out) {
+    z-index: 1;
+  }
+
+  :root[data-slide-transition="zoom"]::view-transition-old(zoom-content-out) {
+    animation-name: slidemachina-zoom-away;
+    animation-duration: calc(var(--transition-time) * 0.25);
+  }
+
+  :root[data-slide-transition="zoom"]::view-transition-new(zoom-content-in) {
+    animation-name: slidemachina-zoom-arrive;
+  }
+
+  :root[data-slide-transition="zoom"][data-slide-direction="backward"]::view-transition-old(zoom-content-out) {
+    animation: slidemachina-zoom-arrive var(--transition-time) var(--transition-easing) both reverse;
+  }
+
+  :root[data-slide-transition="zoom"][data-slide-direction="backward"]::view-transition-new(zoom-content-in) {
+    animation: slidemachina-zoom-away calc(var(--transition-time) * 0.4) var(--transition-easing) calc(var(--transition-time) * 0.6) both reverse;
   }
 
   :root[data-slide-transition="zoom"][data-slide-direction="backward"]::view-transition-group(slide-out) {
@@ -201,6 +246,8 @@
   :root[data-slide-transition="flip"]::view-transition-old(slide-out),
   :root[data-slide-transition="flip"]::view-transition-new(slide-in) {
     filter: drop-shadow(0 40px 60px rgb(0 0 0 / 0.45));
+    /* Far enough that the near edge of the stepped-back card stays inside the window: 0.86 / (1 - 1 / 7.4) < 1. */
+    --flip-perspective: calc(var(--slide-half-width) * 7.4);
   }
 
   :root[data-slide-transition="flip"]::view-transition-old(slide-out) {
@@ -219,6 +266,15 @@
   }
   70%,
   100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slidemachina-appear {
+  from {
+    opacity: 0;
+  }
+  to {
     opacity: 1;
   }
 }
@@ -245,6 +301,18 @@
 @keyframes slidemachina-zoom-settle {
   from {
     scale: 0.96;
+  }
+}
+
+@keyframes slidemachina-zoom-arrive {
+  0%,
+  40% {
+    opacity: 0;
+    scale: 0.96;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
   }
 }
 
@@ -279,18 +347,18 @@
 
 @keyframes slidemachina-flip-out {
   from {
-    transform: perspective(2400px) rotateY(0deg);
+    transform: perspective(var(--flip-perspective)) rotateY(0deg);
   }
   to {
-    transform: perspective(2400px) rotateY(calc(-180deg * var(--slide-direction-sign)));
+    transform: perspective(var(--flip-perspective)) rotateY(calc(-180deg * var(--slide-direction-sign)));
   }
 }
 
 @keyframes slidemachina-flip-in {
   from {
-    transform: perspective(2400px) rotateY(calc(180deg * var(--slide-direction-sign)));
+    transform: perspective(var(--flip-perspective)) rotateY(calc(180deg * var(--slide-direction-sign)));
   }
   to {
-    transform: perspective(2400px) rotateY(0deg);
+    transform: perspective(var(--flip-perspective)) rotateY(0deg);
   }
 }

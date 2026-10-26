@@ -6,7 +6,8 @@ import { Focus, FocusMarker, type FocusProperties } from "./diagram-parts.tsx";
 import { createPartStepAttributes, type StepEffect } from "../slide-steps/step-attributes.ts";
 
 const selfLoopWidth = 56;
-const selfLoopHeight = 40;
+// About the step between two messages: a loop reads as one more message, not as a squeeze.
+const selfLoopHeight = 88;
 const selfLoopCornerRadius = 14;
 
 const horizontalHead = drawArrow(
@@ -14,7 +15,7 @@ const horizontalHead = drawArrow(
   0,
 );
 
-// A message to oneself leaves to the right and comes back to the same lifeline a little lower.
+// A message to oneself leaves to the side and comes back to the same lifeline a step lower.
 const selfLoop = drawArrow(
   [
     { x: 0, y: 1 },
@@ -120,6 +121,7 @@ export function Sequence({ children }: SequenceProperties) {
         key={partPosition}
         data-message={messageDirection}
         data-reply={messageProperties.reply || undefined}
+        data-loop-side={messageDirection === "self" && sourceColumn === actorColumns.size && sourceColumn > 1 ? "left" : undefined}
         data-focus-id={messageProperties.id ?? `message:${partPosition}`}
         data-focus-ends={`${messageProperties.from} ${messageProperties.to}`}
         style={messageStyle}

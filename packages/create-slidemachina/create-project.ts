@@ -112,7 +112,7 @@ function writeRepositoryPresentation(presentationFolder: string): void {
   presentationSource = replaceOrFail(presentationSource, '<Presentation title="Мой доклад"', `<Presentation title="Мой доклад" date="${todayDate}"`);
   mkdirSync(path.join(presentationFolder, "images"), { recursive: true });
   writeFileSync(path.join(presentationFolder, "index.tsx"), presentationSource);
-  cpSync(path.join(templateFolder, "images", "dusk.svg"), path.join(presentationFolder, "images", "dusk.svg"));
+  cpSync(path.join(templateFolder, "images", "dusk.webp"), path.join(presentationFolder, "images", "dusk.webp"));
 }
 
 // The repository root: package.json, tsconfig.json and .gitignore of the template, a theme with its logos, one presentation.

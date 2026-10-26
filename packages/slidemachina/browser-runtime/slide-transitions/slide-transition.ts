@@ -1,5 +1,6 @@
 import { findCodePairs } from "../element-morphing/code-morphing.ts";
-import { findMorphPairs, findRewordedPairs } from "../element-morphing/morph-matching.ts";
+import { findMorphPairs, findRewordedPairs, rewordPairedTexts } from "../element-morphing/morph-matching.ts";
+import { carryLeavingWords, measureWordLayers, type WordBoxes } from "../element-morphing/word-carrying.ts";
 import { bendCrossingPaths, type MovingLayer } from "../element-morphing/morph-arcs.ts";
 import { markReachedSteps } from "../slide-steps/step-visibility.ts";
 import { findPaintedShapes, paintShapeGroups, readIncomingPaints } from "./shape-layers.ts";
@@ -8,6 +9,7 @@ import {
   clearLayerNames,
   describeContentLayers,
   describeWholeSlideLayers,
+  describeWordLayerPrefix,
   nameLayer,
   nameMovingParts,
   restoreLayers,
@@ -44,14 +46,17 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
   const usesMorph = requestedTransition === "auto" || requestedTransition === "morph";
   // Pairs are looked up before the update: the hidden incoming slide shows now the step it will arrive at.
   if (usesMorph) markReachedSteps(incomingSlide, incomingStepIndex);
-  const morphPairs = usesMorph ? findMorphPairs(outgoingSlide, incomingSlide) : [];
-  const rewordedPairs = usesMorph ? findRewordedPairs(outgoingSlide, incomingSlide, morphPairs) : [];
+  const pairedElements = usesMorph ? findMorphPairs(outgoingSlide, incomingSlide) : [];
+  const { shapePairs: morphPairs, textPairs } = rewordPairedTexts(pairedElements);
+  const rewordedPairs = usesMorph ? [...textPairs, ...findRewordedPairs(outgoingSlide, incomingSlide, pairedElements)] : [];
   const codePairs = usesMorph ? findCodePairs(outgoingSlide, incomingSlide) : [];
   const chosenTransition = chooseTransition(requestedTransition, morphPairs.length + rewordedPairs.length + codePairs.length);
   const movesWholeSlides = wholeSlideTransitions.has(chosenTransition);
   const documentElement = document.documentElement;
   documentElement.dataset.slideTransition = chosenTransition;
   documentElement.dataset.slideDirection = isMovingForward ? "forward" : "backward";
+  // Light and dark backgrounds swap at once in the middle: a cross-fade between them is a grey frame.
+  documentElement.toggleAttribute("data-tone-change", outgoingSlide.dataset.tone !== incomingSlide.dataset.tone);
   // The page root carries the transition layers, so it takes the speed of the slide whose transition plays.
   documentElement.style.setProperty("--transition-speed", (isMovingForward ? incomingSlide : outgoingSlide).style.getPropertyValue("--transition-speed") || "1");
   // The cube turns around its centre, half a slide behind the screen; CSS cannot take that from the snapshot.
@@ -61,7 +66,7 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
   clearLayerNames(activeNamedLayers);
   restoreLayers(activeLayerRestorers);
   const namedLayers = movesWholeSlides
-    ? describeWholeSlideLayers(outgoingSlide, incomingSlide)
+    ? describeWholeSlideLayers(outgoingSlide, incomingSlide, chosenTransition)
     : describeContentLayers(outgoingSlide, incomingSlide, morphPairs, rewordedPairs, codePairs);
   activeNamedLayers = namedLayers;
   const paintedShapes = findPaintedShapes(namedLayers);
@@ -70,6 +75,8 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
   }
   const outgoingLayerRestorers = nameMovingParts(rewordedPairs, codePairs, "outgoing");
   activeLayerRestorers = outgoingLayerRestorers;
+  const outgoingWordBoxes = measureWordLayers(rewordedPairs.map((rewordedPair) => rewordedPair.outgoingElement));
+  let incomingWordBoxes: WordBoxes = new Map();
   // Apart parts such as diagram arrows cover the whole diagram: they would all look like crossing paths.
   const movingLayers: MovingLayer[] = morphPairs.flatMap(({ outgoingElement, incomingElement }, pairPosition) =>
     outgoingElement.hasAttribute("data-morph-apart")
@@ -84,11 +91,12 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
     restoreLayers(outgoingLayerRestorers);
     // A newer transition already owns the names; this one only applies the slide change.
     if (activeNamedLayers !== namedLayers) return;
+    readIncomingPaints(paintedShapes);
     for (const namedLayer of namedLayers) {
       nameLayer(namedLayer.incomingElement, namedLayer);
     }
     activeLayerRestorers = nameMovingParts(rewordedPairs, codePairs, "incoming");
-    readIncomingPaints(paintedShapes);
+    incomingWordBoxes = measureWordLayers(rewordedPairs.map((rewordedPair) => rewordedPair.incomingElement));
     for (const movingLayer of movingLayers) movingLayer.endBox = movingLayer.incomingElement.getBoundingClientRect();
   });
   // A quick next press skips this transition on purpose; the browser would report it as an error.
@@ -96,7 +104,10 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
   viewTransition.ready.then(
     () => {
       bendCrossingPaths(movingLayers);
-      shapePaints = paintShapeGroups(paintedShapes);
+      shapePaints = [
+        ...paintShapeGroups(paintedShapes),
+        ...carryLeavingWords(rewordedPairs, describeWordLayerPrefix, outgoingWordBoxes, incomingWordBoxes),
+      ];
     },
     () => {},
   );

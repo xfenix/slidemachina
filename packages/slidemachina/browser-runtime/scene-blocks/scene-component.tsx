@@ -39,7 +39,7 @@ export function Scene({ children, orbit = false, floor = true, full = false, ...
     const startView = (sceneViewModule: SceneViewModule) => {
       if (isUnmounted) return;
       try {
-        sceneView = sceneViewModule.createSceneView(figureElement, sceneParts, { showsFloor: floor, orbitDegrees, isSlideCopy });
+        sceneView = sceneViewModule.createSceneView(figureElement, sceneParts, { showsFloor: floor, fillsSlide: full, orbitDegrees, isSlideCopy });
       } catch (sceneError) {
         reportSceneFailure(sceneError);
       }
@@ -56,7 +56,7 @@ export function Scene({ children, orbit = false, floor = true, full = false, ...
       isUnmounted = true;
       sceneView?.dispose();
     };
-  }, [sceneParts, floor, orbitDegrees, isSlideCopy, isSceneAllowed]);
+  }, [sceneParts, floor, full, orbitDegrees, isSlideCopy, isSceneAllowed]);
 
   // Parts with step leave an empty hidden marker: the slide counts it like any other step, the scene reads which are reached.
   return (

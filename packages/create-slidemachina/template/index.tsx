@@ -1,5 +1,5 @@
 import * as Machina from "slidemachina";
-import duskPicture from "./images/dusk.svg";
+import duskPicture from "./images/dusk.webp";
 import logoOnDarkPicture from "./images/logo-on-dark.svg";
 import logoPicture from "./images/logo.svg";
 

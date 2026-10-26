@@ -64,6 +64,7 @@ export function nameWordLayers(
   textElement: HTMLElement,
   matchedWordPositions: number[],
   layerNamePrefix: string,
+  matchedWordClass: string,
   unmatchedWordClass: string,
 ): () => void {
   const wordElements: HTMLSpanElement[] = [];
@@ -72,7 +73,7 @@ export function nameWordLayers(
     const matchNumber = matchedWordPositions.indexOf(wordPosition);
     if (matchNumber >= 0) {
       wordElement.style.viewTransitionName = `${layerNamePrefix}-${matchNumber}`;
-      wordElement.style.setProperty("view-transition-class", "moving-word");
+      wordElement.style.setProperty("view-transition-class", matchedWordClass);
       return;
     }
     wordElement.style.viewTransitionName = `${layerNamePrefix}-${unmatchedWordClass}-${wordPosition}`;

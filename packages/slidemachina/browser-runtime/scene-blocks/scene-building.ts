@@ -1,5 +1,5 @@
 import { MathUtils, Mesh, PerspectiveCamera, Scene as ThreeScene, Vector3, type Color, type Material, type MeshBasicMaterial } from "three";
-import { defaultFieldOfView, frameCamera, measureSceneBounds, type SceneBounds } from "./scene-camera.ts";
+import { addShadowOutline, defaultFieldOfView, frameCamera, measureSceneBounds, type FrameExtent, type SceneBounds, type SceneFraming } from "./scene-camera.ts";
 import { resolveSceneColor, readSceneNumber } from "./scene-colors.ts";
 import {
   advanceCameraMotion,
@@ -34,6 +34,7 @@ export type BuiltScene = {
   objectMotions: Map<number, ObjectMotion>;
   lightMotions: LightMotion[];
   cameraMotion: CameraMotion;
+  sceneFraming: SceneFraming;
   resolvedColors: Map<string, Color>;
 };
 export type SceneSettings = {
@@ -41,6 +42,8 @@ export type SceneSettings = {
   orbitDegrees: number;
   // Reduced motion in the system settings: no spin, no orbit, steps jump.
   keepsStill: boolean;
+  // A full scene lies under the text, on a canvas as large as the slide.
+  fillsSlide: boolean;
 };
 
 function readSceneLook(figureElement: HTMLElement): SceneLook {
@@ -56,7 +59,7 @@ function readSceneLook(figureElement: HTMLElement): SceneLook {
 }
 
 export function buildScene(figureElement: HTMLElement, sceneParts: ScenePart[], sceneSettings: SceneSettings): BuiltScene {
-  const { showsFloor, orbitDegrees, keepsStill } = sceneSettings;
+  const { showsFloor, orbitDegrees, keepsStill, fillsSlide } = sceneSettings;
   const sceneLook = readSceneLook(figureElement);
   const threeScene = new ThreeScene();
   threeScene.environment = readEnvironmentTexture();
@@ -81,6 +84,8 @@ export function buildScene(figureElement: HTMLElement, sceneParts: ScenePart[], 
     threeScene.add(sceneLight.directionalLight, sceneLight.directionalLight.target);
     return { sceneLight, brightness: [0, 0] };
   });
+  // A block scene would cut a shadow at the edge of its canvas; under a full scene the canvas runs on and a shadow may leave the frame.
+  if (showsFloor && !fillsSlide) addShadowOutline(sceneBounds, lightMotions[0]!.sceneLight.lightDirection);
   if (showsFloor) threeScene.add(buildShadowFloor(sceneBounds.sceneCentre, sceneBounds.sceneRadius, sceneBounds.floorLevel - floorGap, sceneLook.shadowOpacity));
   const sceneCamera = new PerspectiveCamera(defaultFieldOfView, 1, sceneBounds.sceneRadius * nearestClipShare, sceneBounds.sceneRadius * farthestClipShare);
   const cameraMotion: CameraMotion = {
@@ -91,7 +96,9 @@ export function buildScene(figureElement: HTMLElement, sceneParts: ScenePart[], 
     orbitSpeed: keepsStill ? 0 : MathUtils.degToRad(orbitDegrees),
     orbitAngle: 0,
   };
-  return { threeScene, sceneParts, sceneLook, sceneBounds, objectMotions, lightMotions, cameraMotion, resolvedColors: new Map() };
+  // A scene in the flow starts at the top of its frame, like text; a full scene stands in the middle of its area.
+  const sceneFraming = { alignsTop: !fillsSlide, orbits: cameraMotion.orbitSpeed !== 0 };
+  return { threeScene, sceneParts, sceneLook, sceneBounds, objectMotions, lightMotions, cameraMotion, sceneFraming, resolvedColors: new Map() };
 }
 
 function resolveColorOnce(builtScene: BuiltScene, cssColor: string): Color {
@@ -104,7 +111,7 @@ function resolveColorOnce(builtScene: BuiltScene, cssColor: string): Color {
 }
 
 // Sets where everything is heading; a snap puts it there at once, for a frame that is not on screen yet.
-export function aimScene(builtScene: BuiltScene, scenePoses: ScenePoses, frameAspect: number, snapsAtOnce: boolean) {
+export function aimScene(builtScene: BuiltScene, scenePoses: ScenePoses, frameAspect: number, fittingArea: FrameExtent, snapsAtOnce: boolean) {
   for (const [partPosition, objectMotion] of builtScene.objectMotions) {
     const objectPart = builtScene.sceneParts[partPosition]!;
     const objectPose = scenePoses.objectPoses.get(partPosition)!;
@@ -116,7 +123,7 @@ export function aimScene(builtScene: BuiltScene, scenePoses: ScenePoses, frameAs
     lightMotion.brightness[1] = partPosition === undefined || scenePoses.shownLights.has(partPosition) ? fullIntensity : 0;
   }
   const { cameraMotion } = builtScene;
-  const { cameraPosition, aimPoint, fieldOfView } = frameCamera(scenePoses.cameraPose, builtScene.sceneBounds, frameAspect);
+  const { cameraPosition, aimPoint, fieldOfView } = frameCamera(scenePoses.cameraPose, builtScene.sceneBounds, frameAspect, builtScene.sceneFraming, fittingArea);
   cameraMotion.position.target.copy(cameraPosition);
   cameraMotion.aim.target.copy(aimPoint);
   cameraMotion.fieldOfView[1] = fieldOfView;

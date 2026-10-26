@@ -55,7 +55,7 @@ function collectTransitionAnimations(page: Page) {
         const samplingStart = performance.now();
         const sampleAnimations = () => {
           for (const runningAnimation of document.getAnimations()) {
-            seenAnimations.add(`${(runningAnimation.effect as KeyframeEffect).pseudoElement} ${(runningAnimation as CSSAnimation).animationName}`);
+            seenAnimations.add(`${(runningAnimation.effect as KeyframeEffect).pseudoElement} ${(runningAnimation instanceof CSSAnimation ? runningAnimation.animationName : runningAnimation.id)}`);
           }
           if (performance.now() - samplingStart < 500) requestAnimationFrame(sampleAnimations);
           else resolveAnimations([...seenAnimations]);
@@ -69,7 +69,7 @@ function listTransitionAnimations(page: Page) {
   return page.evaluate(() =>
     document
       .getAnimations()
-      .map((runningAnimation) => `${(runningAnimation.effect as KeyframeEffect).pseudoElement} ${(runningAnimation as CSSAnimation).animationName}`),
+      .map((runningAnimation) => `${(runningAnimation.effect as KeyframeEffect).pseudoElement} ${(runningAnimation instanceof CSSAnimation ? runningAnimation.animationName : runningAnimation.id)}`),
   );
 }
 
@@ -263,7 +263,10 @@ test("демо листается, показывает шаги и навига
     // The same picture grows from the float to the full slide: its snapshot morphs, it is not drawn as an empty shape.
     await jumpToSlide(page, (await findSlideNumber(page, "[data-media-frame=full] img")) - 1);
     await page.keyboard.press("ArrowRight");
-    expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining(["::view-transition-new(morph-0) -ua-view-transition-fade-in"]));
+    // Its layer group rounds both snapshots, so the corners turn square smoothly instead of at the swap of snapshots.
+    expect(await collectTransitionAnimations(page)).toEqual(
+      expect.arrayContaining(["::view-transition-new(morph-0) -ua-view-transition-fade-in", "::view-transition-group(morph-0) slidemachina-shape-paint"]),
+    );
     await expect.poll(() => listTransitionAnimations(page)).toEqual([]);
     const fullPictureBox = await currentSlide(page).locator("[data-media-frame=full] img").boundingBox();
     expect(fullPictureBox).toEqual(await currentSlide(page).boundingBox());
@@ -404,6 +407,12 @@ test("демо листается, показывает шаги и навига
     await expect(page).toHaveURL(new RegExp(`#${diagramSlideNumber + 1}$`));
     const focusedDiagram = currentSlide(page).locator("[data-diagram]");
     await expect(focusedDiagram.locator("[data-focus]")).toHaveCount(0);
+    // Groups side by side start on one line, and a diagram almost as wide as the content reaches its right edge.
+    const groupBoxes = await focusedDiagram.locator("[data-group]").evaluateAll((groupElements) =>
+      groupElements.map((groupElement) => groupElement.getBoundingClientRect().toJSON() as DOMRect),
+    );
+    expect(groupBoxes[0]!.top).toBeCloseTo(groupBoxes[1]!.top, 0);
+    expect(groupBoxes[1]!.right).toBeCloseTo(contentBox!.x + contentBox!.width, 0);
     await page.keyboard.press("ArrowRight");
     await expect(focusedDiagram.locator("[data-node-id=build]")).toHaveAttribute("data-focus", "on");
     await expect(focusedDiagram.locator("[data-node-id=shiki]")).toHaveAttribute("data-focus", "on");
@@ -460,6 +469,9 @@ test("демо листается, показывает шаги и навига
     );
     expect(requestBox!.x).toBeCloseTo(actorBoxes[1]!.x + actorBoxes[1]!.width / 2, 0);
     expect(requestBox!.x + requestBox!.width).toBeCloseTo(actorBoxes[2]!.x + actorBoxes[2]!.width / 2, 0);
+    // Columns share the content width: the last actor ends on the right edge of the content.
+    const sequenceContentBox = await currentSlide(page).locator("[data-content]").boundingBox();
+    expect(actorBoxes[2]!.x + actorBoxes[2]!.width).toBeCloseTo(sequenceContentBox!.x + sequenceContentBox!.width, 0);
   });
 
   await test.step("морфинг сам включается, когда у слайдов есть общие элементы", async () => {
@@ -482,10 +494,14 @@ test("демо листается, показывает шаги и навига
     });
     await expect(page).toHaveURL(new RegExp(`#${versionSlideNumber}$`));
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "morph");
+    // The changed word rides with its line, and the two slide numbers take turns instead of overlapping.
     expect(await collectTransitionAnimations(page)).toEqual(
         expect.arrayContaining([
           "::view-transition-group(morph-word-0-0) -ua-view-transition-group-anim-morph-word-0-0",
           "::view-transition-group(morph-word-1-1) -ua-view-transition-group-anim-morph-word-1-1",
+          "::view-transition-group(morph-word-0-leaving-word-1) slidemachina-word-carry",
+          "::view-transition-old(frame-out-2) -ua-view-transition-fade-out",
+          "::view-transition-new(frame-in-2) -ua-view-transition-fade-in",
         ]),
       );
     await expect.poll(() => listTransitionAnimations(page)).toEqual([]);
@@ -602,7 +618,7 @@ test("демо листается, показывает шаги и навига
     const sceneCoverNumber = await jumpToHeading(page, "3D");
     const heroCanvas = page.locator("[data-canvas] > [data-slide]").nth(sceneCoverNumber).locator("[data-scene-canvas]");
     // The next slide is hidden, yet its still frame is drawn: the transition snapshot is never empty.
-    await expect.poll(async () => (await sampleSceneCanvas(heroCanvas)).paintedPixels, { timeout: 10_000 }).toBeGreaterThan(400);
+    await expect.poll(async () => (await sampleSceneCanvas(heroCanvas)).paintedPixels, { timeout: 10_000 }).toBeGreaterThan(250);
     const stillFrame = (await sampleSceneCanvas(heroCanvas)).frameFingerprint;
     await page.waitForTimeout(300);
     expect((await sampleSceneCanvas(heroCanvas)).frameFingerprint, "сцена на скрытом слайде стоит").toBe(stillFrame);

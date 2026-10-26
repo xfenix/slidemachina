@@ -144,20 +144,6 @@
       image-rendering: pixelated;
     }
 
-    /* Blurred shadows cost more to print than anything else on a slide, and Chrome writes them as soft masks that macOS Preview
-       draws as solid patches. Printed boxes and pictures keep only their outlines. */
-    [data-print-page] [data-slide] :is([data-box], [data-media]) {
-      box-shadow: none;
-    }
-
-    [data-print-page] [data-slide] :is([data-box][data-focus="on"], [data-actor][data-focus="on"] > [data-box]) {
-      box-shadow: 0 0 0 4px var(--diagram-focus-ring);
-    }
-
-    [data-print-page] [data-slide] [data-media]:not([data-media-frame="full"] > *) {
-      box-shadow: 0 0 0 1px var(--hairline-color);
-    }
-
     /* Instead of a mask, cut lines fade under strips of the code box colour that stay at the edges of the scrolled view. */
     [data-print-page] [data-slide] [data-code-viewport] {
       mask-image: none;

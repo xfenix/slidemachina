@@ -1,6 +1,7 @@
 import { advanceScene, aimScene, buildScene, releaseScene, type BuiltScene, type SceneSettings } from "./scene-building.ts";
 import type { ScenePart } from "./scene-outline.ts";
 import { poseScene } from "./scene-poses.ts";
+import type { FrameExtent } from "./scene-camera.ts";
 import { drawSceneFrame } from "./scene-renderer.ts";
 import { stepChangeEventName } from "../slide-steps/step-visibility.ts";
 
@@ -9,9 +10,14 @@ const printedPixelRatio = 1.5;
 const largestFramePixels = 4096;
 // A background tab freezes the clock: one frame never eases faster than this.
 const longestFrameSeconds = 0.1;
+// Under the text the full scene needs at least this share of the content; with less room it takes the whole content area.
+const smallestAreaShare = 1 / 4;
+const fullOpacity = 255;
+const wholeFrame: FrameExtent = { leftEdge: -1, rightEdge: 1, bottomEdge: -1, topEdge: 1 };
 
 type SceneViewSettings = {
   showsFloor: boolean;
+  fillsSlide: boolean;
   orbitDegrees: number;
   isSlideCopy: boolean;
 };
@@ -39,6 +45,35 @@ function measureFramePixels(canvasElement: HTMLCanvasElement): [number, number] 
   return [Math.max(1, Math.round(layoutWidth * pixelRatio * sizeLimit)), Math.max(1, Math.round(layoutHeight * pixelRatio * sizeLimit))];
 }
 
+// A full scene lies under the text: its objects fill the content area below the text, inside the frame lines.
+function measureFittingArea(figureElement: HTMLElement): FrameExtent {
+  const figureBox = figureElement.getBoundingClientRect();
+  if (figureElement.dataset.scene !== "full" || figureBox.height === 0) return wholeFrame;
+  const contentElement = figureElement.parentElement!;
+  const contentBox = contentElement.getBoundingClientRect();
+  const displayScale = figureBox.width / figureElement.offsetWidth;
+  const headingGap = Number.parseFloat(getComputedStyle(figureElement).getPropertyValue("--heading-gap")) * displayScale;
+  const textBottoms = [...contentElement.children]
+    .filter((childElement) => getComputedStyle(childElement).position !== "absolute")
+    .map((childElement) => childElement.getBoundingClientRect().bottom);
+  const belowText = textBottoms.length === 0 ? contentBox.top : Math.max(...textBottoms) + headingGap;
+  const areaTop = contentBox.bottom - belowText < contentBox.height * smallestAreaShare ? contentBox.top : belowText;
+  const measureAcross = (pagePosition: number) => ((pagePosition - figureBox.left) / figureBox.width) * 2 - 1;
+  const measureUp = (pagePosition: number) => 1 - ((pagePosition - figureBox.top) / figureBox.height) * 2;
+  return { leftEdge: measureAcross(contentBox.left), rightEdge: measureAcross(contentBox.right), bottomEdge: measureUp(contentBox.bottom), topEdge: measureUp(areaTop) };
+}
+
+// A transparent canvas is printed with a soft mask. On a slide of one colour the printed frame takes that colour and is opaque.
+function readPrintedFrameColor(canvasElement: HTMLCanvasElement): string | undefined {
+  if (canvasElement.closest("[data-print-pages]") === null) return undefined;
+  const slideStyle = getComputedStyle(canvasElement.closest("[data-slide]")!);
+  const colorSamplingContext = new OffscreenCanvas(1, 1).getContext("2d")!;
+  colorSamplingContext.fillStyle = slideStyle.backgroundColor;
+  colorSamplingContext.fillRect(0, 0, 1, 1);
+  const hasSolidBackground = slideStyle.backgroundImage === "none" && colorSamplingContext.getImageData(0, 0, 1, 1).data[3] === fullOpacity;
+  return hasSolidBackground ? slideStyle.backgroundColor : undefined;
+}
+
 // Only the live slide animates; copies keep one still frame and free their GPU resources at once.
 export function createSceneView(figureElement: HTMLElement, sceneParts: ScenePart[], viewSettings: SceneViewSettings) {
   const canvasElement = figureElement.querySelector<HTMLCanvasElement>("[data-scene-canvas]")!;
@@ -47,17 +82,19 @@ export function createSceneView(figureElement: HTMLElement, sceneParts: ScenePar
     showsFloor: viewSettings.showsFloor,
     orbitDegrees: viewSettings.orbitDegrees,
     keepsStill: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    fillsSlide: viewSettings.fillsSlide,
   };
   let builtScene: BuiltScene | undefined;
   let shownStateKey = "";
   let animationFrameRequest = 0;
   let lastFrameTime = 0;
   let needsDrawing = false;
+  const printedFrameColor = readPrintedFrameColor(canvasElement);
 
   const drawFrame = () => {
     const framePixels = measureFramePixels(canvasElement);
     if (builtScene === undefined || framePixels === undefined) return;
-    drawSceneFrame(builtScene.threeScene, builtScene.cameraMotion.sceneCamera, canvasElement, ...framePixels);
+    drawSceneFrame(builtScene.threeScene, builtScene.cameraMotion.sceneCamera, canvasElement, ...framePixels, printedFrameColor);
     figureElement.toggleAttribute("data-drawn", true);
   };
 
@@ -91,7 +128,7 @@ export function createSceneView(figureElement: HTMLElement, sceneParts: ScenePar
     shownStateKey = stateKey;
     builtScene ??= buildScene(figureElement, sceneParts, sceneSettings);
     const [frameWidth, frameHeight] = framePixels;
-    aimScene(builtScene, poseScene(sceneParts, reachedPartPositions), frameWidth / frameHeight, !isLiveSlide || sceneSettings.keepsStill);
+    aimScene(builtScene, poseScene(sceneParts, reachedPartPositions), frameWidth / frameHeight, measureFittingArea(figureElement), !isLiveSlide || sceneSettings.keepsStill);
     if (isLiveSlide) {
       needsDrawing = true;
       if (animationFrameRequest === 0) {

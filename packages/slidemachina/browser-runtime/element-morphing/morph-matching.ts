@@ -11,6 +11,8 @@ export type MorphPair = {
 };
 export type RewordedPair = MorphPair & {
   wordMatches: WordMatch[];
+  // Every word stays: the text only moves or changes size, so its words travel the whole transition.
+  keepsEveryWord: boolean;
 };
 
 function listVisibleCandidates(slideElement: HTMLElement, selector: string): HTMLElement[] {
@@ -92,7 +94,7 @@ export function findRewordedPairs(outgoingSlide: HTMLElement, incomingSlide: HTM
       const longerWordCount = Math.max(countRealWords(outgoingWords), countRealWords(incomingWords));
       const sharesEnoughWords = sharedWordCount > 0 && sharedWordCount * 2 >= longerWordCount;
       if (sharesEnoughWords && wordMatches.length > (bestPair?.wordMatches.length ?? 0)) {
-        bestPair = { outgoingElement, incomingElement, wordMatches };
+        bestPair = { outgoingElement, incomingElement, wordMatches, keepsEveryWord: false };
       }
     }
     if (bestPair === undefined) continue;
@@ -100,4 +102,26 @@ export function findRewordedPairs(outgoingSlide: HTMLElement, incomingSlide: HTM
     rewordedPairs.push(bestPair);
   }
   return rewordedPairs;
+}
+
+// Paired text morphs word by word too: two snapshots of one line at different sizes or widths never line up and show it twice.
+export function rewordPairedTexts(morphPairs: MorphPair[]): { shapePairs: MorphPair[]; textPairs: RewordedPair[] } {
+  const shapePairs: MorphPair[] = [];
+  const textPairs: RewordedPair[] = [];
+  for (const morphPair of morphPairs) {
+    const { outgoingElement, incomingElement } = morphPair;
+    const isInnermostText = [outgoingElement, incomingElement].every(
+      (pairedElement) => pairedElement.matches(textSelector) && !pairedElement.querySelector(textSelector),
+    );
+    const outgoingWords = isInnermostText ? listTextWords(outgoingElement) : [];
+    const incomingWords = isInnermostText ? listTextWords(incomingElement) : [];
+    const wordMatches = matchWords(outgoingWords, incomingWords);
+    if (wordMatches.length === 0) {
+      shapePairs.push(morphPair);
+      continue;
+    }
+    const keepsEveryWord = wordMatches.length === outgoingWords.length && wordMatches.length === incomingWords.length;
+    textPairs.push({ ...morphPair, wordMatches, keepsEveryWord });
+  }
+  return { shapePairs, textPairs };
 }

@@ -41,6 +41,12 @@ export function createTextMesh(textContent: string, letterSize: number, textLook
   textTexture.premultiplyAlpha = true;
   textTexture.anisotropy = readLargestAnisotropy();
   const textMaterial = new MeshBasicMaterial({ map: textTexture, transparent: true, premultipliedAlpha: true, toneMapped: false, depthWrite: false });
-  const planeGeometry = new PlaneGeometry((letterSize * textCanvas.width) / fontPixels, (letterSize * textCanvas.height) / fontPixels);
+  const sceneUnitsPerPixel = letterSize / fontPixels;
+  const planeGeometry = new PlaneGeometry(textCanvas.width * sceneUnitsPerPixel, textCanvas.height * sceneUnitsPerPixel);
+  // The camera frames the letters, not the padding and the line height around them.
+  const glyphWidth = textMetrics.actualBoundingBoxLeft + textMetrics.actualBoundingBoxRight;
+  const glyphHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+  const glyphMiddleY = textCanvas.height / 2 - (textPadding + textMetrics.fontBoundingBoxAscent - textMetrics.actualBoundingBoxAscent + glyphHeight / 2);
+  planeGeometry.userData.outlineGeometry = new PlaneGeometry(glyphWidth * sceneUnitsPerPixel, glyphHeight * sceneUnitsPerPixel).translate(0, glyphMiddleY * sceneUnitsPerPixel, 0);
   return new Mesh(planeGeometry, textMaterial);
 }
