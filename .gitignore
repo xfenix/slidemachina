@@ -27,5 +27,6 @@ npm-debug.log*
 .DS_Store
 .idea/
 .vscode/
+!packages/create-slidemachina/template/.vscode/
 *.swp
 .serena/

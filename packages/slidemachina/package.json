@@ -9,9 +9,11 @@
   },
   "files": [
     "browser-runtime",
+    "editor-runtime",
     "server-runtime",
     "shared-between-runtimes"
   ],
+  "main": "./editor-runtime/slide-number-hints.cjs",
   "exports": {
     ".": {
       "types": "./browser-runtime/slidemachina.ts",
@@ -43,5 +45,8 @@
     "uqr": "^0.1.3",
     "vite": "^8.3.5",
     "vite-plugin-singlefile": "^2.3.4"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
   }
 }
