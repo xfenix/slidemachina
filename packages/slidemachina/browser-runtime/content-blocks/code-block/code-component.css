@@ -173,20 +173,12 @@
 
   /* Opacity sits on the tokens, not the line: a morph snapshot keeps the element's own opacity, not its parent's. */
   [data-slide] [data-code-token] {
+    color: var(--token-light, inherit);
     transition: opacity var(--step-time) var(--step-easing);
   }
 
-  /* Three colours of the theme, so code is in the brand on light and dark slides: the rest of a line is in the text colour. */
-  [data-slide] [data-code-token="keyword"] {
-    color: var(--accent-color);
-  }
-
-  [data-slide] [data-code-token="literal"] {
-    color: var(--second-accent-color);
-  }
-
-  [data-slide] [data-code-token="comment"] {
-    color: var(--muted-color);
+  [data-slide][data-tone="dark"] [data-code-token] {
+    color: var(--token-dark, inherit);
   }
 
   [data-slide] [data-code][data-has-lit-lines] [data-code-line]:not([data-lit]) > [data-code-token] {

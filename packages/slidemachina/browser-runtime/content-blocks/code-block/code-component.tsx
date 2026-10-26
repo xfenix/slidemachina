@@ -18,8 +18,8 @@ const codeWidthFitting: WidthFitting = {
   smallestFontSize: 20,
 };
 
-// [text, colour role]: "text", "keyword", "literal" or "comment"; whitespace is a plain string.
-type CodeFragment = string | [string, string];
+// [text, colour on light slides, colour on dark slides]; whitespace is a plain string.
+type CodeFragment = string | [string, string | undefined, string | undefined];
 type HighlightedCode = {
   // number is the line in the source: a line with only a [!code …] comment is gone from the list.
   lines: Array<{ tokens: CodeFragment[]; marked: boolean; number?: number }>;
@@ -41,9 +41,10 @@ function listPlainLines(codeText: string): HighlightedCode {
 
 function renderCodeFragment(codeFragment: CodeFragment, fragmentIndex: number) {
   if (typeof codeFragment === "string") return codeFragment;
-  const [tokenText, colorRole] = codeFragment;
+  const [tokenText, lightColor, darkColor] = codeFragment;
+  const tokenStyle = { "--token-light": lightColor, "--token-dark": darkColor } as CSSProperties;
   return (
-    <span key={fragmentIndex} data-code-token={colorRole}>
+    <span key={fragmentIndex} data-code-token style={tokenStyle}>
       {tokenText}
     </span>
   );

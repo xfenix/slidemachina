@@ -1,30 +1,15 @@
 import { getSingletonHighlighter } from "shiki";
 import { transformerNotationHighlight } from "@shikijs/transformers";
-import type { BundledLanguage, ThemeRegistration } from "shiki";
+import type { BundledLanguage } from "shiki";
 import type { Element, Text } from "hast";
 
-// The slide colours a token by its role: the text colour, a keyword in the accent, a literal in the second accent, a comment muted.
-type CodeColorRole = "text" | "keyword" | "literal" | "comment";
-type CodeToken = string | [string, CodeColorRole];
+type CodeToken = string | [string, string | undefined, string | undefined];
 type HighlightedLine = { tokens: CodeToken[], marked: boolean, number: number };
 
-const textRole: CodeColorRole = "text";
-// Shiki takes any string for a colour, so the theme writes roles instead of colours; punctuation stays in the text colour, so a line has three colours at most.
-const codeTheme: ThemeRegistration = {
-  name: "slidemachina-roles",
-  type: "light",
-  colors: { "editor.foreground": textRole },
-  tokenColors: [
-    { scope: ["keyword", "storage", "entity.name.tag", "support.class.component", "meta.function.decorator", "keyword.operator.new", "keyword.operator.expression"], settings: { foreground: "keyword" } },
-    // Words of a shell command are parsed as unquoted strings: they stay text, only a quoted string is a literal.
-    { scope: ["keyword.operator", "punctuation.definition.tag", "punctuation.section.embedded", "string.unquoted.argument", "constant.other.option"], settings: { foreground: textRole } },
-    { scope: ["string", "constant.numeric", "constant.language", "constant.character"], settings: { foreground: "literal" } },
-    { scope: ["comment", "string.quoted.docstring"], settings: { foreground: "comment" } },
-  ],
-};
+const codeThemes = { light: "github-light-high-contrast", dark: "github-dark-default" };
 
 async function loadHighlighter(languageName: string) {
-  const shikiHighlighter = await getSingletonHighlighter({ themes: [codeTheme], langs: [] });
+  const shikiHighlighter = await getSingletonHighlighter({ themes: Object.values(codeThemes), langs: [] });
   try {
     await shikiHighlighter.loadLanguage(languageName as BundledLanguage);
     return { shikiHighlighter, loadedLanguage: languageName };
@@ -44,21 +29,23 @@ function dedentCode(codeText: string, keepsLeadingLines: boolean): string {
   return codeLines.map((codeLine) => codeLine.slice(commonIndent)).join("\n");
 }
 
-function readColorRole(inlineStyle: unknown): CodeColorRole {
-  return (/color:(\w+)/.exec(typeof inlineStyle === "string" ? inlineStyle : "")?.[1] as CodeColorRole | undefined) ?? textRole;
+function readStyleColor(inlineStyle: unknown, propertyName: string): string | undefined {
+  return new RegExp(`${propertyName}:([^;]+)`).exec(typeof inlineStyle === "string" ? inlineStyle : "")?.[1];
 }
 
-// A token is [text, colour role]. Shiki joins neighbours of one colour, so tokens are split back into words:
+// A token is [text, light colour, dark colour]. Shiki joins neighbours of one colour, so tokens are split back into words:
 // a code morph moves words, and whitespace stays a plain string so it never becomes a morph layer.
 function compactLineElement(lineElement: Element): HighlightedLine {
   const tokenElements = lineElement.children as Element[];
   const lineTokens: CodeToken[] = tokenElements.flatMap((tokenElement) => {
     const tokenText = (tokenElement.children as Text[]).map((textNode) => textNode.value).join("");
-    const colorRole = readColorRole(tokenElement.properties.style);
+    const tokenStyle = tokenElement.properties.style;
+    const lightColor = readStyleColor(tokenStyle, "--shiki-light");
+    const darkColor = readStyleColor(tokenStyle, "--shiki-dark");
     return tokenText
       .split(/(\s+)/)
       .filter((textPiece) => textPiece !== "")
-      .map((textPiece): CodeToken => (textPiece.trim() === "" ? textPiece : [textPiece, colorRole]));
+      .map((textPiece): CodeToken => (textPiece.trim() === "" ? textPiece : [textPiece, lightColor, darkColor]));
   });
   while (typeof lineTokens.at(-1) === "string") lineTokens.pop();
   const lineClasses = [lineElement.properties.class ?? []].flat();
@@ -70,7 +57,8 @@ export async function highlightCode(codeText: string, languageName: string, isWh
   const { shikiHighlighter, loadedLanguage } = await loadHighlighter(languageName);
   const codeTree = shikiHighlighter.codeToHast(dedentCode(codeText, isWholeFile), {
     lang: loadedLanguage,
-    theme: codeTheme,
+    themes: codeThemes,
+    defaultColor: false,
     mergeWhitespaces: false,
     // The number is taken before the notation transformer drops lines that hold only a [!code …] comment.
     transformers: [{ line: (lineElement, sourceLineNumber) => void (lineElement.properties.dataSourceLine = sourceLineNumber) }, transformerNotationHighlight()],
