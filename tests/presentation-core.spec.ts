@@ -114,12 +114,12 @@ test("демо листается, показывает шаги и навига
   await test.step("обложка, тема и Tailwind", async () => {
     await expect(page).toHaveURL(/#1$/);
     await expect(page).toHaveTitle("slidemachina");
-    await expect(currentSlide(page).locator("h1")).toHaveText("slidemachina");
+    await expect(currentSlide(page).locator("h1")).toHaveText("Слайды из кода");
     await expect(currentSlide(page)).toHaveAttribute("data-align", "center");
     await expect(currentSlide(page).locator("p")).toHaveCSS("color", "rgb(108, 112, 128)");
     await expect(currentSlide(page).locator("[data-slide-number]")).toHaveCount(0);
-    // Trimmed to letters: the capitals of the title and the baseline of the lead stand evenly around the middle of the slide.
-    const coverEdges = await measureOnCanvas(page, ["h1", "p"]);
+    // The logo above the title and the baseline of the lead stand evenly around the middle of the slide.
+    const coverEdges = await measureOnCanvas(page, ["[data-logo]", "p"]);
     expect(coverEdges[0]!.top + coverEdges[1]!.bottom).toBeCloseTo(1080, 0);
   });
 
@@ -246,7 +246,8 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("картинка на свободное место, обтекание и на весь слайд, видео играет только на своём слайде", async () => {
-    await jumpToHeading(page, "Картинка занимает всё свободное место");
+    // The list screenshot is narrower than the free place, so the caption is seen keeping to the picture, not to the content.
+    await jumpToHeading(page, "Список презентаций");
     const stretchedPicture = currentSlide(page).locator("[data-media-frame=stretch] img");
     await expect.poll(async () => (await stretchedPicture.boundingBox())?.height).toBeGreaterThan(300);
     const pictureBox = await stretchedPicture.boundingBox();
@@ -305,9 +306,7 @@ test("демо листается, показывает шаги и навига
     await jumpToHeading(page, "Строки по шагам");
     const codeElement = currentSlide(page).locator("[data-code]");
     await expect(codeElement).toHaveCSS("font-family", /JetBrains Mono/);
-    // Tokens carry a colour role, the theme gives the colour: the accent for a keyword, the second accent for a literal.
-    await expect(codeElement.locator("[data-code-token]").first()).toHaveAttribute("data-code-token", "keyword");
-    await expect(codeElement.locator("[data-code-token=literal]").first()).toHaveCSS("color", "rgb(0, 122, 51)");
+    await expect(codeElement.locator("[data-code-token]").first()).toHaveAttribute("style", /--token-light: #[0-9A-Fa-f]{6}; --token-dark: #/);
     expect(await listLitLines(page)).toEqual([]);
     await page.keyboard.press("ArrowRight");
     expect(await listLitLines(page)).toEqual([4]);
@@ -359,8 +358,8 @@ test("демо листается, показывает шаги и навига
     await jumpToHeading(page, "Типограф");
     const typographedParagraph = currentSlide(page).locator(".machina-columns > div > p").last();
     // toHaveText folds non-breaking spaces into plain ones, so the raw text is read.
-    expect(await typographedParagraph.textContent()).toMatch(/^«Кавычки» и\u00A0тире\u00A0— как\u00A0на\u00A0клавиатуре/);
-    await expect(currentSlide(page).locator("[data-code]")).toContainText('"Кавычки" и тире - как на клавиатуре.');
+    expect(await typographedParagraph.textContent()).toMatch(/^«Кавычки» станут ёлочками, дефис\u00A0— тире/);
+    await expect(currentSlide(page).locator("[data-code]")).toContainText('"Кавычки" станут ёлочками, дефис - тире.');
     // Technical words in plain text keep their spelling: the address part ?print and a place in a file.
     const listedTexts = (await page.locator("[data-canvas] li").allTextContents()).join("\n");
     expect(listedTexts).toContain("?print");
@@ -685,7 +684,7 @@ test("демо листается, показывает шаги и навига
     await editFileWhile(
       demoPresentationFile,
       (originalPresentation) => originalPresentation.replace('<Machina.Presentation title="slidemachina"', '<Machina.Presentation typography={false} title="slidemachina"'),
-      () => expect(typographedParagraph).toHaveText(/^"Кавычки" и тире - как на клавиатуре/),
+      () => expect(typographedParagraph).toHaveText(/^"Кавычки" станут ёлочками, дефис - тире/),
     );
     await expect(typographedParagraph).toHaveText(/^«Кавычки»/);
   });

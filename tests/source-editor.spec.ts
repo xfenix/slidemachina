@@ -72,7 +72,7 @@ test("редактор правит текст, двигает блок схем
   // Typograf took "= for a quote it cannot open and closed it: align="center».
   await writeFile(
     copiedPresentation,
-    (await readPresentation()).replace("<h1>slidemachina</h1>", '<h1>slidemachina</h1>\n      <p data-typography-probe>Пишите align="center" и "кавычки"</p>'),
+    (await readPresentation()).replace("<h1>Слайды из кода</h1>", '<h1>Слайды из кода</h1>\n      <p data-typography-probe>Пишите align="center" и "кавычки"</p>'),
   );
   // Files the editor must refuse: a dependency and a link that leads out of the project.
   const dependencyFile = path.join(copyFolder, "node_modules", "fake", "fake.tsx");
@@ -103,7 +103,7 @@ test("редактор правит текст, двигает блок схем
       const sourceLocation = await currentSlide(page).locator("h1").getAttribute("data-source-location");
       const [, lineNumber = 0, columnNumber = 0] = sourceLocation!.split(":").map(Number);
       const markedLine = (await readPresentation()).split("\n")[lineNumber - 1];
-      expect(markedLine?.slice(columnNumber - 1)).toMatch(/^<h1>slidemachina<\/h1>/);
+      expect(markedLine?.slice(columnNumber - 1)).toMatch(/^<h1>Слайды из кода<\/h1>/);
       await expect(currentSlide(page).locator("[data-typography-probe]")).toHaveText(/^Пишите align="center"\sи\s«кавычки»$/);
     });
 

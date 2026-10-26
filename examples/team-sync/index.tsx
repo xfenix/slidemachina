@@ -12,14 +12,16 @@ export default (
     <Machina.Section title="Что сделали">
       <Machina.Slide>
         <h2>Главное</h2>
+        <p className="machina-lead">Доклады команды переехали на slidemachina</p>
         <ul data-steps>
-          <li>Все доклады команды живут в одном репозитории</li>
-          <li>Тема общая: шрифт, цвета и логотип в папке theme</li>
-          <li>Новый доклад - одна команда npm create slidemachina</li>
+          <li>Все доклады живут в одном репозитории</li>
+          <li>Тема общая: шрифт, цвета и логотип в папке <code>theme</code></li>
+          <li>Новый доклад - одна команда <code>npm create slidemachina</code></li>
+          <li>Сайт со всеми докладами собирает <code>npx slidemachina build</code></li>
         </ul>
       </Machina.Slide>
 
-      <Machina.Slide>
+      <Machina.Slide align="center">
         <h2>В цифрах</h2>
         <div className="machina-columns" data-steps>
           <figure className="machina-big-number">
@@ -45,6 +47,7 @@ export default (
         <ul data-steps>
           <li>Перенести старые доклады с reveal.js</li>
           <li>Собирать сайт с докладами в CI</li>
+          <li>Класть рядом с каждым докладом PDF: флаг <code>--pdf</code></li>
         </ul>
       </Machina.Slide>
     </Machina.Section>

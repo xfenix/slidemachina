@@ -12,6 +12,7 @@ const repositoryServerPort = 5197;
 const repositoryServerAddress = `http://localhost:${repositoryServerPort}`;
 // Newest first, by <Presentation date>.
 const presentationTitles = ["slidemachina", "Итоги квартала", "Python 3.15: что нового"];
+const coverHeadings = ["Слайды из кода", "Итоги квартала", "Python 3.15"];
 // The ELK worker itself and three.js: a cover of a first slide without a diagram or a scene needs neither.
 const heavyRequestPattern = /elk-worker\.min\.js(?!\?url)|\/three\/|scene-view/;
 // The shared theme of the examples sets nothing of its own: the copy gets a variable that shows the file is in the cascade.
@@ -68,9 +69,9 @@ test("репозиторий презентаций: список с облож�
       await expect(page.locator("[data-list-meta] time").first()).toHaveText("23 октября 2026");
       // Only a format other than 16:9 is named: team-sync is 4:3.
       await expect(page.locator("[data-list-aspect-ratio]")).toHaveText(["4:3"]);
-      for (const [cardIndex, presentationTitle] of presentationTitles.entries()) {
+      for (const [cardIndex, coverHeading] of coverHeadings.entries()) {
         const coverFrame = page.frameLocator("[data-list-cover] iframe").nth(cardIndex);
-        await expect(coverFrame.locator("[data-cover-preview] [data-slide] h1")).toHaveText(presentationTitle.split(":")[0]!);
+        await expect(coverFrame.locator("[data-cover-preview] [data-slide] h1")).toHaveText(coverHeading);
       }
       await expect(page.frameLocator("[data-list-cover] iframe").first().locator("[data-toolbar]")).toHaveCount(0);
       expect(requestedAddresses.filter((requestedAddress) => heavyRequestPattern.test(requestedAddress))).toEqual([]);
