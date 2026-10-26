@@ -1,7 +1,7 @@
 import { useId } from "react";
 
 // The logo of slidemachina itself, for logo={SlidemachinaLogo}; its sources for the README and the repository avatar are in assets.
-const logoViewBox = "0 0 269 56";
+const logoViewBox = "0 4.46 256.56 47.3";
 // The gradient of xfenix.ru, left to right across the mark.
 const markGradientStart = "#7000d1";
 const markGradientEnd = "#007a33";

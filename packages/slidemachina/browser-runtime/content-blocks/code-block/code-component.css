@@ -43,35 +43,33 @@
     --hanging-punctuation: 0;
   }
 
-  /* Numbers fill the margin, so the box reaches the slide edge and loses its left corners there.
+  /* The numbers, the box padding and a gap to the slide edge share the margin.
      The code stays on the text line while the numbers fit; numbers with three digits push it to the right. */
   [data-slide] [data-code][data-numbered] {
-    --code-number-gap: 1ch;
-    --code-number-gutter: calc(var(--code-number-digits) * 1ch + var(--code-number-gap));
-    --code-number-edge: 0.5ch;
-    --code-hang: calc(var(--hanging-punctuation) * var(--frame-padding));
+    --code-number-gap: calc(var(--code-number-scale) * 1ch);
+    --code-number-gutter: calc(var(--code-number-digits) * var(--code-number-scale) * 1ch + var(--code-number-gap));
+    --code-hang: calc(var(--hanging-punctuation) * (var(--frame-padding) - var(--code-numbered-edge-gap)));
     --code-padding-start: calc(
-      var(--hanging-punctuation) * max(var(--code-number-edge), var(--frame-padding) - var(--code-number-gutter)) +
+      var(--hanging-punctuation) *
+        max(var(--code-number-gap), var(--frame-padding) - var(--code-numbered-edge-gap) - var(--code-number-gutter)) +
         (1 - var(--hanging-punctuation)) * var(--code-padding-inline)
     );
-    border-start-start-radius: calc((1 - var(--hanging-punctuation)) * var(--block-radius));
-    border-end-start-radius: calc((1 - var(--hanging-punctuation)) * var(--block-radius));
   }
 
   [data-slide] [data-code][data-numbered] :is(code, [data-code-title]) {
     padding-left: var(--code-number-gutter);
   }
 
-  [data-slide] [data-code][data-numbered] [data-code-line] {
-    position: relative;
-  }
-
-  /* A generated number is not text: copying skips it, and a code morph fades it with the box instead of moving it like a word. */
+  /* A generated number is not text: copying skips it, and a code morph fades it with the box instead of moving it like a word.
+     It sits in the line, so its baseline matches the code; it hangs to the left by one of its own digits, the gap. */
   [data-slide] [data-code][data-numbered] [data-code-line]:before {
     content: attr(data-code-line);
-    position: absolute;
-    right: calc(100% + var(--code-number-gap));
+    display: inline-flex;
+    justify-content: flex-end;
+    width: 0;
+    margin-inline: -1ch 1ch;
     color: var(--muted-color);
+    font-size: calc(var(--code-number-scale) * 1em);
     text-indent: 0;
     user-select: none;
   }
@@ -86,11 +84,7 @@
   }
 
   [data-slide]:not([data-align="center"]) .machina-columns > div:has(> [data-code][data-numbered]) {
-    --column-code-hang: var(--frame-padding);
-  }
-
-  [data-slide] .machina-columns > div:not(:first-child) > [data-code][data-numbered] {
-    border-radius: var(--block-radius);
+    --column-code-hang: calc(var(--frame-padding) - var(--code-numbered-edge-gap));
   }
 
   [data-slide] [data-code-title] {

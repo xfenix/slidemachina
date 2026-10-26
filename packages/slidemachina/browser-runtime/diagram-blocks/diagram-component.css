@@ -91,7 +91,7 @@
     position: absolute;
     inset: 0;
     border: 1px solid var(--diagram-group-border-color);
-    border-radius: calc(var(--diagram-radius) + 8px);
+    border-radius: var(--diagram-radius);
     background: var(--diagram-group-background);
   }
 
