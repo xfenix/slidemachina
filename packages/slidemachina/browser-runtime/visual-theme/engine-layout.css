@@ -163,9 +163,14 @@
     --content-bottom: var(--content-top);
   }
 
-  /* Right-aligned content at the top would run into the logo in the corner, so it starts under the logo. */
+  /* Right-aligned content at the top would run into the logo in the corner, so it starts under the logo, as text under a heading. */
   [data-slide][data-align="right"][data-valign="top"]:has(> [data-logo-placement="top-right"]) [data-content] {
-    padding-top: calc(var(--logo-height) + var(--block-gap));
+    padding-top: calc(var(--logo-height) + var(--heading-gap));
+  }
+
+  /* Centred content stands in the middle of the slide: with the breadcrumbs below, the top keeps their margin too. */
+  [data-slide][data-valign="center"]:has(> :is([data-breadcrumbs], [data-slide-number], [data-logo-placement="bottom"])) {
+    --content-top: var(--content-bottom);
   }
 
   [data-breadcrumbs],
@@ -183,7 +188,6 @@
 
   [data-slide-number] {
     right: var(--frame-padding);
-    font-variant-numeric: tabular-nums;
   }
 
   [data-breadcrumbs] > span + span::before,
@@ -241,10 +245,5 @@
     position: fixed;
     inset: 0;
     background: #000;
-  }
-
-  /* A block that ends the slide reaches the bottom edge of the content area. */
-  [data-slide] [data-content] > :is([data-code], [data-media-frame], .machina-columns, table, figure):last-child {
-    margin-bottom: 0;
   }
 }

@@ -10,8 +10,8 @@
     font-family: var(--font-heading);
     font-size: var(--big-number-size);
     font-weight: var(--heading-weight);
-    line-height: 1;
-    letter-spacing: -0.045em;
+    line-height: var(--heading-line-height);
+    letter-spacing: var(--heading-letter-spacing);
     font-variant-numeric: lining-nums;
     white-space: nowrap;
     text-box: trim-both cap alphabetic;
@@ -22,8 +22,7 @@
   }
 
   [data-slide] .machina-big-number > figcaption {
-    max-width: 14em;
-    margin-top: 36px;
+    margin-top: var(--caption-gap);
     color: var(--muted-color);
     font-size: var(--caption-size);
     line-height: var(--secondary-line-height);

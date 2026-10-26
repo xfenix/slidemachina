@@ -27,15 +27,6 @@
     color: var(--muted-color);
   }
 
-  /* The lead opens the slide and the note closes it: a block gap, not a line gap, sets them apart from the text between. */
-  [data-slide]:not([data-cover]) [data-content] > .machina-lead:not(:last-child) {
-    margin-bottom: var(--block-gap);
-  }
-
-  [data-slide] [data-content] > * + .machina-note {
-    margin-top: var(--block-gap);
-  }
-
   /* A lead right under the slide heading is its subtitle: it stays with the heading and takes the heading gap to the content below. */
   [data-slide]:not([data-cover]) [data-content] > :is(h1, h2):not(:last-child):has(+ .machina-lead) {
     margin-bottom: var(--block-gap);
@@ -43,6 +34,5 @@
 
   [data-slide]:not([data-cover]) [data-content] > :is(h1, h2) + .machina-lead:not(:last-child) {
     margin-bottom: var(--heading-gap);
-    text-box: trim-both cap alphabetic;
   }
 }

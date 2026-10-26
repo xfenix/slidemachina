@@ -194,12 +194,12 @@ test("демо листается, показывает шаги и навига
     await jumpToHeading(page, "Картинка слева");
     const [leftPicture, titleBeside, leadBeside] = await measureOnCanvas(page, ["img", "h1", "p"]);
     expect(leftPicture!.left).toBeCloseTo(64, 0);
-    expect(titleBeside!.left - leftPicture!.right).toBeCloseTo(64, 0);
+    expect(titleBeside!.left - leftPicture!.right).toBeCloseTo(96, 0);
     expect(leftPicture!.top + leftPicture!.bottom).toBeCloseTo(titleBeside!.top + leadBeside!.bottom, 0);
     await jumpToHeading(page, "Картинка справа");
     const [rightTitle, , rightPicture] = await measureOnCanvas(page, ["h1", "p", "img"]);
     expect(rightPicture!.right).toBeCloseTo(1920 - 64, 0);
-    expect(rightPicture!.left - rightTitle!.right).toBeCloseTo(64, 0);
+    expect(rightPicture!.left - rightTitle!.right).toBeCloseTo(96, 0);
   });
 
   await test.step("блоки: колонки и строки таблицы по шагам, источник сноской под блоком", async () => {
@@ -213,12 +213,13 @@ test("демо листается, показывает шаги и навига
     await page.keyboard.press("ArrowRight");
     await expect(columnElements.nth(0)).toHaveAttribute("data-step-reached");
     await expect(columnElements.nth(1)).not.toHaveAttribute("data-step-reached");
-    // The source is a footnote right under the blocks it cites, set apart by a hairline.
+    // The source is a footnote one block gap under the baseline of the blocks it cites, set apart by a hairline across them.
     const sourceElement = currentSlide(page).locator("[data-source]");
     const sourceBox = await sourceElement.boundingBox();
     const columnsBox = await currentSlide(page).locator(".machina-columns").boundingBox();
     const slideScale = (await currentSlide(page).boundingBox())!.height / 1080;
-    expect(sourceBox!.y - (columnsBox!.y + columnsBox!.height)).toBeCloseTo(80 * slideScale, 0);
+    expect(sourceBox!.y - (columnsBox!.y + columnsBox!.height)).toBeCloseTo(40 * slideScale, 0);
+    expect(sourceBox!.width).toBeCloseTo(columnsBox!.width, 0);
     await expect(sourceElement).toHaveCSS("border-top-width", "1px");
 
     await jumpToHeading(page, "Сборка");
@@ -355,6 +356,10 @@ test("демо листается, показывает шаги и навига
     // toHaveText folds non-breaking spaces into plain ones, so the raw text is read.
     expect(await typographedParagraph.textContent()).toMatch(/^«Кавычки» и\u00A0тире\u00A0— как\u00A0на\u00A0клавиатуре/);
     await expect(currentSlide(page).locator("[data-code]")).toContainText('"Кавычки" и тире - как на клавиатуре.');
+    // Technical words in plain text keep their spelling: the address part ?print and a place in a file.
+    const listedTexts = (await page.locator("[data-canvas] li").allTextContents()).join("\n");
+    expect(listedTexts).toContain("?print");
+    expect(listedTexts).toContain("index.tsx:42:7");
     const hangingEdges = await typographedParagraph.evaluate((paragraphElement) => {
       const measureFirstCharacter = (textNode: Node) => {
         const characterRange = document.createRange();

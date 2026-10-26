@@ -27,10 +27,9 @@
     align-items: center;
   }
 
-  /* Columns start on the same line: the cap height of text or the top edge of a picture. */
-  [data-slide] .machina-columns > :not(div),
-  [data-slide] .machina-columns > div > :first-child {
-    text-box: trim-start cap alphabetic;
+  /* Columns start on the same line: the cap height of text or the top edge of a picture. Blocks inside a <div> are trimmed like the content. */
+  [data-slide] .machina-columns > :not(div) {
+    text-box: trim-both cap alphabetic;
   }
 
   [data-slide] [data-content] .machina-columns > div > :last-child {

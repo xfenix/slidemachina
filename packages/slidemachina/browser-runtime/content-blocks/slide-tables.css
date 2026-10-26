@@ -21,13 +21,33 @@
   }
 
   [data-slide] table thead th {
-    padding-top: 0;
     border-bottom-color: color-mix(in srgb, var(--text-color) 40%, transparent);
     color: var(--muted-color);
   }
 
   [data-slide] table tbody tr:last-child > * {
     border-bottom: 0;
+  }
+
+  /* The table starts at the capitals of its first row and ends on the baseline of its last, like a block of text. */
+  [data-slide] table > :first-child > tr:first-child > * {
+    padding-top: 0;
+    text-box: trim-start cap alphabetic;
+  }
+
+  [data-slide] table > :last-child > tr:last-child > * {
+    padding-bottom: 0;
+    text-box: trim-end cap alphabetic;
+  }
+
+  [data-slide] table > :only-child > tr:only-child > * {
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* A plain table gives its first columns the width of their content and the rest to the last one. */
+  [data-slide] table:not(.machina-compare) :is(th, td):not(:last-child) {
+    width: 1px;
+    white-space: nowrap;
   }
 
   /* Two to four options side by side: criteria on the left, the options share the rest equally and read down their middle. */

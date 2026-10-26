@@ -10,6 +10,7 @@ type TransformContext = { editedSource: MagicString, sourceCode: string, engineN
 // Text on these elements is code or markup, the typographer leaves it as written.
 const untouchedTextElements = new Set(["code", "pre", "kbd", "samp", "script", "style"]);
 const typographedAttributes = new Set(["title", "label", "breadcrumbs"]);
+const hangingBoxElements = new Set(["code", "kbd"]);
 
 function isInsideUntouchedElement(ancestorNodes: SyntaxNode[], codeName: string | undefined): boolean {
   return ancestorNodes.some((ancestorNode) => {
@@ -32,6 +33,15 @@ function replaceKeepingLines(editedSource: MagicString, syntaxNode: SyntaxNode, 
 export function typographSyntaxNode(syntaxNode: SyntaxNode, ancestorNodes: SyntaxNode[], transformContext: TransformContext): void {
   const { editedSource, sourceCode, engineNames, presentationSettings } = transformContext;
   const parentNode = ancestorNodes.at(-1);
+  // A code or key box that opens a line hangs by its padding, so its letters stand on the text line.
+  if (
+    syntaxNode.type === "JSXElement" &&
+    hangingBoxElements.has(readElementName(syntaxNode) ?? "") &&
+    !isInsideUntouchedElement(ancestorNodes, engineNames.Code) &&
+    isAtLineStart(syntaxNode, ancestorNodes)
+  ) {
+    editedSource.appendLeft(syntaxNode.openingElement.name.end, " data-hanging-box");
+  }
   if (syntaxNode.type === "JSXText" && syntaxNode.value.trim() !== "") {
     if (isInsideUntouchedElement(ancestorNodes, engineNames.Code)) return;
     const cookedText = cookJsxText(syntaxNode.value);

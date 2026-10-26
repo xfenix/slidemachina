@@ -154,6 +154,12 @@
     mask-image: none;
   }
 
+  /* The box is a flex column, which the trim of a block does not reach: the command line is trimmed to its letters itself. */
+  [data-slide] [data-code][data-one-line] [data-code-line] {
+    min-height: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
   /* The prompt hangs like a list bullet: zero width, sticking out to the left, the command starts on the text line. */
   [data-slide] [data-code][data-one-line]:is([data-lang="bash"], [data-lang="sh"], [data-lang="shell"], [data-lang="zsh"]) [data-code-line]:before {
     content: var(--command-prompt);

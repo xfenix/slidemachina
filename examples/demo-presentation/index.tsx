@@ -547,7 +547,7 @@ export default (
 
       <Machina.Slide align="center">
         <h2>Морфинг без разметки</h2>
-        <p morph="story-number" className="m-0 text-(length:--display-size) leading-none font-bold tracking-tight text-(--accent-color)">+72%</p>
+        <p morph="story-number" className="text-(length:--display-size) leading-none font-bold tracking-tight text-(--accent-color)">+72%</p>
         <p morph="story-label" className="text-(length:--secondary-text-size) text-(--muted-color)">Выручка за год</p>
         <figcaption>График стал большой цифрой. Пары задаёт атрибут morph</figcaption>
       </Machina.Slide>
@@ -695,7 +695,7 @@ export default (
           <p>Извольте вставить мем</p>
           <p>не покидая слайдов</p>
         </Machina.Meme>
-        <Machina.Source>Шаблон: Joseph Ducreux, knowyourmeme.com/memes/joseph-ducreux-archaic-rap</Machina.Source>
+        <Machina.Source>Шаблон: Joseph Ducreux, Know Your Meme</Machina.Source>
       </Machina.Slide>
 
       <Machina.Slide>

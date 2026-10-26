@@ -15,10 +15,6 @@
     margin-inline: auto;
   }
 
-  [data-slide] [data-content] > :is([data-diagram], [data-sequence]):last-child {
-    margin-bottom: 0;
-  }
-
   [data-slide] [data-diagram-stage] {
     position: absolute;
     left: 0;

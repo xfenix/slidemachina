@@ -11,8 +11,8 @@
     margin: 0 0 var(--block-gap);
     font-size: var(--quote-size);
     font-weight: var(--heading-weight);
-    line-height: 1.2;
-    letter-spacing: -0.015em;
+    line-height: var(--heading-line-height);
+    letter-spacing: var(--heading-letter-spacing);
     text-wrap: balance;
     quotes: auto;
   }
@@ -24,6 +24,7 @@
   [data-slide] figure > blockquote {
     max-width: none;
     margin: 0;
+    text-box: trim-both cap alphabetic;
   }
 
   [data-slide] blockquote:before {
@@ -39,7 +40,7 @@
   }
 
   [data-slide] blockquote + figcaption {
-    margin-top: 1.2em;
+    margin-top: var(--block-gap);
     color: var(--muted-color);
     font-size: var(--quote-author-size);
     text-box: trim-both cap alphabetic;

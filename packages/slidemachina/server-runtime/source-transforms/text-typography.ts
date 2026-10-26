@@ -5,6 +5,8 @@ import { pickTextLanguage } from "../../shared-between-runtimes/text-language.ts
 const neighbourStandIn = "Ограда";
 
 const entityPattern = /&(#x[\da-f]+|#\d+|\w+);/gi;
+// Technical words keep their spelling: align="center", ?print, #3.2, /docs/slides, index.tsx:42:7.
+const technicalWordPatterns = [/[\w-]+=(?:"[^"\n]*"|'[^'\n]*')/g, /(?<![\p{L}\p{N}_])[?#/][\p{L}\p{N}_][^\s,;]*/gu, /[^\s,;]*\w:\d[^\s,;]*/g];
 
 const namedEntities: Record<string, string> = {
   amp: "&",
@@ -27,8 +29,8 @@ function pickTypographer(languageCode: string): Typograf {
   const localeKey = localeNames.join(",");
   if (!typographersByLocale.has(localeKey)) {
     const typographer = new Typograf({ locale: localeNames });
-    // Code in a sentence, such as align="center": "= does not open a quote for Typograf, so it would close it with ».
-    typographer.addSafeTag(/[\w-]+=(?:"[^"\n]*"|'[^'\n]*')/g);
+    // In align="center" "= does not open a quote for Typograf, so it would close it with »; "?print -" would become "? print —".
+    for (const technicalWordPattern of technicalWordPatterns) typographer.addSafeTag(technicalWordPattern);
     typographersByLocale.set(localeKey, typographer);
   }
   return typographersByLocale.get(localeKey) as Typograf;
