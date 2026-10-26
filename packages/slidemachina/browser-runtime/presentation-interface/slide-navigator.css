@@ -48,8 +48,9 @@
     cursor: pointer;
   }
 
+  /* The navigator is always dark: a dark accent of a light theme would vanish on it. */
   [data-thumbnail][data-selected] {
-    outline-color: var(--accent-color);
+    outline-color: var(--accent-color-on-dark);
   }
 
   [data-thumbnail-number] {

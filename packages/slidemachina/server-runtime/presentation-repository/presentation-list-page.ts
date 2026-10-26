@@ -7,7 +7,7 @@ import { listPresentationFolders } from "./presentation-repository.ts";
 import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
 import type { SiteLayout } from "./presentation-repository.ts";
 
-export type PresentationCard = { folderName: string, presentationTitle: string, presentationDate: string | undefined, languageCode: string, canvasSize: CanvasSize };
+export type PresentationCard = { folderName: string, presentationTitle: string, presentationDate: string | undefined, languageCode: string, canvasSize: CanvasSize, shownAspectRatio: string | undefined };
 type CardDownload = { variantName: "pdf" | "pdf-steps" | "zip", downloadAddress: string };
 export type ListedCard = PresentationCard & { pageAddress: string, coverKind: "frame" | "picture" | "none", coverAddress: string, isProtected?: boolean, downloads?: CardDownload[] };
 type ListTexts = (typeof listTextsByLanguage)["en"];
@@ -80,13 +80,16 @@ export function readPresentationCards(repositoryFolder: string): PresentationCar
           return { languageCode: "en" };
         }
       })();
+      const canvasSize = measureCanvasSize(presentationSettings.aspectRatio ?? defaultAspectRatio);
       return {
         folderName,
         presentationTitle: presentationSettings.presentationTitle ?? folderName,
         presentationDate: presentationSettings.presentationDate,
         languageCode: presentationSettings.languageCode,
         // A wrong format fails the build of the presentation itself; its card meanwhile keeps the default one.
-        canvasSize: measureCanvasSize(presentationSettings.aspectRatio ?? defaultAspectRatio) ?? measureCanvasSize(defaultAspectRatio)!,
+        canvasSize: canvasSize ?? measureCanvasSize(defaultAspectRatio)!,
+        // A format other than 16:9 is named under the card: a 4:3 or vertical talk needs another screen.
+        shownAspectRatio: canvasSize === undefined || presentationSettings.aspectRatio === defaultAspectRatio ? undefined : presentationSettings.aspectRatio,
       };
     })
     .sort(comparePresentationCards);
@@ -107,10 +110,11 @@ function renderCover(presentationCard: ListedCard, listTexts: ListTexts): string
 }
 
 function renderCard(presentationCard: ListedCard, listTexts: ListTexts, languageCode: string): string {
-  const { presentationDate, downloads = [], canvasSize: { canvasWidth, canvasHeight } } = presentationCard;
+  const { presentationDate, shownAspectRatio, downloads = [], canvasSize: { canvasWidth, canvasHeight } } = presentationCard;
   const shownDate = presentationDate === undefined
     ? ""
     : `<time datetime="${escapeHtml(presentationDate)}">${escapeHtml(formatPresentationDate(presentationDate, languageCode))}</time>`;
+  const aspectRatioNote = shownAspectRatio === undefined ? "" : `<span data-list-aspect-ratio>${escapeHtml(shownAspectRatio)}</span>`;
   const downloadLinks = downloads.map(
     ({ variantName, downloadAddress }) => `<a href="${escapeHtml(downloadAddress)}" download>${escapeHtml(listTexts.downloadLabels[variantName])}</a>`,
   );
@@ -119,7 +123,7 @@ function renderCard(presentationCard: ListedCard, listTexts: ListTexts, language
           <a data-list-link href="${escapeHtml(presentationCard.pageAddress)}">
             <span data-list-cover style="aspect-ratio: ${canvasWidth} / ${canvasHeight}">${renderCover(presentationCard, listTexts)}</span>
             <span data-list-title>${escapeHtml(presentationCard.presentationTitle)}</span>
-            <span data-list-meta>${shownDate}<span data-list-folder>${escapeHtml(presentationCard.folderName)}</span></span>
+            <span data-list-meta>${shownDate}${aspectRatioNote}<span data-list-folder>${escapeHtml(presentationCard.folderName)}</span></span>
           </a>${downloadLinks.length === 0 ? "" : `\n          <span data-list-downloads>${downloadLinks.join("")}</span>`}
         </li>`;
 }

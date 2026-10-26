@@ -8,7 +8,8 @@
     --list-text-color: var(--text-color-on-dark);
     --list-muted-color: var(--muted-color-on-dark);
     --list-hairline-color: rgb(255 255 255 / 0.09);
-    --list-accent-color: var(--accent-color);
+    /* The page is always dark, so the ring takes the accent made for dark slides. */
+    --list-accent-color: var(--accent-color-on-dark);
     --list-card-width: 360px;
     --list-card-max-width: 880px;
     --list-side-padding: var(--frame-padding);
@@ -172,7 +173,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  [data-list-meta] time + [data-list-folder]:before {
+  [data-list-meta] > * + :before {
     content: "·";
     margin-right: 12px;
     font-family: var(--font-text);

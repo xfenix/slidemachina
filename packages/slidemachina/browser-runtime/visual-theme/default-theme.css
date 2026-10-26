@@ -81,9 +81,11 @@
     --code-padding-block: 24px;
     /* The code box hangs into the margin by this padding, so it must stay under --frame-padding. */
     --code-padding-inline: 32px;
-    /* Line numbers are smaller than the code: two digits, the box padding and a gap to the slide edge fit into the margin. */
-    --code-number-scale: 0.75;
-    /* From the slide edge to a code box with line numbers. */
+    /* Line numbers are smaller than the code: two digits, their gap, the box padding and a gap to the slide edge fit into the margin. */
+    --code-number-scale: 0.6;
+    /* From a line number to its code: wider than a list marker gap, the numbers are a column of their own. */
+    --code-number-gap: 19px;
+    /* From the slide edge to a code box with line numbers, and the least box padding before the numbers. */
     --code-numbered-edge-gap: 12px;
     --code-background-on-dark: rgb(255 255 255 / 0.06);
     /* Printed code fades into the code box: the box over the slide background, as it looks. */

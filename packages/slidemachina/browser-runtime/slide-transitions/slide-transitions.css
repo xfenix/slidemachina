@@ -21,13 +21,16 @@
     backdrop-filter: none;
   }
 
-  /* Whole slides move over a stage instead of the black letterbox, so the cube has depth and the flipped card a shadow. */
-  :root:is([data-slide-transition="slide"], [data-slide-transition="zoom"], [data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition {
+  /* Whole slides move over a stage, so the cube has depth and the flipped card a shadow.
+     The stage fills the canvas only: letterbox margins stay as they are and do not flash. */
+  :root:active-view-transition:is([data-slide-transition="slide"], [data-slide-transition="zoom"], [data-slide-transition="cube"], [data-slide-transition="flip"]) [data-canvas] {
     background: var(--transition-stage-background);
   }
 
-  :root:is([data-slide-transition="slide"], [data-slide-transition="zoom"], [data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-group(root) {
-    visibility: hidden;
+  /* Sliding and zooming stay inside the canvas, as on a screen: in a letterboxed window a slide does not wait in the margin. */
+  :root:is([data-slide-transition="slide"], [data-slide-transition="zoom"])::view-transition-group(slide-out),
+  :root:is([data-slide-transition="slide"], [data-slide-transition="zoom"])::view-transition-group(slide-in) {
+    overflow: clip;
   }
 
   ::view-transition-group(*),

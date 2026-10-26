@@ -1,5 +1,5 @@
 import { execFile, spawn } from "node:child_process";
-import { access, cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { access, appendFile, cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -14,6 +14,8 @@ const repositoryServerAddress = `http://localhost:${repositoryServerPort}`;
 const presentationTitles = ["slidemachina", "Итоги квартала", "Python 3.15: что нового"];
 // The ELK worker itself and three.js: a cover of a first slide without a diagram or a scene needs neither.
 const heavyRequestPattern = /elk-worker\.min\.js(?!\?url)|\/three\/|scene-view/;
+// The shared theme of the examples sets nothing of its own: the copy gets a variable that shows the file is in the cascade.
+const sharedThemeMark = "\n:root {\n  --slidemachina-test-shared-theme: #fee600;\n}\n";
 
 
 function readThemeVariable(page: Page, variableName: string) {
@@ -26,7 +28,7 @@ function readThemeVariable(page: Page, variableName: string) {
 // Engine defaults, the shared theme/style.css, then the presentation's own style.css with the brand it imports: each later one wins.
 async function expectThemeCascade(page: Page, ownSectionBackground: string) {
   expect(await readThemeVariable(page, "--frame-padding"), "переменная движка").toBe("64px");
-  expect(await readThemeVariable(page, "--list-accent-color"), "общая тема").toBe("#fee600");
+  expect(await readThemeVariable(page, "--slidemachina-test-shared-theme"), "общая тема").toBe("#fee600");
   expect(await readThemeVariable(page, "--slide-background"), "бренд из своей темы").toBe("#f6f3e9");
   expect(await readThemeVariable(page, "--section-background"), "своя тема сильнее бренда").toBe(ownSectionBackground);
 }
@@ -48,6 +50,7 @@ test("репозиторий презентаций: список с облож�
   const outputFolder = path.join(scratchFolder, "dist");
   await cp(examplesFolder, copyFolder, { recursive: true, filter: skipsGeneratedFiles });
   await symlink(copyFolder, linkedFolder);
+  await appendFile(path.join(copyFolder, "theme", "style.css"), sharedThemeMark);
   const developmentServer = spawn(process.execPath, [commandLineScript, "dev", linkedFolder, "--port", String(repositoryServerPort)], {
     cwd: workspaceFolder,
     stdio: "ignore",
@@ -63,6 +66,8 @@ test("репозиторий презентаций: список с облож�
       await expect(page.locator("h1")).toHaveText("Презентации");
       await expect(page.locator("[data-list-title]")).toHaveText(presentationTitles);
       await expect(page.locator("[data-list-meta] time").first()).toHaveText("23 октября 2026");
+      // Only a format other than 16:9 is named: team-sync is 4:3.
+      await expect(page.locator("[data-list-aspect-ratio]")).toHaveText(["4:3"]);
       for (const [cardIndex, presentationTitle] of presentationTitles.entries()) {
         const coverFrame = page.frameLocator("[data-list-cover] iframe").nth(cardIndex);
         await expect(coverFrame.locator("[data-cover-preview] [data-slide] h1")).toHaveText(presentationTitle.split(":")[0]!);
@@ -89,8 +94,8 @@ test("репозиторий презентаций: список с облож�
     await test.step("правка общей темы видна в открытой презентации без перезагрузки", async () => {
       const themeFile = path.join(copyFolder, "theme", "style.css");
       const themeBefore = await readFile(themeFile, "utf8");
-      await writeFile(themeFile, themeBefore.replace("--list-accent-color: #fee600;", "--list-accent-color: #00ff00;"));
-      await expect.poll(() => readThemeVariable(page, "--list-accent-color")).toBe("#00ff00");
+      await writeFile(themeFile, themeBefore.replace("--slidemachina-test-shared-theme: #fee600;", "--slidemachina-test-shared-theme: #00ff00;"));
+      await expect.poll(() => readThemeVariable(page, "--slidemachina-test-shared-theme")).toBe("#00ff00");
       expect(await page.evaluate(() => performance.getEntriesByType("navigation").length)).toBe(1);
       await writeFile(themeFile, themeBefore);
     });

@@ -286,7 +286,7 @@ export default (
 
       <Machina.Slide>
         <h2>Типограф</h2>
-        <div className="machina-columns" style={{ gridTemplateColumns: "3fr 2fr" }}>
+        <div className="machina-columns">
           <div>
             <p className="machina-note">В index.tsx</p>
             <Machina.Code lang="tsx">{`

@@ -46,12 +46,11 @@
   /* The numbers, the box padding and a gap to the slide edge share the margin.
      The code stays on the text line while the numbers fit; numbers with three digits push it to the right. */
   [data-slide] [data-code][data-numbered] {
-    --code-number-gap: calc(var(--code-number-scale) * 1ch);
     --code-number-gutter: calc(var(--code-number-digits) * var(--code-number-scale) * 1ch + var(--code-number-gap));
     --code-hang: calc(var(--hanging-punctuation) * (var(--frame-padding) - var(--code-numbered-edge-gap)));
     --code-padding-start: calc(
       var(--hanging-punctuation) *
-        max(var(--code-number-gap), var(--frame-padding) - var(--code-numbered-edge-gap) - var(--code-number-gutter)) +
+        max(var(--code-numbered-edge-gap), var(--frame-padding) - var(--code-numbered-edge-gap) - var(--code-number-gutter)) +
         (1 - var(--hanging-punctuation)) * var(--code-padding-inline)
     );
   }
@@ -61,13 +60,13 @@
   }
 
   /* A generated number is not text: copying skips it, and a code morph fades it with the box instead of moving it like a word.
-     It sits in the line, so its baseline matches the code; it hangs to the left by one of its own digits, the gap. */
+     It sits in the line, so its baseline matches the code; it hangs to the left by the gap. */
   [data-slide] [data-code][data-numbered] [data-code-line]:before {
     content: attr(data-code-line);
     display: inline-flex;
     justify-content: flex-end;
     width: 0;
-    margin-inline: -1ch 1ch;
+    margin-inline: calc(-1 * var(--code-number-gap)) var(--code-number-gap);
     color: var(--muted-color);
     font-size: calc(var(--code-number-scale) * 1em);
     text-indent: 0;
