@@ -28,7 +28,6 @@
     padding: var(--code-padding-block) var(--code-padding-inline) var(--code-padding-block) var(--code-padding-start);
     border-radius: var(--block-radius);
     background: var(--code-background);
-    box-shadow: inset 0 0 0 1px var(--hairline-color);
     color: var(--text-color);
     font-family: var(--font-code);
     font-size: var(--code-size);
@@ -147,7 +146,6 @@
     --code-hang: 0px;
     padding: 0;
     background: none;
-    box-shadow: none;
     font-size: var(--command-size);
   }
 
