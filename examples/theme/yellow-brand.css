@@ -29,21 +29,30 @@
   --text-color-on-dark: #f6f3e9;
   --muted-color-on-dark: #a9a8a2;
   --accent-color: #2b2d33;
+  /* Бренд двухцветный: второй акцент тоже тёмный. */
+  --second-accent-color: #2b2d33;
+  --heading-weight: 800;
   --big-number-color: #2b2d33;
   --scene-color: #fee600;
   --code-background: #ece7d8;
+  /* Раздел — чистый жёлтый: без градиента и зерна, номер светлый, название тёмное. */
+  --section-texture: none;
+  --section-glow-strength: 0%;
+  --section-number-start-color: #ffffff;
+  --section-number-end-color: #ffffff;
   --hairline-color: rgb(43 45 51 / 0.12);
 }
 
 /* Заголовки капсом, как в фирменных шаблонах. */
 [data-slide] :is(h1, h2) {
-  font-weight: 800;
   letter-spacing: 0.01em;
   text-transform: uppercase;
 }
 
-/* Точка списка — жёлтый квадрат с тёмной обводкой: виден и на светлом, и на жёлтом фоне. */
+/* Точка списка — жёлтый квадрат с тёмной обводкой: виден и на светлом, и на жёлтом фоне.
+   Без лучей движка: их clip-path срезал бы обводку. */
 [data-slide] ul > li:before {
+  clip-path: none;
   border-radius: 2px;
   background: #fee600;
   box-shadow: 0 0 0 2px var(--text-color);

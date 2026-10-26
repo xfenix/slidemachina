@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256.56" height="47.3" viewBox="0 4.46 256.56 47.3" fill="none" role="img" aria-labelledby="logo-title">
   <title id="logo-title">slidemachina</title>
   <linearGradient id="mark-gradient" x1="0" x2="48" y1="0" y2="0" gradientUnits="userSpaceOnUse">
-    <stop offset="0" stop-color="#7000d1"/>
-    <stop offset="1" stop-color="#007a33"/>
+    <stop offset="0" stop-color="#a779fd"/>
+    <stop offset="1" stop-color="#62c378"/>
   </linearGradient>
   <metadata>Wordmark: Plus Jakarta Sans SemiBold (600), SIL Open Font License 1.1. Outlined from the Google Fonts version.</metadata>
   <g transform="translate(0 2) skewY(9)" fill="url(#mark-gradient)">

@@ -26,7 +26,7 @@
     contain: strict;
   }
 
-  [data-printed-fade-band] {
+  [data-printed-color-band] {
     display: none;
   }
 
@@ -104,27 +104,38 @@
       break-after: auto;
     }
 
-    /* The grain of a section slide costs more to print than the rest of the deck and does not show on paper; the glow stays.
-       A translucent glow is printed as a picture that Chrome's PDF viewer rims with a dark arc; an opaque one is a true gradient. */
+    /* The grain of a section slide costs more to print than the rest of the deck and does not show on paper; the gradient stays.
+       A translucent gradient is printed as a picture with a soft mask; an opaque one is a true gradient. */
     [data-print-page] [data-slide]:has(> [data-content] > h1[data-section-number]) {
-      background-image: radial-gradient(
-        var(--section-glow-shape),
-        color-mix(in srgb, var(--section-printed-background), var(--section-glow-color) var(--section-glow-strength)),
-        var(--section-printed-background) var(--section-glow-reach)
+      background-image: linear-gradient(
+        var(--section-glow-direction),
+        color-mix(in srgb, var(--section-printed-background), var(--section-glow-start-color) var(--section-glow-strength)),
+        var(--section-printed-background) 50%,
+        color-mix(in srgb, var(--section-printed-background), var(--section-glow-end-color) var(--section-glow-strength))
       );
     }
 
-    /* Chrome's PDF viewer draws a gradient on text as a grey fill, so the section number fades by stacked solid bands. */
+    /* Chrome's PDF viewer draws a gradient on text as a grey fill, so the section number is printed as solid bands, each over the next. */
     [data-print-page] [data-section-number-gradient] {
       display: none;
     }
 
-    [data-print-page] [data-printed-fade-band] {
+    [data-print-page] [data-printed-color-band] {
       display: inline;
     }
 
-    [data-print-page] [data-printed-fade-band] text {
-      fill: rgb(from var(--section-number-color) r g b / calc(1 - (1 - alpha * var(--band-share)) / (1 - alpha * var(--lower-band-share))));
+    /* Opaque, mixed into the section colour: translucent bands would add up where they overlap. */
+    [data-print-page] [data-printed-color-band] text {
+      fill: color-mix(
+        in srgb,
+        var(--section-printed-background),
+        color-mix(
+            in oklab,
+            var(--section-number-start-color, var(--accent-color)),
+            var(--section-number-end-color, var(--second-accent-color)) calc(var(--band-share) * 100%)
+          )
+          var(--section-number-strength)
+      );
     }
 
     /* A canvas redrawn after beforeprint is printed by replaying its drawing calls, and the replay erases the slide background

@@ -302,7 +302,9 @@ test("демо листается, показывает шаги и навига
     await jumpToHeading(page, "Строки по шагам");
     const codeElement = currentSlide(page).locator("[data-code]");
     await expect(codeElement).toHaveCSS("font-family", /JetBrains Mono/);
-    await expect(codeElement.locator("[data-code-token]").first()).toHaveAttribute("style", /--token-light: #[0-9A-Fa-f]{6}; --token-dark: #/);
+    // Tokens carry a colour role, the theme gives the colour: the accent for a keyword, the second accent for a literal.
+    await expect(codeElement.locator("[data-code-token]").first()).toHaveAttribute("data-code-token", "keyword");
+    await expect(codeElement.locator("[data-code-token=literal]").first()).toHaveCSS("color", "rgb(0, 122, 51)");
     expect(await listLitLines(page)).toEqual([]);
     await page.keyboard.press("ArrowRight");
     expect(await listLitLines(page)).toEqual([4]);

@@ -1,27 +1,28 @@
 import { useId, useLayoutEffect, useRef, type CSSProperties, type RefObject } from "react";
 
-const fadeEndShare = 0.88;
-const printedFadeBandCount = 40;
+const printedColorBandCount = 40;
+// A band takes the colour of the gradient at its middle.
+const bandMiddleShare = 0.5;
 // The title stands on the number: the digits reach past both ends of it.
 const leastNumberToTitleWidth = 1.2;
 
-// An SVG gradient, unlike background-clip: text, prints into a PDF that macOS Preview draws correctly.
-// Chrome's own PDF viewer cannot fill text with any gradient, so print stacks solid copies, each cut to a shorter band.
+// Left to right from the accent to the green, like the logo. An SVG gradient, unlike background-clip: text, prints into a PDF that macOS Preview draws correctly.
+// Chrome's own PDF viewer cannot fill text with any gradient, so print stacks solid copies, each cut to start a band further right.
 export function SectionNumber({ sectionNumber }: { sectionNumber: string }) {
   const gradientIdentifier = useId();
   const figureReference = useRef<SVGSVGElement>(null);
   useNumberWiderThanTitle(figureReference);
   return (
     <svg ref={figureReference} data-section-number-figure aria-hidden>
-      <linearGradient id={gradientIdentifier} x2="0" y2="1">
+      <linearGradient id={gradientIdentifier}>
         <stop offset="0" />
-        <stop offset={fadeEndShare} />
+        <stop offset="1" />
       </linearGradient>
       <text data-section-number-gradient fill={`url(#${gradientIdentifier})`}>{sectionNumber}</text>
-      {Array.from({ length: printedFadeBandCount }, (_, bandIndex) => (
-        <g key={bandIndex} data-printed-fade-band style={describeBandOpacity(bandIndex)}>
+      {Array.from({ length: printedColorBandCount }, (_, bandIndex) => (
+        <g key={bandIndex} data-printed-color-band style={{ "--band-share": (bandIndex + bandMiddleShare) / printedColorBandCount } as CSSProperties}>
           <clipPath id={`${gradientIdentifier}-${bandIndex}`} clipPathUnits="objectBoundingBox">
-            <rect width="1" height={(fadeEndShare * (bandIndex + 1)) / printedFadeBandCount} />
+            <rect x={bandIndex / printedColorBandCount} width="1" height="1" />
           </clipPath>
           <text clipPath={`url(#${gradientIdentifier}-${bandIndex})`}>{sectionNumber}</text>
         </g>
@@ -63,10 +64,4 @@ function useNumberWiderThanTitle(figureReference: RefObject<SVGSVGElement | null
       isMounted = false;
     };
   });
-}
-
-// The CSS turns the shares into the opacity at which this copy and the ones below it add up to the gradient over its band.
-function describeBandOpacity(bandIndex: number) {
-  const describeFadedShare = (fadedBandIndex: number) => Math.max(0, 1 - (fadedBandIndex + 0.5) / printedFadeBandCount);
-  return { "--band-share": describeFadedShare(bandIndex), "--lower-band-share": describeFadedShare(bandIndex + 1) } as CSSProperties;
 }

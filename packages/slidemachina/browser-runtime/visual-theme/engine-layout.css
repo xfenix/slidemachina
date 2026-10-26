@@ -21,9 +21,15 @@
     position: fixed;
     inset: 0;
     overflow: hidden;
-    background: var(--letterbox-background);
+    /* Unset, the margins of a window in another format take the colour of the current slide. */
+    background: var(--letterbox-background, var(--current-slide-background, var(--dark-background)));
     font-family: var(--font-text);
     -webkit-font-smoothing: antialiased;
+    transition: background-color var(--transition-time) var(--transition-easing);
+  }
+
+  [data-presentation]:has(> [data-canvas] > [data-navigator]) {
+    background: var(--letterbox-background, var(--navigator-background));
   }
 
   /* Centred by translate alone: a half-pixel top or left would be snapped and leave a grey line at the edge of the slide. */
@@ -71,8 +77,7 @@
 
   [data-slide][data-tone="dark"] {
     --accent-color: var(--accent-color-on-dark);
-    /* Repeated here: a variable from :root keeps the accent it was computed with there. */
-    --section-number-color: color-mix(in srgb, var(--accent-color) var(--section-number-strength), transparent);
+    --second-accent-color: var(--second-accent-color-on-dark);
     --text-color: var(--text-color-on-dark);
     --muted-color: var(--muted-color-on-dark);
     --hairline-color: var(--hairline-color-on-dark);

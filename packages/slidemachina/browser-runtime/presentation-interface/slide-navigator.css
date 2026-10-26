@@ -1,6 +1,9 @@
 @layer slidemachina {
   /* Thumbnails scroll above the bottom strip, where the toolbar sits, and never pass under it. */
   [data-navigator] {
+    --navigator-fade: 32px;
+    --thumbnail-outline-width: 3px;
+    --thumbnail-outline-offset: 4px;
     position: absolute;
     inset: 0;
     /* <dialog> comes with a border, padding and a fit-content box from the browser. */
@@ -19,12 +22,14 @@
     box-sizing: border-box;
     overflow-y: auto;
     scrollbar-width: none;
+    /* Rows fade out at the edges of the scroll instead of being cut by a straight line. */
+    mask-image: linear-gradient(transparent, #000 var(--navigator-fade), #000 calc(100% - var(--navigator-fade)), transparent);
   }
 
   [data-navigator-heading] {
     margin: 0 0 24px;
     font-size: var(--frame-text-size);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--muted-color-on-dark);
   }
 
@@ -43,13 +48,31 @@
     border: 0;
     border-radius: var(--block-radius);
     background: none;
-    outline: 6px solid transparent;
-    outline-offset: 4px;
+    outline: var(--thumbnail-outline-width) solid transparent;
+    outline-offset: var(--thumbnail-outline-offset);
+    /* Scrolled to, the selected thumbnail keeps its outline clear of the faded edge. */
+    scroll-margin-block: calc(var(--navigator-fade) + var(--thumbnail-outline-width) + var(--thumbnail-outline-offset));
     cursor: pointer;
+    transition: outline-color 0.2s;
+  }
+
+  /* A hairline over the slide: a dark slide does not melt into the dark navigator. */
+  [data-thumbnail]:after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px var(--hairline-color-on-dark);
+    pointer-events: none;
+  }
+
+  [data-thumbnail]:hover {
+    outline-color: var(--hairline-color-on-dark);
   }
 
   /* The navigator is always dark: a dark accent of a light theme would vanish on it. */
-  [data-thumbnail][data-selected] {
+  [data-thumbnail]:is([data-selected], :focus-visible) {
     outline-color: var(--accent-color-on-dark);
   }
 
@@ -60,7 +83,7 @@
     z-index: 1;
     min-width: 1.6em;
     padding: 4px 6px;
-    border-radius: 8px;
+    border-radius: var(--inline-radius);
     background: rgb(0 0 0 / 0.62);
     color: #fff;
     font-size: 18px;

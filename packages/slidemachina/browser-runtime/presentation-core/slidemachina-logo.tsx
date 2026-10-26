@@ -5,6 +5,9 @@ const logoViewBox = "0 4.46 256.56 47.3";
 // The gradient of xfenix.ru, left to right across the mark.
 const markGradientStart = "#7000d1";
 const markGradientEnd = "#007a33";
+// The same hues lighter, so the mark holds 3:1 and more on dark slides.
+const markGradientStartOnDark = "#a779fd";
+const markGradientEndOnDark = "#62c378";
 const markWidth = 48;
 const markTransform = "translate(0 2) skewY(9)";
 const markShapes = [
@@ -24,8 +27,8 @@ export function SlidemachinaLogo({ dark }: { dark: boolean }) {
   return (
     <svg viewBox={logoViewBox} fill="none" aria-hidden>
       <linearGradient id={gradientIdentifier} x2={markWidth} gradientUnits="userSpaceOnUse">
-        <stop offset="0" stopColor={markGradientStart} />
-        <stop offset="1" stopColor={markGradientEnd} />
+        <stop offset="0" stopColor={dark ? markGradientStartOnDark : markGradientStart} />
+        <stop offset="1" stopColor={dark ? markGradientEndOnDark : markGradientEnd} />
       </linearGradient>
       <g transform={markTransform} fill={`url(#${gradientIdentifier})`}>
         {markShapes.map((markShape) => (

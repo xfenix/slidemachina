@@ -93,7 +93,8 @@ npm run build             # спросит, что собрать
 }
 
 :root {
-  --accent-color: #e8574c;        /* маркеры, ссылки, номера разделов, числа */
+  --accent-color: #e8574c;        /* маркеры, ссылки, ключевые слова кода, числа */
+  --second-accent-color: #2f7d6d; /* строки в коде, второй конец градиента раздела */
   --slide-background: #fbfaf7;    /* фон обычного слайда */
   --dark-background: #15161b;     /* фон тёмных слайдов */
   --section-background: #1d2233;  /* фон обложек разделов */
@@ -103,11 +104,11 @@ npm run build             # спросит, что собрать
 
 | Что меняем | Где |
 |---|---|
-| Цвета | `--accent-color`, `--text-color`, `--muted-color`, фоны `--slide-background`, `--dark-background`, `--section-background` |
+| Цвета | `--accent-color`, `--second-accent-color`, `--text-color`, `--muted-color`, фоны `--slide-background`, `--dark-background`, `--section-background` |
 | Шрифты | `--font-text`, `--font-heading`, `--font-code`. Свой шрифт — через `@font-face` в том же `style.css` |
 | Кегли | Четыре уровня: `--secondary-text-size` 28, `--text-size` 40, `--heading-size` 56, `--display-size` 112. Остальные размеры берутся от них |
 | Рамка слайда | `--frame-padding` по бокам и снизу, `--frame-top` сверху, `--heading-gap` под заголовком |
-| Обложки разделов | `--section-background`, `--section-number-color`, `--section-number-size`, `--section-texture`. Или свой слайд в `cover` у `Section` |
+| Обложки разделов | `--section-background`, `--section-number-start-color`, `--section-number-end-color`, `--section-number-size`, `--section-texture`. Или свой слайд в `cover` у `Section` |
 | Движение | `speed` у `Presentation` или `Slide`, длительности `--transition-duration` и соседние, кривая `--transition-easing` |
 
 Ещё несколько мест, где настраивается вид:

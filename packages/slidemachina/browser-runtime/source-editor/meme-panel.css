@@ -19,7 +19,7 @@
     background: var(--toolbar-background);
     box-shadow:
       0 18px 48px rgb(0 0 0 / 0.28),
-      inset 0 0 0 1px rgb(255 255 255 / 0.08);
+      0 0 0 1px var(--hairline-color-on-dark);
     color: #fff;
     font-family: var(--font-text);
     font-size: 15px;
@@ -47,7 +47,7 @@
 
   [data-meme-panel] input:focus {
     background: rgb(255 255 255 / 0.12);
-    box-shadow: inset 0 0 0 1.5px var(--accent-color);
+    box-shadow: inset 0 0 0 var(--interface-focus-ring-width) var(--accent-color-on-dark);
   }
 
   [data-meme-hint],
@@ -91,7 +91,6 @@
     border-radius: 10px;
     color: rgb(255 255 255 / 0.6);
     font-size: 14px;
-    font-weight: 500;
     line-height: 20px;
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s;
@@ -174,15 +173,14 @@
     flex: none;
     padding: 0 18px;
     border-radius: 12px;
-    background: var(--accent-color);
-    color: #fff;
-    font-weight: 500;
+    background: var(--accent-color-on-dark);
+    color: var(--dark-background);
     cursor: pointer;
     transition: background-color 0.2s, opacity 0.2s;
   }
 
   [data-meme-link][data-meme-link] > button:is(:hover, :focus-visible) {
-    background: color-mix(in srgb, var(--accent-color) 85%, #fff);
+    background: color-mix(in srgb, var(--accent-color-on-dark) 85%, #fff);
   }
 
   [data-meme-link][data-meme-link] > button:disabled {

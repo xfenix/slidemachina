@@ -634,9 +634,9 @@ export default (
         <Machina.Scene full orbit>
           <Machina.Camera target={[0.6, 1.7, 0]} />
           <Machina.Cube size={1.5} position={[-1.9, 0.75, 0]} rotation={[0, 28, 0]} material="glossy" />
-          <Machina.Sphere size={1.6} position={[0.2, 0.8, 0.3]} color="#F4F5F8" material="glossy" />
-          <Machina.Sphere size={1} position={[2, 0.5, -0.3]} color="#C9CCD6" material="metal" />
-          <Machina.Cube size={[0.7, 2.4, 0.7]} position={[3.4, 1.2, -1.2]} rotation={[0, 18, 0]} color="#8B95FF" />
+          <Machina.Sphere size={1.6} position={[0.2, 0.8, 0.3]} color="var(--text-color)" material="glossy" />
+          <Machina.Sphere size={1} position={[2, 0.5, -0.3]} color="var(--muted-color)" material="metal" />
+          <Machina.Cube size={[0.7, 2.4, 0.7]} position={[3.4, 1.2, -1.2]} rotation={[0, 18, 0]} color="var(--second-accent-color)" />
         </Machina.Scene>
       </Machina.Slide>
 
@@ -652,7 +652,7 @@ export default (
           <div>
             <Machina.Scene>
               <Machina.Cube id="cube" size={1.3} position={[0, 0.65, 0]} rotation={[0, 20, 0]} material="glossy" />
-              <Machina.Sphere size={1.1} position={[1.4, 0.55, 0.4]} color="#F2B8A0" step={1} />
+              <Machina.Sphere size={1.1} position={[1.4, 0.55, 0.4]} color="var(--second-accent-color)" step={1} />
               <Machina.Move on="cube" position={[-1.4, 0.65, 0]} rotation={[0, 70, 0]} step={2} />
               <Machina.Camera position={[5.5, 3.2, 6.5]} target={[0, 0.8, 0]} step={3} />
               <Machina.Text position={[0, 2.3, 0]} size={0.45} step={4}>Готово</Machina.Text>
@@ -668,8 +668,8 @@ export default (
           <Machina.Cube size={1.4} position={[-1.4, 0.7, 0]} rotation={[0, -24, 0]} material="glossy" />
           <Machina.Sphere id="ball" size={1.4} position={[1.4, 0.7, 0]} material="glossy" />
           <Machina.Light position={[-4, 7, 5]} />
-          <Machina.Light position={[6, 2, 1]} color="#FFB45C" intensity={2} step />
-          <Machina.Move on="ball" color="#FF6B57" step />
+          <Machina.Light position={[6, 2, 1]} color="var(--second-accent-color)" intensity={2} step />
+          <Machina.Move on="ball" color="var(--second-accent-color)" step />
         </Machina.Scene>
         <figcaption>Цвет объектов — из темы. Свет и цвет меняются по шагам</figcaption>
       </Machina.Slide>
@@ -970,9 +970,9 @@ export default (
       <Machina.Scene full orbit={12}>
         <Machina.Camera position={[0, 3.4, 13]} target={[0, 2.6, 0]} />
         <Machina.Cube size={1.2} position={[-3.2, 0.6, -0.6]} rotation={[0, 24, 0]} material="glossy" />
-        <Machina.Sphere size={1.3} position={[-1.5, 0.65, 1.2]} color="#FF6B57" material="glossy" />
-        <Machina.Sphere size={1.6} position={[1.7, 0.8, 0.8]} color="#C9CCD6" material="metal" />
-        <Machina.Cube size={[0.8, 2.2, 0.8]} position={[3.3, 1.1, -0.8]} rotation={[0, 18, 0]} color="#8B95FF" material="glossy" />
+        <Machina.Sphere size={1.3} position={[-1.5, 0.65, 1.2]} color="var(--second-accent-color)" material="glossy" />
+        <Machina.Sphere size={1.6} position={[1.7, 0.8, 0.8]} color="var(--muted-color)" material="metal" />
+        <Machina.Cube size={[0.8, 2.2, 0.8]} position={[3.3, 1.1, -0.8]} rotation={[0, 18, 0]} color="var(--text-color)" material="glossy" />
       </Machina.Scene>
     </Machina.Slide>
   </Machina.Presentation>

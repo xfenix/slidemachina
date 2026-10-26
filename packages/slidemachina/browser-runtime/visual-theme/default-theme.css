@@ -52,20 +52,21 @@
 
     --slide-background: #ffffff;
     --section-background: #1c2030;
-    /* Computed here, so dark slides that swap in the light accent keep the deep one in the glow, on screen and in print. */
-    --section-glow-color: var(--accent-color);
-    --section-glow-shape: 120% 90% at 85% 110%;
-    --section-glow-strength: 34%;
-    --section-glow-reach: 62%;
-    /* A soft glow of the accent and a hint of grain over the section colour. */
-    --section-texture: radial-gradient(var(--section-glow-shape), color-mix(in srgb, var(--section-glow-color) var(--section-glow-strength), transparent), transparent var(--section-glow-reach)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23grain)' opacity='0.05'/%3E%3C/svg%3E");
+    /* Computed here, so dark slides that swap in the light accents keep the deep ones in the glow, on screen and in print. */
+    --section-glow-start-color: var(--accent-color);
+    --section-glow-end-color: var(--second-accent-color);
+    /* Across the slide like the logo gradient: the accent on the left, the green on the right, the section colour between. */
+    --section-glow-direction: to right;
+    --section-glow-strength: 22%;
+    /* The accent gradient and a hint of grain over the section colour. */
+    --section-texture: linear-gradient(var(--section-glow-direction), color-mix(in srgb, var(--section-glow-start-color) var(--section-glow-strength), transparent), transparent 50%, color-mix(in srgb, var(--section-glow-end-color) var(--section-glow-strength), transparent)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23grain)' opacity='0.05'/%3E%3C/svg%3E");
     /* Print leaves the grain out and mixes in its average instead, so the section colour stays as on screen. */
     --section-printed-background: color-mix(in srgb, var(--section-background), rgb(187 187 187) 2.5%);
+    /* The number runs from --section-number-start-color to --section-number-end-color; unset, from the accent to the second accent of the slide tone. */
     --section-number-strength: 62%;
-    --section-number-color: color-mix(in srgb, var(--accent-color) var(--section-number-strength), transparent);
     --section-number-size: 440px;
     --dark-background: #14161d;
-    --letterbox-background: #000000;
+    /* --letterbox-background colours the margins of a window in another format; unset, they follow the current slide. */
     --transition-stage-background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--dark-background), #fff 10%), color-mix(in srgb, var(--dark-background), #000 45%) 75%);
     --navigator-background: var(--dark-background);
     --text-color: #15171c;
@@ -75,6 +76,9 @@
     --accent-color: #7000d1;
     /* The same hue, light enough to read on dark slides and still inside sRGB; a light accent stays as it is. */
     --accent-color-on-dark: oklch(from var(--accent-color) max(l, 0.68) min(c, 0.19) h);
+    /* The green end of the logo gradient: literals in code, the far end of section numbers and of their glow. */
+    --second-accent-color: #007a33;
+    --second-accent-color-on-dark: oklch(from var(--second-accent-color) max(l, 0.74) min(c, 0.16) h);
     --hairline-color: rgb(21 23 28 / 0.14);
     --hairline-color-on-dark: rgb(255 255 255 / 0.14);
     --code-background: #f4f5f8;
@@ -91,8 +95,12 @@
     /* Printed code fades into the code box: the box over the slide background, as it looks. */
     --code-fade-color: var(--code-background);
     --code-fade-color-on-dark: color-mix(in srgb, var(--dark-background), #fff 6%);
-    --toolbar-background: #1a1a1a;
+    /* The toolbar, its menus and the navigator share the dark background of the slides. */
+    --toolbar-background: var(--dark-background);
+    /* An outer hairline: invisible on light slides, it keeps the capsule apart from a dark one. */
+    --toolbar-shadow: 0 10px 30px rgb(0 0 0 / 0.18), 0 0 0 1px var(--hairline-color-on-dark);
     --toolbar-icon-color: rgb(255 255 255 / 0.72);
+    --interface-focus-ring-width: 2px;
 
     /* Sides and bottom share one margin, the top gets a little more air. Margins are measured to visible glyphs. */
     --frame-padding: 64px;
@@ -257,7 +265,7 @@
     font-size: var(--cover-heading-size);
   }
 
-  /* A section slide: soft glow and grain over its colour, a large section number in the accent behind the title. */
+  /* A section slide: the accent gradient and grain over its colour, a large section number from the accent to the green behind the title. */
   [data-slide]:has(> [data-content] > h1[data-section-number]) {
     background-image: var(--section-texture);
     background-size: cover, 240px;
@@ -294,11 +302,11 @@
   }
 
   [data-slide] [data-section-number-figure] stop {
-    stop-color: var(--section-number-color);
+    stop-color: color-mix(in srgb, var(--section-number-start-color, var(--accent-color)) var(--section-number-strength), transparent);
   }
 
   [data-slide] [data-section-number-figure] stop:last-child {
-    stop-opacity: 0;
+    stop-color: color-mix(in srgb, var(--section-number-end-color, var(--second-accent-color)) var(--section-number-strength), transparent);
   }
 
   [data-slide] p {

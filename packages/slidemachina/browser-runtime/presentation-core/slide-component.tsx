@@ -1,5 +1,6 @@
 import { useRef, type CSSProperties, type ReactNode } from "react";
 import { isBackgroundColor, useBackgroundTone, type SlideTone } from "./background-tone.ts";
+import { useLetterboxBackground } from "./letterbox-background.ts";
 import { useSlideEnvironment, type PresentationLogo, type SlideAlign } from "./slide-environment.ts";
 import { pickSourceMarks } from "./source-marks.ts";
 import { useBigNumberFitting } from "./width-fitting.ts";
@@ -50,6 +51,7 @@ export function Slide({
   useBigNumberFitting(slideElementReference, children);
 
   const slideTone = tone ?? detectedTone;
+  useLetterboxBackground(slideElementReference, slideEnvironment.isCurrentSlide, slideTone, background);
   const slideAlign = align ?? (cover ? "center" : presentationSettings.align);
   const breadcrumbTrail = typeof breadcrumbs === "string" ? [breadcrumbs] : slideEnvironment.sectionTrail;
   const presentationLogo = presentationSettings.logo;

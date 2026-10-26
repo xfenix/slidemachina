@@ -20,7 +20,9 @@ export function parseLineSteps(linesSpecification: string | undefined, lastLineN
 
 // The lit lines sit in the middle of the visible part; a range taller than the view starts at its first line.
 function scrollToLitLines(viewportElement: HTMLElement, litLineElements: HTMLElement[], scrollBehavior: ScrollBehavior) {
-  const largestScrollTop = viewportElement.scrollHeight - viewportElement.clientHeight;
+  // A one-line command does not clip: its glyphs stick out of the box trimmed to the letters, yet nothing is cut.
+  const isClipping = getComputedStyle(viewportElement).overflowY !== "visible";
+  const largestScrollTop = isClipping ? viewportElement.scrollHeight - viewportElement.clientHeight : 0;
   const firstLitLine = litLineElements[0];
   const lastLitLine = litLineElements.at(-1);
   let targetScrollTop = 0;
