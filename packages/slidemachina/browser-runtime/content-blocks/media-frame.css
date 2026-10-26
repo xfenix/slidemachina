@@ -22,6 +22,11 @@
     container-type: size;
   }
 
+  /* Columns with a stretched picture or meme grow to the bottom of the content area, as with a scene or a QR code. */
+  [data-slide] .machina-columns:has(> div > [data-media-frame="stretch"]) {
+    flex: 1 1 0;
+  }
+
   [data-slide][data-align="center"] [data-media-frame="stretch"] {
     place-items: center;
   }

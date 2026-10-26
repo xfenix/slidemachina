@@ -6,18 +6,17 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { expect, test } from "@playwright/test";
-import { commandLineScript, currentSlide, demoFolderName, examplesFolder, skipsGeneratedFiles, waitForServer, workspaceFolder } from "./test-helpers.ts";
+import { commandLineScript, currentSlide, demoFolderName, examplesFolder, findSlideNumber, skipsGeneratedFiles, waitForServer, workspaceFolder } from "./test-helpers.ts";
 
 const editorServerPort = 5198;
 const editorServerAddress = `http://localhost:${editorServerPort}`;
-const playgroundSlideNumber = 53;
 const tinyPicture = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
 
 
 
 const runCommand = promisify(execFile);
 const demoTemplateFolder = path.join(examplesFolder, demoFolderName, "images", "memes", "jd");
-const demoGifFile = path.join(examplesFolder, demoFolderName, "images", "scene-orbit.gif");
+const demoGifFile = path.join(examplesFolder, demoFolderName, "images", "memes", "orbit", "default.gif");
 
 // memegen.link and a page with a GIF, served from the demo's own files: the test never leaves the machine.
 async function serveMemeSources(): Promise<{ sourceServer: Server, sourceAddress: string }> {
@@ -96,6 +95,8 @@ test("редактор правит текст, двигает блок схем
   try {
     await waitForServer(editorServerAddress);
     await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(editorServerAddress);
+    const playgroundSlideNumber = await findSlideNumber(page, "h2", "Попробуйте: нажмите E");
 
     await test.step("метки «файл:строка» ведут на свой тег", async () => {
       await page.goto(`${editorServerAddress}/#1`);
@@ -222,9 +223,7 @@ test("редактор правит текст, двигает блок схем
 
     await test.step("мемы: шаблон скачивается сам, панель вставляет слайд с шаблоном и с картинкой со страницы, команда meme печатает разметку", async () => {
       await page.goto(editorServerAddress);
-      const memeSlideNumber = await page.locator("[data-canvas] > [data-slide]").evaluateAll(
-        (slideElements) => slideElements.findIndex((slideElement) => slideElement.querySelector("[data-meme]") !== null) + 1,
-      );
+      const memeSlideNumber = await findSlideNumber(page, "[data-meme=jd]");
       await page.goto(`${editorServerAddress}/#${memeSlideNumber}`);
       await expect(currentSlide(page).locator("[data-meme-field] > p")).toHaveCount(2);
       expect(existsSync(path.join(copiedTemplateFolder, "config.yml")) && existsSync(path.join(copiedTemplateFolder, "default.jpg")), "шаблон скачан в images/memes/jd").toBe(true);

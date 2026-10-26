@@ -17,6 +17,21 @@ export function currentSlide(page: Page) {
   return page.locator("[data-canvas] > [data-slide][data-current]");
 }
 
+// Slides are found by what they show, not by number, so tests follow the demo when slides are added.
+export async function findSlideNumber(page: Page, partSelector: string, partText?: string) {
+  const slideNumber = await page.locator("[data-canvas] > [data-slide]").evaluateAll(
+    (slideElements, [searchedSelector, searchedText]) =>
+      slideElements.findIndex((slideElement) =>
+        [...slideElement.querySelectorAll(searchedSelector!)].some(
+          (partElement) => searchedText === undefined || partElement.textContent.replace(/\s+/g, " ").trim() === searchedText,
+        ),
+      ) + 1,
+    [partSelector, partText],
+  );
+  if (slideNumber === 0) throw new Error(`В демо нет слайда с ${partSelector} ${partText ?? ""}`);
+  return slideNumber;
+}
+
 export async function waitForServer(serverAddress: string) {
   for (let attemptNumber = 0; attemptNumber < 100; attemptNumber += 1) {
     const isAnswering = await fetch(serverAddress).then((serverResponse) => serverResponse.ok, () => false);

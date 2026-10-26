@@ -3,7 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { sampleSceneCanvas } from "./scene-sampling.ts";
-import { currentSlide, demoFolderName, examplesFolder, workspaceFolder } from "./test-helpers.ts";
+import { currentSlide, demoFolderName, examplesFolder, findSlideNumber, workspaceFolder } from "./test-helpers.ts";
 
 // playwright.config.ts serves a copy of the demo: edits here never reach the real files or the dev server on 5173.
 const demoCopyFolder = process.env.SLIDEMACHINA_TEST_DEMO_COPY!;
@@ -122,6 +122,12 @@ async function jumpToSlide(page: Page, slideNumber: number) {
   await expect(page).toHaveURL(new RegExp(`#${slideNumber}$`));
 }
 
+async function jumpToHeading(page: Page, headingText: string) {
+  const slideNumber = await findSlideNumber(page, ":is(h1, h2)", headingText);
+  await jumpToSlide(page, slideNumber);
+  return slideNumber;
+}
+
 test("демо листается, показывает шаги и навигатор, переживает перезагрузку и правку файла", async ({ page }) => {
   // Errors reach window as events, not as console lines: a ResizeObserver loop is one of them.
   const pageErrors: string[] = [];
@@ -173,66 +179,66 @@ test("демо листается, показывает шаги и навига
     await expect(page).toHaveURL(/#2$/);
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "slide");
     await expect(page.locator("html")).toHaveAttribute("data-slide-direction", "forward");
-    await expect(currentSlide(page).locator("h1")).toHaveText("Как устроено");
+    await expect(currentSlide(page).locator("h1")).toHaveText("Зачем");
     await expect(currentSlide(page)).toHaveAttribute("data-tone", "dark");
 
-    await page.keyboard.press("ArrowRight");
+    const listSlideNumber = await jumpToHeading(page, "Вся презентация в одном файле");
     const listItems = currentSlide(page).locator("li");
     await expect(listItems.and(page.locator("[data-step-reached]"))).toHaveCount(0);
     await page.keyboard.press("Space");
-    await expect(page).toHaveURL(/#3\.1$/);
+    await expect(page).toHaveURL(new RegExp(`#${listSlideNumber}\\.1$`));
     await expect(listItems.nth(0)).toHaveAttribute("data-step-reached");
     await expect(listItems.nth(1)).not.toHaveAttribute("data-step-reached");
 
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press("PageDown");
     await page.keyboard.press("PageDown");
-    await expect(page).toHaveURL(/#4$/);
+    await expect(page).toHaveURL(new RegExp(`#${listSlideNumber + 1}$`));
     await page.keyboard.press("PageUp");
-    await expect(page).toHaveURL(/#3\.3$/);
+    await expect(page).toHaveURL(new RegExp(`#${listSlideNumber}\\.3$`));
     await expect(page.locator("html")).toHaveAttribute("data-slide-direction", "backward");
     await expect(currentSlide(page).locator("[data-step-reached]")).toHaveCount(3);
     await expect(currentSlide(page).locator("[data-breadcrumbs]")).toHaveText("Как устроено");
   });
 
   await test.step("шаг с номером и крошки подраздела", async () => {
-    await jumpToSlide(page, 5);
+    const stepsSlideNumber = await jumpToHeading(page, "Рассказ по шагам");
     await expect(currentSlide(page).locator("[data-breadcrumbs] span")).toHaveText(["Как устроено", "Шаги"]);
-    await expect(currentSlide(page).locator("[data-slide-number]")).toHaveText("5");
+    await expect(currentSlide(page).locator("[data-slide-number]")).toHaveText(String(stepsSlideNumber));
     await page.keyboard.press("ArrowRight");
     await expect(currentSlide(page).locator("p")).toHaveAttribute("data-step-reached");
     await expect(currentSlide(page).locator("[data-step-effect=highlight]")).not.toHaveAttribute("data-step-reached");
   });
 
   await test.step("фон: цвет и картинка", async () => {
-    await jumpToSlide(page, 9);
+    await jumpToHeading(page, "Тёмный фон");
     await expect(currentSlide(page)).toHaveAttribute("data-tone", "dark");
     const darkSlideLogo = currentSlide(page).locator("[data-logo]");
     await expect(darkSlideLogo).toHaveAttribute("data-logo", "dark");
     await expect(darkSlideLogo).toHaveCSS("filter", "none");
-    await jumpToSlide(page, 10);
+    await jumpToHeading(page, "Картинка на весь слайд");
     await expect(currentSlide(page)).toHaveAttribute("data-tone", "dark");
     await expect(currentSlide(page).locator("[data-logo], [data-breadcrumbs], [data-slide-number]")).toHaveCount(0);
   });
 
   await test.step("обложки: место текста, картинка сбоку", async () => {
-    await jumpToSlide(page, 12);
+    await jumpToHeading(page, "Обложка снизу слева");
     const bottomLeftEdges = await measureOnCanvas(page, ["h1", "p"]);
     expect(bottomLeftEdges[0]!.left).toBeCloseTo(64, 0);
     expect(bottomLeftEdges[1]!.bottom).toBeCloseTo(1080 - 64, 0);
-    await jumpToSlide(page, 13);
+    await jumpToHeading(page, "Картинка слева");
     const [leftPicture, titleBeside, leadBeside] = await measureOnCanvas(page, ["img", "h1", "p"]);
     expect(leftPicture!.left).toBeCloseTo(64, 0);
     expect(titleBeside!.left - leftPicture!.right).toBeCloseTo(64, 0);
     expect(leftPicture!.top + leftPicture!.bottom).toBeCloseTo(titleBeside!.top + leadBeside!.bottom, 0);
-    await jumpToSlide(page, 14);
+    await jumpToHeading(page, "Картинка справа");
     const [rightTitle, , rightPicture] = await measureOnCanvas(page, ["h1", "p", "img"]);
     expect(rightPicture!.right).toBeCloseTo(1920 - 64, 0);
     expect(rightPicture!.left - rightTitle!.right).toBeCloseTo(64, 0);
   });
 
   await test.step("блоки: колонки и строки таблицы по шагам, источник сноской под блоком", async () => {
-    await jumpToSlide(page, 17);
+    await jumpToHeading(page, "Коротко в цифрах");
     const columnElements = currentSlide(page).locator(".machina-columns > *");
     await expect(columnElements).toHaveCount(3);
     await expect(columnElements.and(page.locator("[data-step-reached]"))).toHaveCount(0);
@@ -250,7 +256,7 @@ test("демо листается, показывает шаги и навига
     expect(sourceBox!.y - (columnsBox!.y + columnsBox!.height)).toBeCloseTo(80 * slideScale, 0);
     await expect(sourceElement).toHaveCSS("border-top-width", "1px");
 
-    await jumpToSlide(page, 18);
+    await jumpToHeading(page, "Сборка");
     await expect(currentSlide(page).locator("thead th")).toHaveCount(3);
     const tableRows = currentSlide(page).locator("tbody tr");
     await expect(tableRows).toHaveCount(4);
@@ -258,14 +264,14 @@ test("демо листается, показывает шаги и навига
     await page.keyboard.press("ArrowRight");
     await expect(tableRows.and(page.locator("[data-step-reached]"))).toHaveCount(2);
 
-    await jumpToSlide(page, 19);
+    await jumpToHeading(page, "Что вы получаете");
     const optionHeadings = currentSlide(page).locator("table.machina-compare thead th:not(:first-child)");
     const optionWidths = await optionHeadings.evaluateAll((headingElements) => headingElements.map((headingElement) => Math.round(headingElement.getBoundingClientRect().width)));
     expect(new Set(optionWidths).size, "решения в колонках равной ширины").toBe(1);
   });
 
   await test.step("картинка на свободное место, обтекание и на весь слайд, видео играет только на своём слайде", async () => {
-    await jumpToSlide(page, 20);
+    await jumpToHeading(page, "Картинка занимает всё свободное место");
     const stretchedPicture = currentSlide(page).locator("[data-media-frame=stretch] img");
     await expect.poll(async () => (await stretchedPicture.boundingBox())?.height).toBeGreaterThan(300);
     const pictureBox = await stretchedPicture.boundingBox();
@@ -275,27 +281,24 @@ test("демо листается, показывает шаги и навига
     expect(captionBox!.x).toBeCloseTo(pictureBox!.x, 0);
     expect(pictureBox!.x).toBeGreaterThan((await currentSlide(page).locator("[data-content]").boundingBox())!.x + 50);
 
-    await jumpToSlide(page, 21);
+    await jumpToHeading(page, "Текст обтекает картинку");
     const [floatingPicture, wrappingText] = await measureOnCanvas(page, ["img", "p"]);
     expect(floatingPicture!.top, "верх картинки на линии заглавных букв").toBeCloseTo(wrappingText!.top, 0);
 
-    await jumpToSlide(page, 22);
+    await jumpToSlide(page, await findSlideNumber(page, "[data-media-frame=full] img"));
     const fullPictureBox = await currentSlide(page).locator("[data-media-frame=full] img").boundingBox();
     expect(fullPictureBox).toEqual(await currentSlide(page).boundingBox());
 
-    await jumpToSlide(page, 23);
+    await jumpToHeading(page, "Видео на весь слайд");
     const videoElement = page.locator("[data-canvas] > [data-slide] video");
     await expect.poll(() => videoElement.evaluate((pausedVideo: HTMLVideoElement) => pausedVideo.paused)).toBe(false);
-    await jumpToSlide(page, 24);
+    await jumpToSlide(page, await findSlideNumber(page, "blockquote"));
     await expect.poll(() => videoElement.evaluate((pausedVideo: HTMLVideoElement) => pausedVideo.paused)).toBe(true);
     await expect(currentSlide(page).locator("figcaption")).toHaveText("Антуан де Сент-Экзюпери, «Планета людей»");
   });
 
   await test.step("мем: подписи — текст в полях шаблона, шрифт Oswald подогнан под поле", async () => {
-    const memeSlideNumber = await page.locator("[data-canvas] > [data-slide]").evaluateAll(
-      (slideElements) => slideElements.findIndex((slideElement) => slideElement.querySelector("[data-meme]") !== null) + 1,
-    );
-    await jumpToSlide(page, memeSlideNumber);
+    await jumpToSlide(page, await findSlideNumber(page, "[data-meme=jd]"));
     const memeElement = currentSlide(page).locator("[data-meme]");
     await expect(memeElement.locator("img")).toHaveJSProperty("complete", true);
     await expect.poll(() => page.evaluate(() => document.fonts.check('700 40px "Oswald Variable"', "Мем"))).toBe(true);
@@ -317,7 +320,7 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("код: подсветка при сборке, шрифт, строки по шагам с прокруткой", async () => {
-    await jumpToSlide(page, 26);
+    await jumpToHeading(page, "Строки по шагам");
     const codeElement = currentSlide(page).locator("[data-code]");
     await expect(codeElement).toHaveCSS("font-family", /JetBrains Mono/);
     await expect(codeElement.locator("[data-code-token]").first()).toHaveAttribute("style", /--token-light: #[0-9A-Fa-f]{6}; --token-dark: #/);
@@ -329,7 +332,7 @@ test("демо листается, показывает шаги и навига
     const loadedFiles = await page.evaluate(() => performance.getEntriesByType("resource").map((resourceEntry) => resourceEntry.name));
     expect(loadedFiles.filter((loadedFile) => /shiki|typograf/i.test(loadedFile))).toEqual([]);
 
-    await jumpToSlide(page, 27);
+    await jumpToHeading(page, "Код из файла");
     await expect(currentSlide(page).locator("[data-code-title]")).toHaveText("agent.py");
     expect(await listLitLines(page)).toEqual([10, 11, 12, 13]);
     // Numbers are file lines drawn by CSS: copying the code leaves them out.
@@ -354,7 +357,7 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("морфинг кода: совпавшие куски переезжают, имена слоёв потом снимаются", async () => {
-    await jumpToSlide(page, 28);
+    await jumpToHeading(page, "Морфинг кода");
     await page.keyboard.press("PageDown");
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "morph");
     expect(await collectTransitionAnimations(page)).toEqual(
@@ -369,7 +372,7 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("типограф правит текст, но не код, кавычка в начале строки висит за краем", async () => {
-    await jumpToSlide(page, 30);
+    await jumpToHeading(page, "Типограф");
     const typographedParagraph = currentSlide(page).locator(".machina-columns > div > p").last();
     // toHaveText folds non-breaking spaces into plain ones, so the raw text is read.
     expect(await typographedParagraph.textContent()).toMatch(/^«Кавычки» и\u00A0тире\u00A0— как\u00A0на\u00A0клавиатуре/);
@@ -393,7 +396,7 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("схемы: раскладка ELK в фоне, шаги держат место, фокус, морфинг и sequence", async () => {
-    await jumpToSlide(page, 33);
+    const diagramSlideNumber = await jumpToHeading(page, "Схема собирается по шагам");
     const diagramElement = currentSlide(page).locator("[data-diagram]");
     await expect(diagramElement).toHaveAttribute("data-laid-out");
     const loadedFiles = await page.evaluate(() => performance.getEntriesByType("resource").map((resourceEntry) => resourceEntry.name));
@@ -407,13 +410,13 @@ test("демо листается, показывает шаги и навига
     const readPlace = () => hiddenBox.evaluate((placedBox: HTMLElement) => [placedBox.offsetLeft, placedBox.offsetTop, placedBox.offsetWidth]);
     const hiddenBoxPlace = await readPlace();
     for (let stepPress = 0; stepPress < 3; stepPress += 1) await page.keyboard.press("ArrowRight");
-    await expect(page).toHaveURL(/#33\.3$/);
+    await expect(page).toHaveURL(new RegExp(`#${diagramSlideNumber}\\.3$`));
     await expect(hiddenBox).toBeVisible();
     expect(await readPlace()).toEqual(hiddenBoxPlace);
     await expect(diagramElement.locator("[data-arrow-line]").first()).toHaveAttribute("d", /^M[\d.,]+ L/);
 
     await page.keyboard.press("ArrowRight");
-    await expect(page).toHaveURL(/#34$/);
+    await expect(page).toHaveURL(new RegExp(`#${diagramSlideNumber + 1}$`));
     const focusedDiagram = currentSlide(page).locator("[data-diagram]");
     await expect(focusedDiagram.locator("[data-focus]")).toHaveCount(0);
     await page.keyboard.press("ArrowRight");
@@ -453,7 +456,7 @@ test("демо листается, показывает шаги и навига
     }
 
     await page.keyboard.press("ArrowRight");
-    await expect(page).toHaveURL(/#36$/);
+    await expect(page).toHaveURL(new RegExp(`#${diagramSlideNumber + 3}$`));
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "morph");
     await expect(currentSlide(page)).toHaveAttribute("data-tone", "dark");
     const sequenceElement = currentSlide(page).locator("[data-sequence]");
@@ -462,7 +465,7 @@ test("демо листается, показывает шаги и навига
     await expect(messageElements).toHaveCount(5);
     await expect(messageElements.and(page.locator("[data-step-reached]"))).toHaveCount(0);
     for (let stepPress = 0; stepPress < 6; stepPress += 1) await page.keyboard.press("ArrowRight");
-    await expect(page).toHaveURL(/#36\.6$/);
+    await expect(page).toHaveURL(new RegExp(`#${diagramSlideNumber + 3}\\.6$`));
     await expect(messageElements.nth(2)).toHaveAttribute("data-focus", "on");
     await expect(messageElements.nth(1)).toHaveAttribute("data-focus", "off");
     await expect(sequenceElement.locator("[data-actor]").first()).toHaveAttribute("data-focus", "off");
@@ -475,23 +478,24 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("морфинг сам включается, когда у слайдов есть общие элементы", async () => {
-    await jumpToSlide(page, 38);
+    const cardSlideNumber = await jumpToHeading(page, "Морфинг без разметки");
     await page.keyboard.press("PageDown");
-    await expect(page).toHaveURL(/#39$/);
+    await expect(page).toHaveURL(new RegExp(`#${cardSlideNumber + 1}$`));
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "morph");
     await page.keyboard.press("PageUp");
     await expect(page.locator("html")).toHaveAttribute("data-slide-direction", "backward");
   });
 
   await test.step("морфинг по словам: общие слова едут, разметка возвращается как была", async () => {
-    await jumpToSlide(page, 40);
+    const versionSlideNumber = await findSlideNumber(page, "h2", "Версия 0.2");
+    await jumpToSlide(page, versionSlideNumber - 2);
     await expect.poll(() => listTransitionAnimations(page)).toEqual([]);
-    // Two presses within one task: the skipped transition to 41 must not show 42 before the next snapshot.
+    // Two presses within one task: the skipped transition must not show the slide after it before the next snapshot.
     await page.evaluate(() => {
       window.dispatchEvent(new KeyboardEvent("keydown", { key: "PageDown" }));
       window.dispatchEvent(new KeyboardEvent("keydown", { key: "PageDown" }));
     });
-    await expect(page).toHaveURL(/#42$/);
+    await expect(page).toHaveURL(new RegExp(`#${versionSlideNumber}$`));
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "morph");
     expect(await collectTransitionAnimations(page)).toEqual(
         expect.arrayContaining([
@@ -506,29 +510,30 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("куб и переворот в обе стороны", async () => {
-    await jumpToSlide(page, 43);
+    const flipSlideNumber = (await jumpToHeading(page, "Восемь переходов")) + 2;
     await page.keyboard.press("PageDown");
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "cube");
     expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining(["::view-transition-new(slide-in) slidemachina-cube-in"]));
     await page.keyboard.press("PageDown");
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "flip");
     // Back only after the flip has switched the slide: a press within the same frame never shows the flipped slide.
-    await expect(page).toHaveURL(/#45$/);
+    await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber}$`));
     await page.keyboard.press("PageUp");
     await expect(page.locator("html")).toHaveAttribute("data-slide-direction", "backward");
     expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining(["::view-transition-old(slide-out) slidemachina-flip-out"]));
-    await expect(page).toHaveURL(/#44$/);
+    await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber - 1}$`));
   });
 
   await test.step("свайп листает, вертикальный жест и короткое касание — нет", async () => {
+    const flipSlideNumber = await findSlideNumber(page, "h2", "Переворот");
     await swipeAcross(page, -200);
-    await expect(page).toHaveURL(/#45$/);
+    await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber}$`));
     await swipeAcross(page, 200);
-    await expect(page).toHaveURL(/#44$/);
+    await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber - 1}$`));
     await swipeAcross(page, -80, 200);
     await swipeAcross(page, -30);
     await page.keyboard.press("PageDown");
-    await expect(page).toHaveURL(/#45$/);
+    await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber}$`));
   });
 
   await test.step("чёрный экран закрывает всё, и Agentation тоже", async () => {
@@ -547,7 +552,8 @@ test("демо листается, показывает шаги и навига
   await test.step("навигатор", async () => {
     await page.keyboard.press("o");
     const slideNavigator = page.locator("[data-navigator]");
-    await expect(slideNavigator.locator("[data-thumbnail]")).toHaveCount(68);
+    const demoSlideCount = await page.locator("[data-canvas] > [data-slide]").count();
+    await expect(slideNavigator.locator("[data-thumbnail]")).toHaveCount(demoSlideCount);
     // One of the two dark steps of the theme, the same as the dark slides: --dark-background.
     await expect(slideNavigator).toHaveCSS("background-color", "rgb(20, 22, 29)");
     await expect(slideNavigator.locator("[data-thumbnail-number]").nth(41)).toHaveText("42");
@@ -555,30 +561,31 @@ test("демо листается, показывает шаги и навига
     // Six columns on a 16:9 screen: 1920 logical pixels give thumbnails of 240–280.
     expect(firstThumbnailBox!.width / (await page.locator("[data-canvas]").boundingBox())!.width).toBeCloseTo(268 / 1920, 2);
     await expect(slideNavigator.locator("[data-thumbnail][data-selected]")).toContainText("Переворот");
-    await expect(slideNavigator.locator("[data-navigator-heading]").nth(1).locator("span")).toHaveText(["Как устроено", "Шаги"]);
+    await expect(slideNavigator.locator("[data-navigator-heading]").nth(2).locator("span")).toHaveText(["Как устроено", "Шаги"]);
     await page.keyboard.press("Home");
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("Enter");
     await expect(slideNavigator).toHaveCount(0);
     await expect(page).toHaveURL(/#2$/);
     await page.keyboard.press("Escape");
-    await slideNavigator.locator("[data-thumbnail]").nth(45).click();
-    await expect(page).toHaveURL(/#46$/);
+    const keysSlideNumber = await findSlideNumber(page, "h2", "Клавиши");
+    await slideNavigator.locator("[data-thumbnail]").nth(keysSlideNumber - 1).click();
+    await expect(page).toHaveURL(new RegExp(`#${keysSlideNumber}$`));
     await expect(currentSlide(page).locator("[data-breadcrumbs]")).toHaveText("Шпаргалка");
     // The editor hovers the same slide in index.tsx and names the number from the corner of the slide.
     const cornerNumber = await currentSlide(page).locator("[data-slide-number]").textContent();
     expect(await askEditorHints(['<Machina.Section title="Управление"', '<Machina.Slide breadcrumbs="Шпаргалка"'])).toEqual([
-      `Раздел 08 · слайд ${cornerNumber} · #${cornerNumber}`,
+      `Раздел 16 · слайд ${cornerNumber} · #${cornerNumber}`,
       `Слайд ${cornerNumber} · #${cornerNumber}`,
     ]);
     await page.mouse.move(640, 300);
     const navigatorButton = page.getByRole("button", { name: "Все слайды · Esc" });
     await navigatorButton.click();
     await expect(slideNavigator).toBeVisible();
-    await expect(page).toHaveURL(/\/\?overview#46$/);
+    await expect(page).toHaveURL(new RegExp(`/\\?overview#${keysSlideNumber}$`));
     await navigatorButton.click();
     await expect(slideNavigator).toHaveCount(0);
-    await expect(page).toHaveURL(/\/#46$/);
+    await expect(page).toHaveURL(new RegExp(`/#${keysSlideNumber}$`));
     const feedbackStandIn = page.locator("body > .slidemachina-feedback");
     await page.getByRole("button", { name: "Скрыть панель · H" }).click();
     await expect(navigatorButton).toHaveCount(0);
@@ -589,7 +596,7 @@ test("демо листается, показывает шаги и навига
     await expect(feedbackStandIn).toHaveCSS("visibility", "visible");
     const overviewPage = await page.context().newPage();
     await overviewPage.goto("/?overview");
-    await expect(overviewPage.locator("[data-navigator] [data-thumbnail]")).toHaveCount(68);
+    await expect(overviewPage.locator("[data-navigator] [data-thumbnail]")).toHaveCount(demoSlideCount);
     await overviewPage.keyboard.press("Escape");
     await expect(overviewPage.locator("[data-navigator]")).toHaveCount(0);
     await overviewPage.close();
@@ -613,19 +620,19 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("3D-сцена: кадр готов до перехода, шаги двигают объекты, анимируется только текущий слайд", async () => {
-    await jumpToSlide(page, 55);
-    const heroCanvas = page.locator("[data-canvas] > [data-slide]").nth(55).locator("[data-scene-canvas]");
+    const sceneCoverNumber = await jumpToHeading(page, "3D");
+    const heroCanvas = page.locator("[data-canvas] > [data-slide]").nth(sceneCoverNumber).locator("[data-scene-canvas]");
     // The next slide is hidden, yet its still frame is drawn: the transition snapshot is never empty.
     await expect.poll(async () => (await sampleSceneCanvas(heroCanvas)).paintedPixels, { timeout: 10_000 }).toBeGreaterThan(400);
     const stillFrame = (await sampleSceneCanvas(heroCanvas)).frameFingerprint;
     await page.waitForTimeout(300);
     expect((await sampleSceneCanvas(heroCanvas)).frameFingerprint, "сцена на скрытом слайде стоит").toBe(stillFrame);
     await page.keyboard.press("PageDown");
-    await expect(page).toHaveURL(/#56$/);
+    await expect(page).toHaveURL(new RegExp(`#${sceneCoverNumber + 1}$`));
     await expect.poll(async () => (await sampleSceneCanvas(heroCanvas)).frameFingerprint, { message: "камера облетает сцену" }).not.toBe(stillFrame);
 
     await page.keyboard.press("PageDown");
-    await expect(page).toHaveURL(/#57$/);
+    await expect(page).toHaveURL(new RegExp(`#${sceneCoverNumber + 2}$`));
     const stepCanvas = currentSlide(page).locator("[data-scene-canvas]");
     await expect.poll(async () => (await sampleSceneCanvas(stepCanvas)).paintedPixels).toBeGreaterThan(100);
     const cubeOnlyPixels = (await sampleSceneCanvas(stepCanvas)).paintedPixels;
@@ -633,27 +640,29 @@ test("демо листается, показывает шаги и навига
     await expect(currentSlide(page).locator("[data-scene-step][data-step-reached]")).toHaveCount(1);
     await expect.poll(async () => (await sampleSceneCanvas(stepCanvas)).paintedPixels, { message: "сфера появилась" }).toBeGreaterThan(cubeOnlyPixels * 1.3);
     await page.keyboard.press("o");
-    const sceneThumbnail = page.locator("[data-navigator] [data-thumbnail]").nth(56).locator("[data-scene-canvas]");
+    const sceneThumbnail = page.locator("[data-navigator] [data-thumbnail]").nth(sceneCoverNumber + 1).locator("[data-scene-canvas]");
     await expect.poll(async () => (await sampleSceneCanvas(sceneThumbnail)).paintedPixels).toBeGreaterThan(100);
     await page.keyboard.press("Escape");
   });
 
   await test.step("перезагрузка оставляет на том же шаге", async () => {
-    await page.goto("/#6");
+    const effectsSlideNumber = await findSlideNumber(page, "h2", "Эффекты шагов");
+    await page.goto(`/#${effectsSlideNumber}`);
     await expect(currentSlide(page).locator("li[data-step]").first()).toBeHidden();
-    await page.goto("/#6.3");
+    await page.goto(`/#${effectsSlideNumber}.3`);
     await page.reload();
     await expect(currentSlide(page).locator("h2")).toHaveText("Эффекты шагов");
     await expect(currentSlide(page).locator("[data-step-reached]")).toHaveCount(3);
   });
 
   await test.step("правка index.tsx обновляет слайд без перезагрузки", async () => {
+    const effectsSlideNumber = await findSlideNumber(page, "h2", "Эффекты шагов");
     await editFileWhile(
       demoPresentationFile,
       (originalPresentation) => originalPresentation.replace("Эффекты шагов", "Эффекты шагов после правки"),
       async () => {
         await expect(currentSlide(page).locator("h2")).toHaveText("Эффекты шагов после правки");
-        await expect(page).toHaveURL(/#6\.3$/);
+        await expect(page).toHaveURL(new RegExp(`#${effectsSlideNumber}\\.3$`));
         await expect(currentSlide(page).locator("[data-step-reached]")).toHaveCount(3);
         expect(await page.evaluate(() => performance.getEntriesByType("navigation").length)).toBe(1);
       },
@@ -663,19 +672,20 @@ test("демо листается, показывает шаги и навига
 
   // File edits go last: a late hot update in the middle of a morph would make the transition steps flaky.
   await test.step("правка файла с кодом обновляет слайд без перезагрузки", async () => {
-    await page.goto("/#27.4");
+    const fileCodeSlideNumber = await findSlideNumber(page, "h2", "Код из файла");
+    await page.goto(`/#${fileCodeSlideNumber}.4`);
     await editFileWhile(
       demoCodeFile,
       (originalCode) => originalCode.replace("Which files are in the examples folder?", "Какие файлы в папке?"),
       () => expect(currentSlide(page).locator("[data-code]")).toContainText("Какие файлы в папке?"),
     );
     await expect(currentSlide(page).locator("[data-code]")).toContainText("Which files are in the examples folder?");
-    await expect(page).toHaveURL(/#27\.4$/);
+    await expect(page).toHaveURL(new RegExp(`#${fileCodeSlideNumber}\\.4$`));
     expect(await page.evaluate(() => performance.getEntriesByType("navigation").length)).toBe(1);
   });
 
   await test.step("typography={false} выключает типограф", async () => {
-    await jumpToSlide(page, 30);
+    await jumpToHeading(page, "Типограф");
     const typographedParagraph = currentSlide(page).locator(".machina-columns > div > p").last();
     await editFileWhile(
       demoPresentationFile,
@@ -711,11 +721,13 @@ test("демо листается, показывает шаги и навига
         const foundProblems: string[] = [];
         const describeSlide = (blockElement: Element) => `слайд ${[...document.querySelectorAll("[data-canvas] > [data-slide]")].indexOf(blockElement.closest("[data-slide]")!) + 1}`;
         for (const codeViewport of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] [data-code-viewport]")) {
-          const roomElement = codeViewport.closest(".machina-columns > div, [data-content]")!;
+          const roomElement = codeViewport.closest<HTMLElement>(".machina-columns > div, [data-content]")!;
           const codeRight = codeViewport.closest("[data-code]")!.getBoundingClientRect().right;
           if (codeViewport.scrollWidth > codeViewport.clientWidth + 1) foundProblems.push(`${describeSlide(codeViewport)}: код прокручивается`);
           if (codeRight > roomElement.getBoundingClientRect().right + 1) foundProblems.push(`${describeSlide(codeViewport)}: код шире своей области`);
-          const textLine = roomElement.getBoundingClientRect().left + Number.parseFloat(getComputedStyle(roomElement).paddingLeft);
+          // Padding is in canvas pixels, the boxes are on the scaled screen.
+          const roomBox = roomElement.getBoundingClientRect();
+          const textLine = roomBox.left + (Number.parseFloat(getComputedStyle(roomElement).paddingLeft) * roomBox.width) / roomElement.offsetWidth;
           const codeStart = codeViewport.querySelector("[data-code-line]")!.getBoundingClientRect().left;
           const hangsCode = !codeViewport.closest("[data-align='center']");
           if (hangsCode && Math.abs(codeStart - textLine) > 1) foundProblems.push(`${describeSlide(codeViewport)}: код не на линии текста`);

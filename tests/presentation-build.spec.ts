@@ -7,11 +7,13 @@ import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { expect, test, type Page } from "@playwright/test";
 import { sampleSceneCanvas } from "./scene-sampling.ts";
-import { commandLineScript, demoFolderName, examplesFolder } from "./test-helpers.ts";
+import { commandLineScript, demoFolderName, examplesFolder, findSlideNumber } from "./test-helpers.ts";
 
 const runCommand = promisify(execFile);
 // Marks, the edit endpoint and the editor's own attributes: none of them may reach a build.
 const editorTraces = /data-source-location|@slidemachina\/edit|data-editor-status/;
+// Library code only: the demo names Agentation in its slide text.
+const agentationTraces = /data-agentation|--agentation-/;
 // Russian and English slides need only these subsets; Vietnamese, Greek, math and symbols only add weight. Oswald comes with the demo's meme.
 const keptFontFile = /^(onest|jetbrains-mono|oswald)-(latin|cyrillic)-wght-normal-.*\.woff2$/;
 
@@ -55,7 +57,7 @@ test("сборка: один HTML-файл листается без серве�
     await test.step("один файл: всё внутри, без agentation", async () => {
       // Booleans, not the text itself: a failed match would print the whole 5 MB file.
       const singleFileText = await readFile(singleFile, "utf8");
-      expect(/agentation/i.test(singleFileText), "agentation в файле").toBe(false);
+      expect(agentationTraces.test(singleFileText), "agentation в файле").toBe(false);
       expect(editorTraces.test(singleFileText), "редактор в файле").toBe(false);
       expect(/(src|href)="\.\/assets/.test(singleFileText), "ссылки на соседние файлы").toBe(false);
       expect(singleFileText.includes("data:image/webp;base64"), "картинка WebP внутри").toBe(true);
@@ -68,14 +70,11 @@ test("сборка: один HTML-файл листается без серве�
       await expect(page).toHaveURL(/#1$/);
       await page.keyboard.press("PageDown");
       await expect(page).toHaveURL(/#2$/);
-      await page.goto(`${pathToFileURL(singleFile).href}#33`);
+      await page.goto(`${pathToFileURL(singleFile).href}#${await findSlideNumber(page, "[data-diagram]")}`);
       await expect(page.locator("[data-canvas] > [data-current] [data-diagram]")).toHaveAttribute("data-laid-out");
       const stretchedPicture = page.locator("[data-canvas] [data-media-frame=stretch] img").first();
       expect(await stretchedPicture.evaluate((pictureElement: HTMLImageElement) => pictureElement.currentSrc.slice(0, 15))).toBe("data:image/webp");
-      // Counted on the page, so the test follows the demo when slides are added.
-      const firstSceneSlideNumber = await page.locator("[data-canvas] > [data-slide]").evaluateAll(
-        (slideElements) => slideElements.findIndex((slideElement) => slideElement.querySelector("[data-scene]") !== null) + 1,
-      );
+      const firstSceneSlideNumber = await findSlideNumber(page, "[data-scene]");
       await page.goto(`${pathToFileURL(singleFile).href}#${firstSceneSlideNumber}`);
       const sceneCanvas = page.locator("[data-canvas] > [data-current] [data-scene-canvas]");
       await expect.poll(async () => (await sampleSceneCanvas(sceneCanvas)).paintedPixels, { message: "сцена рисуется из файла" }).toBeGreaterThan(400);
@@ -101,13 +100,16 @@ test("сборка: один HTML-файл листается без серве�
       expect(assetNames.filter((assetName) => assetName.endsWith(".woff2") && !keptFontFile.test(assetName))).toEqual([]);
       // A GIF becomes an animated WebP, all frames kept: the RIFF file carries an ANIM chunk.
       expect(assetNames.filter((assetName) => assetName.endsWith(".gif"))).toEqual([]);
-      const orbitPictureName = assetNames.find((assetName) => /^scene-orbit-[\w-]{8}\.webp$/.test(assetName))!;
-      expect((await readFile(path.join(assetFolder, orbitPictureName))).includes("ANIM"), "анимация в WebP").toBe(true);
+      // The GIF is the picture of the demo's own meme template, images/memes/orbit/default.gif.
+      const templatePictures = await Promise.all(
+        assetNames.filter((assetName) => /^default-[\w-]{8}\.webp$/.test(assetName)).map((assetName) => readFile(path.join(assetFolder, assetName))),
+      );
+      expect(templatePictures.some((templatePicture) => templatePicture.includes("ANIM")), "анимация в WebP").toBe(true);
       expect(assetNames.filter((assetName) => /^elk-worker.*\.js$/.test(assetName))).toHaveLength(1);
       const mainModuleName = assetNames.find((assetName) => /^index-.*\.js$/.test(assetName))!;
       const mainModuleText = await readFile(path.join(assetFolder, mainModuleName), "utf8");
       expect(mainModuleText.includes("org.eclipse.elk"), "ELK в основном модуле").toBe(false);
-      expect(/agentation/i.test(mainModuleText), "agentation в основном модуле").toBe(false);
+      expect(agentationTraces.test(mainModuleText), "agentation в основном модуле").toBe(false);
       expect(mainModuleText.includes("THREE.WebGLRenderer"), "three.js в основном модуле").toBe(false);
       const sceneModuleName = assetNames.find((assetName) => /^scene-view-.*\.js$/.test(assetName))!;
       expect((await readFile(path.join(assetFolder, sceneModuleName), "utf8")).includes("THREE.WebGLRenderer"), "three.js в своём файле").toBe(true);
