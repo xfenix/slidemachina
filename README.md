@@ -99,7 +99,7 @@ TypeScript подсказывает компоненты и их свойств�
   </tr>
   <tr>
     <td><img src="docs/readme/slide-code.webp" alt="Слайд с кодом из файла"></td>
-    <td><img src="docs/readme/slide-cover.webp" alt="Обложка презентации"></td>
+    <td><img src="docs/readme/slide-typography.webp" alt="Висячая пунктуация: кавычка, маркер, номер и $ вынесены за край текста"></td>
   </tr>
   <tr>
     <td><b>Код.</b> Подсветка Shiki при сборке, в браузере её код не нужен. Код из файла, строки по шагам, морфинг кода по кускам.</td>
