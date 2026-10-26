@@ -7,7 +7,7 @@ import { commandLineScript, currentSlide, demoFolderName, examplesFolder, skipsG
 
 const editorServerPort = 5198;
 const editorServerAddress = `http://localhost:${editorServerPort}`;
-const playgroundSlideNumber = 50;
+const playgroundSlideNumber = 53;
 const tinyPicture = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
 
 

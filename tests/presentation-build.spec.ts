@@ -68,7 +68,7 @@ test("сборка: один HTML-файл листается без серве�
       await expect(page).toHaveURL(/#1$/);
       await page.keyboard.press("PageDown");
       await expect(page).toHaveURL(/#2$/);
-      await page.goto(`${pathToFileURL(singleFile).href}#30`);
+      await page.goto(`${pathToFileURL(singleFile).href}#33`);
       await expect(page.locator("[data-canvas] > [data-current] [data-diagram]")).toHaveAttribute("data-laid-out");
       const stretchedPicture = page.locator("[data-canvas] [data-media-frame=stretch] img").first();
       expect(await stretchedPicture.evaluate((pictureElement: HTMLImageElement) => pictureElement.currentSrc.slice(0, 15))).toBe("data:image/webp");

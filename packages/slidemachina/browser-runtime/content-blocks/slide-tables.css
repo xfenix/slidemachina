@@ -34,4 +34,54 @@
   [data-slide] table tbody tr:last-child > * {
     border-bottom: 0;
   }
+
+  /* Two to four options side by side: criteria on the left, the options share the rest equally and read down their middle. */
+  [data-slide] table.machina-compare {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  [data-slide] table.machina-compare :is(th, td):first-child {
+    width: var(--compare-criteria-width);
+  }
+
+  [data-slide] table.machina-compare :is(th, td):not(:first-child) {
+    padding-inline: var(--compare-cell-padding);
+    text-align: center;
+  }
+
+  [data-slide] table.machina-compare thead th:not(:first-child) {
+    color: var(--text-color);
+    font-size: var(--table-text-size);
+    font-weight: 700;
+  }
+
+  [data-slide] table.machina-compare tbody th {
+    color: var(--text-color);
+  }
+
+  /* Drawn, not typed: the text font may lack a check mark, and the marks keep one size and colour in any theme. */
+  [data-slide] table :is(.machina-yes, .machina-no):before {
+    display: inline-block;
+  }
+
+  [data-slide] table .machina-yes:before {
+    content: "" / "✓";
+    width: 0.32em;
+    height: 0.68em;
+    border: solid var(--accent-color);
+    border-width: 0 0.12em 0.12em 0;
+    border-radius: 0.04em;
+    rotate: 45deg;
+    translate: 0 -0.08em;
+  }
+
+  [data-slide] table .machina-no:before {
+    content: "" / "✗";
+    width: 0.6em;
+    height: 0.12em;
+    border-radius: 0.04em;
+    vertical-align: 0.29em;
+    background: var(--muted-color);
+  }
 }

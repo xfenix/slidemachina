@@ -84,6 +84,16 @@
     animation-duration: calc(var(--morph-time) * 0.4);
   }
 
+  /* The group itself draws a plain shape: background, border, radius and shadow change with its size instead of stretching. */
+  :root[data-slide-transition="morph"]::view-transition-group(*.plain-shape) {
+    box-sizing: border-box;
+  }
+
+  :root[data-slide-transition="morph"]::view-transition-old(*.plain-shape),
+  :root[data-slide-transition="morph"]::view-transition-new(*.plain-shape) {
+    display: none;
+  }
+
   /* Text scales only with its height, that is its font: a list item in a wider list keeps its letters instead of stretching or shrinking. */
   ::view-transition-old(*.morph-text),
   ::view-transition-new(*.morph-text) {

@@ -163,6 +163,7 @@
     display: inline-flex;
     justify-content: flex-end;
     max-width: calc((1 - var(--hanging-punctuation)) * 100%);
+    margin-inline: calc(-1 * var(--hanging-punctuation) * var(--hanging-marker-gap)) var(--hanging-marker-gap);
     color: var(--accent-color);
     white-space: pre;
   }

@@ -41,7 +41,7 @@
     overflow: hidden;
     padding: 0;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--block-radius);
     background: none;
     outline: 6px solid transparent;
     outline-offset: 4px;

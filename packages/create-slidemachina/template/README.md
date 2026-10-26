@@ -57,11 +57,12 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 | Видео | `<Video src={clip} poster={still} stretch />` — играет без звука, пока слайд на экране |
 | Колонки | `<div className="machina-columns"><div>…</div><div>…</div></div>` — каждая колонка в своём `<div>`. Ширины: `style={{ gridTemplateColumns: "1fr 2fr" }}` |
 | Таблица | `<table data-steps><thead>…</thead><tbody>…</tbody></table>` — строки по шагам |
+| Сравнение | `<table className="machina-compare">` — критерии слева, два–четыре решения справа. Отметки: `<td className="machina-yes" />` и `<td className="machina-no" />` |
 | Цитата | `<figure><blockquote>Текст</blockquote><figcaption>Автор</figcaption></figure>` |
 | Большое число | `<figure className="machina-big-number"><p>42</p><figcaption>подпись</figcaption></figure>` |
 | Текст | `<p className="machina-lead">` — вводная фраза, `<p>` — основной текст, `<p className="machina-note">` — пометка мелким шрифтом |
 | Подпись и источник | `<figcaption>…</figcaption>` сразу после блока, `<Source>…</Source>` |
-| QR-код | `<QR value="https://…" logo={logo} />` — на свободное место, фон прозрачный |
+| QR-код | `<QR value="https://…" logo={logo} />` — на свободное место, фон прозрачный. В колонках ставьте код слева |
 | Схема | `<Diagram><Box id="a">A</Box><Box id="b">B</Box><Arrow from="a" to="b" /></Diagram>` |
 | Диаграмма обмена | `<Sequence><Actor id="a">A</Actor><Actor id="b">B</Actor><Message from="a" to="b" label="запрос" /></Sequence>` |
 | 3D-сцена | `<Scene orbit><Cube size={1.5} /><Sphere position={[2, 0.5, 0]} step /></Scene>` |

@@ -56,8 +56,11 @@ function assignLevelColumns(siblingParts: NodePart[], levelArrows: ProjectedArro
   const levelColumns = new Map(siblingIdentifiers.map((siblingIdentifier) => [siblingIdentifier, fixedColumns.get(siblingIdentifier) ?? 0]));
   for (let relaxationRound = 0; relaxationRound < siblingIdentifiers.length; relaxationRound += 1) {
     for (const { sourceIdentifier, targetIdentifier } of forwardArrows) {
-      if (fixedColumns.has(targetIdentifier)) continue;
-      levelColumns.set(targetIdentifier, Math.max(levelColumns.get(targetIdentifier)!, levelColumns.get(sourceIdentifier)! + 1));
+      const sourceColumn = levelColumns.get(sourceIdentifier)!;
+      const targetColumn = levelColumns.get(targetIdentifier)!;
+      // ELK cannot draw an arrow inside one column and moves the target on its own; the shared box widths would then be wrong.
+      const isPinnedBeside = fixedColumns.has(targetIdentifier) && targetColumn !== sourceColumn;
+      if (!isPinnedBeside) levelColumns.set(targetIdentifier, Math.max(targetColumn, sourceColumn + 1));
     }
   }
   const pointedIdentifiers = new Set(forwardArrows.map((forwardArrow) => forwardArrow.targetIdentifier));

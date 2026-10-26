@@ -44,6 +44,8 @@
     --hanging-punctuation: 1;
     --list-bullet-indent: 0.8em;
     --list-number-indent: 1.4em;
+    /* From a hanging bullet, list number or command prompt to the text: their right edges share one line. */
+    --hanging-marker-gap: 0.3em;
 
     --slide-background: #ffffff;
     --section-background: #1c2030;
@@ -114,17 +116,21 @@
     --code-size: var(--secondary-text-size);
     --code-title-size: var(--secondary-text-size);
     --command-size: var(--text-size);
-    --command-prompt: "$ ";
+    --command-prompt: "$";
     --caption-size: var(--secondary-text-size);
     --source-size: var(--secondary-text-size);
     --table-text-size: var(--secondary-text-size);
     --quote-size: var(--display-size);
     --quote-author-size: var(--secondary-text-size);
     --table-heading-color: var(--accent-color);
+    --compare-criteria-width: 30%;
+    --compare-cell-padding: 24px;
     --big-number-size: var(--display-size);
     --big-number-color: var(--accent-color);
 
     --block-gap: 40px;
+    /* Between columns: one and a half margins, so neighbours read as separate blocks, and a hanging bullet or code box still leaves a full margin. */
+    --columns-gap: 96px;
     /* From the baseline of a slide heading to the capitals or the edge of the block under it. */
     --heading-gap: 104px;
     --caption-gap: 24px;
@@ -364,10 +370,10 @@
   [data-slide] ul > li:before {
     content: "";
     display: inline-block;
-    --list-bullet-size: 0.5em;
+    --list-bullet-size: calc(var(--list-bullet-indent) - var(--hanging-marker-gap));
     width: var(--list-bullet-size);
     height: var(--list-bullet-size);
-    margin: 0 calc(var(--list-bullet-indent) - var(--list-bullet-size)) 0 calc(-1 * var(--list-bullet-indent));
+    margin: 0 var(--hanging-marker-gap) 0 calc(-1 * var(--list-bullet-indent));
     vertical-align: calc((var(--text-cap-height) * 1em - var(--list-bullet-size)) / 2);
     background: var(--accent-color);
     /* Browsers without shape() drop the clip path and show a round dot. */
@@ -377,16 +383,22 @@
   }
 
   [data-slide] ol {
-    list-style: decimal;
+    list-style: none;
     padding-left: var(--list-number-indent);
+  }
+
+  /* The number is drawn like the bullet, so its gap to the text is the theme's, not the font's space; long numbers grow to the left. */
+  [data-slide] ol > li:before {
+    content: counter(list-item) ".";
+    display: inline-flex;
+    justify-content: flex-end;
+    width: calc(var(--list-number-indent) - var(--hanging-marker-gap));
+    margin: 0 var(--hanging-marker-gap) 0 calc(-1 * var(--list-number-indent));
+    color: var(--accent-color);
   }
 
   [data-slide] li + li {
     margin-top: 0.4em;
-  }
-
-  [data-slide] li::marker {
-    color: var(--accent-color);
   }
 
   [data-slide] a {

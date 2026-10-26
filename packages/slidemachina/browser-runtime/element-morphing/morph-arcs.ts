@@ -29,6 +29,10 @@ function findCenterShift(startBox: DOMRect, endBox: DOMRect) {
   };
 }
 
+export function findBrowserMove(groupSelector: string): Animation | undefined {
+  return document.getAnimations().find((runningAnimation) => (runningAnimation.effect as KeyframeEffect | null)?.pseudoElement === groupSelector);
+}
+
 // Runs once the transition is ready: the extra translate rides on top of the browser's own move, with the same timing.
 export function bendCrossingPaths(movingLayers: MovingLayer[]) {
   const measuredLayers = movingLayers.flatMap(({ layerName, outgoingElement, startBox, endBox }) =>
@@ -48,7 +52,7 @@ export function bendCrossingPaths(movingLayers: MovingLayer[]) {
     );
     if (isNested || !swapsWithAnotherLayer) continue;
     const groupSelector = `::view-transition-group(${measuredLayer.layerName})`;
-    const browserMove = document.getAnimations().find((runningAnimation) => (runningAnimation.effect as KeyframeEffect | null)?.pseudoElement === groupSelector);
+    const browserMove = findBrowserMove(groupSelector);
     if (!browserMove?.effect) continue;
     const { horizontalShift, verticalShift } = findCenterShift(measuredLayer.startBox, measuredLayer.endBox);
     const arcPeakShift = { horizontal: -verticalShift * arcDepth, vertical: horizontalShift * arcDepth };

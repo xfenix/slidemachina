@@ -2,6 +2,7 @@ import { findCodePairs } from "../element-morphing/code-morphing.ts";
 import { findMorphPairs, findRewordedPairs } from "../element-morphing/morph-matching.ts";
 import { bendCrossingPaths, type MovingLayer } from "../element-morphing/morph-arcs.ts";
 import { markReachedSteps } from "../slide-steps/step-visibility.ts";
+import { findPaintedShapes, paintShapeGroups, readIncomingPaints } from "./shape-layers.ts";
 import {
   clearLayerName,
   clearLayerNames,
@@ -63,6 +64,7 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
     ? describeWholeSlideLayers(outgoingSlide, incomingSlide)
     : describeContentLayers(outgoingSlide, incomingSlide, morphPairs, rewordedPairs, codePairs);
   activeNamedLayers = namedLayers;
+  const paintedShapes = findPaintedShapes(namedLayers);
   for (const namedLayer of namedLayers) {
     nameLayer(namedLayer.outgoingElement, namedLayer);
   }
@@ -86,11 +88,20 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
       nameLayer(namedLayer.incomingElement, namedLayer);
     }
     activeLayerRestorers = nameMovingParts(rewordedPairs, codePairs, "incoming");
+    readIncomingPaints(paintedShapes);
     for (const movingLayer of movingLayers) movingLayer.endBox = movingLayer.incomingElement.getBoundingClientRect();
   });
   // A quick next press skips this transition on purpose; the browser would report it as an error.
-  viewTransition.ready.then(() => bendCrossingPaths(movingLayers), () => {});
+  let shapePaints: Animation[] = [];
+  viewTransition.ready.then(
+    () => {
+      bendCrossingPaths(movingLayers);
+      shapePaints = paintShapeGroups(paintedShapes);
+    },
+    () => {},
+  );
   void viewTransition.finished.finally(() => {
+    for (const shapePaint of shapePaints) shapePaint.cancel();
     if (activeNamedLayers !== namedLayers) return;
     clearLayerNames(namedLayers);
     restoreLayers(activeLayerRestorers);

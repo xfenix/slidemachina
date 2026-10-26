@@ -3,15 +3,16 @@
 
 @layer slidemachina {
   :root {
-    --list-background: #0c0d10;
+    /* The list looks like the slide navigator: its background, margins, headings and corners come from the same theme. */
+    --list-background: var(--navigator-background);
     --list-text-color: var(--text-color-on-dark);
     --list-muted-color: var(--muted-color-on-dark);
     --list-hairline-color: rgb(255 255 255 / 0.09);
     --list-accent-color: var(--accent-color);
     --list-card-width: 360px;
     --list-card-max-width: 880px;
-    --list-side-padding: clamp(64px, 6vw, 128px);
-    --list-cover-radius: 14px;
+    --list-side-padding: var(--frame-padding);
+    --list-cover-radius: var(--block-radius);
   }
 
   html {
@@ -29,12 +30,12 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* 88 px on top as on slides; the sides grow with the screen, so a few cards do not huddle in a corner. */
+  /* The frame of a slide: 88 px on top, 64 px on the sides and at the bottom. */
   [data-presentation-list] {
     box-sizing: border-box;
     max-width: 2400px;
     margin: 0 auto;
-    padding: 88px var(--list-side-padding) 64px;
+    padding: var(--frame-top) var(--list-side-padding) var(--frame-padding);
   }
 
   [data-list-header] {
@@ -42,37 +43,33 @@
     flex-wrap: wrap;
     align-items: baseline;
     gap: 8px 24px;
-    margin-bottom: 64px;
+    margin-bottom: var(--frame-padding);
   }
 
   [data-list-header] h1 {
     margin: 0;
     font-family: var(--font-heading);
-    font-size: 64px;
+    font-size: var(--heading-size);
     font-weight: 700;
     line-height: 1;
-    letter-spacing: -0.03em;
     text-box: trim-both cap alphabetic;
   }
 
+  /* The count reads like a navigator heading: muted text, no badge. */
   [data-list-header] p {
     margin: 0;
-    padding: 8px 18px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--list-accent-color) 22%, transparent);
-    color: var(--list-text-color);
-    font-size: 26px;
+    color: var(--list-muted-color);
+    font-size: var(--frame-text-size);
     font-weight: 500;
     line-height: 1;
     font-variant-numeric: tabular-nums;
-    align-self: center;
   }
 
   /* auto-fit: two or three presentations share the whole width instead of keeping empty columns. */
   [data-list-grid] {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--list-card-width)), 1fr));
-    gap: 56px 32px;
+    gap: var(--frame-padding) calc(var(--frame-padding) / 2);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -90,18 +87,17 @@
     outline: none;
   }
 
+  /* The ring of the chosen card is the one of the chosen thumbnail in the navigator. */
   [data-list-cover] {
     position: relative;
     display: block;
     overflow: hidden;
     border-radius: var(--list-cover-radius);
     background: linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02));
-    box-shadow:
-      0 0 0 1px var(--list-hairline-color),
-      0 28px 56px -32px rgb(0 0 0 / 0.8);
-    transition:
-      box-shadow 0.3s var(--step-easing),
-      translate 0.3s var(--step-easing);
+    box-shadow: 0 0 0 1px var(--list-hairline-color);
+    outline: 6px solid transparent;
+    outline-offset: 4px;
+    transition: outline-color 0.2s var(--step-easing);
   }
 
   /* The frame and the picture are only looked at: a click anywhere on the card opens the presentation. */
@@ -113,7 +109,6 @@
     height: 100%;
     border: 0;
     pointer-events: none;
-    transition: scale 0.4s var(--step-easing);
   }
 
   /* Seen while the frame loads, and in place of a cover a build could not take. */
@@ -141,33 +136,15 @@
     align-items: center;
     gap: 6px;
     padding: 5px 10px 5px 8px;
-    border-radius: 999px;
-    background: rgb(0 0 0 / 0.55);
+    border-radius: var(--inline-radius);
+    background: rgb(0 0 0 / 0.62);
     color: var(--list-text-color);
     font-size: 13px;
     backdrop-filter: blur(8px);
   }
 
-  /* The cover inside grows a little: its edges stay under the rounded corners while the card lifts. */
-  [data-list-link]:hover [data-list-cover] {
-    translate: 0 -4px;
-    box-shadow:
-      0 0 0 2px var(--list-accent-color),
-      0 36px 64px -28px rgb(0 0 0 / 0.95);
-  }
-
-  [data-list-link]:hover [data-list-cover] :is(iframe, img) {
-    scale: 1.02;
-  }
-
-  [data-list-link]:hover [data-list-title] {
-    color: #ffffff;
-  }
-
-  [data-list-link]:focus-visible [data-list-cover] {
-    box-shadow:
-      0 0 0 3px var(--list-background),
-      0 0 0 6px var(--list-accent-color);
+  [data-list-link]:is(:hover, :focus-visible) [data-list-cover] {
+    outline-color: var(--list-accent-color);
   }
 
   [data-list-title] {
@@ -216,7 +193,7 @@
   [data-list-downloads] a {
     padding: 6px 14px;
     border: 1px solid var(--list-hairline-color);
-    border-radius: 999px;
+    border-radius: var(--inline-radius);
     color: var(--list-muted-color);
     font-size: 14px;
     text-decoration: none;
@@ -252,8 +229,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    [data-list-cover],
-    [data-list-cover] :is(iframe, img) {
+    [data-list-cover] {
       transition: none;
     }
   }

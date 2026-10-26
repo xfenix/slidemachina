@@ -69,7 +69,9 @@ export default (
         <h1>Картинка на весь слайд</h1>
         <p>plain убирает логотип, крошки и номер</p>
       </Machina.Slide>
+    </Machina.Section>
 
+    <Machina.Section title="Обложки">
       <Machina.Slide cover align="left" valign="bottom">
         <h1>Обложка снизу слева</h1>
         <p className="machina-lead">
@@ -88,22 +90,16 @@ export default (
         <p className="machina-lead">Image стоит после текста</p>
         <Machina.Image src={glassCardsPicture} alt="Стеклянные карточки с текстом и графиком" />
       </Machina.Slide>
-
-      <Machina.Slide>
-        <h2>Текст обтекает картинку</h2>
-        <Machina.Image src={presentationListPicture} float="left" alt="Список презентаций" />
-        <p>
-          <code>float="left"</code> ставит картинку слева, текст идёт справа от неё
-        </p>
-        <ul>
-          <li>Верх картинки на линии заглавных букв</li>
-          <li>Отступ до текста задаёт --float-gap в теме</li>
-          <li>Маркеры висят в отступе, как в колонках</li>
-        </ul>
-      </Machina.Slide>
     </Machina.Section>
 
     <Machina.Section title="Блоки">
+      <Machina.Slide>
+        <h2>Текст</h2>
+        <p className="machina-lead">machina-lead - вводная фраза под заголовком</p>
+        <p>Обычный абзац - тег p без класса. Это основной текст слайда</p>
+        <p className="machina-note">machina-note - пометка мелким шрифтом</p>
+      </Machina.Slide>
+
       <Machina.Slide>
         <h2>Большие числа</h2>
         <div className="machina-columns" data-steps data-step-effect="scale">
@@ -159,10 +155,69 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide>
+        <h2>Сравнение</h2>
+        <table className="machina-compare">
+          <thead>
+            <tr>
+              <th></th>
+              <th>slidemachina</th>
+              <th>reveal.js</th>
+              <th>PowerPoint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Файл</th>
+              <td>index.tsx</td>
+              <td>index.html</td>
+              <td>.pptx</td>
+            </tr>
+            <tr>
+              <th>Текст в git</th>
+              <td className="machina-yes" />
+              <td className="machina-yes" />
+              <td className="machina-no" />
+            </tr>
+            <tr>
+              <th>Морфинг</th>
+              <td className="machina-yes" />
+              <td className="machina-yes" />
+              <td className="machina-yes" />
+            </tr>
+            <tr>
+              <th>Подсветка кода при сборке</th>
+              <td className="machina-yes" />
+              <td className="machina-no" />
+              <td className="machina-no" />
+            </tr>
+            <tr>
+              <th>Схемы из разметки</th>
+              <td className="machina-yes" />
+              <td className="machina-no" />
+              <td className="machina-no" />
+            </tr>
+          </tbody>
+        </table>
+      </Machina.Slide>
+
+      <Machina.Slide>
         <h2>Картинка занимает всё свободное место</h2>
         <Machina.Image src={navigatorPicture} stretch alt="Навигатор по слайдам">
           <figcaption>Навигатор: Esc открывает все слайды</figcaption>
         </Machina.Image>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Текст обтекает картинку</h2>
+        <Machina.Image src={presentationListPicture} float="left" alt="Список презентаций" />
+        <p>
+          <code>float="left"</code> ставит картинку слева, текст идёт справа от неё
+        </p>
+        <ul>
+          <li>Верх картинки на линии заглавных букв</li>
+          <li>Отступ до текста задаёт --float-gap в теме</li>
+          <li>Маркеры висят в отступе, как в колонках</li>
+        </ul>
       </Machina.Slide>
 
       <Machina.Slide plain background="var(--dark-background)">
@@ -365,14 +420,14 @@ export default (
     <Machina.Section title="Переходы">
       <Machina.Slide>
         <h2>Морфинг без разметки</h2>
-        <div morph="story-card" className="flex w-[760px] flex-col gap-12 rounded-[48px] bg-(--code-background) p-16">
+        <div morph="story-card" className="flex w-[760px] flex-col gap-12 rounded-(--block-radius) bg-(--code-background) p-16">
           <p morph="story-label" className="m-0 text-(length:--secondary-text-size) text-(--muted-color)">Выручка за год</p>
           <p morph="story-number" className="m-0 text-(length:--display-size) leading-none font-bold tracking-tight text-(--accent-color)">+72%</p>
           <div className="flex h-44 items-end gap-5">
-            <div morph="story-bar-1" className="h-[30%] w-20 rounded-2xl bg-(--accent-color) opacity-40" />
-            <div morph="story-bar-2" className="h-[55%] w-20 rounded-2xl bg-(--accent-color) opacity-60" />
-            <div morph="story-bar-3" className="h-[70%] w-20 rounded-2xl bg-(--accent-color) opacity-80" />
-            <div morph="story-bar-4" className="h-full w-20 rounded-2xl bg-(--accent-color)" />
+            <div morph="story-bar-1" className="h-[30%] w-20 rounded-(--inline-radius) bg-(--accent-color) opacity-40" />
+            <div morph="story-bar-2" className="h-[55%] w-20 rounded-(--inline-radius) bg-(--accent-color) opacity-60" />
+            <div morph="story-bar-3" className="h-[70%] w-20 rounded-(--inline-radius) bg-(--accent-color) opacity-80" />
+            <div morph="story-bar-4" className="h-full w-20 rounded-(--inline-radius) bg-(--accent-color)" />
           </div>
         </div>
         <figcaption>Карточка</figcaption>
@@ -380,16 +435,16 @@ export default (
 
       <Machina.Slide>
         <h2>Морфинг без разметки</h2>
-        <div morph="story-card" className="flex w-full flex-1 flex-col gap-12 rounded-[48px] bg-(--code-background) p-16">
+        <div morph="story-card" className="flex w-full flex-1 flex-col gap-12 rounded-(--block-radius) bg-(--code-background) p-16">
           <div className="flex items-baseline justify-between">
             <p morph="story-label" className="m-0 text-(length:--secondary-text-size) text-(--muted-color)">Выручка за год кекестана</p>
             <p morph="story-number" className="m-0 text-(length:--heading-size) leading-none font-bold tracking-tight text-(--accent-color)">+72%</p>
           </div>
           <div className="flex flex-1 items-end gap-10">
-            <div morph="story-bar-1" className="h-[30%] flex-1 rounded-3xl bg-(--accent-color) opacity-40" />
-            <div morph="story-bar-2" className="h-[55%] flex-1 rounded-3xl bg-(--accent-color) opacity-60" />
-            <div morph="story-bar-3" className="h-[70%] flex-1 rounded-3xl bg-(--accent-color) opacity-80" />
-            <div morph="story-bar-4" className="h-full flex-1 rounded-3xl bg-(--accent-color)" />
+            <div morph="story-bar-1" className="h-[30%] flex-1 rounded-(--inline-radius) bg-(--accent-color) opacity-40" />
+            <div morph="story-bar-2" className="h-[55%] flex-1 rounded-(--inline-radius) bg-(--accent-color) opacity-60" />
+            <div morph="story-bar-3" className="h-[70%] flex-1 rounded-(--inline-radius) bg-(--accent-color) opacity-80" />
+            <div morph="story-bar-4" className="h-full flex-1 rounded-(--inline-radius) bg-(--accent-color)" />
           </div>
         </div>
         <figcaption>Карточка стала графиком</figcaption>
@@ -718,25 +773,18 @@ export default (
     </Machina.Section>
 
     <Machina.Slide>
-      <h2>Текст</h2>
-      <p className="machina-lead">machina-lead - вводная фраза под заголовком</p>
-      <p>Обычный абзац - тег p без класса. Это основной текст слайда</p>
-      <p className="machina-note">machina-note - пометка мелким шрифтом</p>
-    </Machina.Slide>
-
-    <Machina.Slide>
       <h2>QR-код</h2>
-      <div className="machina-columns">
-        <ul>
-          <li>value — ссылка или текст</li>
-          <li>logo — картинка в середине</li>
-          <li>color — цвет точек, фон прозрачный</li>
-        </ul>
+      <div className="machina-columns" style={{ gridTemplateColumns: "1fr 2fr" }}>
         <div>
           <Machina.QR value="https://github.com/xfenix/slidemachina" logo={slidemachinaMarkPicture}>
             <figcaption>Исходники slidemachina</figcaption>
           </Machina.QR>
         </div>
+        <ul>
+          <li>value — ссылка или текст</li>
+          <li>logo — картинка в середине</li>
+          <li>color — цвет точек, фон прозрачный</li>
+        </ul>
       </div>
     </Machina.Slide>
 
