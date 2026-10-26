@@ -1,0 +1,3 @@
+# Статистика языков на GitHub: примеры и lock-файл не код движка
+examples/** linguist-documentation
+package-lock.json linguist-generated

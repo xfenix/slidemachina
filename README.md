@@ -1,25 +1,52 @@
-# slidemachina
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-on-dark.svg">
+    <img src="assets/logo-light.svg" alt="slidemachina" width="360">
+  </picture>
+</p>
 
-Презентации на React. Слайды пишутся в одном `index.tsx`, а собираются одной командой: в HTML-файл, папку для сайта или PDF.
+<p align="center">
+  <b>Презентации на React.</b><br>
+  Слайды пишутся в одном <code>index.tsx</code>.<br>
+  Собираются одной командой: в HTML-файл, сайт или PDF.
+</p>
 
-![Слайды демо: обложка, схема, морфинг кода, 3D-сцена](docs/demo-slides-preview.webp)
+<p align="center">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white">
+  <img alt="Vite 8" src="https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white">
+  <img alt="Лицензия MIT" src="https://img.shields.io/badge/license-MIT-22c55e">
+</p>
 
-## Чем лучше reveal.js
+<p align="center">
+  <a href="#быстрый-старт">Быстрый старт</a> ·
+  <a href="#возможности">Возможности</a> ·
+  <a href="#чем-лучше-revealjs">Сравнение с reveal.js</a> ·
+  <a href="#своя-тема">Тема</a> ·
+  <a href="docs/slidemachina.md">Документация</a>
+</p>
 
-| | reveal.js | slidemachina |
-|---|---|---|
-| Разметка | HTML: `<section>` в `index.html` | JSX в `index.tsx`. TypeScript подсказывает компоненты и их свойства |
-| Разделы | Вложенные `<section>` — это вертикальные слайды. Хлебных крошек и обложек разделов нет | `Section` по желанию: обложка раздела с номером, хлебные крошки, группы в навигаторе. Обложку можно заменить своим слайдом или убрать |
-| Шаги | `class="fragment"` на каждом элементе | `step` на списке, таблице, колонках, части схемы или сцены |
-| Морфинг | `data-auto-animate` на обоих слайдах, пары через `data-id` | Включён по умолчанию. Общие элементы, слова и куски кода находятся сами |
-| Подсветка кода | highlight.js работает в браузере | Shiki при сборке: кода подсветки в браузере 0 КБ |
-| Схемы | Mermaid сторонним плагином | `Diagram` и `Sequence` с автораскладкой ELK. Блоки появляются по шагам и перетекают между слайдами |
-| 3D | нет | `Scene` на three.js. Загружается, только если в презентации есть сцена |
-| Типограф | нет | Кавычки, тире и неразрывные пробелы для русского и английского |
-| Сборка | Сборщик настраиваете сами | Один HTML-файл со шрифтами и картинками внутри, папка, zip, файл под паролем, PDF |
-| PDF | Открыть `?print-pdf`, распечатать из браузера | `slidemachina build --pdf` или печатная версия в браузере |
-| Правка | В редакторе кода | Ещё и на слайде: текст, картинки и блоки схем пишутся обратно в `index.tsx` |
-| Много докладов | Каждый сам по себе | Репозиторий: общая тема, список с обложками, сборка всех сразу |
+<p align="center">
+  <img src="docs/readme/morph-transition.webp" alt="Морфинг: карточка вырастает в график, график — в число, слова заголовка перетекают на следующий слайд" width="860">
+</p>
+
+## Быстрый старт
+
+```bash
+npm create slidemachina   # спросит: одна презентация или репозиторий
+cd my-talk && npm install
+npm run dev               # слайды в браузере, правки видны сразу
+npm run build             # спросит, что собрать
+```
+
+> [!NOTE]
+> Пакетов в npm пока нет. Презентации запускаются из этого репозитория:
+> ```bash
+> git clone https://github.com/xfenix/slidemachina && cd slidemachina
+> npm install
+> npm run demo                       # демо со всеми возможностями
+> npx slidemachina dev <папка>       # своя папка с index.tsx рядом с examples/
+> ```
 
 ## Как выглядит презентация
 
@@ -55,33 +82,98 @@ export default (
 );
 ```
 
-Раздел даёт слайд-обложку, хлебные крошки и группу в навигаторе. Раздел внутри раздела становится подразделом, в крошках они идут через `›`. Другой разделитель задаёт `<Presentation breadcrumbsSeparator="/">`. Формат слайдов задаёт `<Presentation aspectRatio="4:3">`, по умолчанию `16:9`. Стиль — в `style.css` рядом, картинки — в `images/`.
+Раздел даёт слайд-обложку, хлебные крошки и группу в навигаторе.
+Стиль лежит в `style.css` рядом, картинки — в `images/`.
+TypeScript подсказывает компоненты и их свойства.
 
-## Быстрый старт
+## Возможности
 
-Так это будет работать после публикации в npm:
+<table>
+  <tr>
+    <td width="50%"><img src="docs/readme/diagram-steps.webp" alt="Схема собирается по шагам и перестраивается"></td>
+    <td width="50%"><img src="docs/readme/scene-3d.webp" alt="3D-сцена: фигуры двигаются по шагам"></td>
+  </tr>
+  <tr>
+    <td><b>Схемы из тегов.</b> <code>Diagram</code> и <code>Sequence</code> раскладывает ELK. Блоки появляются по шагам и перетекают между слайдами.</td>
+    <td><b>3D-сцены.</b> <code>Scene</code> на three.js. Фигуры пишутся тегами, свет движок ставит сам. three.js грузится, только если сцена есть.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/readme/slide-code.webp" alt="Слайд с кодом из файла"></td>
+    <td><img src="docs/readme/slide-cover.webp" alt="Обложка презентации"></td>
+  </tr>
+  <tr>
+    <td><b>Код.</b> Подсветка Shiki при сборке, в браузере её код не нужен. Код из файла, строки по шагам, морфинг кода по кускам.</td>
+    <td><b>Типограф.</b> Кавычки, тире и неразрывные пробелы для русского и английского. Висячая пунктуация в тексте и в коде.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/readme/slide-photo.webp" alt="Картинка на весь слайд"></td>
+    <td><img src="docs/readme/slide-qr.webp" alt="Слайд с QR-кодом"></td>
+  </tr>
+  <tr>
+    <td><b>Картинки и видео.</b> На свободное место или на весь слайд. На тёмном фоне текст и логотип светлеют сами.</td>
+    <td><b>QR и мемы.</b> QR-код с логотипом рисуется вектором. Мемы и GIF ищет команда <code>slidemachina meme</code>.</td>
+  </tr>
+</table>
 
-```bash
-npm create slidemachina   # спросит: одна презентация или репозиторий
-cd my-talk && npm install
-npm run dev               # слайды в браузере, правки видны сразу
-npm run build             # спросит, что собрать
-```
+Ещё:
+- переходы `slide`, `fade`, `zoom`, `cube`, `flip`, `morph`, скорость у всей презентации или у слайда;
+- шаги на списке, таблице, колонках, части схемы или сцены;
+- навигатор с миниатюрами, переход по номеру, чёрный экран, полный экран;
+- клавиши работают и в русской раскладке, на телефоне листает свайп.
 
-Пока пакетов в npm нет, презентации запускаются из этого репозитория: положите папку с `index.tsx` рядом с `examples/` и выполните `npx slidemachina dev <папка>`.
+## Инструменты
 
-Флаги сборки для CI складываются: `slidemachina build --html --folder --pdf`.
+<table>
+  <tr>
+    <td width="58%"><img src="examples/demo-presentation/images/source-editor.webp" alt="Редактор на слайде"></td>
+    <td><b>Правка прямо на слайде.</b><br>Нажмите E в <code>slidemachina dev</code>. Текст, картинки и блоки схем пишутся обратно в <code>index.tsx</code>.</td>
+  </tr>
+  <tr>
+    <td><img src="examples/demo-presentation/images/navigator.webp" alt="Навигатор с миниатюрами по разделам"></td>
+    <td><b>Навигатор.</b><br>Миниатюры по разделам. Esc или O открывает навигатор, Enter — выбранный слайд.</td>
+  </tr>
+  <tr>
+    <td><img src="examples/demo-presentation/images/print-view.webp" alt="Печатная версия"></td>
+    <td><b>Печать и PDF.</b><br>Страница на слайд или на каждый шаг. <code>slidemachina build --pdf</code> или печать из браузера.</td>
+  </tr>
+  <tr>
+    <td><img src="examples/demo-presentation/images/presentation-list.webp" alt="Список презентаций с обложками"></td>
+    <td><b>Репозиторий докладов.</b><br>Общая тема, список с обложками, сборка всех презентаций сразу.</td>
+  </tr>
+</table>
+
+## Сборка
+
+Без флагов `slidemachina build` спросит, что собрать.
+В CI флаги складываются: `slidemachina build --html --folder --pdf`.
 
 | Флаг | Результат |
 |---|---|
-| `--html` | Один HTML-файл, всё внутри. Открывается с диска |
+| `--html` | Один HTML-файл, шрифты и картинки внутри. Открывается с диска |
 | `--protected` | Тот же файл под паролем |
 | `--folder`, `--zip` | Папка для сайта или она же в архиве |
 | `--pdf`, `--steps` | PDF: страница на слайд или на каждый шаг |
 
+## Чем лучше reveal.js
+
+| | reveal.js | slidemachina |
+|---|---|---|
+| Разметка | HTML: `<section>` в `index.html` | JSX в `index.tsx` с подсказками TypeScript |
+| Разделы | Вложенные `<section>` — вертикальные слайды. Хлебных крошек и обложек разделов нет | `Section`: обложка с номером, хлебные крошки, группы в навигаторе |
+| Шаги | `class="fragment"` на каждом элементе | `step` на списке, таблице, колонках, части схемы или сцены |
+| Морфинг | `data-auto-animate` на обоих слайдах, пары через `data-id` | Включён по умолчанию. Общие элементы, слова и куски кода находятся сами |
+| Подсветка кода | highlight.js в браузере | Shiki при сборке: в браузере 0 КБ кода подсветки |
+| Схемы | Mermaid сторонним плагином | `Diagram` и `Sequence` с автораскладкой ELK |
+| 3D | Нет | `Scene` на three.js |
+| Типограф | Нет | Для русского и английского |
+| Сборка | Сборщик настраиваете сами | HTML-файл, папка, zip, файл под паролем, PDF |
+| Правка | В редакторе кода | Ещё и на слайде, с записью в `index.tsx` |
+| Много докладов | Каждый сам по себе | Репозиторий: общая тема, список, сборка всех сразу |
+
 ## Своя тема
 
-Тема — это CSS-переменные в `style.css` рядом с `index.tsx`. Поменяли переменную — поменялись все слайды.
+Тема — CSS-переменные в `style.css` рядом с `index.tsx`.
+Поменяли переменную — поменялись все слайды.
 
 ```css
 @import "tailwindcss";
@@ -102,6 +194,9 @@ npm run build             # спросит, что собрать
 }
 ```
 
+<details>
+<summary><b>Все места, где настраивается вид</b></summary>
+
 | Что меняем | Где |
 |---|---|
 | Цвета | `--accent-color`, `--second-accent-color`, `--text-color`, `--muted-color`, фоны `--slide-background`, `--dark-background`, `--section-background` |
@@ -110,23 +205,18 @@ npm run build             # спросит, что собрать
 | Рамка слайда | `--frame-padding` по бокам и снизу, `--frame-top` сверху, `--heading-gap` под заголовком |
 | Обложки разделов | `--section-background`, `--section-number-start-color`, `--section-number-end-color`, `--section-number-size`, `--section-texture`. Или свой слайд в `cover` у `Section` |
 | Движение | `speed` у `Presentation` или `Slide`, длительности `--transition-duration` и соседние, кривая `--transition-easing` |
+| Формат | `<Presentation aspectRatio="4:3">`, по умолчанию `16:9` |
+| Разделитель крошек | `<Presentation breadcrumbsSeparator="/">`, по умолчанию `›` |
 
-Ещё несколько мест, где настраивается вид:
-- Логотип — `logo` у `Presentation`: файл, `{ light, dark }` для светлых и тёмных слайдов или компонент. Компонент получает `dark={true}` на тёмных слайдах. Логотип самого движка — `logo={Machina.SlidemachinaLogo}`.
+- Логотип — `logo` у `Presentation`: файл, `{ light, dark }` для светлых и тёмных слайдов или компонент. Компонент получает `dark={true}` на тёмных слайдах. Логотип движка — `logo={Machina.SlidemachinaLogo}`.
 - Место логотипа — `logo` у `Slide`: `"top-right"` (по умолчанию), `"top"`, `"center"` над заголовком, `"bottom"` или `false`.
-- Тёмный слайд — `background` у `Slide`, цвет или картинка. Текст и логотип светлеют сами.
+- Тёмный слайд — `background` у `Slide`, цвет или картинка.
 - Один слайд по-своему — `className` у `Slide` и классы Tailwind прямо в разметке.
 - Общая тема нескольких докладов — `theme/style.css` в репозитории презентаций. Тема доклада сильнее общей.
 
 Все переменные с описанием — в разделе «Тема» в [docs/slidemachina.md](docs/slidemachina.md).
 
-## Что ещё умеет
-
-- Переходы `slide`, `fade`, `zoom`, `cube`, `flip`, `morph`. Скорость задаёт `speed`: у всей презентации или у слайда.
-- Код из файла, строки по шагам, морфинг кода по кускам.
-- Картинки и видео на свободное место или на весь слайд, подпись держится за картинку.
-- Навигатор с миниатюрами, переход по номеру, чёрный экран, полный экран.
-- Печатная версия: все страницы в браузере, раскадровка по шагам, PDF без серых плашек в Preview.
+</details>
 
 ## Чего пока нет
 
@@ -142,4 +232,9 @@ npm run check    # TypeScript, Oxlint и границы модулей
 npm test         # интеграционные тесты на Playwright
 ```
 
-Устройство движка, решения и ограничения — в [docs/slidemachina.md](docs/slidemachina.md). Правила для кода — в [AGENTS.md](AGENTS.md).
+Устройство движка, решения и ограничения — в [docs/slidemachina.md](docs/slidemachina.md).
+Правила для кода — в [AGENTS.md](AGENTS.md).
+
+## Лицензия
+
+[MIT](LICENSE)
