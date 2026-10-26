@@ -26,8 +26,6 @@ npm-debug.log*
 # Редакторы и система
 .DS_Store
 .idea/
-.vscode/*
-!.vscode/settings.json
-!packages/create-slidemachina/template/.vscode/
+.vscode/
 *.swp
 .serena/

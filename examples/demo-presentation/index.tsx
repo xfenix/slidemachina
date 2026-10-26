@@ -915,26 +915,6 @@ export default (
           <li>Claude Code получит замечание с местом в файле: index.tsx:42:7</li>
         </ul>
       </Machina.Slide>
-
-      <Machina.Slide>
-        <h2>Номер слайда прямо в редакторе кода</h2>
-        <div className="machina-columns">
-          <ul>
-            <li>Наведите курсор на &lt;Slide&gt; в index.tsx</li>
-            <li>Редактор покажет «Слайд 39 · #39»</li>
-            <li>VS Code, Zed, WebStorm, Neovim</li>
-          </ul>
-          <div>
-            <Machina.Code lang="json" title="tsconfig.json">{`
-              {
-                "compilerOptions": {
-                  "plugins": [{ "name": "slidemachina" }]
-                }
-              }
-            `}</Machina.Code>
-          </div>
-        </div>
-      </Machina.Slide>
     </Machina.Section>
 
     <Machina.Section title="Управление" cover={false}>

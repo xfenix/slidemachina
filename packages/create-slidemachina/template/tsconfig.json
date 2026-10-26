@@ -9,7 +9,6 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,
-    "plugins": [{ "name": "slidemachina" }],
     "types": ["vite/client"]
   },
   "include": ["."]

@@ -1,18 +1,14 @@
-import { spawn } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { sampleSceneCanvas } from "./scene-sampling.ts";
-import { currentSlide, demoFolderName, examplesFolder, findSlideNumber, workspaceFolder } from "./test-helpers.ts";
+import { currentSlide, findSlideNumber, workspaceFolder } from "./test-helpers.ts";
 
 // playwright.config.ts serves a copy of the demo: edits here never reach the real files or the dev server on 5173.
 const demoCopyFolder = process.env.SLIDEMACHINA_TEST_DEMO_COPY!;
 const demoPresentationFile = path.join(demoCopyFolder, "index.tsx");
 const demoCodeFile = path.join(demoCopyFolder, "agent.py");
 const publicInterfaceFile = path.join(workspaceFolder, "packages", "slidemachina", "browser-runtime", "slidemachina.ts");
-// The copy has no tsconfig.json above it, so the editor hint is asked about the real demo with the same slides.
-const realDemoPresentationFile = path.join(examplesFolder, demoFolderName, "index.tsx");
-const editorTypeScriptServer = path.join(workspaceFolder, "packages", "slidemachina", "node_modules", "typescript", "lib", "tsserver.js");
 
 async function editFileWhile(filePath: string, editText: (originalText: string) => string, checkEditedPage: () => Promise<void>) {
   const originalText = await readFile(filePath, "utf8");
@@ -22,37 +18,6 @@ async function editFileWhile(filePath: string, editText: (originalText: string) 
   } finally {
     await writeFile(filePath, originalText);
   }
-}
-
-// Hovers the first tag that starts like each given text, the way VS Code asks TypeScript; the plugin comes from tsconfig.json.
-async function askEditorHints(hoveredTags: string[]) {
-  const sourceLines = (await readFile(realDemoPresentationFile, "utf8")).split("\n");
-  const serverRequests = [
-    { command: "open", arguments: { file: realDemoPresentationFile } },
-    ...hoveredTags.map((hoveredTag) => {
-      const lineIndex = sourceLines.findIndex((sourceLine) => sourceLine.includes(hoveredTag));
-      const tagNameOffset = sourceLines[lineIndex]!.indexOf(hoveredTag) + 2;
-      return { command: "quickinfo", arguments: { file: realDemoPresentationFile, line: lineIndex + 1, offset: tagNameOffset } };
-    }),
-  ];
-  const typeScriptServer = spawn(process.execPath, [editorTypeScriptServer, "--disableAutomaticTypingAcquisition"]);
-  let serverOutput = "";
-  const serverResponses = await new Promise<{ request_seq: number; body?: { documentation: string } }[]>((resolveResponses) => {
-    typeScriptServer.stdout.on("data", (outputChunk: Buffer) => {
-      serverOutput += outputChunk.toString();
-      const parsedResponses = [...serverOutput.matchAll(/^\{.*\}$/gm)]
-        .map((messageMatch) => JSON.parse(messageMatch[0]))
-        .filter((serverMessage) => serverMessage.type === "response");
-      if (parsedResponses.some((serverResponse) => serverResponse.request_seq === serverRequests.length)) resolveResponses(parsedResponses);
-    });
-    const requestLines = serverRequests.map((serverRequest, requestIndex) => JSON.stringify({ seq: requestIndex + 1, type: "request", ...serverRequest }));
-    typeScriptServer.stdin.write(`${requestLines.join("\n")}\n`);
-  });
-  typeScriptServer.kill();
-  return serverResponses
-    .filter((serverResponse) => serverResponse.request_seq > 1)
-    .toSorted((firstResponse, secondResponse) => firstResponse.request_seq - secondResponse.request_seq)
-    .map((serverResponse) => serverResponse.body?.documentation);
 }
 
 // Edges of the first element for each selector on the current slide, in pixels of the canvas.
@@ -572,12 +537,6 @@ test("демо листается, показывает шаги и навига
     await slideNavigator.locator("[data-thumbnail]").nth(keysSlideNumber - 1).click();
     await expect(page).toHaveURL(new RegExp(`#${keysSlideNumber}$`));
     await expect(currentSlide(page).locator("[data-breadcrumbs]")).toHaveText("Шпаргалка");
-    // The editor hovers the same slide in index.tsx and names the number from the corner of the slide.
-    const cornerNumber = await currentSlide(page).locator("[data-slide-number]").textContent();
-    expect(await askEditorHints(['<Machina.Section title="Управление"', '<Machina.Slide breadcrumbs="Шпаргалка"'])).toEqual([
-      `Раздел 16 · слайд ${cornerNumber} · #${cornerNumber}`,
-      `Слайд ${cornerNumber} · #${cornerNumber}`,
-    ]);
     await page.mouse.move(640, 300);
     const navigatorButton = page.getByRole("button", { name: "Все слайды · Esc" });
     await navigatorButton.click();
