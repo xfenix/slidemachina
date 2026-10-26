@@ -12,7 +12,7 @@ import sceneOrbitVideo from "./images/scene-orbit.webm";
 import slidemachinaMarkPicture from "./images/slidemachina-mark.svg";
 
 export default (
-  <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo}>ч
+  <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo}>
     <Machina.Slide cover logo="center">
       <h1>Слайды из кода</h1>
       <p className="machina-lead">Шаги, схемы, 3D и морфинг в одном файле</p>
