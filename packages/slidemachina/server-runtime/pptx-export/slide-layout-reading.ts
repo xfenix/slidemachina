@@ -1,13 +1,25 @@
 import { pageReadingConstants, pptxPageMarks } from "./pptx-page-marks.ts";
-import { convertCssColor, describePartStep, findStepOwner, isElementRotated, measureEffectiveOpacity, measureElementScale, measureRelativeBox } from "./slide-style-reading.ts";
+import { convertCssColor, describePartStep, findStepOwner, isElementRotated, measureEffectiveOpacity, measureElementScale, measureRelativeBox, readRunHighlight } from "./slide-style-reading.ts";
+import { materializePseudoText } from "./pseudo-text-materializing.ts";
 import { readHolderText, wrapNativeText } from "./slide-text-reading.ts";
 import { isDrawableVector, readVectorPaths } from "./slide-vector-reading.ts";
-import type { LinePart, PaintColor, PartStep, ShapePart, SlideLayout, SlidePart, StrokeStyle } from "./slide-part-types.ts";
+import type { ExportedPage, LinePart, PaintColor, PartStep, ShapePart, SlideLayout, SlidePart, StrokeStyle } from "./slide-part-types.ts";
 
 // Page functions, see slide-style-reading.ts. One printed slide becomes a list of native parts in painting order.
 type BorderSide = { sideName: string; sideWidth: number; sideStyle: string; sideColor: PaintColor | undefined };
 
-export const layoutPageFunctions = [readPaintLayer, readBorderSides, readCornerRadius, drawBorderSide, readOwnPaint, readWholeElement, readStepDuration, listPaintedOutsideParts, readSlideLayout];
+export const layoutPageFunctions = [
+  readPaintLayer,
+  readBorderSides,
+  readCornerRadius,
+  drawBorderSide,
+  readOwnPaint,
+  readWholeElement,
+  readStepDuration,
+  listPaintedOutsideParts,
+  listExportedPages,
+  readSlideLayout,
+];
 
 // The nearest z-index decides what covers what, as in the browser: the section number lies under its title.
 function readPaintLayer(paintedElement: Element, pageElement: HTMLElement): number {
@@ -56,6 +68,10 @@ function readOwnPaint(paintedElement: HTMLElement, pageElement: HTMLElement, par
   const elementStyle = getComputedStyle(paintedElement);
   const effectiveOpacity = measureEffectiveOpacity(paintedElement, pageElement);
   if (elementStyle.visibility !== "visible" || effectiveOpacity <= 0 || isElementRotated(paintedElement, pageElement)) return [];
+  if (readRunHighlight(paintedElement, pageElement) !== undefined) {
+    paintedElement.setAttribute(pptxPageMarks.runHighlight, "");
+    return [];
+  }
   const elementScale = measureElementScale(paintedElement);
   const fillColor = elementStyle.backgroundImage === "none" ? convertCssColor(elementStyle.backgroundColor, effectiveOpacity) : undefined;
   const borderSides = readBorderSides(elementStyle, elementScale, effectiveOpacity).filter((borderSide) => borderSide.sideWidth > 0 && borderSide.sideColor !== undefined && borderSide.sideStyle !== "none" && borderSide.sideStyle !== "hidden");
@@ -122,7 +138,7 @@ function readWholeElement(wholeElement: Element, pageElement: HTMLElement, partS
 // What native parts miss: a bullet, a gradient, a shadow, odd text. Nothing left, no picture; the picture frames only these.
 // The backdrop of the slide is its own picture: only the slide's own paint, below anything with a negative z-index.
 export function listPaintedOutsideParts(subjectElement: Element): Element[] {
-  const { textWrapper, wholeElement, stepOwner, convertedFill, convertedBorder, slideBackdrop } = pptxPageMarks;
+  const { textWrapper, wholeElement, stepOwner, convertedFill, convertedBorder, slideBackdrop, runHighlight } = pptxPageMarks;
   const isBackdrop = subjectElement.hasAttribute(slideBackdrop);
   const paintedElements = isBackdrop
     ? [subjectElement]
@@ -134,9 +150,10 @@ export function listPaintedOutsideParts(subjectElement: Element): Element[] {
     if (elementStyle.display === "none" || elementStyle.visibility !== "visible") return false;
     const hasPseudoContent = ["::before", "::after"].some((pseudoName) => !["none", "normal"].includes(getComputedStyle(paintedElement, pseudoName).content));
     const hasMarker = elementStyle.display === "list-item" && elementStyle.listStyleType !== "none";
-    const hasEffects = elementStyle.backgroundImage !== "none" || elementStyle.boxShadow !== "none" || (elementStyle.outlineStyle !== "none" && Number.parseFloat(elementStyle.outlineWidth) > 0);
-    const hasLeftFill = !paintedElement.hasAttribute(convertedFill) && convertCssColor(elementStyle.backgroundColor, 1) !== undefined;
-    const hasLeftBorder = !paintedElement.hasAttribute(convertedBorder) && ["top", "right", "bottom", "left"].some((sideName) => Number.parseFloat(elementStyle.getPropertyValue(`border-${sideName}-width`)) > 0);
+    const isRunHighlight = paintedElement.hasAttribute(runHighlight);
+    const hasEffects = !isRunHighlight && (elementStyle.backgroundImage !== "none" || elementStyle.boxShadow !== "none" || (elementStyle.outlineStyle !== "none" && Number.parseFloat(elementStyle.outlineWidth) > 0));
+    const hasLeftFill = !isRunHighlight && !paintedElement.hasAttribute(convertedFill) && convertCssColor(elementStyle.backgroundColor, 1) !== undefined;
+    const hasLeftBorder = !isRunHighlight && !paintedElement.hasAttribute(convertedBorder) && ["top", "right", "bottom", "left"].some((sideName) => Number.parseFloat(elementStyle.getPropertyValue(`border-${sideName}-width`)) > 0);
     const hasLeftText = [...paintedElement.childNodes].some((childNode) => childNode instanceof Text && childNode.data.trim() !== "");
     return hasPseudoContent || hasMarker || hasEffects || hasLeftFill || hasLeftBorder || hasLeftText;
   });
@@ -150,7 +167,20 @@ function readStepDuration(pageElement: HTMLElement): number {
   return durationText.endsWith("ms") ? durationNumber : durationNumber * pageReadingConstants.millisecondsPerSecond;
 }
 
-export function readSlideLayout(pageIndex: number): SlideLayout {
+// Code line steps scroll and light lines, which no PowerPoint animation does: such a slide becomes a slide per step.
+export function listExportedPages(): ExportedPage[] {
+  const printedPages = [...document.querySelectorAll<HTMLElement>("[data-print-page]")];
+  const exportedPages: ExportedPage[] = [];
+  printedPages.forEach((printedPage, pageIndex) => {
+    const nextPage = printedPages[pageIndex + 1];
+    const isLastSlidePage = nextPage?.dataset.printSlide !== printedPage.dataset.printSlide;
+    const isStepFrame = printedPage.querySelector("[data-code-step]") !== null;
+    if (isStepFrame || isLastSlidePage) exportedPages.push({ pageIndex, isStepFrame });
+  });
+  return exportedPages;
+}
+
+export function readSlideLayout(pageIndex: number, isStepFrame: boolean): SlideLayout {
   const pageElement = document.querySelectorAll<HTMLElement>("[data-print-page]")[pageIndex]!;
   let captureCount = 0;
   const markForCapture = (capturedElement: Element): string => {
@@ -166,11 +196,12 @@ export function readSlideLayout(pageIndex: number): SlideLayout {
     wholeElement.setAttribute(pptxPageMarks.wholeElement, "");
     markForCapture(wholeElement);
   }
-  for (const stepElement of pageElement.querySelectorAll<HTMLElement>("[data-step-index]")) {
+  for (const stepElement of isStepFrame ? [] : pageElement.querySelectorAll<HTMLElement>("[data-step-index]")) {
     if (!pageReadingConstants.appearanceEffects.includes(stepElement.dataset.stepEffect ?? "rise")) continue;
     stepElement.setAttribute(pptxPageMarks.stepOwner, "");
     markForCapture(stepElement);
   }
+  materializePseudoText(pageElement);
   const wrappersByHolder = wrapNativeText(pageElement);
   const slideLayout: SlideLayout = { stepDuration: readStepDuration(pageElement), slideParts: [] };
   const layeredParts: { paintLayer: number; slidePart: SlidePart }[] = [];

@@ -5,7 +5,19 @@ import type { AppearanceEffect, PaintColor, SlidePartBox, PartStep } from "./sli
 type ColorMemory = { colorContext: CanvasRenderingContext2D; convertedColors: Map<string, PaintColor | undefined> };
 type PageWithColorMemory = typeof globalThis & { pptxColorMemory?: ColorMemory; pptxSpaceWidths?: Map<string, number> };
 
-export const stylePageFunctions = [convertCssColor, measureSpaceWidth, measureEffectiveOpacity, isElementRotated, measureElementScale, findStepOwner, describePartStep, measureRelativeBox];
+export const stylePageFunctions = [
+  convertCssColor,
+  measureSpaceWidth,
+  pickViewerFont,
+  measureEffectiveOpacity,
+  blendOverBackdrop,
+  readRunHighlight,
+  isElementRotated,
+  measureElementScale,
+  findStepOwner,
+  describePartStep,
+  measureRelativeBox,
+];
 
 // A 1×1 canvas turns any CSS colour, oklch and color-mix included, into sRGB bytes.
 export function convertCssColor(cssColor: string, extraOpacity: number): PaintColor | undefined {
@@ -42,12 +54,63 @@ export function measureSpaceWidth(fontShorthand: string): number {
   return pageGlobal.pptxSpaceWidths.get(fontShorthand)!;
 }
 
+// A font the page loads itself is almost never on the viewer's machine, and PowerPoint keeps no fallback list:
+// the run takes the first font of the CSS list the page does not load, or Arial, or Courier New for code.
+export function pickViewerFont(fontFamilyList: string): string {
+  const unquoteFamily = (familyName: string) => familyName.trim().replaceAll(/^["']|["']$/g, "");
+  const pageFontFamilies = new Set([...document.fonts].map((fontFace) => unquoteFamily(fontFace.family)));
+  const listedFamilies = fontFamilyList.split(",").map(unquoteFamily);
+  const installedFamily = listedFamilies.find((familyName) => !pageFontFamilies.has(familyName) && !pageReadingConstants.genericFamilies.includes(familyName));
+  if (installedFamily !== undefined) return installedFamily;
+  const isCodeFont = listedFamilies.some((familyName) => pageReadingConstants.monospaceFamilies.includes(familyName));
+  return isCodeFont ? pageReadingConstants.viewerCodeFont : pageReadingConstants.viewerTextFont;
+}
+
 export function measureEffectiveOpacity(paintedElement: Element, pageElement: Element): number {
   let effectiveOpacity = 1;
   for (let currentElement: Element | null = paintedElement; currentElement !== null && currentElement !== pageElement; currentElement = currentElement.parentElement) {
     effectiveOpacity *= Number.parseFloat(getComputedStyle(currentElement).opacity);
   }
   return effectiveOpacity;
+}
+
+// A translucent fill goes over the fills under it down to an opaque one; a picture or nothing opaque underneath gives no colour.
+export function blendOverBackdrop(paintColor: PaintColor, paintedElement: Element, pageElement: Element): PaintColor | undefined {
+  const readChannels = (colorHex: string) => [0, 2, 4].map((channelStart) => Number.parseInt(colorHex.slice(channelStart, channelStart + 2), pageReadingConstants.hexadecimalBase));
+  let blendedChannels = readChannels(paintColor.colorHex);
+  let blendedOpacity = paintColor.colorOpacity;
+  const paintedRect = paintedElement.getBoundingClientRect();
+  const [paintedCentreX, paintedCentreY] = [(paintedRect.left + paintedRect.right) / 2, (paintedRect.top + paintedRect.bottom) / 2];
+  const liesOverPicture = [...pageElement.querySelectorAll(`[${pptxPageMarks.wholeElement}]`)].some((wholeElement) => {
+    const pictureRect = wholeElement.getBoundingClientRect();
+    return paintedCentreX >= pictureRect.left && paintedCentreX <= pictureRect.right && paintedCentreY >= pictureRect.top && paintedCentreY <= pictureRect.bottom;
+  });
+  if (blendedOpacity < 1 && liesOverPicture) return undefined;
+  for (let currentElement = paintedElement.parentElement; currentElement !== null && currentElement !== pageElement; currentElement = currentElement.parentElement) {
+    if (blendedOpacity >= 1) break;
+    const elementStyle = getComputedStyle(currentElement);
+    if (elementStyle.backgroundImage !== "none") return undefined;
+    const backdropColor = convertCssColor(elementStyle.backgroundColor, 1);
+    if (backdropColor === undefined) continue;
+    const backdropChannels = readChannels(backdropColor.colorHex);
+    const combinedOpacity = blendedOpacity + backdropColor.colorOpacity * (1 - blendedOpacity);
+    blendedChannels = blendedChannels.map(
+      (colorChannel, channelIndex) => (colorChannel * blendedOpacity + backdropChannels[channelIndex]! * backdropColor.colorOpacity * (1 - blendedOpacity)) / combinedOpacity,
+    );
+    blendedOpacity = combinedOpacity;
+  }
+  if (blendedOpacity < 1) return undefined;
+  const colorHex = blendedChannels.map((colorChannel) => Math.round(colorChannel).toString(pageReadingConstants.hexadecimalBase).padStart(2, "0")).join("");
+  return { colorHex, colorOpacity: 1 };
+}
+
+// An inline box with a plain fill behind native text, such as code or a key, becomes the highlight of its run:
+// a shape at the browser's place misses the letters once PowerPoint sets them in its own font.
+export function readRunHighlight(paintedElement: Element, pageElement: Element): PaintColor | undefined {
+  const elementStyle = getComputedStyle(paintedElement);
+  if (elementStyle.display !== "inline" || elementStyle.backgroundImage !== "none" || paintedElement.querySelector(`[${pptxPageMarks.textWrapper}]`) === null) return undefined;
+  const fillColor = convertCssColor(elementStyle.backgroundColor, measureEffectiveOpacity(paintedElement, pageElement));
+  return fillColor === undefined ? undefined : blendOverBackdrop(fillColor, paintedElement, pageElement);
 }
 
 // Rotated text and boxes stay in the picture of the slide: a native object here would stand upright.

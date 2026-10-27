@@ -102,11 +102,25 @@ test("сборка: один HTML-файл листается без серве�
       const pptxFiles = unzipSync(await readFile(path.join(outputFolder, "demo-presentation.pptx")));
       const readSlideXml = (slideNumber: number) => strFromU8(pptxFiles[`ppt/slides/slide${slideNumber}.xml`] ?? new Uint8Array());
       const pptxSlideCount = Object.keys(pptxFiles).filter((filePath) => /^ppt\/slides\/slide\d+\.xml$/.test(filePath)).length;
-      expect(pptxSlideCount).toBe(await page.locator("[data-canvas] > [data-slide]").count());
+      // A slide with code line steps becomes a slide per step, every other slide stays one.
+      const pptxSlidesPerSlide = await page.locator("[data-canvas] > [data-slide]").evaluateAll((slideElements) =>
+        slideElements.map((slideElement) =>
+          slideElement.querySelector("[data-code-step]") === null ? 1 : new Set([...slideElement.querySelectorAll<HTMLElement>("[data-step-index]")].map((stepElement) => stepElement.dataset.stepIndex)).size + 1,
+        ),
+      );
+      const findPptxSlideNumber = (slideNumber: number) => pptxSlidesPerSlide.slice(0, slideNumber).reduce((slideTotal, slideCount) => slideTotal + slideCount, 0);
+      expect(pptxSlidesPerSlide.filter((slideCount) => slideCount > 1).length, "шаги строк кода — отдельные слайды").toBeGreaterThan(0);
+      expect(pptxSlideCount).toBe(findPptxSlideNumber(pptxSlidesPerSlide.length));
       expect(readSlideXml(1), "заголовок обложки — текстовое поле").toMatch(/<p:sp>(?:(?!<\/p:sp>).)*<a:t>Слайды из.кода<\/a:t>/s);
       expect(readSlideXml(1), "логотип — картинка").toContain("<p:pic>");
-      const diagramSlideNumber = await findSlideNumber(page, "[data-diagram] [data-step]");
-      const diagramSteps = await page.locator("[data-canvas] > [data-slide]").nth(diagramSlideNumber - 1).evaluate((slideElement) => {
+      // A code box in a line is the highlight of its run, so it moves with the letters in any font.
+      const inlineCodeSlideXml = readSlideXml(findPptxSlideNumber(await findSlideNumber(page, "li code", "index.tsx")));
+      expect(inlineCodeSlideXml, "плашка кода — подсветка текста").toMatch(/<a:highlight>(?:(?!<\/a:r>).)*<a:t>index\.tsx<\/a:t>/s);
+      // PowerPoint strokes over the fill: the outline goes on a copy underneath, the caption itself stays white.
+      const memeSlideXml = readSlideXml(findPptxSlideNumber(await findSlideNumber(page, "[data-meme-field]", "Схема, код, 3D")));
+      expect(memeSlideXml, "подпись мема белая").toMatch(/<a:solidFill><a:srgbClr val="FFFFFF"\/><\/a:solidFill>(?:(?!<\/a:r>).)*<a:t>СХЕМА, КОД, 3D<\/a:t>/s);
+      const diagramSlideNumber = findPptxSlideNumber(await findSlideNumber(page, "[data-diagram] [data-step]"));
+      const diagramSteps = await page.locator("[data-canvas] > [data-slide]").nth((await findSlideNumber(page, "[data-diagram] [data-step]")) - 1).evaluate((slideElement) => {
         const appearingSteps = [...slideElement.querySelectorAll<HTMLElement>("[data-step-index]")].filter((stepElement) => !["highlight", "dim"].includes(stepElement.dataset.stepEffect ?? ""));
         return new Set(appearingSteps.map((stepElement) => stepElement.dataset.stepIndex)).size;
       });

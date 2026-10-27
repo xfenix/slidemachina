@@ -77,7 +77,7 @@ export function PrintPages({ slideCount, formatWidth, printsSteps, isPrintView, 
         style={{ "--print-view-scale": printViewScale } as CSSProperties}
       >
         {printedPages.map(({ slideIndex, revealedStep }) => (
-          <div data-print-page key={`${slideIndex}.${revealedStep}`}>
+          <div data-print-page data-print-slide={slideIndex} key={`${slideIndex}.${revealedStep}`}>
             {renderPrintedSlide(slideIndex, revealedStep)}
           </div>
         ))}

@@ -1,12 +1,13 @@
 import { writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import sharp from "sharp";
-import { printViewParameter } from "../../shared-between-runtimes/engine-constants.ts";
+import { printViewParameter, printViewStepsValue } from "../../shared-between-runtimes/engine-constants.ts";
 import { launchChrome } from "../presentation-build/pdf-printing.ts";
 import { pageReadingConstants, pptxPageMarks, writeCaptureStylesheet } from "./pptx-page-marks.ts";
 import { drawSlideParts, inchesPerCanvasPixel } from "./pptx-slide-drawing.ts";
 import { writeStepAnimations } from "./pptx-step-animations.ts";
 import { layoutPageFunctions } from "./slide-layout-reading.ts";
+import { pseudoTextPageFunctions } from "./pseudo-text-materializing.ts";
 import { capturePageFunctions, capturePicture } from "./slide-picture-capturing.ts";
 import { stylePageFunctions } from "./slide-style-reading.ts";
 import { textPageFunctions } from "./slide-text-reading.ts";
@@ -14,9 +15,9 @@ import { vectorPageFunctions } from "./slide-vector-reading.ts";
 import type { Page } from "playwright-core";
 import type { SlideAnimation } from "./pptx-slide-drawing.ts";
 import type { CapturedPicture } from "./slide-picture-capturing.ts";
-import type { PicturePart, SlideLayout } from "./slide-part-types.ts";
+import type { ExportedPage, PicturePart, SlideLayout } from "./slide-part-types.ts";
 
-type PageFormat = { pageWidth: number; pageHeight: number; pageCount: number };
+type PageFormat = { pageWidth: number; pageHeight: number };
 
 // Pictures are taken at twice the canvas size: sharp on a projector, and the slide text is native anyway.
 const captureScale = 2;
@@ -27,7 +28,7 @@ const layoutName = "slidemachina";
 const singleFrameCount = 1;
 
 function writePageScript(): string {
-  const pageFunctions = [...stylePageFunctions, ...textPageFunctions, ...vectorPageFunctions, ...layoutPageFunctions, ...capturePageFunctions];
+  const pageFunctions = [...stylePageFunctions, ...pseudoTextPageFunctions, ...textPageFunctions, ...vectorPageFunctions, ...layoutPageFunctions, ...capturePageFunctions];
   return [
     `const pptxPageMarks = ${JSON.stringify(pptxPageMarks)};`,
     `const pageReadingConstants = ${JSON.stringify(pageReadingConstants)};`,
@@ -62,12 +63,12 @@ async function capturePictures(exportPage: Page, slideLayout: SlideLayout): Prom
 
 async function openPrintView(exportPage: Page, pagePath: string): Promise<PageFormat> {
   const printViewAddress = new URL(pathToFileURL(pagePath));
-  printViewAddress.search = printViewParameter;
+  printViewAddress.search = `${printViewParameter}=${printViewStepsValue}`;
   await exportPage.goto(printViewAddress.href);
   await exportPage.waitForSelector("[data-print-pages][data-print-ready]", { state: "attached", timeout: printWaitLimit });
   const pageFormat = await exportPage.evaluate(() => {
     const firstPage = document.querySelector<HTMLElement>("[data-print-page]")!;
-    return { pageWidth: firstPage.offsetWidth, pageHeight: firstPage.offsetHeight, pageCount: document.querySelectorAll("[data-print-page]").length };
+    return { pageWidth: firstPage.offsetWidth, pageHeight: firstPage.offsetHeight };
   });
   // The print view shrinks pages to a narrow window: a wide enough window shows them at their own size.
   await exportPage.setViewportSize({ width: pageFormat.pageWidth + printViewRoom, height: pageFormat.pageHeight + printViewRoom });
@@ -78,18 +79,19 @@ async function openPrintView(exportPage: Page, pagePath: string): Promise<PageFo
 }
 
 // Every slide of the print view becomes a slide of native text boxes, shapes, freeforms, pictures and videos; steps become entrance animations.
+// The print view shows a page per step: a slide takes its last page, a slide with code line steps takes every page, one slide per step.
 export async function exportPptx(pagePath: string, pptxPath: string): Promise<void> {
   const { default: PptxGenJS } = await import("pptxgenjs");
   const chromeBrowser = await launchChrome();
   try {
     const exportPage = await chromeBrowser.newPage({ viewport: { width: printViewRoom, height: printViewRoom }, deviceScaleFactor: captureScale });
-    const { pageWidth, pageHeight, pageCount } = await openPrintView(exportPage, pagePath);
+    const { pageWidth, pageHeight } = await openPrintView(exportPage, pagePath);
     const pptxPresentation = new PptxGenJS();
     pptxPresentation.defineLayout({ name: layoutName, width: pageWidth * inchesPerCanvasPixel, height: pageHeight * inchesPerCanvasPixel });
     pptxPresentation.layout = layoutName;
     const slideAnimations: SlideAnimation[] = [];
-    for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
-      const slideLayout = await exportPage.evaluate<SlideLayout>(`readSlideLayout(${pageIndex})`);
+    for (const { pageIndex, isStepFrame } of await exportPage.evaluate<ExportedPage[]>("listExportedPages()")) {
+      const slideLayout = await exportPage.evaluate<SlideLayout>(`readSlideLayout(${pageIndex}, ${isStepFrame})`);
       const capturedPictures = await capturePictures(exportPage, slideLayout);
       const animatedObjects = drawSlideParts(pptxPresentation.addSlide(), slideLayout, capturedPictures);
       slideAnimations.push({ stepDuration: slideLayout.stepDuration, animatedObjects });

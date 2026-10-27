@@ -27,10 +27,12 @@
     text-box: trim-both cap alphabetic;
   }
 
+  /* Hangs like a typographed mark: no width of its own, the quote sticks out to the left of the first line. */
   [data-slide] blockquote:before {
     content: open-quote;
-    position: absolute;
-    translate: -100% 0;
+    display: inline-flex;
+    justify-content: flex-end;
+    max-width: calc((1 - var(--hanging-punctuation)) * 100%);
     color: var(--accent-color);
   }
 

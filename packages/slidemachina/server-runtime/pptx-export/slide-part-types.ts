@@ -17,6 +17,7 @@ export type SlideTextRun = {
   textColor: PaintColor;
   letterSpacing: number;
   outlineStroke?: StrokeStyle;
+  highlightColor?: PaintColor;
 };
 export type PathCommand =
   | { commandKind: "move" | "line"; endPoint: [number, number] }
@@ -31,4 +32,5 @@ export type PathPart = PartStep & { partKind: "path"; pathCommands: PathCommand[
 export type PicturePart = PartStep & { partKind: "picture"; captureMark: string; animatedSource?: string; contentBox?: SlidePartBox };
 export type VideoPart = PartStep & SlidePartBox & { partKind: "video"; videoSource: string; captureMark: string };
 export type SlidePart = TextPart | ShapePart | LinePart | PathPart | PicturePart | VideoPart;
+export type ExportedPage = { pageIndex: number; isStepFrame: boolean };
 export type SlideLayout = { slideBackground?: PaintColor; stepDuration: number; slideParts: SlidePart[] };

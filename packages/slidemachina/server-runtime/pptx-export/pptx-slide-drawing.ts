@@ -19,6 +19,7 @@ const textWidthAllowance = 0.04;
 const smallestVectorSize = 1;
 const playableVideoTypes = new Set(["mp4", "m4v", "mov"]);
 export const videoNamePrefix = "video ";
+const outlineNameSuffix = " outline";
 
 function toInches(canvasPixels: number): number {
   return canvasPixels * inchesPerCanvasPixel;
@@ -46,7 +47,16 @@ function placeBox(partBox: SlidePartBox) {
   return { x: toInches(partBox.leftEdge), y: toInches(partBox.upperEdge), w: toInches(partBox.boxWidth), h: toInches(partBox.boxHeight) };
 }
 
-function drawText(pptxSlide: PptxSlide, textPart: TextPart, objectName: string): void {
+// PowerPoint strokes letters over their fill, the web under it, so outlined text gets a stroked copy underneath and its fill on top.
+function drawText(pptxSlide: PptxSlide, textPart: TextPart, objectName: string): string[] {
+  const hasOutline = textPart.textRuns.some((slideTextRun) => slideTextRun.outlineStroke !== undefined);
+  const outlineName = `${objectName}${outlineNameSuffix}`;
+  if (hasOutline) drawTextLayer(pptxSlide, textPart, outlineName, true);
+  drawTextLayer(pptxSlide, { ...textPart, textRuns: textPart.textRuns.map(({ outlineStroke: _outlineStroke, ...slideTextRun }) => slideTextRun) }, objectName, false);
+  return hasOutline ? [outlineName, objectName] : [objectName];
+}
+
+function drawTextLayer(pptxSlide: PptxSlide, textPart: TextPart, objectName: string, isOutlineLayer: boolean): void {
   const addedWidth = textPart.boxWidth * textWidthAllowance;
   const leftShift = { left: 0, justify: 0, center: addedWidth / 2, right: addedWidth }[textPart.textAlignment];
   const textRuns = textPart.textRuns.map((slideTextRun) => ({
@@ -58,8 +68,9 @@ function drawText(pptxSlide: PptxSlide, textPart: TextPart, objectName: string):
       italic: slideTextRun.isItalic,
       underline: slideTextRun.isUnderlined ? { style: "sng" as const } : undefined,
       strike: slideTextRun.isStruck ? ("sngStrike" as const) : undefined,
-      color: slideTextRun.textColor.colorHex,
+      color: (isOutlineLayer ? (slideTextRun.outlineStroke?.strokeColor ?? slideTextRun.textColor) : slideTextRun.textColor).colorHex,
       transparency: toTransparency(slideTextRun.textColor),
+      highlight: isOutlineLayer ? undefined : slideTextRun.highlightColor?.colorHex,
       charSpacing: slideTextRun.letterSpacing * pointsPerCanvasPixel,
       softBreakBefore: slideTextRun.startsLine,
       outline: slideTextRun.outlineStroke && { color: slideTextRun.outlineStroke.strokeColor.colorHex, size: slideTextRun.outlineStroke.strokeWidth * pointsPerCanvasPixel },
@@ -162,7 +173,8 @@ export function drawSlideParts(pptxSlide: PptxSlide, slideLayout: SlideLayout, c
     const objectName = `${slidePart.partKind === "video" ? videoNamePrefix.trim() : slidePart.partKind} ${partPosition + 1}`;
     let isPartDrawn = true;
     let isNativeShape = true;
-    if (slidePart.partKind === "text") drawText(pptxSlide, slidePart, objectName);
+    let drawnNames = [objectName];
+    if (slidePart.partKind === "text") drawnNames = drawText(pptxSlide, slidePart, objectName);
     else if (slidePart.partKind === "shape") drawShape(pptxSlide, slidePart, objectName);
     else if (slidePart.partKind === "line") drawLine(pptxSlide, slidePart, objectName);
     else if (slidePart.partKind === "path") drawPath(pptxSlide, slidePart, objectName);
@@ -175,7 +187,8 @@ export function drawSlideParts(pptxSlide: PptxSlide, slideLayout: SlideLayout, c
         isPartDrawn = true;
       }
     }
-    if (isPartDrawn && slidePart.stepNumber > 0) animatedObjects.push({ objectName, stepNumber: slidePart.stepNumber, stepEffect: slidePart.stepEffect, isNativeShape });
+    if (!isPartDrawn || slidePart.stepNumber === 0) return;
+    for (const drawnName of drawnNames) animatedObjects.push({ objectName: drawnName, stepNumber: slidePart.stepNumber, stepEffect: slidePart.stepEffect, isNativeShape });
   });
   return animatedObjects;
 }
