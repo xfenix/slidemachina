@@ -4,8 +4,9 @@ import { pictureExtensions, saveMediaFile, videoExtensions } from "../developmen
 import { SourceEditProblem } from "../development-server/source-rewriting.ts";
 
 export type DownloadedMedia = { mediaPath: string, isVideo: boolean };
+export type FoundMedia = { mediaAddress: URL, mediaExtension: string, mediaBytes: Buffer, isVideo: boolean };
 
-const mediaTypeExtensions: Record<string, string> = {
+export const mediaTypeExtensions: Record<string, string> = {
   "image/png": ".png",
   "image/jpeg": ".jpg",
   "image/gif": ".gif",
@@ -39,7 +40,7 @@ function findPagePicture(pageText: string, pageAddress: URL): URL | undefined {
 }
 
 // A link to a page instead of a picture is followed to the picture the page shares.
-async function fetchMedia(linkAddress: URL, followsPage: boolean): Promise<{ mediaAddress: URL, mediaExtension: string, mediaBytes: Buffer }> {
+async function fetchMedia(linkAddress: URL, followsPage: boolean): Promise<FoundMedia> {
   const mediaResponse = await fetchFromSource(linkAddress.href);
   if (!mediaResponse.ok) throw new SourceEditProblem("memeNetworkFailed", `${linkAddress.href}: ${mediaResponse.status}`);
   const mediaType = (mediaResponse.headers.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
@@ -51,12 +52,17 @@ async function fetchMedia(linkAddress: URL, followsPage: boolean): Promise<{ med
   const addressExtension = path.extname(linkAddress.pathname).toLowerCase();
   const mediaExtension = mediaTypeExtensions[mediaType] ?? addressExtension;
   if (!pictureExtensions.has(mediaExtension) && !videoExtensions.has(mediaExtension)) throw new SourceEditProblem("memeLinkNotPicture");
-  return { mediaAddress: linkAddress, mediaExtension, mediaBytes: await readResponseBytes(mediaResponse) };
+  return { mediaAddress: linkAddress, mediaExtension, mediaBytes: await readResponseBytes(mediaResponse), isVideo: videoExtensions.has(mediaExtension) };
 }
 
-export async function downloadMediaLink(mediaFolder: string, linkText: string, preferredStem?: string): Promise<DownloadedMedia> {
-  const { mediaAddress, mediaExtension, mediaBytes } = await fetchMedia(readLinkAddress(linkText), true);
+// The picture or video behind a link: a page leads to the picture it shares. A remote meme keeps the found address.
+export function findMediaLink(linkText: string): Promise<FoundMedia> {
+  return fetchMedia(readLinkAddress(linkText), true);
+}
+
+export async function saveFoundMedia(mediaFolder: string, foundMedia: FoundMedia, preferredStem?: string): Promise<DownloadedMedia> {
+  const { mediaAddress, mediaExtension, mediaBytes, isVideo } = foundMedia;
   const addressStem = path.basename(mediaAddress.pathname, path.extname(mediaAddress.pathname));
   const mediaPath = await saveMediaFile(mediaFolder, `${preferredStem ?? (addressStem || "meme")}${mediaExtension}`, mediaBytes);
-  return { mediaPath, isVideo: videoExtensions.has(mediaExtension) };
+  return { mediaPath, isVideo };
 }

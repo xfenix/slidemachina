@@ -42,6 +42,8 @@
     translate: calc((100dvw - var(--canvas-width) * 1px) / 2) calc((100dvh - var(--canvas-height) * 1px) / 2);
     scale: var(--canvas-scale);
     overflow: hidden;
+    /* Swipes and taps belong to the slides: the page neither pans nor zooms on a double tap, a pinch still zooms. */
+    touch-action: pinch-zoom;
   }
 
   [data-slide] {
@@ -54,6 +56,18 @@
     font-size: var(--text-size);
     line-height: var(--text-line-height);
     isolation: isolate;
+  }
+
+  /* Under the content and the logo: the slide is isolated, so -1 stays above its own colour. */
+  [data-slide-background] {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover;
+    pointer-events: none;
   }
 
   [data-canvas] > [data-slide]:not([data-current]) {
@@ -75,7 +89,12 @@
     animation: none !important;
   }
 
+  /* The slide itself keeps the theme colours, so background="var(--accent-color)" is the accent of the theme, not its lighter version for dark slides. */
   [data-slide][data-tone="dark"] {
+    color: var(--text-color-on-dark);
+  }
+
+  [data-slide][data-tone="dark"] > * {
     --accent-color: var(--accent-color-on-dark);
     --second-accent-color: var(--second-accent-color-on-dark);
     --text-color: var(--text-color-on-dark);
@@ -136,7 +155,8 @@
     align-items: flex-start;
   }
 
-  [data-slide][data-align="center"] [data-content] {
+  /* A thesis is one phrase in the middle of the slide, both ways, whatever the slide align. */
+  [data-slide]:is([data-align="center"], :has(> [data-content] > :is(.machina-thesis, .machina-thesis-small))) [data-content] {
     inset-inline: var(--frame-padding);
     margin-inline: auto;
     align-items: center;
@@ -149,7 +169,7 @@
   }
 
   /* justify-content places a column of blocks, align-content the rows of a cover with a picture. */
-  [data-slide][data-valign="center"] [data-content] {
+  [data-slide]:is([data-valign="center"], :has(> [data-content] > :is(.machina-thesis, .machina-thesis-small))) [data-content] {
     justify-content: center;
     align-content: center;
   }
@@ -164,7 +184,7 @@
     --content-bottom: var(--frame-padding);
   }
 
-  [data-slide][data-valign="center"]:not(:has(> :is([data-breadcrumbs], [data-slide-number], [data-logo-placement="bottom"]))) {
+  [data-slide]:is([data-valign="center"], :has(> [data-content] > :is(.machina-thesis, .machina-thesis-small))):not(:has(> :is([data-breadcrumbs], [data-slide-number], [data-logo-placement="bottom"]))) {
     --content-bottom: var(--content-top);
   }
 
@@ -174,7 +194,7 @@
   }
 
   /* Centred content stands in the middle of the slide: with the breadcrumbs below, the top keeps their margin too. */
-  [data-slide][data-valign="center"]:has(> :is([data-breadcrumbs], [data-slide-number], [data-logo-placement="bottom"])) {
+  [data-slide]:is([data-valign="center"], :has(> [data-content] > :is(.machina-thesis, .machina-thesis-small))):has(> :is([data-breadcrumbs], [data-slide-number], [data-logo-placement="bottom"])) {
     --content-top: var(--content-bottom);
   }
 
@@ -246,9 +266,60 @@
     font-variant-numeric: tabular-nums;
   }
 
-  [data-blackout] {
+  /* The gradient stays as wide as the slide; the clip shows its passed part. */
+  [data-progress] {
+    position: absolute;
+    inset: auto 0 0;
+    height: var(--progress-height);
+    background: var(--progress-track-color);
+    pointer-events: none;
+  }
+
+  [data-progress]:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--progress-color);
+    clip-path: inset(0 calc((1 - var(--progress-share)) * 100%) 0 0);
+    transition: clip-path var(--transition-time) var(--transition-easing);
+  }
+
+  [data-canvas]:has(> [data-slide][data-current][data-tone="dark"]) > [data-progress]:before {
+    background: var(--progress-color-on-dark);
+  }
+
+  /* A pause: the screen goes black, the return button waits where the toolbar was. */
+  [data-pause-screen] {
+    all: unset;
     position: fixed;
     inset: 0;
     background: #000;
+    cursor: pointer;
+  }
+
+  [data-pause-return] {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    left: 50%;
+    bottom: var(--toolbar-bottom);
+    translate: -50% 0;
+    height: var(--toolbar-size);
+    padding-inline: 20px;
+    border-radius: calc(var(--toolbar-size) / 2);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+    color: rgb(255 255 255 / 0.5);
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  [data-pause-screen]:is(:hover, :focus-visible) > [data-pause-return] {
+    color: #fff;
+  }
+
+  [data-pause-screen]:focus-visible > [data-pause-return] {
+    outline: var(--interface-focus-ring-width) solid var(--accent-color-on-dark);
   }
 }

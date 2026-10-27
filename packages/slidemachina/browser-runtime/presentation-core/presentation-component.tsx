@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { defaultAspectRatio, measureCanvasSize, type AspectRatio } from "../../shared-between-runtimes/canvas-size.js";
-import { useCanvasScale } from "./canvas-scaling.ts";
+import { useCanvasLayout } from "./canvas-scaling.ts";
 import { DevelopmentFeedback } from "../presentation-interface/development-feedback.tsx";
 import { EditorSwitch } from "../source-editor/editor-switch.tsx";
 import { MemePanelSwitch } from "../source-editor/meme-panel-switch.tsx";
@@ -22,9 +22,11 @@ import { useSlideNavigation } from "../slide-navigation/slide-navigation.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { SlideNavigator } from "../presentation-interface/slide-navigator.tsx";
+import { MinimapSwitch, SlideMinimap, useMinimapShowing } from "../presentation-interface/slide-minimap.tsx";
 import { useOverviewAddress } from "../presentation-interface/overview-address.ts";
 import { buildSlideOutline } from "./slide-outline.tsx";
-import { useSwipeControls } from "../slide-navigation/swipe-controls.ts";
+import { runNavigatorTransition } from "../slide-transitions/navigator-transition.ts";
+import { useTouchControls } from "../slide-navigation/touch-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
 
 // The list of a repository shows /talk/?cover in a frame, and the build photographs it: the first slide alone, every step shown.
@@ -49,7 +51,12 @@ export type PresentationProperties = {
   date?: string;
   // "16:9", "4:3", "9:16": the format of every slide, thumbnail, cover and printed page.
   aspectRatio?: AspectRatio;
+  // The line on the bottom edge that shows how far the talk has gone; false hides it.
+  progress?: boolean;
+  // Called after every move: slide number from 1, step from 0. Also on load, with the position from the address.
+  onChange?: (position: PresentationPosition) => void;
 };
+export type PresentationPosition = { slide: number; step: number };
 
 export function Presentation({
   children,
@@ -61,6 +68,8 @@ export function Presentation({
   speed = "normal",
   breadcrumbsSeparator,
   aspectRatio = defaultAspectRatio,
+  progress = true,
+  onChange,
 }: PresentationProperties) {
   const outlinedSlides = useMemo(() => buildSlideOutline(children), [children]);
   const stepCountsReference = useRef<number[]>([]);
@@ -72,12 +81,18 @@ export function Presentation({
     return measuredCanvasSize;
   }, [aspectRatio, lang]);
   const { canvasWidth, canvasHeight } = canvasSize;
-  const canvasScale = useCanvasScale(canvasSize);
   const [isNavigatorOpen, setNavigatorOpen] = useOverviewAddress();
-  const [isBlackedOut, setBlackedOut] = useState(false);
-  const { isToolbarHidden, toggleToolbar } = useToolbarHiding();
   const printPreparation = usePrintPreparation();
   const { isPrintView, printsSteps } = printPreparation;
+  const { isMinimapShown, toggleMinimap } = useMinimapShowing(import.meta.env.DEV && !isPrintView && !isCoverPreview);
+  const { canvasScale, hasRoomUnderCanvas } = useCanvasLayout(canvasSize);
+  const [isPaused, setPaused] = useState(false);
+  const { isToolbarHidden, toggleToolbar } = useToolbarHiding();
+  const switchNavigator = (opensNavigator: boolean, chosenSlideIndex?: number) =>
+    runNavigatorTransition(() => {
+      if (chosenSlideIndex !== undefined) slideNavigation.jumpToSlide(chosenSlideIndex);
+      setNavigatorOpen(opensNavigator);
+    }, chosenSlideIndex ?? currentPosition.slideIndex);
   const typedSlideNumber = useTypedSlideNumber((slideNumber) => slideNavigation.goToSlide(slideNumber - 1));
   const presentationSettings: PresentationSettings = useMemo(
     () => ({ align, logo, lang, transition, speed }),
@@ -90,22 +105,31 @@ export function Presentation({
     document.documentElement.lang = lang;
   }, [lang]);
 
+  const reportPosition = useEffectEvent((slideIndex: number, stepIndex: number) => onChange?.({ slide: slideIndex + 1, step: stepIndex }));
+  useEffect(() => {
+    if (!isCoverPreview) reportPosition(currentPosition.slideIndex, currentPosition.stepIndex);
+  }, [currentPosition.slideIndex, currentPosition.stepIndex]);
+
+  // In a pause any slide key only brings the slide back: the audience never sees it change behind the black screen.
+  const unlessPaused = <ActionArguments extends unknown[]>(slideAction: (...actionArguments: ActionArguments) => void) =>
+    isPaused ? () => setPaused(false) : slideAction;
   useKeyboardControls(
     {
-      goForward: slideNavigation.goForward,
-      goBackward: slideNavigation.goBackward,
-      goToFirstSlide: () => slideNavigation.goToSlide(0),
-      goToLastSlide: () => slideNavigation.goToSlide(outlinedSlides.length - 1),
-      openNavigator: () => setNavigatorOpen(true),
-      toggleBlackout: () => setBlackedOut((wasBlackedOut) => !wasBlackedOut),
+      goForward: unlessPaused(slideNavigation.goForward),
+      goBackward: unlessPaused(slideNavigation.goBackward),
+      goToFirstSlide: unlessPaused(() => slideNavigation.goToSlide(0)),
+      goToLastSlide: unlessPaused(() => slideNavigation.goToSlide(outlinedSlides.length - 1)),
+      openNavigator: unlessPaused(() => switchNavigator(true)),
+      togglePause: () => setPaused((wasPaused) => !wasPaused),
       toggleFullscreen,
       toggleToolbar,
-      typeDigit: typedSlideNumber.appendDigit,
+      toggleMinimap: import.meta.env.DEV ? toggleMinimap : undefined,
+      typeDigit: unlessPaused(typedSlideNumber.appendDigit),
       confirmTypedNumber: typedSlideNumber.digits === "" ? undefined : typedSlideNumber.confirmNumber,
     },
     !isNavigatorOpen && !isPrintView,
   );
-  useSwipeControls(slideNavigation.goForward, slideNavigation.goBackward, !isNavigatorOpen && !isPrintView);
+  useTouchControls(unlessPaused(slideNavigation.goForward), unlessPaused(slideNavigation.goBackward), !isNavigatorOpen && !isPrintView);
 
   // A copy is a thumbnail or a printed page: it is never current and shows the step it is given.
   const renderSlide = (slideIndex: number, copiedStep?: number) => {
@@ -139,20 +163,23 @@ export function Presentation({
   }
 
   return (
-    <div data-presentation data-print-view={isPrintView || undefined} style={canvasStyle}>
+    <div data-presentation data-print-view={isPrintView || undefined} data-toolbar-under-canvas={hasRoomUnderCanvas || undefined} style={canvasStyle}>
       {title !== undefined && <title>{title}</title>}
       <style>{`@page { size: ${canvasWidth}px ${canvasHeight}px; }`}</style>
       <div data-canvas>
         {[...outlinedSlides.keys()].map((slideIndex) => renderSlide(slideIndex))}
+        {progress && outlinedSlides.length > 1 && (
+          <div data-progress aria-hidden="true" style={{ "--progress-share": currentPosition.slideIndex / (outlinedSlides.length - 1) } as CSSProperties} />
+        )}
         {isNavigatorOpen && (
           <SlideNavigator
             outlinedSlides={outlinedSlides}
             currentSlideIndex={currentPosition.slideIndex}
             canvasWidth={canvasWidth}
+            canvasScale={canvasScale}
             languageCode={lang}
             renderThumbnail={(slideIndex) => renderSlide(slideIndex, Infinity)}
-            goToSlide={slideNavigation.goToSlide}
-            closeNavigator={() => setNavigatorOpen(false)}
+            closeNavigator={(chosenSlideIndex) => switchNavigator(false, chosenSlideIndex)}
           />
         )}
         {typedSlideNumber.digits !== "" && (
@@ -161,12 +188,22 @@ export function Presentation({
           </div>
         )}
       </div>
+      {isMinimapShown && !isNavigatorOpen && (
+        <SlideMinimap
+          slideCount={outlinedSlides.length}
+          currentSlideIndex={currentPosition.slideIndex}
+          canvasWidth={canvasWidth}
+          languageCode={lang}
+          renderThumbnail={(slideIndex) => renderSlide(slideIndex, Infinity)}
+          goToSlide={slideNavigation.goToSlide}
+        />
+      )}
       <PresentationToolbar
         languageCode={lang}
         isHidden={isToolbarHidden}
         toggleHidden={toggleToolbar}
         isNavigatorOpen={isNavigatorOpen}
-        toggleNavigator={() => setNavigatorOpen((wasNavigatorOpen) => !wasNavigatorOpen)}
+        toggleNavigator={() => switchNavigator(!isNavigatorOpen)}
         toggleFullscreen={toggleFullscreen}
       >
         <PrintMenu
@@ -179,6 +216,7 @@ export function Presentation({
         {import.meta.env.DEV && (
           <>
             <span data-toolbar-divider />
+            <MinimapSwitch languageCode={lang} isMinimapShown={isMinimapShown} toggleMinimap={toggleMinimap} />
             <EditorSwitch languageCode={lang} />
             <MemePanelSwitch languageCode={lang} />
             {import.meta.env.SLIDEMACHINA_AGENTATION !== "off" && <DevelopmentFeedback />}
@@ -205,12 +243,17 @@ export function Presentation({
           )}
         />
       )}
-      {isBlackedOut && <div data-blackout aria-hidden="true" onClick={() => setBlackedOut(false)} />}
+      {isPaused && (
+        <button type="button" data-pause-screen onClick={() => setPaused(false)}>
+          <span data-pause-return>{pickInterfaceTexts(lang).pauseReturnButton}</span>
+        </button>
+      )}
     </div>
   );
 }
 
 function toggleFullscreen() {
+  if (!document.fullscreenEnabled) return;
   if (document.fullscreenElement === null) void document.documentElement.requestFullscreen();
   else void document.exitFullscreen();
 }

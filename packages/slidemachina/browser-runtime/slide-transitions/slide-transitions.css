@@ -362,3 +362,12 @@
     transform: perspective(var(--flip-perspective)) rotateY(0deg);
   }
 }
+
+@layer slidemachina {
+  /* The slide and its thumbnail are one layer above the grid: it moves and scales, the grid fades around it. */
+  :root[data-slide-transition="navigator"]::view-transition-group(navigator-slide) {
+    z-index: 1;
+    overflow: clip;
+    border-radius: var(--block-radius);
+  }
+}

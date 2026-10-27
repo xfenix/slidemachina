@@ -31,6 +31,7 @@ function readCommandLine() {
         gif: { type: "string" },
         url: { type: "string" },
         animated: { type: "boolean" },
+        local: { type: "boolean" },
       },
     });
   } catch (parseError) {

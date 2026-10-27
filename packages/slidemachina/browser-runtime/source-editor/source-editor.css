@@ -1,6 +1,7 @@
 @layer slidemachina {
   :root {
-    --editor-color: #0d99ff;
+    /* The engine's violet between the light and dark accents: it reads on white and on dark slides alike. */
+    --editor-color: color-mix(in oklch, var(--accent-color), var(--accent-color-on-dark));
     --editor-saved-color: #2fbf71;
     --editor-problem-color: #ff5c5c;
   }
@@ -89,7 +90,7 @@
     font-size: 12px;
     line-height: 24px;
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgb(13 153 255 / 0.24);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--editor-color) 24%, transparent);
     animation: slidemachina-chip-in 0.14s ease-out;
   }
 

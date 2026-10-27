@@ -1,19 +1,22 @@
 import path from "node:path";
 import { fetchGiphyClip } from "./giphy-clips.ts";
-import { downloadMediaLink } from "./link-download.ts";
-import { memeFolderParts, readTemplateFiles } from "./memegen-config.ts";
-import { ensureMemeTemplate } from "./memegen-templates.ts";
-import { escapeJsxText, SourceEditProblem } from "../development-server/source-rewriting.ts";
+import { findMediaLink, saveFoundMedia } from "./link-download.ts";
+import { memeFolderParts, type MemeCaptionField } from "./memegen-config.ts";
+import { findMemeTemplate } from "./memegen-templates.ts";
+import { escapeJsxText } from "../development-server/source-rewriting.ts";
 import { pickTextLanguage } from "../../shared-between-runtimes/text-language.ts";
 import type { MemeKind } from "../../shared-between-runtimes/meme-template.ts";
 
-export type MemeChoice = { memeKind: MemeKind, memeValue: string, isAnimated: boolean };
+// A remote meme points at the picture on the web, a local one is saved in images/memes/; the build embeds either.
+export type MemeChoice = { memeKind: MemeKind, memeValue: string, isAnimated: boolean, storesLocally: boolean };
 export type EnginePartNamer = (partName: string) => string;
 // Files are downloaded first; the markup is written later, with the names the target file uses.
+// The source is {importName} for a saved file and "https://…" for a remote one.
 export type PreparedMeme = {
   engineParts: string[],
   mediaPath: string | undefined,
-  writeMarkup: (nameEnginePart: EnginePartNamer, mediaImportName: string | undefined) => string[],
+  remoteAddress: string | undefined,
+  writeMarkup: (nameEnginePart: EnginePartNamer, mediaSource: string) => string[],
 };
 
 const markupTextsByLanguage = {
@@ -39,8 +42,8 @@ function writeSourceLine(nameEnginePart: EnginePartNamer, sourceText: string): s
   return `<${nameEnginePart("Source")}>${escapeJsxText(sourceText)}</${nameEnginePart("Source")}>`;
 }
 
-function writeMediaLine(nameEnginePart: EnginePartNamer, isVideo: boolean, mediaImportName: string | undefined): string {
-  return isVideo ? `<${nameEnginePart("Video")} src={${mediaImportName}} stretch />` : `<${nameEnginePart("Image")} src={${mediaImportName}} alt="" stretch />`;
+function writeMediaLine(nameEnginePart: EnginePartNamer, isVideo: boolean, mediaSource: string): string {
+  return isVideo ? `<${nameEnginePart("Video")} src=${mediaSource} stretch />` : `<${nameEnginePart("Image")} src=${mediaSource} alt="" stretch />`;
 }
 
 // "this-is-fine.gif" becomes thisIsFinePicture; a name taken in the file gets a number.
@@ -55,39 +58,65 @@ export function nameMediaImport(mediaPath: string, isNameTaken: (importName: str
   }
 }
 
+// <Meme> puts its first caption along the top and the second along the bottom, the bands of a fifth that memegen uses by default.
+const percentScale = 100;
+const roundingScale = 10;
+const defaultBoxes = ["0 0 100 20", "0 80 100 20"];
+const namedBoxes: Record<string, string> = { "0 0 100 20": "top", "0 80 100 20": "bottom", "0 40 100 20": "center" };
+const thinFontWeight = 500;
+
+function roundPercent(fieldShare: number): number {
+  return Math.round(fieldShare * percentScale * roundingScale) / roundingScale;
+}
+
+// A field becomes data-place and plain CSS on the caption: nothing about the template is kept outside the slide.
+function writeCaptionLine(captionField: MemeCaptionField, fieldIndex: number, captionText: string): string {
+  const fieldBox = [captionField.fieldLeft, captionField.fieldTop, captionField.fieldWidth, captionField.fieldHeight].map(roundPercent).join(" ");
+  const placeAttribute = defaultBoxes[fieldIndex] === fieldBox ? "" : ` data-place="${namedBoxes[fieldBox] ?? fieldBox}"`;
+  const styleEntries = [
+    captionField.textColor === "white" ? undefined : `color: ${JSON.stringify(captionField.textColor)}`,
+    captionField.fieldAngle === 0 ? undefined : `rotate: "${-captionField.fieldAngle}deg"`,
+    captionField.textAlign === "left" ? `textAlign: "left"` : undefined,
+    captionField.letterCase === "upper" ? undefined : `textTransform: "${captionField.letterCase === "lower" ? "lowercase" : "none"}"`,
+    captionField.isThickFont ? undefined : `fontWeight: ${thinFontWeight}`,
+  ].filter((styleEntry) => styleEntry !== undefined);
+  const styleAttribute = styleEntries.length === 0 ? "" : ` style={{ ${styleEntries.join(", ")} }}`;
+  return `  <p${placeAttribute}${styleAttribute}>${escapeJsxText(captionText)}</p>`;
+}
+
 async function prepareTemplate(presentationFolder: string, memeChoice: MemeChoice, markupTexts: typeof markupTextsByLanguage.en): Promise<PreparedMeme> {
-  const templateId = memeChoice.memeValue;
-  const templateFiles = await readTemplateFiles(await ensureMemeTemplate(presentationFolder, templateId, memeChoice.isAnimated), memeChoice.isAnimated);
-  if (templateFiles === undefined) throw new SourceEditProblem("memeTemplateMissing");
-  const { templateName, sourceAddress, exampleCaptions, captionFields } = templateFiles.memegenConfig;
+  const { picturePlace, memegenConfig } = await findMemeTemplate(presentationFolder, memeChoice.memeValue, memeChoice.isAnimated, memeChoice.storesLocally);
+  const { templateName, sourceAddress, exampleCaptions, captionFields } = memegenConfig;
   // memegen's example text tells which field is which; the author replaces it on the slide.
   const captionTexts = captionFields.map((_captionField, fieldIndex) => exampleCaptions[fieldIndex] || markupTexts.placeholderCaption(fieldIndex + 1));
   const sourceText = markupTexts.templateSource(templateName, shortenAddress(sourceAddress ?? "memegen.link"));
   return {
     engineParts: ["Meme", "Source"],
-    mediaPath: undefined,
-    writeMarkup: (nameEnginePart) => [
-      `<${nameEnginePart("Meme")} template="${templateId}"${memeChoice.isAnimated ? " animated" : ""}>`,
-      ...captionTexts.map((captionText) => `  <p>${escapeJsxText(captionText)}</p>`),
+    mediaPath: "picturePath" in picturePlace ? picturePlace.picturePath : undefined,
+    remoteAddress: "pictureAddress" in picturePlace ? picturePlace.pictureAddress : undefined,
+    writeMarkup: (nameEnginePart, mediaSource) => [
+      `<${nameEnginePart("Meme")} src=${mediaSource} alt=${JSON.stringify(templateName)}>`,
+      ...captionFields.map((captionField, fieldIndex) => writeCaptionLine(captionField, fieldIndex, captionTexts[fieldIndex]!)),
       `</${nameEnginePart("Meme")}>`,
       writeSourceLine(nameEnginePart, sourceText),
     ],
   };
 }
 
-// The template, clip or link lands in images/memes/ of the presentation, with a <Source> line pointing where it came from.
+// The template, clip or link comes with a <Source> line pointing where it came from.
 export async function prepareMeme(presentationFolder: string, memeChoice: MemeChoice, languageCode: string): Promise<PreparedMeme> {
   const markupTexts = markupTextsByLanguage[pickTextLanguage(languageCode)];
   if (memeChoice.memeKind === "template") return prepareTemplate(presentationFolder, memeChoice, markupTexts);
-  const memeFolder = path.join(presentationFolder, ...memeFolderParts);
   const giphyClip = memeChoice.memeKind === "clip" ? await fetchGiphyClip(memeChoice.memeValue) : undefined;
-  const { mediaPath, isVideo } = giphyClip === undefined
-    ? await downloadMediaLink(memeFolder, memeChoice.memeValue)
-    : await downloadMediaLink(memeFolder, giphyClip.videoAddress, giphyClip.clipTitle || giphyClip.clipId);
+  const foundMedia = await findMediaLink(giphyClip?.videoAddress ?? memeChoice.memeValue);
+  const mediaPath = memeChoice.storesLocally
+    ? (await saveFoundMedia(path.join(presentationFolder, ...memeFolderParts), foundMedia, giphyClip === undefined ? undefined : giphyClip.clipTitle || giphyClip.clipId)).mediaPath
+    : undefined;
   const sourceText = giphyClip === undefined ? markupTexts.linkSource(shortenAddress(memeChoice.memeValue)) : markupTexts.clipSource(shortenAddress(giphyClip.pageAddress));
   return {
-    engineParts: [isVideo ? "Video" : "Image", "Source"],
+    engineParts: [foundMedia.isVideo ? "Video" : "Image", "Source"],
     mediaPath,
-    writeMarkup: (nameEnginePart, mediaImportName) => [writeMediaLine(nameEnginePart, isVideo, mediaImportName), writeSourceLine(nameEnginePart, sourceText)],
+    remoteAddress: memeChoice.storesLocally ? undefined : foundMedia.mediaAddress.href,
+    writeMarkup: (nameEnginePart, mediaSource) => [writeMediaLine(nameEnginePart, foundMedia.isVideo, mediaSource), writeSourceLine(nameEnginePart, sourceText)],
   };
 }

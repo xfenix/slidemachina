@@ -9,6 +9,7 @@ type PanelStatus = { statusTone: "progress" | "problem"; statusText: string };
 
 // Typing pauses this long before a search: GIPHY counts every request against its hourly limit.
 const searchDelay = 350;
+const localMemesStorageKey = "slidemachina-memes-local";
 
 function describeProblem(editorTexts: EditorTexts, problemCode: string): PanelStatus {
   return { statusTone: "problem", statusText: editorTexts.problems[isSourceEditProblemCode(editorTexts, problemCode) ? problemCode : "writeFailed"] };
@@ -22,6 +23,8 @@ export default function MemePanel({ languageCode, closePanel }: { languageCode: 
   const [linkText, setLinkText] = useState("");
   const [panelStatus, setPanelStatus] = useState<PanelStatus>();
   const [shownTab, setShownTab] = useState<"templates" | "clips">("templates");
+  // Off, the meme links to the picture on the web and the build embeds it; on, the picture is saved in images/memes/.
+  const [storesLocally, setStoresLocally] = useState(() => localStorage.getItem(localMemesStorageKey) === "true");
 
   useEffect(() => {
     const searchController = new AbortController();
@@ -54,7 +57,7 @@ export default function MemePanel({ languageCode, closePanel }: { languageCode: 
     }
     setPanelStatus({ statusTone: "progress", statusText: editorTexts.memeInserting });
     try {
-      await sendSourceEdit({ editKind: "meme", sourceLocation: slideLocation, memeKind, memeValue });
+      await sendSourceEdit({ editKind: "meme", sourceLocation: slideLocation, memeKind, memeValue, storesLocally });
       window.location.assign(`#${readPositionFromHash().slideIndex + 2}`);
       closePanel();
     } catch (insertFailure) {
@@ -112,6 +115,17 @@ export default function MemePanel({ languageCode, closePanel }: { languageCode: 
         </div>
       </div>
       <p data-meme-hint>{editorTexts.memePlacementHint}</p>
+      <label data-meme-storage>
+        <input
+          type="checkbox"
+          checked={storesLocally}
+          onChange={(changeEvent) => {
+            setStoresLocally(changeEvent.target.checked);
+            localStorage.setItem(localMemesStorageKey, String(changeEvent.target.checked));
+          }}
+        />
+        {editorTexts.memeStoreLocally}
+      </label>
       <form data-meme-link onSubmit={submitLink}>
         <input type="url" value={linkText} placeholder={editorTexts.memeLinkPlaceholder} aria-label={editorTexts.memeLinkPlaceholder} onChange={(changeEvent) => setLinkText(changeEvent.target.value)} />
         <button type="submit" disabled={linkText.trim() === ""}>

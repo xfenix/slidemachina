@@ -14,7 +14,11 @@ export type SourceEditRequest =
   | { editKind: "text"; sourceLocation: string; typedText: string }
   | { editKind: "picture"; sourceLocation: string; pictureName: string; pictureContent: string }
   | { editKind: "box"; sourceLocation: string; columnNumber?: number; anchorLocation?: string; anchorSide?: "before" | "after" }
-  | { editKind: "meme"; sourceLocation: string; memeKind: MemeKind; memeValue: string };
+  | { editKind: "meme"; sourceLocation: string; memeKind: MemeKind; memeValue: string; storesLocally: boolean }
+  | { editKind: "slide"; sourceLocation: string; slideAction: SlideAction };
+export type SlideAction = "add" | "duplicate" | "earlier" | "later" | "remove";
+// A moved slide comes back with its new place in the file.
+export type SourceEditAnswer = { slideLocation?: string };
 
 export class SourceEditFailure extends Error {
   constructor(readonly problemCode: string) {
@@ -62,7 +66,9 @@ async function sendQueuedEdit(editRequest: SourceEditRequest) {
     const problemAnswer = (await editResponse.json().catch(() => ({}))) as { problemCode?: string };
     throw new SourceEditFailure(problemAnswer.problemCode ?? "writeFailed");
   }
+  const editAnswer = (await editResponse.json().catch(() => ({}))) as SourceEditAnswer;
   await waitForSourceUpdate(sourceFile, sourceVersion);
+  return editAnswer;
 }
 
 export function readFileContent(pictureFile: File) {

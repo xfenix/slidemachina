@@ -6,9 +6,11 @@ type KeyboardActions = {
   goToFirstSlide: () => void;
   goToLastSlide: () => void;
   openNavigator: () => void;
-  toggleBlackout: () => void;
+  togglePause: () => void;
   toggleFullscreen: () => void;
   toggleToolbar: () => void;
+  // Only in slidemachina dev, where the minimap is.
+  toggleMinimap?: () => void;
   typeDigit: (typedDigit: string) => void;
   // Missing while no digits are typed: Enter then keeps its own job, such as opening a focused link.
   confirmTypedNumber?: () => void;
@@ -28,7 +30,7 @@ function pickKeyboardAction(keyboardEvent: KeyboardEvent, keyboardActions: Keybo
   switch (keyboardEvent.code) {
     case "KeyB":
     case "Period":
-      return keyboardActions.toggleBlackout;
+      return keyboardActions.togglePause;
     case "KeyO":
     case "Escape":
       return keyboardActions.openNavigator;
@@ -36,6 +38,8 @@ function pickKeyboardAction(keyboardEvent: KeyboardEvent, keyboardActions: Keybo
       return keyboardActions.toggleFullscreen;
     case "KeyH":
       return keyboardActions.toggleToolbar;
+    case "KeyM":
+      return keyboardActions.toggleMinimap;
   }
   switch (keyboardEvent.key) {
     case "ArrowRight":

@@ -43,7 +43,7 @@ const encodingEffort = 4;
 const mediaFolder = path.join(workspaceFolder, "docs", "readme");
 const chromeEndpoint = process.env.SLIDEMACHINA_CHROME_ENDPOINT;
 const recordedClips: RecordedClip[] = [
-  { fileName: "morph-transition.webp", startHeading: "Морфинг без разметки", stopHeading: "Восемь переходов", keepsEveryPixel: true },
+  { fileName: "morph-transition.webp", startHeading: "Морфинг любых блоков", stopHeading: "Восемь переходов", keepsEveryPixel: true },
   { fileName: "diagram-steps.webp", startHeading: "Схема собирается по шагам", stopHeading: "Схема перестраивается сама", keepsEveryPixel: true },
   { fileName: "scene-3d.webp", startHeading: "Сцена в 3D", stopHeading: "Свет и цвет из темы", keepsEveryPixel: false },
 ];

@@ -1,14 +1,20 @@
 @layer slidemachina {
+  [data-canvas]:has(> [data-navigator]) {
+    overflow: visible;
+  }
+
   /* Thumbnails scroll above the bottom strip, where the toolbar sits, and never pass under it. */
   [data-navigator] {
     --navigator-fade: 32px;
     --thumbnail-outline-width: 3px;
     --thumbnail-outline-offset: 4px;
     position: absolute;
-    inset: 0;
+    /* The window in canvas pixels, centred on the canvas like the canvas on the window. */
+    left: calc((var(--canvas-width) * 1px - 100dvw / var(--canvas-scale)) / 2);
+    top: calc((var(--canvas-height) * 1px - 100dvh / var(--canvas-scale)) / 2);
     /* <dialog> comes with a border, padding and a fit-content box from the browser. */
-    width: auto;
-    height: auto;
+    width: calc(100dvw / var(--canvas-scale));
+    height: calc(100dvh / var(--canvas-scale));
     margin: 0;
     padding: 0;
     border: none;
@@ -18,10 +24,12 @@
 
   [data-navigator-scroller] {
     position: absolute;
-    inset: 0 0 calc(var(--frame-padding) * 2);
+    /* The strip under the thumbnails keeps the toolbar in screen pixels: on a small canvas it is taller in canvas pixels. */
+    inset: 0 0 calc(var(--frame-padding) * 2 + var(--toolbar-size) / var(--canvas-scale) - var(--toolbar-size));
     box-sizing: border-box;
     overflow-y: auto;
     scrollbar-width: none;
+    touch-action: pan-y pinch-zoom;
     /* Rows fade out at the edges of the scroll instead of being cut by a straight line. */
     mask-image: linear-gradient(transparent, #000 var(--navigator-fade), #000 calc(100% - var(--navigator-fade)), transparent);
   }

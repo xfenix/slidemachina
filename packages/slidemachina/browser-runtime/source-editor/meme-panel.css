@@ -198,4 +198,19 @@
   [data-meme-status="problem"] {
     color: var(--editor-problem-color);
   }
+
+  [data-meme-storage] {
+    margin: -4px 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgb(255 255 255 / 0.7);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  [data-meme-storage] > input {
+    margin: 0;
+    accent-color: var(--accent-color-on-dark);
+  }
 }

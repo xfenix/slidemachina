@@ -100,11 +100,11 @@ test("сборка: один HTML-файл листается без серве�
       expect(assetNames.filter((assetName) => assetName.endsWith(".woff2") && !keptFontFile.test(assetName))).toEqual([]);
       // A GIF becomes an animated WebP, all frames kept: the RIFF file carries an ANIM chunk.
       expect(assetNames.filter((assetName) => assetName.endsWith(".gif"))).toEqual([]);
-      // The GIF is the picture of the demo's own meme template, images/memes/orbit/default.gif.
-      const templatePictures = await Promise.all(
-        assetNames.filter((assetName) => /^default-[\w-]{8}\.webp$/.test(assetName)).map((assetName) => readFile(path.join(assetFolder, assetName))),
+      // The GIF is the picture of the demo's own meme, images/memes/orbit.gif.
+      const memePictures = await Promise.all(
+        assetNames.filter((assetName) => /^orbit-[\w-]{8}\.webp$/.test(assetName)).map((assetName) => readFile(path.join(assetFolder, assetName))),
       );
-      expect(templatePictures.some((templatePicture) => templatePicture.includes("ANIM")), "анимация в WebP").toBe(true);
+      expect(memePictures.some((memePicture) => memePicture.includes("ANIM")), "анимация в WebP").toBe(true);
       expect(assetNames.filter((assetName) => /^elk-worker.*\.js$/.test(assetName))).toHaveLength(1);
       const mainModuleName = assetNames.find((assetName) => /^index-.*\.js$/.test(assetName))!;
       const mainModuleText = await readFile(path.join(assetFolder, mainModuleName), "utf8");

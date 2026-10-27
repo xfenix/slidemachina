@@ -35,4 +35,20 @@
   [data-slide]:not([data-cover]) [data-content] > :is(h1, h2) + .machina-lead:not(:last-child) {
     margin-bottom: var(--heading-gap);
   }
+
+  /* A thesis: one phrase on a slide of its own, without a heading. Two sizes from the scale, the colour comes from the slide background. */
+  [data-slide] :is(.machina-thesis, .machina-thesis-small) {
+    max-width: 20ch;
+    font-family: var(--font-heading);
+    font-size: var(--display-size);
+    font-weight: var(--heading-weight);
+    line-height: var(--heading-line-height);
+    letter-spacing: var(--heading-letter-spacing);
+    text-wrap: balance;
+  }
+
+  [data-slide] .machina-thesis-small {
+    max-width: 30ch;
+    font-size: var(--heading-size);
+  }
 }

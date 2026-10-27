@@ -1,0 +1,66 @@
+@layer slidemachina {
+  /* A strip of screen pixels over the right edge of the window: the slide keeps its size under it. */
+  [data-minimap] {
+    position: absolute;
+    inset: 0 0 0 auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    background: color-mix(in srgb, var(--navigator-background) 92%, transparent);
+    box-shadow: inset 1px 0 0 var(--hairline-color-on-dark), -12px 0 32px rgb(0 0 0 / 0.18);
+  }
+
+  [data-minimap-thumbnail] {
+    position: relative;
+    flex: none;
+    aspect-ratio: var(--canvas-width) / var(--canvas-height);
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: rgb(255 255 255 / 0.04);
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    cursor: pointer;
+    transition: outline-color 0.2s;
+  }
+
+  [data-minimap-thumbnail]:hover {
+    outline-color: var(--hairline-color-on-dark);
+  }
+
+  [data-minimap-thumbnail]:is([aria-current], :focus-visible) {
+    outline-color: var(--accent-color-on-dark);
+  }
+
+  [data-minimap-thumbnail] > [data-slide] {
+    width: calc(var(--canvas-width) * 1px);
+    height: calc(var(--canvas-height) * 1px);
+    inset: 0 auto auto 0;
+    transform-origin: 0 0;
+    scale: var(--minimap-thumbnail-scale);
+    text-align: start;
+    pointer-events: none;
+  }
+
+  [data-minimap-thumbnail] [data-thumbnail-number] {
+    right: 4px;
+    bottom: 4px;
+    padding: 2px 4px;
+    font-size: 11px;
+  }
+
+  [data-minimap-thumbnail] > [data-thumbnail-number] {
+    position: absolute;
+    z-index: 1;
+    border-radius: 4px;
+    background: rgb(0 0 0 / 0.62);
+    color: #fff;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+}

@@ -11,7 +11,7 @@ const leastNumberToTitleWidth = 1.2;
 export function SectionNumber({ sectionNumber }: { sectionNumber: string }) {
   const gradientIdentifier = useId();
   const figureReference = useRef<SVGSVGElement>(null);
-  useNumberWiderThanTitle(figureReference);
+  useTitleNarrowerThanNumber(figureReference);
   return (
     <svg ref={figureReference} data-section-number-figure aria-hidden>
       <linearGradient id={gradientIdentifier}>
@@ -31,9 +31,8 @@ export function SectionNumber({ sectionNumber }: { sectionNumber: string }) {
   );
 }
 
-// The title wraps to the width of the number; a word longer than that gets a larger number, so the title never sticks out of the digits.
-function fitNumberToTitle(figureElement: SVGSVGElement, titleElement: HTMLElement) {
-  figureElement.style.removeProperty("font-size");
+// The number keeps one size on every section slide; the title wraps to its width, and a longer word sticks out of the digits instead of growing them.
+function fitTitleToNumber(figureElement: SVGSVGElement, titleElement: HTMLElement) {
   titleElement.style.removeProperty("max-width");
   // On screen the gradient copy is shown, in print the bands are.
   const numberWidth = Math.max(0, ...[...figureElement.querySelectorAll("text")].map((numberText) => numberText.getBoundingClientRect().width));
@@ -43,22 +42,19 @@ function fitNumberToTitle(figureElement: SVGSVGElement, titleElement: HTMLElemen
   const titleRange = document.createRange();
   titleRange.selectNodeContents(titleElement);
   const titleWidth = titleRange.getBoundingClientRect().width;
-  const numberGrowth = (titleWidth * leastNumberToTitleWidth) / numberWidth;
-  if (numberGrowth <= 1) return;
-  figureElement.style.fontSize = `calc(var(--section-number-size) * ${numberGrowth})`;
   // The longest word sticks out of the narrow title; the title takes its width, so the lines stay centred.
-  titleElement.style.maxWidth = `${Math.ceil(titleWidth / canvasScale)}px`;
+  if (titleWidth * leastNumberToTitleWidth > numberWidth) titleElement.style.maxWidth = `${Math.ceil(titleWidth / canvasScale)}px`;
 }
 
-function useNumberWiderThanTitle(figureReference: RefObject<SVGSVGElement | null>) {
+function useTitleNarrowerThanNumber(figureReference: RefObject<SVGSVGElement | null>) {
   useLayoutEffect(() => {
     const figureElement = figureReference.current;
     const titleElement = figureElement?.previousElementSibling;
     if (figureElement === null || !(titleElement instanceof HTMLElement)) return;
-    fitNumberToTitle(figureElement, titleElement);
+    fitTitleToNumber(figureElement, titleElement);
     let isMounted = true;
     void document.fonts.ready.then(() => {
-      if (isMounted) fitNumberToTitle(figureElement, titleElement);
+      if (isMounted) fitTitleToNumber(figureElement, titleElement);
     });
     return () => {
       isMounted = false;

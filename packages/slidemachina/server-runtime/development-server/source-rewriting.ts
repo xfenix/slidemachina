@@ -6,10 +6,11 @@ import type { SyntaxNode } from "../source-transforms/syntax-tree.ts";
 export type SourcePlace = { lineNumber: number, columnNumber: number };
 type FoundElement = { elementNode: SyntaxNode, parentNode: SyntaxNode | undefined };
 type BoxPlacement = { columnNumber?: number, anchorPlace?: SourcePlace, anchorSide?: "before" | "after" };
+export type SlideAction = "add" | "duplicate" | "earlier" | "later" | "remove";
 export type InsertedSlide = {
   engineParts: string[],
   mediaImport: { importName: string, importPath: string } | undefined,
-  writeMarkup: (nameEnginePart: (partName: string) => string, mediaImportName: string | undefined) => string[],
+  writeMarkup: (nameEnginePart: (partName: string) => string) => string[],
 };
 
 const jsxTextEscapes: Record<string, string> = { "{": "&#123;", "}": "&#125;", "<": "&lt;", ">": "&gt;" };
@@ -168,7 +169,7 @@ export function insertSlideAfter(sourceCode: string, filePath: string, slidePlac
     else editedSource.appendLeft(lastImport.end, `\n${importStatement}`);
   }
   const slideName = nameEnginePart("Slide");
-  const slideLines = [`<${slideName}>`, ...insertedSlide.writeMarkup(nameEnginePart, mediaImport?.importName).map((markupLine) => `  ${markupLine}`), `</${slideName}>`];
+  const slideLines = [`<${slideName}>`, ...insertedSlide.writeMarkup(nameEnginePart).map((markupLine) => `  ${markupLine}`), `</${slideName}>`];
   if (isChildSlide) {
     const slideIndent = readIndent(sourceCode, slideNode.start);
     editedSource.appendLeft(slideNode.end, `\n${slideLines.map((slideLine) => `\n${slideIndent}${slideLine}`).join("")}`);
@@ -176,5 +177,42 @@ export function insertSlideAfter(sourceCode: string, filePath: string, slidePlac
     const slideIndent = `${readIndent(sourceCode, parentNode.start)}  `;
     editedSource.appendLeft(parentNode.openingElement.end, `${slideLines.map((slideLine) => `\n${slideIndent}${slideLine}`).join("")}\n`);
   }
+  return editedSource.toString();
+}
+
+// Neighbours at the same level: a slide steps over a whole section, it does not enter it.
+function findSiblingElements(parentNode: SyntaxNode | undefined): SyntaxNode[] {
+  return (parentNode?.children ?? []).filter((childNode: SyntaxNode) => childNode.type === "JSXElement");
+}
+
+// A slide trades places with its neighbour as text: both keep the indent of their level. Returns the source and the new start of the slide.
+export function moveSlide(sourceCode: string, filePath: string, slidePlace: SourcePlace, movesEarlier: boolean): { editedCode: string, slideStart: number } {
+  const { elementNode: slideNode, parentNode } = locateElements(sourceCode, filePath, [slidePlace]).foundElements[0]!;
+  const siblingElements = findSiblingElements(parentNode);
+  const slidePosition = siblingElements.indexOf(slideNode);
+  if (slidePosition === -1) throw new SourceEditProblem("slidePlaceUnknown");
+  const neighbourNode = siblingElements[slidePosition + (movesEarlier ? -1 : 1)];
+  if (neighbourNode === undefined) throw new SourceEditProblem("slideAtEdge");
+  const [firstNode, secondNode] = movesEarlier ? [neighbourNode, slideNode] : [slideNode, neighbourNode];
+  const editedSource = new MagicString(sourceCode);
+  editedSource.overwrite(firstNode.start, firstNode.end, sourceCode.slice(secondNode.start, secondNode.end));
+  editedSource.overwrite(secondNode.start, secondNode.end, sourceCode.slice(firstNode.start, firstNode.end));
+  const slideStart = movesEarlier ? neighbourNode.start : neighbourNode.end - (slideNode.end - slideNode.start);
+  return { editedCode: editedSource.toString(), slideStart };
+}
+
+// A copy goes right after the slide, a removed slide takes its own lines and one blank line after them.
+export function copyOrRemoveSlide(sourceCode: string, filePath: string, slidePlace: SourcePlace, removesSlide: boolean): string {
+  const { elementNode: slideNode, parentNode } = locateElements(sourceCode, filePath, [slidePlace]).foundElements[0]!;
+  if (!findSiblingElements(parentNode).includes(slideNode)) throw new SourceEditProblem("slidePlaceUnknown");
+  const editedSource = new MagicString(sourceCode);
+  const { rangeStart, rangeEnd } = findMovedRange(sourceCode, slideNode);
+  if (!removesSlide) {
+    const slideIndent = readIndent(sourceCode, slideNode.start);
+    editedSource.appendLeft(slideNode.end, `\n\n${slideIndent}${sourceCode.slice(slideNode.start, slideNode.end)}`);
+    return editedSource.toString();
+  }
+  const followingBlank = /^[ \t]*\n/.exec(sourceCode.slice(rangeEnd))?.[0] ?? "";
+  editedSource.remove(rangeStart, rangeEnd + followingBlank.length);
   return editedSource.toString();
 }

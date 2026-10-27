@@ -70,9 +70,12 @@ export function PresentationToolbar({
       <ToolbarButton label={interfaceTexts.navigatorButton} isPressed={isNavigatorOpen} onPress={toggleNavigator}>
         <NavigatorIcon />
       </ToolbarButton>
-      <ToolbarButton label={interfaceTexts.fullscreenButton} onPress={toggleFullscreen}>
-        <FullscreenIcon />
-      </ToolbarButton>
+      {/* iPhone Safari has no fullscreen for pages. */}
+      {document.fullscreenEnabled && (
+        <ToolbarButton label={interfaceTexts.fullscreenButton} onPress={toggleFullscreen}>
+          <FullscreenIcon />
+        </ToolbarButton>
+      )}
       {children}
       <ToolbarButton label={interfaceTexts.hideToolbarButton} onPress={toggleHidden}>
         <ChevronIcon pointsUp={false} />

@@ -12,11 +12,27 @@ const outlineFontShare = 1 / 12;
 const thinnestPictureOutline = 1;
 const thickestPictureOutline = 3;
 const strokeToOutlineRatio = 2;
+// Black captions go without an outline, as in memegen: the colour is plain CSS on the caption, so it is read from the page.
+const darkestOutlinedLuminance = 0.2;
+const redLuminanceShare = 0.2126;
+const greenLuminanceShare = 0.7152;
+const blueLuminanceShare = 0.0722;
+const brightestLevel = 255;
+
+function isDarkColor(colorValue: string): boolean {
+  const colorChannels = colorValue.match(/[\d.]+/g)?.map(Number) ?? [];
+  const [redChannel = brightestLevel, greenChannel = brightestLevel, blueChannel = brightestLevel] = colorChannels;
+  const relativeLuminance = (redLuminanceShare * redChannel + greenLuminanceShare * greenChannel + blueLuminanceShare * blueChannel) / brightestLevel;
+  return relativeLuminance < darkestOutlinedLuminance;
+}
 
 function fitCaption(fieldElement: HTMLElement, memeHeight: number, pictureScale: number) {
   const captionElement = fieldElement.firstElementChild;
   if (!(captionElement instanceof HTMLElement)) return;
-  const largestFontSize = memeHeight * (fieldElement.hasAttribute("data-meme-angled") ? largestAngledFontShare : largestFlatFontShare);
+  const captionStyle = getComputedStyle(captionElement);
+  fieldElement.toggleAttribute("data-meme-outline", !isDarkColor(captionStyle.color));
+  const isAngled = captionStyle.rotate !== "none" && captionStyle.rotate !== "0deg";
+  const largestFontSize = memeHeight * (isAngled ? largestAngledFontShare : largestFlatFontShare);
   const roomHeight = fieldElement.clientHeight * usedHeightShare;
   const fitsAt = (fontSize: number) => {
     fieldElement.style.fontSize = `${fontSize}px`;

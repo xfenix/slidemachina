@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { beginBoxDrag, type BoxDragGuides } from "./box-dragging.ts";
 import { findLiveTarget, followOutlines, isAgentationPicking, type InteractionState, type ShownOutline } from "./editor-outlines.ts";
 import { isSourceEditProblemCode, pickEditorTexts } from "./editor-texts.ts";
 import { choosePictureFile, replacePicture } from "./picture-replacement.ts";
 import { readSourceFile, sendSourceEdit, SourceEditFailure, type SourceEditRequest } from "./source-edit-requests.ts";
+import { SlideActions } from "./slide-actions.tsx";
 import { beginTextEditing } from "./text-editing.ts";
 
 const dragThreshold = 4;
@@ -26,20 +27,24 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
     return () => clearTimeout(dismissalTimer);
   }, [editorStatus]);
 
+  // Resolves to the answer of the server, or undefined when the edit failed and the status shows why.
+  const runSourceEdit = async (editRequest: SourceEditRequest) => {
+    setEditorStatus({ statusTone: "saving", statusText: editorTexts.savingStatus });
+    try {
+      const editAnswer = await sendSourceEdit(editRequest);
+      setEditorStatus({ statusTone: "saved", statusText: editorTexts.savedStatus(readSourceFile(editRequest.sourceLocation)) });
+      return editAnswer;
+    } catch (editFailure) {
+      const problemCode = editFailure instanceof SourceEditFailure ? editFailure.problemCode : "writeFailed";
+      setEditorStatus({ statusTone: "problem", statusText: editorTexts.problems[isSourceEditProblemCode(editorTexts, problemCode) ? problemCode : "writeFailed"] });
+      return undefined;
+    }
+  };
+  const runPageEdit = useEffectEvent(async (editRequest: SourceEditRequest) => (await runSourceEdit(editRequest)) !== undefined);
+
   useEffect(() => {
     const interactionState = interactionReference.current;
-    const runSourceEdit = async (editRequest: SourceEditRequest) => {
-      setEditorStatus({ statusTone: "saving", statusText: editorTexts.savingStatus });
-      try {
-        await sendSourceEdit(editRequest);
-        setEditorStatus({ statusTone: "saved", statusText: editorTexts.savedStatus(readSourceFile(editRequest.sourceLocation)) });
-        return true;
-      } catch (editFailure) {
-        const problemCode = editFailure instanceof SourceEditFailure ? editFailure.problemCode : "writeFailed";
-        setEditorStatus({ statusTone: "problem", statusText: editorTexts.problems[isSourceEditProblemCode(editorTexts, problemCode) ? problemCode : "writeFailed"] });
-        return false;
-      }
-    };
+    const runSourceEdit = runPageEdit;
 
     const startTyping = (textElement: HTMLElement) => {
       interactionState.activeElement = textElement;
@@ -163,6 +168,11 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
 
   return (
     <>
+      <SlideActions
+        editorTexts={editorTexts}
+        runSourceEdit={runSourceEdit}
+        showProblem={(problemCode) => setEditorStatus({ statusTone: "problem", statusText: editorTexts.problems[problemCode] })}
+      />
       {editorStatus !== undefined && (
         <output data-editor-status={editorStatus.statusTone} aria-live="polite" key={editorStatus.statusText}>
           <span data-editor-status-mark aria-hidden="true" />

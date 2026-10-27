@@ -107,7 +107,8 @@ test("демо листается, показывает шаги и навига
     const componentNames = [...publicInterfaceSource.matchAll(/^export \{([^}]+)\}/gm)].flatMap((exportMatch) =>
       exportMatch[1]!.split(",").map((exportedName) => exportedName.trim()).filter((exportedName) => exportedName !== "" && !exportedName.startsWith("type ")),
     );
-    const demoSource = await readFile(demoPresentationFile, "utf8");
+    // useSlide lives in a component of its own file next to index.tsx.
+    const demoSource = (await readFile(demoPresentationFile, "utf8")) + (await readFile(path.join(path.dirname(demoPresentationFile), "step-meter.tsx"), "utf8"));
     expect(componentNames.filter((componentName) => !demoSource.includes(`Machina.${componentName}`)), "компоненты, которых нет в демо").toEqual([]);
   });
 
@@ -187,16 +188,16 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("обложки: место текста, картинка сбоку", async () => {
-    await jumpToHeading(page, "Обложка снизу слева");
-    const bottomLeftEdges = await measureOnCanvas(page, ["h1", "p"]);
+    await jumpToHeading(page, "Итоги квартала");
+    const bottomLeftEdges = await measureOnCanvas(page, ["h1", ".machina-note"]);
     expect(bottomLeftEdges[0]!.left).toBeCloseTo(64, 0);
     expect(bottomLeftEdges[1]!.bottom).toBeCloseTo(1080 - 64, 0);
-    await jumpToHeading(page, "Картинка слева");
+    await jumpToHeading(page, "Сто слайдов за минуту");
     const [leftPicture, titleBeside, leadBeside] = await measureOnCanvas(page, ["img", "h1", "p"]);
     expect(leftPicture!.left).toBeCloseTo(64, 0);
     expect(titleBeside!.left - leftPicture!.right).toBeCloseTo(96, 0);
     expect(leftPicture!.top + leftPicture!.bottom).toBeCloseTo(titleBeside!.top + leadBeside!.bottom, 0);
-    await jumpToHeading(page, "Картинка справа");
+    await jumpToHeading(page, "Метрики продукта");
     const [rightTitle, , rightPicture] = await measureOnCanvas(page, ["h1", "p", "img"]);
     expect(rightPicture!.right).toBeCloseTo(1920 - 64, 0);
     expect(rightPicture!.left - rightTitle!.right).toBeCloseTo(96, 0);
@@ -273,7 +274,7 @@ test("демо листается, показывает шаги и навига
     expect(fullPictureBox).toEqual(await currentSlide(page).boundingBox());
 
     await jumpToHeading(page, "Видео на весь слайд");
-    const videoElement = page.locator("[data-canvas] > [data-slide] video");
+    const videoElement = page.locator("[data-canvas] > [data-slide] video[data-media]");
     await expect.poll(() => videoElement.evaluate((pausedVideo: HTMLVideoElement) => pausedVideo.paused)).toBe(false);
     await jumpToSlide(page, await findSlideNumber(page, "blockquote"));
     await expect.poll(() => videoElement.evaluate((pausedVideo: HTMLVideoElement) => pausedVideo.paused)).toBe(true);
@@ -281,7 +282,7 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("мем: подписи — текст в полях шаблона, шрифт Oswald подогнан под поле", async () => {
-    await jumpToSlide(page, await findSlideNumber(page, "[data-meme=jd]"));
+    await jumpToSlide(page, await findSlideNumber(page, "[data-meme-field] > p", "Извольте вставить мем"));
     const memeElement = currentSlide(page).locator("[data-meme]");
     await expect(memeElement.locator("img")).toHaveJSProperty("complete", true);
     await expect.poll(() => page.evaluate(() => document.fonts.check('700 40px "Oswald Variable"', "Мем"))).toBe(true);
@@ -474,7 +475,7 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("морфинг сам включается, когда у слайдов есть общие элементы", async () => {
-    const cardSlideNumber = await jumpToHeading(page, "Морфинг без разметки");
+    const cardSlideNumber = await jumpToHeading(page, "Морфинг любых блоков");
     await page.keyboard.press("PageDown");
     await expect(page).toHaveURL(new RegExp(`#${cardSlideNumber + 1}$`));
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "morph");
@@ -536,17 +537,60 @@ test("демо листается, показывает шаги и навига
     await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber}$`));
   });
 
-  await test.step("чёрный экран закрывает всё, и Agentation тоже", async () => {
+  await test.step("пауза закрывает всё, и Agentation тоже; листание в паузе только возвращает слайд", async () => {
     // Agentation is off in tests; a stand-in with its class shows whether the black screen hides it.
     await page.evaluate(() => document.body.append(Object.assign(document.createElement("div"), { className: "slidemachina-feedback" })));
     const feedbackStandIn = page.locator("body > .slidemachina-feedback");
+    const addressBeforePause = page.url();
     await page.keyboard.press("b");
-    await expect(page.locator("[data-blackout]")).toBeVisible();
+    await expect(page.locator("[data-pause-screen]")).toBeVisible();
+    await expect(page.locator("[data-pause-return]")).toHaveText("Вернуться к слайду · B");
     await expect(feedbackStandIn).toHaveCSS("visibility", "hidden");
+    await page.keyboard.press("ArrowRight");
+    await expect(page.locator("[data-pause-screen]")).toHaveCount(0);
+    expect(page.url()).toBe(addressBeforePause);
     await page.keyboard.press("Period");
-    await expect(page.locator("[data-blackout]")).toHaveCount(0);
+    await page.locator("[data-pause-return]").click();
+    await expect(page.locator("[data-pause-screen]")).toHaveCount(0);
     await page.mouse.move(640, 300);
     await expect(feedbackStandIn).toHaveCSS("visibility", "visible");
+  });
+
+  await test.step("прогресс, миникарта, тезис, фон-видео и свой компонент с useSlide", async () => {
+    const demoSlideCount = await page.locator("[data-canvas] > [data-slide]").count();
+    await jumpToSlide(page, 3);
+    await expect(page.locator("[data-progress]")).toHaveAttribute("style", `--progress-share: ${2 / (demoSlideCount - 1)};`);
+    // The minimap of slidemachina dev lies over the right edge: off by default, M or its toolbar button shows it, the slide keeps its size.
+    const slideMinimap = page.locator("[data-minimap]");
+    await expect(slideMinimap).toHaveCount(0);
+    await page.keyboard.press("m");
+    await expect(slideMinimap.locator("[data-minimap-thumbnail]")).toHaveCount(demoSlideCount);
+    await expect(slideMinimap.locator("[data-minimap-thumbnail][aria-current] > [data-thumbnail-number]")).toHaveText("3");
+    expect((await page.locator("[data-canvas]").boundingBox())!.width).toBeCloseTo(1280, 0);
+    await slideMinimap.locator("[data-minimap-thumbnail]").nth(4).click();
+    await expect(page).toHaveURL(/#5$/);
+    await page.mouse.move(640, 500);
+    await page.getByRole("button", { name: "Миникарта · M" }).click();
+    await expect(slideMinimap).toHaveCount(0);
+
+    // A thesis stands in the middle of the slide both ways; background="var(--accent-color)" is the accent of the theme, not its version for dark slides.
+    await jumpToSlide(page, await findSlideNumber(page, ".machina-thesis"));
+    await expect(currentSlide(page)).toHaveAttribute("data-tone", "dark");
+    await expect(currentSlide(page)).toHaveCSS("background-color", "rgb(112, 0, 209)");
+    const [thesisBox] = await measureOnCanvas(page, [".machina-thesis"]);
+    expect((thesisBox!.left + thesisBox!.right) / 2).toBeCloseTo(960, 0);
+    expect(Math.abs((thesisBox!.top + thesisBox!.bottom) / 2 - 540)).toBeLessThan(40);
+
+    await jumpToHeading(page, "Видео вместо фона");
+    await expect(currentSlide(page).locator(":scope > video[data-slide-background]")).toHaveCount(1);
+    await expect(currentSlide(page)).toHaveAttribute("data-tone", "dark");
+
+    await jumpToHeading(page, "Свой компонент на слайде");
+    const stepMeter = currentSlide(page).locator(".machina-big-number > p");
+    await expect(stepMeter).toHaveText("0");
+    await page.keyboard.press("ArrowRight");
+    await expect(stepMeter).toHaveText("1");
+    await jumpToHeading(page, "Переворот");
   });
 
   await test.step("навигатор", async () => {

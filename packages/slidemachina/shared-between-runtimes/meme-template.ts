@@ -1,23 +1,3 @@
-// A caption field of a memegen template in shares of the picture size; angle in degrees, counterclockwise as in memegen.
-export type MemeCaptionField = {
-  fieldLeft: number;
-  fieldTop: number;
-  fieldWidth: number;
-  fieldHeight: number;
-  fieldAngle: number;
-  textColor: string;
-  letterCase: "upper" | "lower" | "none";
-  textAlign: "center" | "left";
-  isThickFont: boolean;
-};
-// The slide source plugin reads images/memes/<template>/ and hands this to <Meme>.
-export type MemeTemplateLayout = {
-  templateName: string;
-  pictureAddress: string;
-  pictureWidth: number;
-  pictureHeight: number;
-  captionFields: MemeCaptionField[];
-};
 // What the meme search finds: memegen templates always, GIPHY clips only with a key.
 export type MemeTemplateSummary = {
   templateId: string;

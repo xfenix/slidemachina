@@ -101,6 +101,11 @@
     --toolbar-shadow: 0 10px 30px rgb(0 0 0 / 0.18), 0 0 0 1px var(--hairline-color-on-dark);
     --toolbar-icon-color: rgb(255 255 255 / 0.72);
     --interface-focus-ring-width: 2px;
+    /* The progress line on the bottom edge of the slide: from the accent to the green, like the logo. */
+    --progress-height: 6px;
+    --progress-color: linear-gradient(90deg, var(--accent-color), var(--second-accent-color));
+    --progress-color-on-dark: linear-gradient(90deg, var(--accent-color-on-dark), var(--second-accent-color-on-dark));
+    --progress-track-color: transparent;
 
     /* Sides and bottom share one margin, the top gets a little more air. Margins are measured to visible glyphs. */
     --frame-padding: 64px;
@@ -150,7 +155,9 @@
     /* Between columns: one and a half margins, so neighbours read as separate blocks, and a hanging bullet or code box still leaves a full margin. */
     --columns-gap: 96px;
     /* From the baseline of a slide heading to the capitals or the edge of the block under it. */
-    --heading-gap: 104px;
+    --heading-gap: 80px;
+    /* Under a one-line command: it is set in the text size, so the plain block gap glues it to the block below. */
+    --command-gap: 64px;
     --caption-gap: 24px;
     /* Between list items, from a baseline to the next capitals: a line inside an item has 1lh - 1cap, about 26 px. */
     --item-gap: 32px;
@@ -289,7 +296,8 @@
     font-size: var(--section-number-size);
     font-weight: var(--heading-weight);
     letter-spacing: -0.04em;
-    font-variant-numeric: lining-nums;
+    /* Tabular digits: «11» is as wide as «08», so every section number takes the same room. */
+    font-variant-numeric: lining-nums tabular-nums;
     pointer-events: none;
   }
 

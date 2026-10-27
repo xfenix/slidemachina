@@ -15,8 +15,25 @@ const tinyPicture = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAA
 
 
 const runCommand = promisify(execFile);
-const demoTemplateFolder = path.join(examplesFolder, demoFolderName, "images", "memes", "jd");
-const demoGifFile = path.join(examplesFolder, demoFolderName, "images", "memes", "orbit", "default.gif");
+const demoMemePicture = path.join(examplesFolder, demoFolderName, "images", "memes", "jd.jpg");
+const demoGifFile = path.join(examplesFolder, demoFolderName, "images", "memes", "orbit.gif");
+// The second field is moved and black, as in some memegen templates: the markup carries it as data-place and style.
+const templateConfig = `name: Joseph Ducreux
+source: https://knowyourmeme.com/memes/joseph-ducreux-archaic-rap
+text:
+  - anchor_x: 0.0
+    anchor_y: 0.0
+    scale_x: 1.0
+    scale_y: 0.2
+  - color: black
+    anchor_x: 0.5
+    anchor_y: 0.8
+    scale_x: 0.5
+    scale_y: 0.2
+example:
+  - disregard females
+  - acquire currency
+`;
 
 // memegen.link and a page with a GIF, served from the demo's own files: the test never leaves the machine.
 async function serveMemeSources(): Promise<{ sourceServer: Server, sourceAddress: string }> {
@@ -30,8 +47,8 @@ async function serveMemeSources(): Promise<{ sourceServer: Server, sourceAddress
           { id: "jd", name: "Joseph Ducreux", lines: 2, styles: [], keywords: ["Archaic Rap"], blank: `${sourceAddress}/templates/jd/default.jpg`, example: { url: `${sourceAddress}/templates/jd/default.jpg` } },
         ]),
       ],
-      "/templates/jd/config.yml": async () => ["text/yaml", await readFile(path.join(demoTemplateFolder, "config.yml"))],
-      "/templates/jd/default.jpg": async () => ["image/jpeg", await readFile(path.join(demoTemplateFolder, "default.jpg"))],
+      "/templates/jd/config.yml": async () => ["text/yaml", templateConfig],
+      "/templates/jd/default.jpg": async () => ["image/jpeg", await readFile(demoMemePicture)],
       "/media/scene-orbit.gif": async () => ["image/gif", await readFile(demoGifFile)],
       "/post": async () => ["text/html", `<html><head><meta content="${sourceAddress}/media/scene-orbit.gif" property="og:image"></head></html>`],
     };
@@ -82,9 +99,7 @@ test("редактор правит текст, двигает блок схем
   await writeFile(dependencyFile, refusedSource);
   await writeFile(outsideFile, refusedSource);
   await symlink(outsideFile, path.join(copyFolder, "outside-link.tsx"));
-  // Without its template the demo's meme slide makes the dev server download it, here from the local source.
-  const copiedTemplateFolder = path.join(copyFolder, "images", "memes", "jd");
-  await rm(copiedTemplateFolder, { recursive: true });
+  const copiedMemePicture = path.join(copyFolder, "images", "memes", "jd.jpg");
   const { sourceServer, sourceAddress } = await serveMemeSources();
   const memeEnvironment = { ...process.env, SLIDEMACHINA_MEMEGEN_ADDRESS: sourceAddress, SLIDEMACHINA_GIPHY_KEY: "" };
   const developmentServer = spawn(process.execPath, [commandLineScript, "dev", linkedFolder, "--port", String(editorServerPort)], {
@@ -214,6 +229,36 @@ test("редактор правит текст, двигает блок схем
       expect(await readPresentation()).toBe(presentationBefore);
     });
 
+    await test.step("слайд: новый и копия встают следом, «позже» двигает слайд, удаление убирает, страница идёт за слайдом", async () => {
+      const pressSlideButton = async (buttonName: string) => {
+        await page.mouse.move(640, 600);
+        await page.getByRole("button", { name: buttonName }).click();
+      };
+      const countPlaygrounds = async () => (await readPresentation()).split("<h2>Пробуем редактор").length - 1;
+      // The previous step left the page with an old file version on purpose: a reload takes the real one.
+      await page.reload();
+      await page.keyboard.press("e");
+      await expect(page.locator("html")).toHaveAttribute("data-source-editor");
+      await pressSlideButton("Новый слайд после этого");
+      await expect.poll(readPresentation).toContain("<h2>Новый слайд</h2>");
+      await expect(page).toHaveURL(new RegExp(`#${playgroundSlideNumber + 1}$`));
+      await expect(currentSlide(page).locator("h2")).toHaveText("Новый слайд");
+      await pressSlideButton("Удалить слайд");
+      await expect.poll(readPresentation).not.toContain("<h2>Новый слайд</h2>");
+      await page.goto(`${editorServerAddress}/#${playgroundSlideNumber}`);
+      await pressSlideButton("Копия слайда");
+      await expect.poll(countPlaygrounds).toBe(2);
+      await expect(page).toHaveURL(new RegExp(`#${playgroundSlideNumber + 1}$`));
+      await pressSlideButton("Слайд позже");
+      await expect(page).toHaveURL(new RegExp(`#${playgroundSlideNumber + 2}$`));
+      await expect(currentSlide(page).locator("h2")).toHaveText("Пробуем редактор {вживую}");
+      await expect(page.locator("[data-canvas] > [data-slide]").nth(playgroundSlideNumber).locator("h2")).toHaveText("Правка из браузера");
+      await pressSlideButton("Удалить слайд");
+      await expect.poll(countPlaygrounds).toBe(1);
+      await page.goto(`${editorServerAddress}/#${playgroundSlideNumber}`);
+      await expect(currentSlide(page).locator("h2")).toHaveText("Пробуем редактор {вживую}");
+    });
+
     await test.step("E выключает редактор: текст больше не правится", async () => {
       await page.keyboard.press("e");
       await expect(page.locator("html")).not.toHaveAttribute("data-source-editor");
@@ -221,12 +266,11 @@ test("редактор правит текст, двигает блок схем
       await expect(slideHeading).not.toHaveAttribute("contenteditable");
     });
 
-    await test.step("мемы: шаблон скачивается сам, панель вставляет слайд с шаблоном и с картинкой со страницы, команда meme печатает разметку", async () => {
+    await test.step("мемы: шаблон по ссылке, картинка со страницы в папку, поля шаблона в разметке, команда meme, сборка встраивает картинку по ссылке", async () => {
       await page.goto(editorServerAddress);
-      const memeSlideNumber = await findSlideNumber(page, "[data-meme=jd]");
+      const memeSlideNumber = await findSlideNumber(page, "[data-meme]");
       await page.goto(`${editorServerAddress}/#${memeSlideNumber}`);
       await expect(currentSlide(page).locator("[data-meme-field] > p")).toHaveCount(2);
-      expect(existsSync(path.join(copiedTemplateFolder, "config.yml")) && existsSync(path.join(copiedTemplateFolder, "default.jpg")), "шаблон скачан в images/memes/jd").toBe(true);
 
       const memeButton = page.getByRole("button", { name: "Мем: найти и вставить" });
       await memeButton.click();
@@ -237,13 +281,19 @@ test("редактор правит текст, двигает блок схем
       await page.locator("[data-meme-search]").fill("archaic");
       await page.locator("[data-meme-tile]", { hasText: "Joseph Ducreux" }).click();
       await expect.poll(readPresentation).toMatch(
-        /<\/Machina\.Slide>\n\n\s*<Machina\.Slide>\n\s*<Machina\.Meme template="jd">\n\s*<p>disregard females<\/p>\n\s*<p>acquire currency<\/p>\n\s*<\/Machina\.Meme>\n\s*<Machina\.Source>Шаблон: Joseph Ducreux, knowyourmeme\.com\/memes\/joseph-ducreux-archaic-rap<\/Machina\.Source>/,
+        /<\/Machina\.Slide>\n\n\s*<Machina\.Slide>\n\s*<Machina\.Meme src="http:\/\/localhost:\d+\/templates\/jd\/default\.jpg" alt="Joseph Ducreux">\n\s*<p>disregard females<\/p>\n\s*<p data-place="50 80 50 20" style=\{\{ color: "black" \}\}>acquire currency<\/p>\n\s*<\/Machina\.Meme>\n\s*<Machina\.Source>Шаблон: Joseph Ducreux, knowyourmeme\.com\/memes\/joseph-ducreux-archaic-rap<\/Machina\.Source>/,
       );
+      expect(await readPresentation()).not.toContain('import jdPicture from');
       await expect(page).toHaveURL(new RegExp(`#${memeSlideNumber + 1}$`));
       await expect(currentSlide(page).locator("[data-meme-field] > p").first()).toHaveText("disregard females");
+      // A black caption goes without an outline; the moved one stands in the right half of the bottom band.
+      const movedField = currentSlide(page).locator("[data-meme-field]").nth(1);
+      await expect(movedField).not.toHaveAttribute("data-meme-outline");
+      await expect(movedField).toHaveAttribute("style", /left: 50%; top: 80%; width: 50%; height: 20%/);
       await expect(page.locator("[data-meme-panel]")).toHaveCount(0);
 
       await memeButton.click();
+      await page.getByRole("checkbox", { name: "Сохранить картинку в images/memes" }).check();
       await page.getByRole("textbox", { name: /Ссылка на картинку/ }).fill(`${sourceAddress}/post`);
       await page.keyboard.press("Enter");
       await expect.poll(readPresentation).toContain('import sceneOrbitPicture from "./images/memes/scene-orbit.gif";');
@@ -256,10 +306,21 @@ test("редактор правит текст, двигает блок схем
       const { stdout: searchOutput } = await runMeme(["ducreux"]);
       expect(searchOutput).toContain("slidemachina meme --template jd");
       expect(searchOutput).toContain("SLIDEMACHINA_GIPHY_KEY");
-      await rm(copiedTemplateFolder, { recursive: true });
-      const { stdout: markupOutput } = await runMeme(["--template", "jd", copyFolder]);
-      expect(markupOutput).toContain('<Machina.Meme template="jd">\n  <p>disregard females</p>\n  <p>acquire currency</p>\n</Machina.Meme>');
-      expect(existsSync(path.join(copiedTemplateFolder, "default.jpg")), "команда скачала шаблон").toBe(true);
+      await rm(copiedMemePicture);
+      const { stdout: remoteMarkupOutput } = await runMeme(["--template", "jd", copyFolder]);
+      expect(remoteMarkupOutput).toContain(`<Machina.Meme src="${sourceAddress}/templates/jd/default.jpg" alt="Joseph Ducreux">`);
+      expect(existsSync(copiedMemePicture), "без --local картинка не скачивается").toBe(false);
+      const { stdout: markupOutput } = await runMeme(["--template", "jd", "--local", copyFolder]);
+      expect(markupOutput).toContain('import jdPicture from "./images/memes/jd.jpg";');
+      expect(markupOutput).toContain('<Machina.Meme src={jdPicture} alt="Joseph Ducreux">\n  <p>disregard females</p>\n  <p data-place="50 80 50 20" style={{ color: "black" }}>acquire currency</p>\n</Machina.Meme>');
+      expect(existsSync(copiedMemePicture), "команда скачала картинку шаблона").toBe(true);
+
+      // One file opens without the network: the build downloads the remote template picture and embeds it.
+      const buildFolder = path.join(scratchFolder, "built");
+      await runCommand(process.execPath, [commandLineScript, "build", copyFolder, "--html", "--out", buildFolder], { cwd: workspaceFolder, env: memeEnvironment });
+      const builtPage = await readFile(path.join(buildFolder, `${demoFolderName}.html`), "utf8");
+      expect(builtPage).not.toContain(`${sourceAddress}/templates/jd/default.jpg`);
+      expect(builtPage).toContain("data:image/");
     });
   } finally {
     developmentServer.kill();

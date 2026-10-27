@@ -6,6 +6,13 @@
     --hanging-punctuation: 0;
   }
 
+  /* Outside a stretch frame the meme keeps the size of its picture, no wider than its place: a float, a column or a pin. */
+  [data-slide] [data-meme]:not([data-media-group] > *) {
+    width: calc(var(--meme-picture-width, 600) * 1px);
+    height: auto;
+    aspect-ratio: var(--media-ratio, 1);
+  }
+
   [data-slide] [data-meme] > img {
     display: block;
     width: 100%;
@@ -21,10 +28,9 @@
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: 0.01em;
-  }
-
-  [data-slide] [data-meme-field][data-meme-font="thin"] {
-    font-weight: 500;
+    color: #fff;
+    text-align: center;
+    text-transform: uppercase;
   }
 
   /* A thirty-fifth of the field stays free at the sides, as in memegen; the caption breaks between words, not inside them. */
@@ -32,7 +38,9 @@
     flex: 0 1 auto;
     width: calc(100% * 34 / 35);
     margin: 0;
-    font: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
     text-wrap: balance;
     overflow-wrap: normal;
   }

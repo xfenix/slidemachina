@@ -1,71 +1,83 @@
-import { Children, isValidElement, useRef, type CSSProperties, type ReactNode } from "react";
-import { MediaFrame } from "../media-frame.tsx";
+import { Children, isValidElement, useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { MediaFrame, rememberProportions } from "../media-frame.tsx";
 import { useCaptionFitting } from "./meme-caption-fitting.ts";
-import type { MemeCaptionField, MemeTemplateLayout } from "../../../shared-between-runtimes/meme-template.js";
+import type { ImageFloat } from "../image-component.tsx";
 
 export type MemeProperties = {
-  // The memegen template id: "drake", "fine", "jd". It lies in images/memes/<template>/ and is downloaded when missing.
-  template: string;
-  // The GIF version of the template, if it has one.
-  animated?: boolean;
-  // Captions in the order of the template's fields, one element each: <p>Top</p><p>Bottom</p>. A <figcaption> goes under the picture.
+  src: string;
+  alt?: string;
+  // By default the meme takes the free space, as <Image stretch>; float or stretch={false} keep it at its own size.
+  stretch?: boolean;
+  float?: ImageFloat;
+  // Captions, one element each: <p>Top</p><p>Bottom</p>. data-place="top", "bottom", "center" or "left top width height" in percent moves one.
+  // Colour, turn, case and weight are plain CSS on the caption: style={{ color: "black", rotate: "-8deg" }}. A <figcaption> goes under the picture.
   children?: ReactNode;
-  // Written by the slide source plugin from config.yml.
-  memeTemplate?: MemeTemplateLayout;
 };
+type CaptionBox = { boxLeft: number; boxTop: number; boxWidth: number; boxHeight: number };
 
-const percentScale = 100;
+// memegen's default fields: a band of a fifth of the picture along the top, then along the bottom; more captions go to the middle.
+const namedCaptionBoxes: Record<string, CaptionBox> = {
+  top: { boxLeft: 0, boxTop: 0, boxWidth: 100, boxHeight: 20 },
+  bottom: { boxLeft: 0, boxTop: 80, boxWidth: 100, boxHeight: 20 },
+  center: { boxLeft: 0, boxTop: 40, boxWidth: 100, boxHeight: 20 },
+};
+const defaultPlaces = ["top", "bottom"];
+const boxNumberCount = 4;
 
 function isFigureCaption(childNode: ReactNode): boolean {
   return isValidElement(childNode) && childNode.type === "figcaption";
 }
 
-// memegen rotates the field around its top-left corner and pastes the grown box there; the shift keeps CSS rotation on that spot.
-function createFieldStyle(captionField: MemeCaptionField, pictureRatio: number): CSSProperties {
-  const angleRadians = (captionField.fieldAngle * Math.PI) / 180;
-  const fieldWidth = captionField.fieldWidth * pictureRatio;
-  const fieldHeight = captionField.fieldHeight;
-  const rotatedWidth = Math.abs(fieldWidth * Math.cos(angleRadians)) + Math.abs(fieldHeight * Math.sin(angleRadians));
-  const rotatedHeight = Math.abs(fieldWidth * Math.sin(angleRadians)) + Math.abs(fieldHeight * Math.cos(angleRadians));
-  return {
-    left: `${captionField.fieldLeft * percentScale}%`,
-    top: `${captionField.fieldTop * percentScale}%`,
-    width: `${captionField.fieldWidth * percentScale}%`,
-    height: `${captionField.fieldHeight * percentScale}%`,
-    translate: `${((rotatedWidth - fieldWidth) / 2 / fieldWidth) * percentScale}% ${((rotatedHeight - fieldHeight) / 2 / fieldHeight) * percentScale}%`,
-    rotate: `${-captionField.fieldAngle}deg`,
-    color: captionField.textColor,
-    textAlign: captionField.textAlign,
-    textTransform: captionField.letterCase === "none" ? undefined : `${captionField.letterCase}case`,
-  };
+function readCaptionPlace(captionNode: ReactNode, captionIndex: number): string {
+  const writtenPlace = isValidElement<{ "data-place"?: string }>(captionNode) ? captionNode.props["data-place"] : undefined;
+  return writtenPlace ?? defaultPlaces[captionIndex] ?? "center";
 }
 
-// A memegen template with the captions as live text: the editor types into them, the typographer and print treat them as text.
-export function Meme({ template, children, memeTemplate }: MemeProperties) {
+// "50 0 50 50" or "50% 0 50% 50%": left, top, width and height in percent of the picture.
+function resolveCaptionBox(captionPlace: string): CaptionBox {
+  const namedBox = namedCaptionBoxes[captionPlace];
+  if (namedBox !== undefined) return namedBox;
+  const boxNumbers = captionPlace.split(/\s+/).map((boxPart) => Number.parseFloat(boxPart));
+  if (boxNumbers.length !== boxNumberCount || boxNumbers.some((boxNumber) => !Number.isFinite(boxNumber))) return namedCaptionBoxes.center!;
+  const [boxLeft, boxTop, boxWidth, boxHeight] = boxNumbers as [number, number, number, number];
+  return { boxLeft, boxTop, boxWidth, boxHeight };
+}
+
+// A picture with the captions as live text: the editor types into them, the typographer and print treat them as text.
+export function Meme({ src, alt = "", stretch, float, children }: MemeProperties) {
   const memeReference = useRef<HTMLDivElement>(null);
   useCaptionFitting(memeReference, children);
-  if (memeTemplate === undefined) return null;
   const childNodes = Children.toArray(children);
   const captionNodes = childNodes.filter((childNode) => !isFigureCaption(childNode));
-  const { pictureWidth, pictureHeight } = memeTemplate;
-  const pictureRatio = pictureWidth / pictureHeight;
-  const memeStyle = { "--media-ratio": pictureRatio, "--meme-picture-height": pictureHeight } as CSSProperties;
+  const isStretched = stretch ?? float === undefined;
+  // The meme takes the proportions of its picture, and the captions their limits from its height in pixels of the picture.
+  useLayoutEffect(() => {
+    const memeElement = memeReference.current;
+    const pictureElement = memeElement?.querySelector("img");
+    if (memeElement == null || pictureElement == null) return;
+    const rememberPictureSize = () => {
+      rememberProportions(memeElement, pictureElement.naturalWidth, pictureElement.naturalHeight);
+      memeElement.style.setProperty("--meme-picture-width", String(pictureElement.naturalWidth));
+      memeElement.style.setProperty("--meme-picture-height", String(pictureElement.naturalHeight));
+      memeElement.dispatchEvent(new Event("input"));
+    };
+    if (pictureElement.complete && pictureElement.naturalWidth > 0) rememberPictureSize();
+    pictureElement.addEventListener("load", rememberPictureSize);
+    return () => pictureElement.removeEventListener("load", rememberPictureSize);
+  }, [src]);
   return (
-    <MediaFrame stretch caption={childNodes.filter(isFigureCaption)}>
-      <div ref={memeReference} data-media data-meme={template} style={memeStyle}>
-        <img src={memeTemplate.pictureAddress} alt={memeTemplate.templateName} />
-        {memeTemplate.captionFields.map((captionField, fieldIndex) => (
-          <div
-            key={fieldIndex}
-            data-meme-field
-            data-meme-font={captionField.isThickFont ? "thick" : "thin"}
-            data-meme-angled={captionField.fieldAngle === 0 ? undefined : ""}
-            data-meme-outline={captionField.textColor === "black" ? undefined : ""}
-            style={createFieldStyle(captionField, pictureRatio)}
-          >
-            {captionNodes[fieldIndex]}
-          </div>
-        ))}
+    <MediaFrame stretch={isStretched} caption={childNodes.filter(isFigureCaption)}>
+      <div ref={memeReference} data-media data-meme data-media-float={float}>
+        <img src={src} alt={alt} />
+        {captionNodes.map((captionNode, captionIndex) => {
+          const { boxLeft, boxTop, boxWidth, boxHeight } = resolveCaptionBox(readCaptionPlace(captionNode, captionIndex));
+          const fieldStyle: CSSProperties = { left: `${boxLeft}%`, top: `${boxTop}%`, width: `${boxWidth}%`, height: `${boxHeight}%` };
+          return (
+            <div key={captionIndex} data-meme-field style={fieldStyle}>
+              {captionNode}
+            </div>
+          );
+        })}
       </div>
     </MediaFrame>
   );

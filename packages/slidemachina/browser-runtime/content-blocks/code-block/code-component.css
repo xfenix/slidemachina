@@ -144,6 +144,7 @@
   /* A one-line command reads as a line of the slide: the size of the text, without the grey box. */
   [data-slide] [data-code][data-one-line] {
     --code-hang: 0px;
+    margin-bottom: var(--command-gap);
     padding: 0;
     background: none;
     font-size: var(--command-size);

@@ -1,15 +1,30 @@
 @layer slidemachina {
-  /* Outside the canvas, so the toolbar keeps its screen size; centred on the cap height of the frame text. The print view bar wears the same capsule. */
-  :is([data-toolbar], [data-print-view-bar]) {
+  /* Outside the canvas, so the toolbar keeps its screen size; centred on the cap height of the frame text. */
+  [data-presentation] {
     --toolbar-size: 44px;
+    --toolbar-gap: 16px;
+    --toolbar-letterbox: calc((100% - var(--canvas-height) * 1px * var(--canvas-scale)) / 2);
+    --toolbar-frame-line: calc((var(--frame-padding) + var(--frame-text-size) * var(--text-cap-height) / 2) * var(--canvas-scale) - var(--toolbar-size) / 2);
+    --toolbar-bottom: calc(var(--toolbar-letterbox) + var(--toolbar-frame-line));
+  }
+
+  /* A phone held upright has a tall margin under the slide: the toolbar moves into it instead of covering the slide. */
+  [data-presentation][data-toolbar-under-canvas] {
+    --toolbar-bottom: calc(var(--toolbar-letterbox) - var(--toolbar-size) - var(--toolbar-gap));
+  }
+
+  /* The navigator covers the whole window: the toolbar sits on its bottom line, not on the slide's. */
+  [data-presentation]:has(> [data-canvas] > [data-navigator]) {
+    --toolbar-bottom: var(--toolbar-frame-line);
+  }
+
+  /* The print view bar wears the same capsule. */
+  :is([data-toolbar], [data-print-view-bar]) {
     /* From the edge of a 44 px button to its highlight disc. */
     --toolbar-highlight-inset: 4px;
     position: absolute;
     left: 50%;
-    bottom: calc(
-      (100% - var(--canvas-height) * 1px * var(--canvas-scale)) / 2 + (var(--frame-padding) + var(--frame-text-size) * var(--text-cap-height) / 2) *
-        var(--canvas-scale) - var(--toolbar-size) / 2
-    );
+    bottom: var(--toolbar-bottom);
     translate: -50% 0;
     display: flex;
     align-items: center;
@@ -85,14 +100,14 @@
       visibility 0.4s;
   }
 
-  body:has([data-toolbar][data-idle], [data-toolbar][data-collapsed], [data-blackout]) .slidemachina-feedback {
+  body:has([data-toolbar][data-idle], [data-toolbar][data-collapsed], [data-pause-screen]) .slidemachina-feedback {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transition-duration: 0.8s;
   }
 
-  body:has([data-blackout]) .slidemachina-feedback {
+  body:has([data-pause-screen]) .slidemachina-feedback {
     transition: none;
   }
 

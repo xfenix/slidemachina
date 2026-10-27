@@ -13,6 +13,9 @@ export const typingPauseLimit = 3000;
 
 // A horizontal touch moves a slide only after this distance.
 export const shortestSwipeDistance = 50;
+// A touch shorter and closer than this is a tap: it moves forward, or back on the left third.
+export const longestTapDistance = 12;
+export const longestTapDuration = 300;
 
 // The print view keeps this margin around a page.
 export const printViewMargin = 48;

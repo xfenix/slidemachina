@@ -64,6 +64,12 @@ export function useSlideNavigation(slideCount: number, stepCountsReference: RefO
       }),
     goToSlide: (slideIndex: number) =>
       applyPosition({ slideIndex: Math.min(Math.max(slideIndex, 0), lastSlideIndex), stepIndex: 0 }),
+    // The navigator plays its own transition: the slide changes inside it, without a slide transition of its own.
+    jumpToSlide: (slideIndex: number) => {
+      const nextPosition = { slideIndex: Math.min(Math.max(slideIndex, 0), lastSlideIndex), stepIndex: 0 };
+      latestPositionReference.current = nextPosition;
+      setRequestedPosition(nextPosition);
+    },
   };
 }
 

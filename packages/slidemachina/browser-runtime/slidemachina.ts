@@ -1,6 +1,6 @@
 import type { StepEffect } from "./slide-steps/step-attributes.ts";
 
-export { Presentation, type PresentationProperties } from "./presentation-core/presentation-component.tsx";
+export { Presentation, type PresentationPosition, type PresentationProperties } from "./presentation-core/presentation-component.tsx";
 export type { AspectRatio } from "../shared-between-runtimes/canvas-size.js";
 export { Section, type SectionProperties } from "./presentation-core/section-component.tsx";
 export { Slide, type SlideLogoPlacement, type SlideProperties, type SlideVerticalAlign } from "./presentation-core/slide-component.tsx";
@@ -43,7 +43,7 @@ export {
 } from "./scene-blocks/scene-parts.tsx";
 export type { DiagramDirection } from "./diagram-blocks/diagram-graph.ts";
 export { SlidemachinaLogo } from "./presentation-core/slidemachina-logo.tsx";
-export type { PresentationLogo, SlideAlign } from "./presentation-core/slide-environment.ts";
+export { useSlide, type PresentationLogo, type SlideAlign, type SlideState } from "./presentation-core/slide-environment.ts";
 export type { SlideTransition } from "./slide-transitions/slide-transition.ts";
 export type { TransitionSpeed } from "./slide-transitions/transition-speed.ts";
 export type { StepEffect } from "./slide-steps/step-attributes.ts";

@@ -5,10 +5,11 @@ import { measureCanvasSize } from "../../shared-between-runtimes/canvas-size.ts"
 import { commandLineTexts } from "../command-line/command-line-texts.ts";
 import { highlightCode } from "./code-highlighting.ts";
 import { readSettingsFor } from "./presentation-settings.ts";
-import { findPresentationFolder, isSlideSourceFile } from "../presentation-repository/presentation-repository.ts";
+import { isSlideSourceFile } from "../presentation-repository/presentation-repository.ts";
 import { installMemeSearch } from "../development-server/meme-search-server.ts";
 import { installSourceEditing } from "../development-server/source-edit-server.ts";
-import { injectMemeTemplates } from "./meme-injection.ts";
+import { memeFontStylesheet } from "../development-server/entry-modules.ts";
+import { embedRemoteMedia, findRemoteMedia } from "./remote-media-embedding.ts";
 import { markSourceLocations } from "./source-marking.ts";
 import { typographSyntaxNode } from "./slide-typography.ts";
 import { findEngineNames, parseSlideSource, readElementName, readStringAttribute, walkSyntaxTree } from "./syntax-tree.ts";
@@ -83,7 +84,9 @@ export function createSlideSourcePlugin(siteLayout: SiteLayout): Plugin {
       };
       const codeElements: SyntaxNode[] = [];
       const memeElements: SyntaxNode[] = [];
+      const remoteMediaPlaces: ReturnType<typeof findRemoteMedia> = [];
       walkSyntaxTree(syntaxTree, (syntaxNode, ancestorNodes) => {
+        if (!marksSourceLocations) remoteMediaPlaces.push(...findRemoteMedia(syntaxNode, transformContext.engineNames));
         const elementName = syntaxNode.type === "JSXElement" ? readElementName(syntaxNode) : undefined;
         if (elementName !== undefined && elementName === transformContext.engineNames.Code) codeElements.push(syntaxNode);
         if (elementName !== undefined && elementName === transformContext.engineNames.Meme) memeElements.push(syntaxNode);
@@ -103,22 +106,16 @@ export function createSlideSourcePlugin(siteLayout: SiteLayout): Plugin {
         if (highlightedCode === undefined) continue;
         transformContext.editedSource.appendLeft(codeElement.openingElement.name.end, ` highlightedCode={${JSON.stringify(highlightedCode)}}`);
       }
-      await injectMemeTemplates({
-        memeElements,
-        filePath,
-        presentationFolder: findPresentationFolder(siteLayout, filePath) ?? rootFolder,
-        editedSource: transformContext.editedSource,
-        rememberWatchedFile: (watchedFilePath) => {
-          this.addWatchFile(watchedFilePath);
-          rememberCodeFile(watchedFilePath);
-        },
-      }, this);
+      // Only the build embeds web addresses: slidemachina dev shows them straight from the web.
+      await embedRemoteMedia(remoteMediaPlaces, transformContext.editedSource, this);
+      // The caption font is loaded only by presentations with memes: a one-file build of any other carries no extra font.
+      if (memeElements.length > 0) transformContext.editedSource.prepend(`import ${JSON.stringify(memeFontStylesheet)};`);
       return {
         code: transformContext.editedSource.toString(),
         map: transformContext.editedSource.generateMap({ hires: true, source: filePath }),
       };
     },
-    // An edited example file re-highlights the slides that show it, and an edited meme config moves their captions, without a page reload.
+    // An edited example file re-highlights the slides that show it without a page reload.
     hotUpdate({ file: changedFile }) {
       const slideFiles = slideFilesByCodeFile.get(changedFile);
       if (slideFiles === undefined) return undefined;

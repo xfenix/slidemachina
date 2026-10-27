@@ -1,6 +1,7 @@
-import { useRef, type CSSProperties, type ReactNode } from "react";
-import { isBackgroundColor, useBackgroundTone, type SlideTone } from "./background-tone.ts";
+import { useEffect, useEffectEvent, useRef, type CSSProperties, type ReactNode } from "react";
+import { classifySlideBackground, readBackgroundAddress, useBackgroundTone, type SlideBackgroundValue, type SlideTone } from "./background-tone.ts";
 import { useLetterboxBackground } from "./letterbox-background.ts";
+import { SlideBackgroundLayer } from "./slide-background.tsx";
 import { useSlideEnvironment, type PresentationLogo, type SlideAlign } from "./slide-environment.ts";
 import { pickSourceMarks } from "./source-marks.ts";
 import { useBigNumberFitting } from "./width-fitting.ts";
@@ -15,7 +16,7 @@ export type SlideProperties = {
   align?: SlideAlign;
   valign?: SlideVerticalAlign;
   cover?: boolean;
-  background?: string;
+  background?: SlideBackgroundValue;
   tone?: SlideTone;
   transition?: SlideTransition;
   speed?: TransitionSpeed;
@@ -24,6 +25,9 @@ export type SlideProperties = {
   breadcrumbs?: boolean | string;
   number?: boolean;
   className?: string;
+  // Called when the slide comes on screen and when it leaves; thumbnails and printed pages never call them.
+  onEnter?: () => void;
+  onLeave?: () => void;
 };
 type SlideLogoProperties = { presentationLogo: PresentationLogo; slideTone: SlideTone; logoPlacement: SlideLogoPlacement };
 
@@ -41,6 +45,8 @@ export function Slide({
   breadcrumbs = true,
   number = true,
   className,
+  onEnter,
+  onLeave,
   ...otherProperties
 }: SlideProperties) {
   const slideEnvironment = useSlideEnvironment();
@@ -49,9 +55,10 @@ export function Slide({
   const detectedTone = useBackgroundTone(slideElementReference, background, className);
   useStepVisibility(slideElementReference, slideEnvironment.revealedStep, slideEnvironment.reportStepCount);
   useBigNumberFitting(slideElementReference, children);
+  useSlideCallbacks(slideEnvironment.isCurrentSlide, onEnter, onLeave);
 
   const slideTone = tone ?? detectedTone;
-  useLetterboxBackground(slideElementReference, slideEnvironment.isCurrentSlide, slideTone, background);
+  useLetterboxBackground(slideElementReference, slideEnvironment.isCurrentSlide, slideTone, readBackgroundAddress(background));
   const slideAlign = align ?? (cover ? "center" : presentationSettings.align);
   const breadcrumbTrail = typeof breadcrumbs === "string" ? [breadcrumbs] : slideEnvironment.sectionTrail;
   const presentationLogo = presentationSettings.logo;
@@ -75,6 +82,7 @@ export function Slide({
       inert={!slideEnvironment.isCurrentSlide}
       style={{ ...createBackgroundStyle(background), "--transition-speed": resolveSpeedFactor(speed ?? presentationSettings.speed) } as CSSProperties}
     >
+      {background !== undefined && <SlideBackgroundLayer backgroundValue={background} />}
       {showsLogo && logoPlacement !== "center" && <SlideLogo presentationLogo={presentationLogo} slideTone={slideTone} logoPlacement={logoPlacement} />}
       <div data-content>
         {showsLogo && logoPlacement === "center" && <SlideLogo presentationLogo={presentationLogo} slideTone={slideTone} logoPlacement={logoPlacement} />}
@@ -92,6 +100,16 @@ export function Slide({
   );
 }
 
+function useSlideCallbacks(isCurrentSlide: boolean, onEnter: (() => void) | undefined, onLeave: (() => void) | undefined) {
+  const enterSlide = useEffectEvent(() => onEnter?.());
+  const leaveSlide = useEffectEvent(() => onLeave?.());
+  useEffect(() => {
+    if (!isCurrentSlide) return;
+    enterSlide();
+    return () => leaveSlide();
+  }, [isCurrentSlide]);
+}
+
 function SlideLogo({ presentationLogo, slideTone, logoPlacement }: SlideLogoProperties) {
   if (typeof presentationLogo === "function") {
     const LogoComponent = presentationLogo;
@@ -106,8 +124,10 @@ function SlideLogo({ presentationLogo, slideTone, logoPlacement }: SlideLogoProp
   return <img data-logo={darkLogo === undefined ? "light" : "dark"} data-logo-placement={logoPlacement} src={darkLogo ?? logoVersions.light} alt="" />;
 }
 
-function createBackgroundStyle(backgroundValue: string | undefined): CSSProperties | undefined {
+function createBackgroundStyle(backgroundValue: SlideBackgroundValue | undefined): CSSProperties | undefined {
   if (backgroundValue === undefined) return undefined;
-  if (isBackgroundColor(backgroundValue)) return { backgroundColor: backgroundValue };
-  return { backgroundImage: `url("${backgroundValue}")` };
+  const backgroundKind = classifySlideBackground(backgroundValue);
+  if (backgroundKind === "color") return { backgroundColor: backgroundValue as string };
+  if (backgroundKind === "picture") return { backgroundImage: `url("${backgroundValue as string}")` };
+  return undefined;
 }

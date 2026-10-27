@@ -11,7 +11,7 @@ import { presentationFileName } from "../presentation-repository/presentation-re
 import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
 import { findEngineNames, parseSlideSource } from "../source-transforms/syntax-tree.ts";
 
-export type MemeFlags = { template?: string, gif?: string, url?: string, animated?: boolean };
+export type MemeFlags = { template?: string, gif?: string, url?: string, animated?: boolean, local?: boolean };
 
 const shownTemplateLimit = 12;
 const listIndent = "  ";
@@ -20,9 +20,10 @@ const templateIdColumnWidth = 14;
 
 function chooseMeme(memeFlags: MemeFlags): MemeChoice | undefined {
   const isAnimated = memeFlags.animated ?? false;
-  if (memeFlags.template !== undefined) return { memeKind: "template", memeValue: memeFlags.template, isAnimated };
-  if (memeFlags.gif !== undefined) return { memeKind: "clip", memeValue: memeFlags.gif, isAnimated };
-  if (memeFlags.url !== undefined) return { memeKind: "link", memeValue: memeFlags.url, isAnimated };
+  const storesLocally = memeFlags.local ?? false;
+  if (memeFlags.template !== undefined) return { memeKind: "template", memeValue: memeFlags.template, isAnimated, storesLocally };
+  if (memeFlags.gif !== undefined) return { memeKind: "clip", memeValue: memeFlags.gif, isAnimated, storesLocally };
+  if (memeFlags.url !== undefined) return { memeKind: "link", memeValue: memeFlags.url, isAnimated, storesLocally };
   return undefined;
 }
 
@@ -54,13 +55,13 @@ async function printTakenMeme(presentationFolder: string, memeChoice: MemeChoice
   const presentationSource = readFileSync(presentationFile, "utf8");
   const engineNames = findEngineNames(parseSlideSource(presentationSource, presentationFile));
   const preparedMeme = await prepareMeme(presentationFolder, memeChoice, readPresentationFile(presentationFolder).languageCode);
-  const { mediaPath } = preparedMeme;
+  const { mediaPath, remoteAddress } = preparedMeme;
   const mediaImportName = mediaPath === undefined ? undefined : nameMediaImport(mediaPath, (importName) => new RegExp(`\\b${importName}\\b`).test(presentationSource));
-  const savedPath = mediaPath ?? path.join(presentationFolder, "images", "memes", memeChoice.memeValue);
-  console.log(commandLineTexts.memeSaved(path.relative(process.cwd(), savedPath) || "."));
+  console.log(mediaPath === undefined ? commandLineTexts.memeLinked : commandLineTexts.memeSaved(path.relative(process.cwd(), mediaPath) || "."));
   console.log("");
   if (mediaPath !== undefined) console.log(`import ${mediaImportName} from ${JSON.stringify(toImportPath(presentationFolder, mediaPath))};\n`);
-  console.log(preparedMeme.writeMarkup((partName) => engineNames[partName] ?? partName, mediaImportName).join("\n"));
+  const mediaSource = mediaImportName === undefined ? JSON.stringify(remoteAddress) : `{${mediaImportName}}`;
+  console.log(preparedMeme.writeMarkup((partName) => engineNames[partName] ?? partName, mediaSource).join("\n"));
 }
 
 export async function runMemeCommand(commandArguments: string[], memeFlags: MemeFlags): Promise<void> {

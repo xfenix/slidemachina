@@ -1,0 +1,25 @@
+@layer slidemachina {
+  /* Out of the flow and above the content. The edge classes measure from the edges of the slide, not of the content area,
+     so a picture or a meme can stand in a corner or stick out of the screen: machina-pin-right translate-x-1/3. */
+  [data-slide] [data-content] :is(.machina-pin, .machina-pin-top, .machina-pin-bottom, .machina-pin-left, .machina-pin-right) {
+    position: absolute;
+    z-index: 1;
+    margin: 0;
+  }
+
+  [data-slide] [data-content] .machina-pin-top {
+    top: calc(-1 * var(--content-top));
+  }
+
+  [data-slide] [data-content] .machina-pin-bottom {
+    bottom: calc(-1 * var(--content-bottom));
+  }
+
+  [data-slide] [data-content] .machina-pin-left {
+    left: calc(-1 * var(--frame-padding));
+  }
+
+  [data-slide] [data-content] .machina-pin-right {
+    right: calc(-1 * var(--frame-padding));
+  }
+}

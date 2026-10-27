@@ -1,33 +1,29 @@
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
-import sharp from "sharp";
-import type { MemeCaptionField } from "../../shared-between-runtimes/meme-template.ts";
-
+// A caption field of a memegen template in shares of the picture size; angle in degrees, counterclockwise as in memegen.
+export type MemeCaptionField = {
+  fieldLeft: number,
+  fieldTop: number,
+  fieldWidth: number,
+  fieldHeight: number,
+  fieldAngle: number,
+  textColor: string,
+  letterCase: "upper" | "lower" | "none",
+  textAlign: "center" | "left",
+  isThickFont: boolean,
+};
 export type MemegenConfig = { templateName: string, sourceAddress: string | undefined, exampleCaptions: string[], captionFields: MemeCaptionField[] };
-export type MemeTemplateFiles = { memegenConfig: MemegenConfig, picturePath: string, pictureWidth: number, pictureHeight: number };
 
-// Templates lie in the presentation as memegen keeps them: images/memes/<template>/config.yml and default.jpg, .png or .gif.
+// Downloaded memes lie in images/memes/ of the presentation: a template as <template>.jpg, .png or .gif, the markup on the slide.
 export const memeFolderParts = ["images", "memes"];
 export const memeConfigFileName = "config.yml";
-export const staticPictureNames = ["default.jpg", "default.png"];
-export const animatedPictureName = "default.gif";
+const staticPictureNames = ["default.jpg", "default.png"];
+const animatedPictureName = "default.gif";
 // memegen's defaults for a field that leaves a key out: a band along the top in thick white capitals.
 const defaultFieldWidth = 1;
 const defaultFieldHeight = 0.2;
 
-export function findTemplateFolder(presentationFolder: string, templateId: string): string {
-  return path.join(presentationFolder, ...memeFolderParts, templateId);
-}
-
 // An animated meme takes the GIF and falls back to the still picture; a still one the other way round, as memegen does.
 export function listPictureNames(isAnimated: boolean): string[] {
   return isAnimated ? [animatedPictureName, ...staticPictureNames] : [...staticPictureNames, animatedPictureName];
-}
-
-export function findTemplatePicture(templateFolder: string, isAnimated: boolean): string | undefined {
-  return listPictureNames(isAnimated)
-    .map((pictureName) => path.join(templateFolder, pictureName))
-    .find((picturePath) => existsSync(picturePath));
 }
 
 // A long plain value continues on indented lines; YAML folds each line break into a space.
@@ -79,19 +75,5 @@ export function parseMemegenConfig(configText: string, templateId: string): Meme
     sourceAddress: readTopLevelValue(configText, "source"),
     exampleCaptions: readListItems(configText, "example").map(unquoteYamlValue),
     captionFields: readListItems(configText, "text").map((itemText) => readCaptionField(readItemFields(itemText))),
-  };
-}
-
-// Sizes are read from the file header: the slide knows the proportions before the picture loads.
-export async function readTemplateFiles(templateFolder: string, isAnimated: boolean): Promise<MemeTemplateFiles | undefined> {
-  const configPath = path.join(templateFolder, memeConfigFileName);
-  const picturePath = findTemplatePicture(templateFolder, isAnimated);
-  if (!existsSync(configPath) || picturePath === undefined) return undefined;
-  const pictureMetadata = await sharp(picturePath).metadata();
-  return {
-    memegenConfig: parseMemegenConfig(readFileSync(configPath, "utf8"), path.basename(templateFolder)),
-    picturePath,
-    pictureWidth: pictureMetadata.width,
-    pictureHeight: pictureMetadata.pageHeight ?? pictureMetadata.height,
   };
 }

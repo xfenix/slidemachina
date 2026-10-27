@@ -1,8 +1,13 @@
 import * as Machina from "slidemachina";
 import duskPicture from "./images/dusk.webp";
+import developmentToolbarPicture from "./images/development-toolbar.webp";
 import editorPicture from "./images/source-editor.webp";
 import glassCardsPicture from "./images/glass-cards.webp";
 import glassCardsSquarePicture from "./images/glass-cards-square.webp";
+import jdMemePicture from "./images/memes/jd.jpg";
+import memePanelPicture from "./images/meme-panel.webp";
+import minimapPicture from "./images/minimap.webp";
+import orbitMemePicture from "./images/memes/orbit.gif";
 import navigatorPicture from "./images/navigator.webp";
 import navigatorSectionsPicture from "./images/navigator-sections.webp";
 import presentationListPicture from "./images/presentation-list.webp";
@@ -10,6 +15,7 @@ import printViewPicture from "./images/print-view.webp";
 import sceneOrbitPoster from "./images/scene-orbit-poster.webp";
 import sceneOrbitVideo from "./images/scene-orbit.webm";
 import slidemachinaMarkPicture from "./images/slidemachina-mark.svg";
+import { StepMeter } from "./step-meter.tsx";
 
 export default (
   <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo}>
@@ -32,7 +38,7 @@ export default (
           </figure>
           <figure className="machina-big-number">
             <p>0 КБ</p>
-            <figcaption>кода подсветки в браузере</figcaption>
+            <figcaption>весит подсветка кода в браузере</figcaption>
           </figure>
         </div>
         <Machina.Source>Замеры сборки этого демо, октябрь 2026</Machina.Source>
@@ -96,6 +102,28 @@ export default (
         </ul>
       </Machina.Slide>
 
+      <Machina.Slide>
+        <h2>Разделы, подразделы и крошки</h2>
+        <div className="machina-columns" style={{ gridTemplateColumns: "auto 1fr" }}>
+          <div>
+            <Machina.Code lang="tsx">{`
+              <Section title="Как устроено">
+                <Slide>…</Slide>
+                <Section title="Шаги">
+                  <Slide>…</Slide>
+                </Section>
+              </Section>
+            `}</Machina.Code>
+          </div>
+          <ul data-steps>
+            <li>Раздел открывает слайд с номером «02»</li>
+            <li>Вложенный <code>Section</code> - подраздел с номером «02.1»</li>
+            <li>Внизу слева крошки: раздел › подраздел</li>
+            <li>Навигатор группирует слайды так же</li>
+          </ul>
+        </div>
+      </Machina.Slide>
+
       <Machina.Section title="Шаги">
         <Machina.Slide>
           <h2>Рассказ по шагам</h2>
@@ -121,12 +149,45 @@ export default (
           </ul>
         </Machina.Slide>
       </Machina.Section>
+
+      <Machina.Slide>
+        <h2>Свой компонент на слайде</h2>
+        <div className="machina-columns" style={{ gridTemplateColumns: "3fr 1fr" }}>
+          <div>
+            <Machina.Code lang="tsx">{`
+              function StepMeter() {
+                const slide = useSlide();
+                return <p>{slide.step}</p>;
+              }
+
+              <Slide onEnter={startTimer} onLeave={stopTimer}>
+              <Presentation onChange={sendAnalytics}>
+            `}</Machina.Code>
+            <ul data-steps>
+              <li><code>useSlide()</code> знает шаг и номер слайда</li>
+              <li><code>onEnter</code> и <code>onLeave</code> - слайд пришёл и ушёл</li>
+              <li><code>onChange</code> - любое движение по презентации</li>
+            </ul>
+          </div>
+          <StepMeter />
+        </div>
+      </Machina.Slide>
     </Machina.Section>
 
     <Machina.Section title="Вёрстка">
       <Machina.Slide align="center">
         <h2>По центру</h2>
         <p><code>align="center"</code> на слайде или на всей презентации</p>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Почему текст слева</h2>
+        <ul data-steps>
+          <li>Каждая строка начинается с одной вертикали, глаз не ищет начало</li>
+          <li>Строки разной длины не скачут, как при выключке по центру</li>
+          <li>Заголовок, список, код и таблица стоят на одной линии</li>
+          <li>По центру - обложки, цитаты и тезисы в одну фразу</li>
+        </ul>
       </Machina.Slide>
 
       <Machina.Slide background="var(--dark-background)">
@@ -136,10 +197,20 @@ export default (
           <Slide background={photo} tone="dark">
         `}</Machina.Code>
         <ul>
-          <li>Текст, код и логотип на тёмном светлеют</li>
-          <li>Движок сам определяет тон по цвету или картинке</li>
+          <li>На тёмном фоне текст, код и логотип светлеют</li>
+          <li>Тёмный фон или светлый, движок понимает сам: по цвету или картинке</li>
           <li>Если движок ошибся, задайте <code>tone</code>, как во второй строке кода</li>
         </ul>
+      </Machina.Slide>
+
+      <Machina.Slide background={sceneOrbitVideo}>
+        <h2>Видео вместо фона</h2>
+        <Machina.Code lang="tsx">{`
+          <Slide background={video}>
+          <Slide background={gif}>
+          <Slide background={{ iframe: "https://…" }}>
+        `}</Machina.Code>
+        <p className="machina-note">Видео играет без звука, пока слайд на экране. Страница в <code>iframe</code> в печать не попадает</p>
       </Machina.Slide>
 
       <Machina.Slide background={duskPicture} plain align="center" transition="zoom">
@@ -166,6 +237,7 @@ export default (
                 transition="fade"
                 speed="fast"
                 breadcrumbsSeparator="/"
+                progress={false}
               >
             `}</Machina.Code>
           </div>
@@ -174,6 +246,7 @@ export default (
             <li>Текст по центру на всех слайдах</li>
             <li>Переход и его скорость</li>
             <li>Знак между разделами в крошках</li>
+            <li>Полоса прогресса внизу</li>
           </ul>
         </div>
         <p className="machina-note">Презентация 4:3 «Итоги квартала» лежит в <code>examples/team-sync</code></p>
@@ -199,6 +272,43 @@ export default (
           <blockquote>Совершенство достигается не тогда, когда нечего добавить, а когда нечего убрать</blockquote>
           <figcaption>Антуан де Сент-Экзюпери, "Планета людей"</figcaption>
         </figure>
+      </Machina.Slide>
+
+      <Machina.Slide background="var(--accent-color)" transition="fade">
+        <p className="machina-thesis">Один слайд - одна мысль</p>
+      </Machina.Slide>
+
+      <Machina.Slide background="var(--second-accent-color)" transition="fade">
+        <p className="machina-thesis-small">Фраза длиннее берёт кегль поменьше. Цвет слайда задаёт проп background</p>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Тезис</h2>
+        <Machina.Code lang="tsx">{`
+          <Slide background="var(--accent-color)">
+            <p className="machina-thesis">Один слайд - одна мысль</p>
+          </Slide>
+        `}</Machina.Code>
+        <ul>
+          <li>Фраза без заголовка стоит в центре слайда</li>
+          <li>Два кегля: <code>machina-thesis</code> и <code>machina-thesis-small</code></li>
+          <li>Цвет текста движок подбирает под фон</li>
+        </ul>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Блок поверх вёрстки</h2>
+        <ul>
+          <li><code>machina-pin</code> вынимает блок из потока</li>
+          <li><code>machina-pin-bottom</code> и <code>machina-pin-right</code> прижимают его к краям слайда</li>
+          <li>Сдвиг из Tailwind выносит блок за край экрана</li>
+        </ul>
+        <div className="machina-pin-bottom machina-pin-right w-[560px] translate-x-[14%] translate-y-[12%] -rotate-6">
+          <Machina.Meme src={jdMemePicture} alt="Жозеф Дюкре" stretch={false}>
+            <p>Позвольте</p>
+            <p>выглянуть из-за края</p>
+          </Machina.Meme>
+        </div>
       </Machina.Slide>
     </Machina.Section>
 
@@ -261,7 +371,7 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide plain background="var(--dark-background)">
-        <h2>Из колонки на весь слайд</h2>
+        <h2>Картинка под заголовком на весь слайд</h2>
         <Machina.Image src={glassCardsPicture} full alt="Стеклянные карточки с текстом и графиком на цветном фоне" />
       </Machina.Slide>
 
@@ -464,7 +574,7 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide>
-        <h2>Кадр на нужной части</h2>
+        <h2>Фокус на части схемы</h2>
         <Machina.Diagram>
           <Machina.Box id="slides">index.tsx<small>слайды</small></Machina.Box>
           <Machina.Group id="build" title="Сборка">
@@ -530,7 +640,7 @@ export default (
 
     <Machina.Section title="Переходы">
       <Machina.Slide>
-        <h2>Морфинг без разметки</h2>
+        <h2>Морфинг любых блоков</h2>
         <div morph="story-card" className="flex w-1/2 flex-col gap-(--block-gap) rounded-(--block-radius) bg-(--code-background) p-(--frame-padding)">
           <p morph="story-label" className="m-0 text-(length:--secondary-text-size) text-(--muted-color) [text-box:trim-both_cap_alphabetic]">Выручка за год</p>
           <p morph="story-number" className="m-0 text-(length:--display-size) leading-none [text-box:trim-both_cap_alphabetic] font-bold tracking-(--heading-letter-spacing) text-(--accent-color)">+72%</p>
@@ -545,7 +655,7 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide>
-        <h2>Морфинг без разметки</h2>
+        <h2>Морфинг любых блоков</h2>
         <div morph="story-card" className="flex w-full flex-1 flex-col gap-(--block-gap) rounded-(--block-radius) bg-(--code-background) p-(--frame-padding)">
           <div className="flex items-baseline justify-between">
             <p morph="story-label" className="m-0 text-(length:--secondary-text-size) text-(--muted-color) [text-box:trim-both_cap_alphabetic]">Выручка за год</p>
@@ -562,7 +672,7 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide align="center">
-        <h2>Морфинг без разметки</h2>
+        <h2>Морфинг любых блоков</h2>
         <p morph="story-label" className="text-(length:--secondary-text-size) text-(--muted-color)">Выручка за год</p>
         <p morph="story-number" className="text-(length:--display-size) leading-none font-bold tracking-(--heading-letter-spacing) text-(--accent-color)">+72%</p>
         <figcaption>График стал большим числом. Пары задаёт атрибут <code>morph</code></figcaption>
@@ -604,34 +714,35 @@ export default (
 
     <Machina.Section title="Обложки">
       <Machina.Slide cover align="left" valign="bottom">
-        <h1>Обложка снизу слева</h1>
-        <p className="machina-lead">
-          <code>align="left"</code> и <code>valign="bottom"</code>
-        </p>
+        <div aria-hidden className="machina-pin-top machina-pin-right h-full w-2/3 bg-[radial-gradient(circle_at_70%_35%,var(--accent-color),transparent_55%),radial-gradient(circle_at_95%_85%,var(--second-accent-color),transparent_45%)] opacity-40" />
+        <h1>Итоги квартала</h1>
+        <p className="machina-lead">Снизу слева: <code>align="left"</code> и <code>valign="bottom"</code></p>
+        <p className="machina-note">Свечение справа — обычный <code>div</code> с градиентом</p>
+      </Machina.Slide>
+
+      <Machina.Slide cover background={duskPicture}>
+        <h1>Ночной релиз</h1>
+        <p className="machina-lead">Посередине, на фото. Цвет текста движок подбирает по яркости картинки</p>
       </Machina.Slide>
 
       <Machina.Slide cover align="right" valign="top">
-        <h1>Обложка сверху справа</h1>
-        <p className="machina-lead">
-          <code>align="right"</code> и <code>valign="top"</code>
-        </p>
+        <h1>Планы на 2027</h1>
+        <p className="machina-lead">Сверху справа: <code>align="right"</code> и <code>valign="top"</code></p>
+        <div className="machina-pin-bottom machina-pin-left machina-pin-right h-1/2">
+          <img src={glassCardsPicture} alt="" className="size-full object-cover" />
+        </div>
       </Machina.Slide>
 
       <Machina.Slide cover align="left">
         <Machina.Image src={navigatorSectionsPicture} alt="Навигатор: разделы и миниатюры слайдов" />
-        <h1>Картинка слева</h1>
-        <p className="machina-lead"><code>Image</code> стоит перед текстом</p>
+        <h1>Сто слайдов за минуту</h1>
+        <p className="machina-lead">Картинка слева: <code>Image</code> стоит перед текстом</p>
       </Machina.Slide>
 
       <Machina.Slide cover align="right" background="var(--dark-background)">
-        <h1>Картинка справа</h1>
-        <p className="machina-lead"><code>Image</code> стоит после текста</p>
+        <h1>Метрики продукта</h1>
+        <p className="machina-lead">Картинка справа: <code>Image</code> стоит после текста</p>
         <Machina.Image src={glassCardsPicture} alt="Стеклянные карточки с текстом и графиком" />
-      </Machina.Slide>
-
-      <Machina.Slide cover valign="bottom" background={duskPicture}>
-        <h1>Обложка на фото</h1>
-        <p className="machina-lead">Цвет текста движок подберёт по яркости картинки</p>
       </Machina.Slide>
     </Machina.Section>
 
@@ -639,8 +750,9 @@ export default (
       title="3D"
       cover={
         <Machina.Slide cover align="left" valign="top" background="var(--dark-background)">
+          <p className="machina-note">Раздел со своей обложкой</p>
           <h1>3D</h1>
-          <p className="machina-lead">Свою обложку раздела задаёт <code>cover</code></p>
+          <p className="machina-lead"><code>{"cover={<Slide>…</Slide>}"}</code> заменяет стандартный слайд раздела</p>
           <Machina.Scene full orbit>
             <Machina.Sphere size={1.8} position={[0, 0.9, 1]} color="var(--muted-color)" material="metal" />
             <Machina.Cube size={1.6} position={[-2, 0.8, -1]} rotation={[0, 30, 0]} material="glossy" />
@@ -725,7 +837,7 @@ export default (
 
     <Machina.Section title="Мемы и QR">
       <Machina.Slide align="center">
-        <Machina.Meme template="jd">
+        <Machina.Meme src={jdMemePicture} alt="Жозеф Дюкре">
           <p>Извольте вставить мем</p>
           <p>не покидая слайдов</p>
         </Machina.Meme>
@@ -744,13 +856,26 @@ export default (
             <Machina.Code lang="bash">{`slidemachina meme "this is fine"`}</Machina.Code>
           </div>
           <div>
-            <Machina.Meme template="orbit" animated>
+            <Machina.Meme src={orbitMemePicture} alt="Облёт 3D-сцены">
               <p>Схема, код, 3D</p>
               <p>и мем в одном файле</p>
-              <figcaption>Свой шаблон с GIF: <code>images/memes/orbit</code></figcaption>
+              <figcaption>Свой мем из GIF: подписи пишутся прямо в теге</figcaption>
             </Machina.Meme>
           </div>
         </div>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Мем настраивается в теге</h2>
+        <Machina.Meme src={jdMemePicture} float="right" alt="Жозеф Дюкре">
+          <p data-place="center" style={{ rotate: "-6deg" }}>Подпись где угодно</p>
+        </Machina.Meme>
+        <ul>
+          <li><code>float</code> - текст обтекает мем, как картинку</li>
+          <li><code>data-place</code> двигает подпись: <code>top</code>, <code>bottom</code>, <code>center</code> или проценты</li>
+          <li>Цвет и поворот подписи - обычный <code>style</code></li>
+          <li>В <code>machina-pin</code> мем встаёт в угол или за край слайда</li>
+        </ul>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -911,16 +1036,29 @@ export default (
       </Machina.Slide>
     </Machina.Section>
 
-    <Machina.Section title="Редактор">
+    <Machina.Section title="Режим разработки">
+      <Machina.Slide background="var(--dark-background)">
+        <h2>Панель разработчика</h2>
+        <p className="machina-lead">В <code>slidemachina dev</code> на панели внизу есть ещё кнопки</p>
+        <Machina.Image src={developmentToolbarPicture} alt="Панель с включённым редактором" />
+        <ul data-steps>
+          <li>Миникарта показывает все слайды справа</li>
+          <li>Карандаш включает редактор, рядом встают кнопки слайда</li>
+          <li>Новый слайд, копия, раньше, позже, удалить</li>
+          <li>Смайлик открывает панель «Мем»</li>
+          <li>В сборке этих кнопок нет</li>
+        </ul>
+      </Machina.Slide>
+
       <Machina.Slide>
         <h2>Правка прямо на слайде</h2>
         <ul data-steps>
-          <li><kbd>E</kbd> или карандаш на панели включают редактор в <code>slidemachina dev</code></li>
+          <li><kbd>E</kbd> или карандаш включают редактор</li>
           <li>Текст: нажмите и пишите. <kbd>Enter</kbd> сохраняет, <kbd>Esc</kbd> отменяет</li>
           <li>Картинка: перетащите на неё файл, он ляжет в <code>images/</code></li>
           <li>Блок схемы: тяните в другую колонку или на другое место</li>
+          <li>Слайд: кнопки на панели добавляют, копируют, двигают и удаляют</li>
           <li>Правка сразу записывается в <code>index.tsx</code>, слайд остаётся на том же шаге</li>
-          <li>В сборку редактор не попадает</li>
         </ul>
       </Machina.Slide>
 
@@ -962,6 +1100,28 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide>
+        <h2>Мем с панели</h2>
+        <div className="machina-columns" style={{ gridTemplateColumns: "2fr 3fr" }}>
+          <div>
+            <Machina.Image src={memePanelPicture} stretch alt="Панель «Мем»: поиск шаблона ducreux" />
+          </div>
+          <ul data-steps>
+            <li>Смайлик на панели открывает поиск шаблонов memegen и GIF</li>
+            <li>Подойдёт и ссылка на картинку или страницу с ней</li>
+            <li>Мем встаёт новым слайдом после текущего</li>
+            <li>Подписи и их места пишутся прямо в <code>index.tsx</code></li>
+          </ul>
+        </div>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Миникарта</h2>
+        <Machina.Image src={minimapPicture} stretch alt="Миникарта слайдов справа от слайда">
+          <figcaption>Все слайды поверх правого края, как миникарта в редакторе кода. Включает кнопка на панели или <kbd>M</kbd></figcaption>
+        </Machina.Image>
+      </Machina.Slide>
+
+      <Machina.Slide>
         <h2>Замечание агенту кликом по слайду</h2>
         <ul data-steps>
           <li>Кнопка Agentation на панели в режиме <code>dev</code></li>
@@ -996,16 +1156,20 @@ export default (
               <td>слайд с этим номером</td>
             </tr>
             <tr>
-              <td><kbd>B</kbd> <kbd>F</kbd></td>
-              <td>чёрный экран, полный экран</td>
+              <td><kbd>B</kbd></td>
+              <td>пауза: чёрный экран и кнопка возврата</td>
+            </tr>
+            <tr>
+              <td><kbd>F</kbd></td>
+              <td>полный экран</td>
             </tr>
             <tr>
               <td><kbd>H</kbd></td>
               <td>спрятать панель внизу</td>
             </tr>
             <tr>
-              <td><kbd>E</kbd></td>
-              <td>редактор в <code>slidemachina dev</code></td>
+              <td><kbd>E</kbd> <kbd>M</kbd></td>
+              <td>редактор и миникарта в <code>slidemachina dev</code></td>
             </tr>
             <tr>
               <td><kbd>Cmd</kbd> <kbd>P</kbd></td>

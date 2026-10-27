@@ -62,7 +62,9 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 | Текст | `<p className="machina-lead">` — вводная фраза, под заголовком слайда — подзаголовок, `<p>` — основной текст, `<p className="machina-note">` — пометка мелким шрифтом |
 | Подпись и источник | `<figcaption>…</figcaption>` сразу после блока, `<Source>…</Source>` |
 | QR-код | `<QR value="https://…" logo={logo} />` — на свободное место, фон прозрачный. В колонках ставьте код слева |
-| Мем | `<Meme template="drake"><p>Верх</p><p>Низ</p></Meme>` — шаблон с [memegen.link](https://memegen.link), подписи по порядку полей. `animated` — версия в GIF, если она есть |
+| Мем | `<Meme src={picture}><p>Верх</p><p>Низ</p></Meme>` — подписи поверх картинки: первая сверху, вторая снизу. `data-place` у подписи двигает её, `float` ставит мем сбоку от текста |
+| Тезис | `<Slide background="var(--accent-color)"><p className="machina-thesis">Одна мысль</p></Slide>` — фраза в центре слайда. Помельче — `machina-thesis-small` |
+| Блок поверх слайда | `<div className="machina-pin-bottom machina-pin-right">…</div>` — блок прижат к краю слайда и не двигает остальное |
 | Схема | `<Diagram><Box id="a">A</Box><Box id="b">B</Box><Arrow from="a" to="b" /></Diagram>` |
 | Диаграмма обмена | `<Sequence><Actor id="a">A</Actor><Actor id="b">B</Actor><Message from="a" to="b" label="запрос" /></Sequence>` |
 | 3D-сцена | `<Scene orbit><Cube size={1.5} /><Sphere position={[2, 0.5, 0]} step /></Scene>` |
@@ -83,11 +85,14 @@ npx slidemachina build --pdf         # PDF, страница на слайд; с
 | ← , PageUp | назад |
 | Esc или O | все слайды |
 | номер и Enter | перейти к слайду |
-| B | чёрный экран |
+| B | пауза: чёрный экран, вернуться — B или кнопка |
 | F | полный экран |
 | H | спрятать панель |
-| E | править текст и картинки прямо на слайде, только в `npm run dev` |
+| E | редактор: текст, картинки и слайды правятся прямо на слайде, только в `npm run dev` |
+| M | миникарта слайдов справа, только в `npm run dev` |
 | Cmd+P или Ctrl+P | печать в PDF |
+
+На телефоне и планшете листает свайп или касание: справа — дальше, слева — назад.
 
 ## Тема
 

@@ -17,7 +17,9 @@ export type PresentationSettings = {
   transition: SlideTransition;
   speed: TransitionSpeed;
 };
-type SlideState = { slideIndex: number; isCurrentSlide: boolean; isSlideNearby: boolean; isSlideCopy: boolean; revealedStep: number };
+// What a custom component on a slide may read: useSlide() inside any element of a <Slide>.
+export type SlideState = { number: number; step: number; isCurrent: boolean; isCopy: boolean };
+type SlideRenderState = { slideIndex: number; isCurrentSlide: boolean; isSlideNearby: boolean; isSlideCopy: boolean; revealedStep: number };
 type SlideEnvironment = {
   slideNumber: number;
   sectionTrail: string[];
@@ -38,6 +40,12 @@ export function useSlideEnvironment(): SlideEnvironment {
   return slideEnvironment;
 }
 
+// A thumbnail or printed page is a copy: it is never current, and its step is the one it shows.
+export function useSlide(): SlideState {
+  const { slideNumber, revealedStep, isCurrentSlide, isSlideCopy } = useSlideEnvironment();
+  return { number: slideNumber, step: revealedStep, isCurrent: isCurrentSlide, isCopy: isSlideCopy };
+}
+
 // A slide whose state did not change gets the same environment object, so a key press re-renders only the slides it changes.
 export function useSlideEnvironments(
   sectionTrails: string[][],
@@ -48,7 +56,7 @@ export function useSlideEnvironments(
   "use no memo";
   return useMemo(() => {
     const environmentCache = new Map<string, SlideEnvironment>();
-    return ({ slideIndex, isCurrentSlide, isSlideNearby, isSlideCopy, revealedStep }: SlideState): SlideEnvironment => {
+    return ({ slideIndex, isCurrentSlide, isSlideNearby, isSlideCopy, revealedStep }: SlideRenderState): SlideEnvironment => {
       const cacheKey = `${slideIndex} ${isCurrentSlide} ${isSlideNearby} ${isSlideCopy} ${revealedStep}`;
       const cachedEnvironment = environmentCache.get(cacheKey);
       if (cachedEnvironment !== undefined) return cachedEnvironment;

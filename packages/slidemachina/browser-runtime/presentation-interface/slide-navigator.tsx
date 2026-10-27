@@ -7,6 +7,8 @@ const navigatorPadding = 64;
 const thumbnailGap = 32;
 // Six columns on a 16:9 screen: a deck of fifty slides fits in three screens.
 const minimumThumbnailWidth = 240;
+// On a phone the canvas is small: a thumbnail stays at least this wide on screen, so fewer columns fit.
+const minimumScreenThumbnailWidth = 140;
 const minimumColumnCount = 2;
 // Rows matter more than columns when the next row is found among groups of different length.
 const rowDistanceWeight = 100_000;
@@ -20,19 +22,20 @@ type SlideNavigatorProperties = {
   outlinedSlides: OutlinedSlide[];
   currentSlideIndex: number;
   canvasWidth: number;
+  canvasScale: number;
   languageCode: string;
   renderThumbnail: (slideIndex: number) => ReactNode;
-  goToSlide: (slideIndex: number) => void;
-  closeNavigator: () => void;
+  // Without a slide the navigator closes on the slide it was opened from.
+  closeNavigator: (chosenSlideIndex?: number) => void;
 };
 
 export function SlideNavigator({
   outlinedSlides,
   currentSlideIndex,
   canvasWidth,
+  canvasScale,
   languageCode,
   renderThumbnail,
-  goToSlide,
   closeNavigator,
 }: SlideNavigatorProperties) {
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(currentSlideIndex);
@@ -42,10 +45,7 @@ export function SlideNavigator({
     thumbnailElements.current[selectedSlideIndex]?.scrollIntoView({ block: "nearest" });
   }, [selectedSlideIndex]);
 
-  const openSlide = (slideIndex: number) => {
-    goToSlide(slideIndex);
-    closeNavigator();
-  };
+  const openSlide = (slideIndex: number) => closeNavigator(slideIndex);
 
   useWindowKeydown((keyboardEvent) => {
     const lastSlideIndex = outlinedSlides.length - 1;
@@ -61,8 +61,11 @@ export function SlideNavigator({
     return true;
   }, true);
 
-  const columnCount = Math.max(minimumColumnCount, Math.floor((canvasWidth - 2 * navigatorPadding + thumbnailGap) / (minimumThumbnailWidth + thumbnailGap)));
-  const thumbnailWidth = (canvasWidth - 2 * navigatorPadding - (columnCount - 1) * thumbnailGap) / columnCount;
+  const leastThumbnailWidth = Math.max(minimumThumbnailWidth, minimumScreenThumbnailWidth / canvasScale);
+  // The navigator covers the whole window, letterbox margins too: on a phone held upright it is the full screen, not a strip.
+  const navigatorWidth = Math.max(canvasWidth, window.innerWidth / canvasScale);
+  const columnCount = Math.max(minimumColumnCount, Math.floor((navigatorWidth - 2 * navigatorPadding + thumbnailGap) / (leastThumbnailWidth + thumbnailGap)));
+  const thumbnailWidth = (navigatorWidth - 2 * navigatorPadding - (columnCount - 1) * thumbnailGap) / columnCount;
   const navigatorStyle = {
     "--navigator-columns": columnCount,
     "--navigator-gap": `${thumbnailGap}px`,
@@ -87,6 +90,7 @@ export function SlideNavigator({
                   key={slideIndex}
                   type="button"
                   data-thumbnail
+                  data-thumbnail-index={slideIndex}
                   data-selected={slideIndex === selectedSlideIndex || undefined}
                   aria-current={slideIndex === currentSlideIndex || undefined}
                   ref={(thumbnailElement) => {

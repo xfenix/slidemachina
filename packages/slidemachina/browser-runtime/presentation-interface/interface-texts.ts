@@ -2,6 +2,8 @@ import { pickRussianPlural, pickTextLanguage } from "../../shared-between-runtim
 const interfaceTextsByLanguage = {
   en: {
     navigatorLabel: "Slides",
+    minimapLabel: "Minimap of the slides",
+    minimapButton: "Minimap · M",
     toolbarLabel: "Presentation controls",
     navigatorButton: "All slides · Esc",
     fullscreenButton: "Full screen · F",
@@ -9,6 +11,7 @@ const interfaceTextsByLanguage = {
     showToolbarButton: "Show controls · H",
     backToListButton: "All presentations",
     jumpPrompt: "Go to slide",
+    pauseReturnButton: "Back to the slide · B",
     printButton: "Print",
     printNowTitle: "Print",
     printViewTitle: "Print view",
@@ -24,6 +27,8 @@ const interfaceTextsByLanguage = {
   },
   ru: {
     navigatorLabel: "Слайды",
+    minimapLabel: "Миникарта слайдов",
+    minimapButton: "Миникарта · M",
     toolbarLabel: "Управление презентацией",
     navigatorButton: "Все слайды · Esc",
     fullscreenButton: "Полный экран · F",
@@ -31,6 +36,7 @@ const interfaceTextsByLanguage = {
     showToolbarButton: "Показать панель · H",
     backToListButton: "Все презентации",
     jumpPrompt: "Перейти к слайду",
+    pauseReturnButton: "Вернуться к слайду · B",
     printButton: "Печать",
     printNowTitle: "Распечатать",
     printViewTitle: "Печатная версия",
