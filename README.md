@@ -1,8 +1,6 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-on-dark.svg">
-    <img src="assets/logo-light.svg" alt="slidemachina" width="360">
-  </picture>
+  <img src="assets/logo-light.svg#gh-light-mode-only" alt="slidemachina" width="360">
+  <img src="assets/logo-on-dark.svg#gh-dark-mode-only" alt="slidemachina" width="360">
 </p>
 
 <p align="center">
