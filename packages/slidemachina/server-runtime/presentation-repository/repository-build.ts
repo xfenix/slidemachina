@@ -15,7 +15,7 @@ import type { PresentationCard, ListedCard } from "./presentation-list-page.ts";
 import type { SiteLayout } from "./presentation-repository.ts";
 
 const pageVariantNames: BuildVariant[] = ["html", "protected", "folder"];
-const downloadVariantNames: ("pdf" | "pdf-steps" | "zip")[] = ["pdf", "pdf-steps", "zip"];
+const downloadVariantNames: ("pdf" | "pdf-steps" | "pptx" | "zip")[] = ["pdf", "pdf-steps", "pptx", "zip"];
 const coverFileName = "cover.webp";
 
 // <folder>/index.html opens the presentation, downloads and the cover lie next to it: dist/ goes to a server as it is.
@@ -27,6 +27,7 @@ function nameRepositoryOutputs(presentationOutput: string, folderName: string): 
     zip: path.join(presentationOutput, `${folderName}.zip`),
     pdf: path.join(presentationOutput, `${folderName}.pdf`),
     "pdf-steps": path.join(presentationOutput, `${folderName}-steps.pdf`),
+    pptx: path.join(presentationOutput, `${folderName}.pptx`),
   };
 }
 

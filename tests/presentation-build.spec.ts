@@ -6,6 +6,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { expect, test, type Page } from "@playwright/test";
+import { strFromU8, unzipSync } from "fflate";
 import { sampleSceneCanvas } from "./scene-sampling.ts";
 import { commandLineScript, demoFolderName, examplesFolder, findSlideNumber } from "./test-helpers.ts";
 
@@ -47,10 +48,12 @@ function countPrintedPages(page: Page) {
   });
 }
 
-test("сборка: один HTML-файл листается без сервера, папка держит ELK и three.js отдельно, печатная версия и PDF по шагам", async ({ page }) => {
+test("сборка: один HTML-файл листается без сервера, папка держит ELK и three.js отдельно, печатная версия, PDF по шагам и PowerPoint", async ({ page }) => {
+  // Vite, the PDF and the PowerPoint export each drive Chrome through the whole demo.
+  test.setTimeout(180_000);
   const outputFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-build-"));
   try {
-    await runCommand(process.execPath, [commandLineScript, "build", path.join(examplesFolder, demoFolderName), "--html", "--folder", "--steps", "--out", outputFolder]);
+    await runCommand(process.execPath, [commandLineScript, "build", path.join(examplesFolder, demoFolderName), "--html", "--folder", "--steps", "--pptx", "--out", outputFolder]);
     const singleFile = path.join(outputFolder, "demo-presentation.html");
     const assetFolder = path.join(outputFolder, "demo-presentation", "assets");
 
@@ -93,6 +96,23 @@ test("сборка: один HTML-файл листается без серве�
       await expect(page.locator("[data-print-pages] [data-scene][data-drawn]")).toHaveCount(demoSceneCount);
       expect((await sampleSceneCanvas(printedScenes.first().locator("[data-scene-canvas]"))).paintedPixels).toBeGreaterThan(250);
       await page.emulateMedia({ media: "screen" });
+    });
+
+    await test.step("PowerPoint: слайд на слайд, текст и стрелки схем — объекты PowerPoint, шаги схемы — анимация по щелчку", async () => {
+      const pptxFiles = unzipSync(await readFile(path.join(outputFolder, "demo-presentation.pptx")));
+      const readSlideXml = (slideNumber: number) => strFromU8(pptxFiles[`ppt/slides/slide${slideNumber}.xml`] ?? new Uint8Array());
+      const pptxSlideCount = Object.keys(pptxFiles).filter((filePath) => /^ppt\/slides\/slide\d+\.xml$/.test(filePath)).length;
+      expect(pptxSlideCount).toBe(await page.locator("[data-canvas] > [data-slide]").count());
+      expect(readSlideXml(1), "заголовок обложки — текстовое поле").toMatch(/<p:sp>(?:(?!<\/p:sp>).)*<a:t>Слайды из.кода<\/a:t>/s);
+      expect(readSlideXml(1), "логотип — картинка").toContain("<p:pic>");
+      const diagramSlideNumber = await findSlideNumber(page, "[data-diagram] [data-step]");
+      const diagramSteps = await page.locator("[data-canvas] > [data-slide]").nth(diagramSlideNumber - 1).evaluate((slideElement) => {
+        const appearingSteps = [...slideElement.querySelectorAll<HTMLElement>("[data-step-index]")].filter((stepElement) => !["highlight", "dim"].includes(stepElement.dataset.stepEffect ?? ""));
+        return new Set(appearingSteps.map((stepElement) => stepElement.dataset.stepIndex)).size;
+      });
+      const diagramSlideXml = readSlideXml(diagramSlideNumber);
+      expect(diagramSlideXml, "стрелка — фигура").toContain("<a:custGeom>");
+      expect(diagramSlideXml.match(/delay="indefinite"/g)?.length, "щелчок на каждый шаг").toBe(diagramSteps);
     });
 
     await test.step("папка: ELK и three.js отдельными файлами, в основном модуле нет ни ELK, ни three.js, ни agentation, редактора нет нигде", async () => {

@@ -109,8 +109,7 @@ test("демо листается, показывает шаги и навига
     const componentNames = [...publicInterfaceSource.matchAll(/^export \{([^}]+)\}/gm)].flatMap((exportMatch) =>
       exportMatch[1]!.split(",").map((exportedName) => exportedName.trim()).filter((exportedName) => exportedName !== "" && !exportedName.startsWith("type ")),
     );
-    // useSlide lives in a component of its own file next to index.tsx.
-    const demoSource = (await readFile(demoPresentationFile, "utf8")) + (await readFile(path.join(path.dirname(demoPresentationFile), "step-meter.tsx"), "utf8"));
+    const demoSource = await readFile(demoPresentationFile, "utf8");
     expect(componentNames.filter((componentName) => !demoSource.includes(`Machina.${componentName}`)), "компоненты, которых нет в демо").toEqual([]);
   });
 
@@ -711,8 +710,10 @@ test("демо листается, показывает шаги и навига
     await expect(currentSlide(page).locator("[data-step-reached]")).toHaveCount(3);
   });
 
-  await test.step("правка index.tsx обновляет слайд без перезагрузки", async () => {
+  // The demo's index.tsx holds a component of its own, StepMeter: such a module used to reload the page.
+  await test.step("правка index.tsx со своим компонентом обновляет слайд без перезагрузки", async () => {
     const effectsSlideNumber = await findSlideNumber(page, "h2", "Эффекты шагов");
+    await page.evaluate(() => document.documentElement.setAttribute("data-test-before-edit", ""));
     await editFileWhile(
       demoPresentationFile,
       (originalPresentation) => originalPresentation.replace("Эффекты шагов", "Эффекты шагов после правки"),
@@ -720,7 +721,7 @@ test("демо листается, показывает шаги и навига
         await expect(currentSlide(page).locator("h2")).toHaveText("Эффекты шагов после правки");
         await expect(page).toHaveURL(new RegExp(`#${effectsSlideNumber}\\.3$`));
         await expect(currentSlide(page).locator("[data-step-reached]")).toHaveCount(3);
-        expect(await page.evaluate(() => performance.getEntriesByType("navigation").length)).toBe(1);
+        await expect(page.locator("html"), "страница не перезагрузилась").toHaveAttribute("data-test-before-edit");
       },
     );
     await expect(currentSlide(page).locator("h2")).toHaveText("Эффекты шагов");

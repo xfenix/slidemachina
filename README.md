@@ -6,7 +6,7 @@
 <p align="center">
   <b>Презентации на React.</b><br>
   Слайды пишутся в одном <code>index.tsx</code>.<br>
-  Собираются одной командой: в HTML-файл, сайт или PDF.
+  Собираются одной командой: в HTML-файл, сайт, PDF или PowerPoint.
 </p>
 
 <p align="center">
@@ -53,7 +53,7 @@ import * as Machina from "slidemachina";
 import logoPicture from "./images/logo.svg";
 
 export default (
-  <Machina.Presentation title="Доклад" lang="ru" logo={logoPicture}>
+  <Machina.Presentation title="Доклад" lang="ru" aspectRatio="16:9" logo={logoPicture}>
     <Machina.Slide cover>
       <h1>Доклад</h1>
     </Machina.Slide>
@@ -81,6 +81,9 @@ export default (
 ```
 
 Раздел даёт слайд-обложку, хлебные крошки и группу в навигаторе.
+Формат слайдов — `aspectRatio` у `Presentation`, по умолчанию `16:9`.
+В этом формате миниатюры, PDF и PowerPoint.
+На экране слайд растёт под окно, но не больше чем на треть: фон доходит до краёв, кегли те же.
 Стиль лежит в `style.css` рядом, картинки — в `images/`.
 TypeScript подсказывает компоненты и их свойства.
 
@@ -145,7 +148,7 @@ TypeScript подсказывает компоненты и их свойств�
 ## Сборка
 
 Без флагов `slidemachina build` спросит, что собрать.
-В CI флаги складываются: `slidemachina build --html --folder --pdf`.
+В CI флаги складываются: `slidemachina build --html --folder --pdf --pptx`.
 
 | Флаг | Результат |
 |---|---|
@@ -153,6 +156,7 @@ TypeScript подсказывает компоненты и их свойств�
 | `--protected` | Тот же файл под паролем |
 | `--folder`, `--zip` | Папка для сайта или она же в архиве |
 | `--pdf`, `--steps` | PDF: страница на слайд или на каждый шаг |
+| `--pptx` | PowerPoint. Текст, таблицы, код, картинки, блоки и стрелки схем — отдельные объекты, их можно править. Шаги — анимация по щелчку |
 
 ## Чем лучше reveal.js
 
@@ -166,7 +170,7 @@ TypeScript подсказывает компоненты и их свойств�
 | Схемы | Mermaid сторонним плагином | `Diagram` и `Sequence` с автораскладкой ELK |
 | 3D | Нет | `Scene` на three.js |
 | Типограф | Нет | Для русского и английского |
-| Сборка | Сборщик настраиваете сами | HTML-файл, папка, zip, файл под паролем, PDF |
+| Сборка | Сборщик настраиваете сами | HTML-файл, папка, zip, файл под паролем, PDF, PowerPoint |
 | Правка | В редакторе кода | Ещё и на слайде, с записью в `index.tsx` |
 | Много докладов | Каждый сам по себе | Репозиторий: общая тема, список, сборка всех сразу |
 
@@ -205,7 +209,7 @@ TypeScript подсказывает компоненты и их свойств�
 | Рамка слайда | `--frame-padding` по бокам и снизу, `--frame-top` сверху, `--heading-gap` под заголовком |
 | Обложки разделов | `--section-background`, `--section-number-start-color`, `--section-number-end-color`, `--section-number-size`, `--section-texture`. Или свой слайд в `cover` у `Section` |
 | Движение | `speed` у `Presentation` или `Slide`, длительности `--transition-duration` и соседние, кривая `--transition-easing` |
-| Формат | `<Presentation aspectRatio="4:3">`, по умолчанию `16:9` |
+| Формат | `<Presentation aspectRatio="4:3">`, по умолчанию `16:9`. Миниатюры, PDF и PowerPoint — в этом формате, на экране слайд растёт под окно до трети |
 | Разделитель крошек | `<Presentation breadcrumbsSeparator="/">`, по умолчанию `›` |
 
 - Логотип — `logo` у `Presentation`: файл, `{ light, dark }` для светлых и тёмных слайдов или компонент. Компонент получает `dark={true}` на тёмных слайдах. Логотип движка — `logo={Machina.SlidemachinaLogo}`.

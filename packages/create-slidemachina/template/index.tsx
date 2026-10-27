@@ -4,7 +4,7 @@ import logoOnDarkPicture from "./images/logo-on-dark.svg";
 import logoPicture from "./images/logo.svg";
 
 export default (
-  <Machina.Presentation title="Мой доклад" lang="ru" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
+  <Machina.Presentation title="Мой доклад" lang="ru" aspectRatio="16:9" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
     <Machina.Slide cover>
       <h1>Мой доклад</h1>
       <p className="machina-lead">Имя докладчика, 2026</p>

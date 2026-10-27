@@ -15,7 +15,17 @@ import printViewPicture from "./images/print-view.webp";
 import sceneOrbitPoster from "./images/scene-orbit-poster.webp";
 import sceneOrbitVideo from "./images/scene-orbit.webm";
 import slidemachinaMarkPicture from "./images/slidemachina-mark.svg";
-import { StepMeter } from "./step-meter.tsx";
+
+// A component of the presentation lives right here, above the slides. It shows the step of its own slide via useSlide().
+function StepMeter() {
+  const slide = Machina.useSlide();
+  return (
+    <figure className="machina-big-number">
+      <p>{Number.isFinite(slide.step) ? slide.step : "все"}</p>
+      <figcaption>шаг этого слайда</figcaption>
+    </figure>
+  );
+}
 
 export default (
   <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo}>
@@ -242,7 +252,7 @@ export default (
             `}</Machina.Code>
           </div>
           <ul>
-            <li>Формат: 16:9, 4:3, 9:16 или свой</li>
+            <li>Формат: экран, PDF и PowerPoint</li>
             <li>Текст по центру на всех слайдах</li>
             <li>Переход и его скорость</li>
             <li>Знак между разделами в крошках</li>

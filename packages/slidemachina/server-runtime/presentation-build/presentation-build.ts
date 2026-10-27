@@ -8,6 +8,7 @@ import { commandLineTexts, formatFileSize } from "../command-line/command-line-t
 import { zipFolder } from "./folder-archive.ts";
 import { encryptPage } from "./page-encryption.ts";
 import { printPdf } from "./pdf-printing.ts";
+import { exportPptx } from "../pptx-export/pptx-export.ts";
 import { presentationFileName } from "../presentation-repository/presentation-repository.ts";
 import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
 import { createBuildConfiguration } from "../development-server/vite-configuration.ts";
@@ -19,7 +20,7 @@ export type OutputPaths = Record<BuildVariant, string>;
 export type BuildContext = { isInteractive: boolean, pageSecret: string | undefined, buildReport: BuildReport, stepPrefix?: string };
 export type StepTitler = (shownTitle: string) => string;
 
-const singleFileVariants = new Set<BuildVariant>(["html", "protected", "pdf", "pdf-steps"]);
+const singleFileVariants = new Set<BuildVariant>(["html", "protected", "pdf", "pdf-steps", "pptx"]);
 const pdfVariantNames: BuildVariant[] = ["pdf", "pdf-steps"];
 const largeFileLimit = 50 * 1024 * 1024;
 
@@ -140,6 +141,9 @@ export async function buildPresentation(
           isInteractive,
         );
       }
+      if (chosenVariants.includes("pptx")) {
+        await runBuildStep(nameStepTitle(commandLineTexts.exportingPptx), () => exportPptx(builtPage, outputPaths.pptx), isInteractive);
+      }
       builtPages.push(singleFileFolder);
     }
     const [firstBuiltPage] = builtPages;
@@ -157,5 +161,6 @@ export function namePresentationOutputs(outputFolder: string, projectName: strin
     zip: path.join(outputFolder, `${projectName}.zip`),
     pdf: path.join(outputFolder, `${projectName}.pdf`),
     "pdf-steps": path.join(outputFolder, `${projectName}-steps.pdf`),
+    pptx: path.join(outputFolder, `${projectName}.pptx`),
   };
 }

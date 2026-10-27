@@ -8,16 +8,23 @@ import { createImageCompressionPlugin } from "../presentation-build/image-compre
 import { createPresentationPageHtml, pageFileName, createSlidemachinaPlugin } from "./page-serving.ts";
 import { renderListPage } from "../presentation-repository/presentation-list-page.ts";
 import { createSlideSourcePlugin } from "../source-transforms/slide-source-plugin.ts";
+import { presentationFileName } from "../presentation-repository/presentation-repository.ts";
 import type { InlineConfig, ServerOptions } from "vite";
 import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
 import type { BuildReport } from "../presentation-build/image-compression.ts";
 import type { ListedCard } from "../presentation-repository/presentation-list-page.ts";
 
+// Fast Refresh takes a module whose exports are all components; index.tsx exports an element and would reload the page
+// as soon as it holds a component of its own. Without Fast Refresh the entry renders the new element into the same root:
+// slide and step stay, the components of index.tsx start afresh.
+const presentationFilePattern = new RegExp(`/${presentationFileName.replaceAll(".", "\\.")}$`);
+const refreshedFilesExclusion = [/\/node_modules\//, presentationFilePattern];
+
 export function createViteConfiguration(siteLayout: SiteLayout, serverOptions: ServerOptions): InlineConfig {
   return {
     configFile: false,
     root: siteLayout.rootFolder,
-    plugins: [createSlideSourcePlugin(siteLayout), react({ compiler: true }), tailwindcss(), createSlidemachinaPlugin(siteLayout, undefined)],
+    plugins: [createSlideSourcePlugin(siteLayout), react({ compiler: true, exclude: refreshedFilesExclusion }), tailwindcss(), createSlidemachinaPlugin(siteLayout, undefined)],
     resolve: engineResolution,
     // SLIDEMACHINA_AGENTATION=off turns the notes toolbar off, as the tests do.
     define: { "import.meta.env.SLIDEMACHINA_AGENTATION": JSON.stringify(process.env.SLIDEMACHINA_AGENTATION ?? "on") },

@@ -8,7 +8,7 @@ import { readPresentationFile } from "../source-transforms/presentation-settings
 import type { SiteLayout } from "./presentation-repository.ts";
 
 export type PresentationCard = { folderName: string, presentationTitle: string, presentationDate: string | undefined, languageCode: string, canvasSize: CanvasSize, shownAspectRatio: string | undefined };
-type CardDownload = { variantName: "pdf" | "pdf-steps" | "zip", downloadAddress: string };
+type CardDownload = { variantName: "pdf" | "pdf-steps" | "pptx" | "zip", downloadAddress: string };
 export type ListedCard = PresentationCard & { pageAddress: string, coverKind: "frame" | "picture" | "none", coverAddress: string, isProtected?: boolean, downloads?: CardDownload[] };
 type ListTexts = (typeof listTextsByLanguage)["en"];
 
@@ -27,7 +27,7 @@ const listTextsByLanguage = {
     presentationCount: (presentationCount: number): string => `${presentationCount} ${presentationCount === 1 ? "presentation" : "presentations"}`,
     emptyList: "No presentations yet. Create one: npm create slidemachina",
     protectedBadge: "Password",
-    downloadLabels: { pdf: "PDF", "pdf-steps": "PDF by steps", zip: "zip" },
+    downloadLabels: { pdf: "PDF", "pdf-steps": "PDF by steps", pptx: "PowerPoint", zip: "zip" },
   },
   ru: {
     pageTitle: "Презентации",
@@ -37,7 +37,7 @@ const listTextsByLanguage = {
     },
     emptyList: "Презентаций пока нет. Создайте первую: npm create slidemachina",
     protectedBadge: "Под паролем",
-    downloadLabels: { pdf: "PDF", "pdf-steps": "PDF по шагам", zip: "zip" },
+    downloadLabels: { pdf: "PDF", "pdf-steps": "PDF по шагам", pptx: "PowerPoint", zip: "zip" },
   },
 };
 
