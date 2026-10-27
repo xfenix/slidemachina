@@ -22,4 +22,15 @@
   [data-slide] [data-content] .machina-pin-right {
     right: calc(-1 * var(--frame-padding));
   }
+
+  /* A pinned block is out of the flow: the block before it ends the content and keeps no margin below. */
+  [data-slide] [data-content] > :has(+ :is(.machina-pin, .machina-pin-top, .machina-pin-bottom, .machina-pin-left, .machina-pin-right):last-child) {
+    margin-bottom: 0;
+  }
+
+  /* A band across the bottom edge takes its height off the content, which keeps the gap under a heading above it:
+     valign then places the text in the free space over the band. The slide measures the band, see bottom-band-room.ts. */
+  [data-slide] [data-content]:has(> .machina-pin-bottom.machina-pin-left.machina-pin-right) {
+    padding-bottom: calc(var(--bottom-band-room, 0px) + var(--heading-gap));
+  }
 }

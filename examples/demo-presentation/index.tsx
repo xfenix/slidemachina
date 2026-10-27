@@ -274,18 +274,18 @@ export default (
         </figure>
       </Machina.Slide>
 
-      <Machina.Slide background="var(--accent-color)" transition="fade">
+      <Machina.Slide background="var(--accent-soft-color)" transition="fade">
         <p className="machina-thesis">Один слайд - одна мысль</p>
       </Machina.Slide>
 
-      <Machina.Slide background="var(--second-accent-color)" transition="fade">
+      <Machina.Slide background="var(--second-accent-soft-color)" transition="fade">
         <p className="machina-thesis-small">Фраза длиннее берёт кегль поменьше. Цвет слайда задаёт проп background</p>
       </Machina.Slide>
 
       <Machina.Slide>
         <h2>Тезис</h2>
         <Machina.Code lang="tsx">{`
-          <Slide background="var(--accent-color)">
+          <Slide background="var(--accent-soft-color)">
             <p className="machina-thesis">Один слайд - одна мысль</p>
           </Slide>
         `}</Machina.Code>
@@ -714,7 +714,7 @@ export default (
 
     <Machina.Section title="Обложки">
       <Machina.Slide cover align="left" valign="bottom">
-        <div aria-hidden className="machina-pin-top machina-pin-right h-full w-2/3 bg-[radial-gradient(circle_at_70%_35%,var(--accent-color),transparent_55%),radial-gradient(circle_at_95%_85%,var(--second-accent-color),transparent_45%)] opacity-40" />
+        <div aria-hidden className="machina-pin-top machina-pin-bottom machina-pin-right w-2/3 bg-[radial-gradient(circle_at_70%_35%,var(--accent-color),transparent_55%),radial-gradient(circle_at_95%_85%,var(--second-accent-color),transparent_45%)] opacity-40" />
         <h1>Итоги квартала</h1>
         <p className="machina-lead">Снизу слева: <code>align="left"</code> и <code>valign="bottom"</code></p>
         <p className="machina-note">Свечение справа — обычный <code>div</code> с градиентом</p>
@@ -725,10 +725,26 @@ export default (
         <p className="machina-lead">Посередине, на фото. Цвет текста движок подбирает по яркости картинки</p>
       </Machina.Slide>
 
-      <Machina.Slide cover align="right" valign="top">
+      <Machina.Slide cover align="left" valign="top">
         <h1>Планы на 2027</h1>
-        <p className="machina-lead">Сверху справа: <code>align="right"</code> и <code>valign="top"</code></p>
-        <div className="machina-pin-bottom machina-pin-left machina-pin-right h-1/2">
+        <p className="machina-lead">Над полосой слева сверху: <code>align="left"</code>, <code>valign="top"</code></p>
+        <div className="machina-pin-bottom machina-pin-left machina-pin-right h-[50cqh]">
+          <img src={glassCardsPicture} alt="" className="size-full object-cover" />
+        </div>
+      </Machina.Slide>
+
+      <Machina.Slide cover align="center" valign="center">
+        <h1>Планы на 2027</h1>
+        <p className="machina-lead">Над полосой в центре: <code>align="center"</code>, <code>valign="center"</code></p>
+        <div className="machina-pin-bottom machina-pin-left machina-pin-right h-[50cqh]">
+          <img src={glassCardsPicture} alt="" className="size-full object-cover" />
+        </div>
+      </Machina.Slide>
+
+      <Machina.Slide cover align="right" valign="bottom">
+        <h1>Планы на 2027</h1>
+        <p className="machina-lead">Над полосой справа снизу: <code>align="right"</code>, <code>valign="bottom"</code></p>
+        <div className="machina-pin-bottom machina-pin-left machina-pin-right h-[50cqh]">
           <img src={glassCardsPicture} alt="" className="size-full object-cover" />
         </div>
       </Machina.Slide>
@@ -820,6 +836,7 @@ export default (
                 <Text position={[0, 2, 0]}>Привет</Text>
               </Scene>
             `}</Machina.Code>
+            <p className="machina-note">three.js грузится, только если в презентации есть сцена</p>
           </div>
           <div>
             <Machina.Scene orbit>
@@ -831,7 +848,6 @@ export default (
             </Machina.Scene>
           </div>
         </div>
-        <p className="machina-note">three.js грузится, только если в презентации есть сцена</p>
       </Machina.Slide>
     </Machina.Section>
 
@@ -840,8 +856,8 @@ export default (
         <Machina.Meme src={jdMemePicture} alt="Жозеф Дюкре">
           <p>Извольте вставить мем</p>
           <p>не покидая слайдов</p>
+          <figcaption>Шаблон: Joseph Ducreux, Know Your Meme</figcaption>
         </Machina.Meme>
-        <Machina.Source>Шаблон: Joseph Ducreux, Know Your Meme</Machina.Source>
       </Machina.Slide>
 
       <Machina.Slide>

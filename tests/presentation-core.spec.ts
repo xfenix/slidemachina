@@ -94,6 +94,8 @@ async function jumpToHeading(page: Page, headingText: string) {
 }
 
 test("демо листается, показывает шаги и навигатор, переживает перезагрузку и правку файла", async ({ page }) => {
+  // One run walks the whole demo and takes about 30 seconds, the default limit.
+  test.setTimeout(60_000);
   // Errors reach window as events, not as console lines: a ResizeObserver loop is one of them.
   const pageErrors: string[] = [];
   await page.exposeFunction("reportPageError", (errorMessage: string) => pageErrors.push(errorMessage));
@@ -201,6 +203,10 @@ test("демо листается, показывает шаги и навига
     const [rightTitle, , rightPicture] = await measureOnCanvas(page, ["h1", "p", "img"]);
     expect(rightPicture!.right).toBeCloseTo(1920 - 64, 0);
     expect(rightPicture!.left - rightTitle!.right).toBeCloseTo(96, 0);
+    // A picture across the bottom edge is a band: valign="bottom" puts the text the gap under a heading above it.
+    await jumpToSlide(page, await findSlideNumber(page, "p", "Над полосой справа снизу: align=\"right\", valign=\"bottom\""));
+    const [bandLead, bandPicture] = await measureOnCanvas(page, [".machina-lead", ".machina-pin-left"]);
+    expect(Math.abs(bandPicture!.top - bandLead!.bottom - 80)).toBeLessThan(2);
   });
 
   await test.step("блоки: колонки и строки таблицы по шагам, источник сноской под блоком", async () => {
@@ -301,6 +307,12 @@ test("демо листается, показывает шаги и навига
     }
     await expect(memeElement.locator("[data-meme-field] > p").first()).toHaveText("Извольте вставить мем");
     await expect(memeElement.locator("[data-meme-field] > p").first()).toHaveCSS("text-transform", "uppercase");
+
+    // A floated meme gets the height left under the list: it ends on the bottom line of the content, clear of the slide number.
+    await jumpToHeading(page, "Мем настраивается в теге");
+    const floatedMemeBox = (await currentSlide(page).locator("[data-meme]").boundingBox())!;
+    const contentBox = (await currentSlide(page).locator("[data-content]").boundingBox())!;
+    expect(floatedMemeBox.y + floatedMemeBox.height).toBeLessThanOrEqual(contentBox.y + contentBox.height + 1);
   });
 
   await test.step("код: подсветка при сборке, шрифт, строки по шагам с прокруткой", async () => {
@@ -573,13 +585,19 @@ test("демо листается, показывает шаги и навига
     await page.getByRole("button", { name: "Миникарта · M" }).click();
     await expect(slideMinimap).toHaveCount(0);
 
-    // A thesis stands in the middle of the slide both ways; background="var(--accent-color)" is the accent of the theme, not its version for dark slides.
+    // A thesis stands in the middle of the slide both ways; its soft accent background is light, so the text is a deep shade of its hue.
     await jumpToSlide(page, await findSlideNumber(page, ".machina-thesis"));
-    await expect(currentSlide(page)).toHaveAttribute("data-tone", "dark");
-    await expect(currentSlide(page)).toHaveCSS("background-color", "rgb(112, 0, 209)");
+    await expect(currentSlide(page)).toHaveAttribute("data-tone", "light");
+    await expect(currentSlide(page)).toHaveAttribute("data-background", "color");
     const [thesisBox] = await measureOnCanvas(page, [".machina-thesis"]);
     expect((thesisBox!.left + thesisBox!.right) / 2).toBeCloseTo(960, 0);
     expect(Math.abs((thesisBox!.top + thesisBox!.bottom) / 2 - 540)).toBeLessThan(40);
+    // The bottom line of a coloured slide is the text colour let through, so it takes the hue of the slide.
+    await expect(currentSlide(page).locator("[data-slide-number]")).toHaveCSS("color", /\/ 0\.7\)$/);
+    // The next thesis has a colour of its own: it floods the slide in a circle over the old one.
+    await page.keyboard.press("ArrowRight");
+    expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining(["::view-transition-new(slide-color) slidemachina-color-flood"]));
+    await expect.poll(() => listTransitionAnimations(page)).toEqual([]);
 
     await jumpToHeading(page, "Видео вместо фона");
     await expect(currentSlide(page).locator(":scope > video[data-slide-background]")).toHaveCount(1);
@@ -736,18 +754,19 @@ test("демо листается, показывает шаги и навига
   const setAspectRatio = (aspectRatio: string) => (originalPresentation: string) =>
     originalPresentation.replace('<Machina.Presentation title="slidemachina"', `<Machina.Presentation aspectRatio="${aspectRatio}" title="slidemachina"`);
 
-  await test.step("формат 16:9 по умолчанию и 9:16: окно меняет только масштаб, остальное — поля", async () => {
+  await test.step("формат 16:9 по умолчанию и 9:16: холст растёт под окно на треть, остальное — поля, печать в формате", async () => {
     const canvasElement = page.locator("[data-canvas]");
     await page.setViewportSize({ width: 1024, height: 1024 });
     await expect(canvasElement).toHaveCSS("width", "1920px");
-    await expect(canvasElement).toHaveCSS("height", "1080px");
-    await expect.poll(async () => Math.round((await canvasElement.boundingBox())!.height)).toBe(576);
+    await expect(canvasElement).toHaveCSS("height", "1440px");
+    await expect.poll(async () => Math.round((await canvasElement.boundingBox())!.height)).toBe(768);
+    expect(await page.locator("[data-presentation] > style").textContent()).toContain("size: 1920px 1080px");
     await editFileWhile(demoPresentationFile, setAspectRatio("9:16"), async () => {
       await expect(canvasElement).toHaveCSS("height", "1920px");
-      await expect(canvasElement).toHaveCSS("width", "1080px");
-      await expect.poll(async () => Math.round((await canvasElement.boundingBox())!.width)).toBe(576);
+      await expect(canvasElement).toHaveCSS("width", "1440px");
+      await expect.poll(async () => Math.round((await canvasElement.boundingBox())!.width)).toBe(768);
     });
-    await expect(canvasElement).toHaveCSS("width", "1920px");
+    await expect(canvasElement).toHaveCSS("height", "1440px");
   });
 
   await test.step("вёрстка на 4:3: код не обрезан, числа не слипаются, схемы занимают свободное место", async () => {

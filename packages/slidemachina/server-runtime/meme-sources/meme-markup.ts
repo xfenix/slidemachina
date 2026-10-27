@@ -38,12 +38,15 @@ function shortenAddress(fullAddress: string): string {
   return fullAddress.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 }
 
-function writeSourceLine(nameEnginePart: EnginePartNamer, sourceText: string): string {
-  return `<${nameEnginePart("Source")}>${escapeJsxText(sourceText)}</${nameEnginePart("Source")}>`;
+// The source is the caption of the picture: grey, right under it, without the line of a <Source> footnote.
+function writeSourceCaption(sourceText: string): string {
+  return `  <figcaption>${escapeJsxText(sourceText)}</figcaption>`;
 }
 
-function writeMediaLine(nameEnginePart: EnginePartNamer, isVideo: boolean, mediaSource: string): string {
-  return isVideo ? `<${nameEnginePart("Video")} src=${mediaSource} stretch />` : `<${nameEnginePart("Image")} src=${mediaSource} alt="" stretch />`;
+function writeMediaLines(nameEnginePart: EnginePartNamer, isVideo: boolean, mediaSource: string, sourceText: string): string[] {
+  const mediaPart = nameEnginePart(isVideo ? "Video" : "Image");
+  const mediaAttributes = isVideo ? `src=${mediaSource} stretch` : `src=${mediaSource} alt="" stretch`;
+  return [`<${mediaPart} ${mediaAttributes}>`, writeSourceCaption(sourceText), `</${mediaPart}>`];
 }
 
 // "this-is-fine.gif" becomes thisIsFinePicture; a name taken in the file gets a number.
@@ -91,19 +94,19 @@ async function prepareTemplate(presentationFolder: string, memeChoice: MemeChoic
   const captionTexts = captionFields.map((_captionField, fieldIndex) => exampleCaptions[fieldIndex] || markupTexts.placeholderCaption(fieldIndex + 1));
   const sourceText = markupTexts.templateSource(templateName, shortenAddress(sourceAddress ?? "memegen.link"));
   return {
-    engineParts: ["Meme", "Source"],
+    engineParts: ["Meme"],
     mediaPath: "picturePath" in picturePlace ? picturePlace.picturePath : undefined,
     remoteAddress: "pictureAddress" in picturePlace ? picturePlace.pictureAddress : undefined,
     writeMarkup: (nameEnginePart, mediaSource) => [
       `<${nameEnginePart("Meme")} src=${mediaSource} alt=${JSON.stringify(templateName)}>`,
       ...captionFields.map((captionField, fieldIndex) => writeCaptionLine(captionField, fieldIndex, captionTexts[fieldIndex]!)),
+      writeSourceCaption(sourceText),
       `</${nameEnginePart("Meme")}>`,
-      writeSourceLine(nameEnginePart, sourceText),
     ],
   };
 }
 
-// The template, clip or link comes with a <Source> line pointing where it came from.
+// The template, clip or link comes with a caption pointing where it came from.
 export async function prepareMeme(presentationFolder: string, memeChoice: MemeChoice, languageCode: string): Promise<PreparedMeme> {
   const markupTexts = markupTextsByLanguage[pickTextLanguage(languageCode)];
   if (memeChoice.memeKind === "template") return prepareTemplate(presentationFolder, memeChoice, markupTexts);
@@ -114,9 +117,9 @@ export async function prepareMeme(presentationFolder: string, memeChoice: MemeCh
     : undefined;
   const sourceText = giphyClip === undefined ? markupTexts.linkSource(shortenAddress(memeChoice.memeValue)) : markupTexts.clipSource(shortenAddress(giphyClip.pageAddress));
   return {
-    engineParts: [foundMedia.isVideo ? "Video" : "Image", "Source"],
+    engineParts: [foundMedia.isVideo ? "Video" : "Image"],
     mediaPath,
     remoteAddress: memeChoice.storesLocally ? undefined : foundMedia.mediaAddress.href,
-    writeMarkup: (nameEnginePart, mediaSource) => [writeMediaLine(nameEnginePart, foundMedia.isVideo, mediaSource), writeSourceLine(nameEnginePart, sourceText)],
+    writeMarkup: (nameEnginePart, mediaSource) => writeMediaLines(nameEnginePart, foundMedia.isVideo, mediaSource, sourceText),
   };
 }

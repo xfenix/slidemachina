@@ -35,15 +35,22 @@
     margin: 0;
   }
 
-  /* The picture and its caption are one group as wide as the picture; the caption's own width does not widen it. */
+  /* The picture and its caption are one group. A short caption under a narrow picture stays on one line and sticks out past it:
+     from its left edge, or both ways on a centred slide. */
   [data-slide] [data-media-group] {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     min-height: 0;
   }
 
+  [data-slide][data-align="center"] [data-media-group] {
+    align-items: center;
+  }
+
   [data-slide] [data-media-group] > [data-media] + figcaption {
-    contain: inline-size;
+    width: max-content;
+    max-width: 100cqw;
     margin: var(--caption-gap) 0 0;
   }
 
@@ -154,8 +161,9 @@
   }
 
   /* Under the picture the gap is measured to the capitals of the next line, as at its side. */
+  /* No higher than the room the slide measured under the blocks above: a tall picture gets narrower instead of reaching the breadcrumbs. */
   [data-slide] [data-media][data-media-float] {
-    max-width: var(--float-max-width);
+    max-width: min(var(--float-max-width), var(--float-room-height, var(--canvas-height) * 1px) * var(--media-ratio, 1));
     margin-block: 0 calc(var(--float-gap) - (1lh - 1cap) / 2);
   }
 

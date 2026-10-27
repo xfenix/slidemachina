@@ -281,7 +281,7 @@ test("редактор правит текст, двигает блок схем
       await page.locator("[data-meme-search]").fill("archaic");
       await page.locator("[data-meme-tile]", { hasText: "Joseph Ducreux" }).click();
       await expect.poll(readPresentation).toMatch(
-        /<\/Machina\.Slide>\n\n\s*<Machina\.Slide>\n\s*<Machina\.Meme src="http:\/\/localhost:\d+\/templates\/jd\/default\.jpg" alt="Joseph Ducreux">\n\s*<p>disregard females<\/p>\n\s*<p data-place="50 80 50 20" style=\{\{ color: "black" \}\}>acquire currency<\/p>\n\s*<\/Machina\.Meme>\n\s*<Machina\.Source>Шаблон: Joseph Ducreux, knowyourmeme\.com\/memes\/joseph-ducreux-archaic-rap<\/Machina\.Source>/,
+        /<\/Machina\.Slide>\n\n\s*<Machina\.Slide>\n\s*<Machina\.Meme src="http:\/\/localhost:\d+\/templates\/jd\/default\.jpg" alt="Joseph Ducreux">\n\s*<p>disregard females<\/p>\n\s*<p data-place="50 80 50 20" style=\{\{ color: "black" \}\}>acquire currency<\/p>\n\s*<figcaption>Шаблон: Joseph Ducreux, knowyourmeme\.com\/memes\/joseph-ducreux-archaic-rap<\/figcaption>\n\s*<\/Machina\.Meme>/,
       );
       expect(await readPresentation()).not.toContain('import jdPicture from');
       await expect(page).toHaveURL(new RegExp(`#${memeSlideNumber + 1}$`));
@@ -297,7 +297,7 @@ test("редактор правит текст, двигает блок схем
       await page.getByRole("textbox", { name: /Ссылка на картинку/ }).fill(`${sourceAddress}/post`);
       await page.keyboard.press("Enter");
       await expect.poll(readPresentation).toContain('import sceneOrbitPicture from "./images/memes/scene-orbit.gif";');
-      expect(await readPresentation()).toMatch(/<Machina\.Image src=\{sceneOrbitPicture\} alt="" stretch \/>\n\s*<Machina\.Source>Источник: localhost:\d+\/post<\/Machina\.Source>/);
+      expect(await readPresentation()).toMatch(/<Machina\.Image src=\{sceneOrbitPicture\} alt="" stretch>\n\s*<figcaption>Источник: localhost:\d+\/post<\/figcaption>\n\s*<\/Machina\.Image>/);
       expect(await readFile(path.join(copyFolder, "images", "memes", "scene-orbit.gif"))).toEqual(await readFile(demoGifFile));
       await expect(page).toHaveURL(new RegExp(`#${memeSlideNumber + 2}$`));
       await expect(currentSlide(page).locator("img[data-media]")).toHaveAttribute("src", /scene-orbit\.gif/);
@@ -312,7 +312,7 @@ test("редактор правит текст, двигает блок схем
       expect(existsSync(copiedMemePicture), "без --local картинка не скачивается").toBe(false);
       const { stdout: markupOutput } = await runMeme(["--template", "jd", "--local", copyFolder]);
       expect(markupOutput).toContain('import jdPicture from "./images/memes/jd.jpg";');
-      expect(markupOutput).toContain('<Machina.Meme src={jdPicture} alt="Joseph Ducreux">\n  <p>disregard females</p>\n  <p data-place="50 80 50 20" style={{ color: "black" }}>acquire currency</p>\n</Machina.Meme>');
+      expect(markupOutput).toContain('<Machina.Meme src={jdPicture} alt="Joseph Ducreux">\n  <p>disregard females</p>\n  <p data-place="50 80 50 20" style={{ color: "black" }}>acquire currency</p>\n  <figcaption>Шаблон: Joseph Ducreux, knowyourmeme.com/memes/joseph-ducreux-archaic-rap</figcaption>\n</Machina.Meme>');
       expect(existsSync(copiedMemePicture), "команда скачала картинку шаблона").toBe(true);
 
       // One file opens without the network: the build downloads the remote template picture and embeds it.

@@ -5,7 +5,10 @@
 
 @layer slidemachina {
   /* On screen the printed pages are laid out but clipped away: diagrams measure their text and find a ready layout. */
+  /* Printed pages keep the format of the presentation, while the live canvas grows with the window. */
   [data-print-pages] {
+    --canvas-width: var(--format-width);
+    --canvas-height: var(--format-height);
     position: absolute;
     width: 0;
     height: 0;

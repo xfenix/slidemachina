@@ -11,7 +11,7 @@ const thumbnailPreloadMargin = "600px 0px";
 type SlideMinimapProperties = {
   slideCount: number;
   currentSlideIndex: number;
-  canvasWidth: number;
+  formatWidth: number;
   languageCode: string;
   renderThumbnail: (slideIndex: number) => ReactNode;
   goToSlide: (slideIndex: number) => void;
@@ -53,9 +53,9 @@ export function MinimapSwitch({ languageCode, isMinimapShown, toggleMinimap }: {
   );
 }
 
-export function SlideMinimap({ slideCount, currentSlideIndex, canvasWidth, languageCode, renderThumbnail, goToSlide }: SlideMinimapProperties) {
+export function SlideMinimap({ slideCount, currentSlideIndex, formatWidth, languageCode, renderThumbnail, goToSlide }: SlideMinimapProperties) {
   const minimapStyle = {
-    "--minimap-thumbnail-scale": (minimapWidth - 2 * minimapPadding) / canvasWidth,
+    "--minimap-thumbnail-scale": (minimapWidth - 2 * minimapPadding) / formatWidth,
     width: minimapWidth,
     padding: minimapPadding,
   } as CSSProperties;

@@ -7,6 +7,7 @@ import { PresentationListAddressContext } from "../presentation-interface/presen
 let presentationRoot: Root | undefined;
 
 // One root keeps the slide and step across edits; a synchronous first render gives the list transition its canvas.
+// A hot update renders synchronously too: the editor takes an edit as done once the new module runs, and finds the slides it moved in the DOM.
 export function mountPresentation(presentationElement: ReactNode, presentationListAddress?: string) {
   const presentationTree = (
     <StrictMode>
@@ -14,7 +15,7 @@ export function mountPresentation(presentationElement: ReactNode, presentationLi
     </StrictMode>
   );
   if (presentationRoot !== undefined) {
-    presentationRoot.render(presentationTree);
+    flushSync(() => presentationRoot!.render(presentationTree));
     return;
   }
   presentationRoot = createRoot(document.getElementById("slidemachina")!);

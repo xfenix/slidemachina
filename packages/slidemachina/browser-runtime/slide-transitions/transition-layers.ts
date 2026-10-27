@@ -135,6 +135,29 @@ function describeFrameLayers(outgoingSlide: HTMLElement, incomingSlide: HTMLElem
   });
 }
 
+function hasPlainColor(slideElement: HTMLElement): boolean {
+  return slideElement.querySelector(":scope > [data-slide-background]") === null && getComputedStyle(slideElement).backgroundImage === "none";
+}
+
+// Between two plain slides of different colours the new colour floods the slide in a growing circle instead of blending
+// with the old one into a dull middle. Only when nothing morphs: a moving picture or text already carries the transition.
+// The slide itself becomes a layer that holds only its colour, so the frame parts both slides keep move to layers of their own.
+function describeColorLayers(outgoingSlide: HTMLElement, incomingSlide: HTMLElement): NamedLayer[] {
+  const isColorFlood =
+    hasPlainColor(outgoingSlide) &&
+    hasPlainColor(incomingSlide) &&
+    getComputedStyle(outgoingSlide).backgroundColor !== getComputedStyle(incomingSlide).backgroundColor;
+  if (!isColorFlood) return [];
+  const keptFrameLayers = framePartSelectors.flatMap((framePartSelector, partPosition) => {
+    const outgoingPart = outgoingSlide.querySelector<HTMLElement>(framePartSelector);
+    const incomingPart = incomingSlide.querySelector<HTMLElement>(framePartSelector);
+    const isChangedNumber = framePartSelector === slideNumberSelector && outgoingPart?.textContent !== incomingPart?.textContent;
+    if (outgoingPart === null || incomingPart === null || isChangedNumber) return [];
+    return [{ outgoingElement: outgoingPart, incomingElement: incomingPart, layerName: `frame-kept-${partPosition}` }];
+  });
+  return [{ outgoingElement: outgoingSlide, incomingElement: incomingSlide, layerName: "slide-color", layerClass: "slide-color" }, ...keptFrameLayers];
+}
+
 // Outgoing and incoming content move as separate layers; the frame stays in the page root with the background.
 export function describeContentLayers(
   outgoingSlide: HTMLElement,
@@ -159,6 +182,7 @@ export function describeContentLayers(
     namedLayers.push({ ...morphPair, layerName: `morph-${pairPosition}`, layerClass: describeMorphClass(morphPair.outgoingElement) });
   });
   namedLayers.push(...describeFrameLayers(outgoingSlide, incomingSlide));
+  if (morphPairs.length + rewordedPairs.length + codePairs.length === 0) namedLayers.push(...describeColorLayers(outgoingSlide, incomingSlide));
   namedLayers.push(...describeApartLayers(morphPairs));
   // The reworded element keeps what is not a word, such as a list bullet, steady while its words move.
   rewordedPairs.forEach(({ outgoingElement, incomingElement }, pairPosition) =>

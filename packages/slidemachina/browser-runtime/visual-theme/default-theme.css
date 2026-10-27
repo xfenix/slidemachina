@@ -79,6 +79,10 @@
     /* The green end of the logo gradient: literals in code, the far end of section numbers and of their glow. */
     --second-accent-color: #007a33;
     --second-accent-color-on-dark: oklch(from var(--second-accent-color) max(l, 0.74) min(c, 0.16) h);
+    /* Backgrounds of the same hues for theses and other coloured slides: soft lilac and sea mint, calmer than an accent across a whole slide.
+       The green turns a little cooler: at this lightness its own hue reads as grass. */
+    --accent-soft-color: oklch(from var(--accent-color) 0.76 0.11 h);
+    --second-accent-soft-color: oklch(from var(--second-accent-color) 0.82 0.09 calc(h + 15));
     --hairline-color: rgb(21 23 28 / 0.14);
     --hairline-color-on-dark: rgb(255 255 255 / 0.14);
     --code-background: #f4f5f8;
@@ -106,6 +110,8 @@
     --progress-color: linear-gradient(90deg, var(--accent-color), var(--second-accent-color));
     --progress-color-on-dark: linear-gradient(90deg, var(--accent-color-on-dark), var(--second-accent-color-on-dark));
     --progress-track-color: transparent;
+    /* On a slide with its own colour the muted text, breadcrumbs, number and progress line are the text colour let through at this share. */
+    --muted-share-on-color: 70%;
 
     /* Sides and bottom share one margin, the top gets a little more air. Margins are measured to visible glyphs. */
     --frame-padding: 64px;
@@ -113,7 +119,6 @@
     --content-top: var(--frame-top);
     /* The content ends --heading-gap above the capitals of the breadcrumbs, as it starts --heading-gap under the heading. */
     --content-bottom: calc(var(--frame-padding) + var(--frame-text-size) * var(--text-cap-height) + var(--heading-gap));
-    --content-max-width: 2200px;
     --text-max-width: 60ch;
     --logo-height: 48px;
     --logo-center-height: 96px;
@@ -213,6 +218,8 @@
     --transition-duration: 0.4s;
     --morph-duration: 0.55s;
     --rotation-duration: 0.6s;
+    /* A new colour flooding the slide is a bigger move than a fade: the whole transition slows down to it. */
+    --color-flood-duration: 1s;
     --transition-easing: cubic-bezier(0.65, 0, 0.35, 1);
     --step-duration: 0.3s;
     --step-easing: cubic-bezier(0.2, 0.7, 0.2, 1);

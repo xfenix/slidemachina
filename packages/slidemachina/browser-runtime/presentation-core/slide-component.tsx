@@ -5,6 +5,8 @@ import { SlideBackgroundLayer } from "./slide-background.tsx";
 import { useSlideEnvironment, type PresentationLogo, type SlideAlign } from "./slide-environment.ts";
 import { pickSourceMarks } from "./source-marks.ts";
 import { useBigNumberFitting } from "./width-fitting.ts";
+import { useFloatFitting } from "./float-fitting.ts";
+import { useBottomBandRoom } from "./bottom-band-room.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { useStepVisibility } from "../slide-steps/step-visibility.ts";
@@ -55,6 +57,8 @@ export function Slide({
   const detectedTone = useBackgroundTone(slideElementReference, background, className);
   useStepVisibility(slideElementReference, slideEnvironment.revealedStep, slideEnvironment.reportStepCount);
   useBigNumberFitting(slideElementReference, children);
+  useFloatFitting(slideElementReference, children);
+  useBottomBandRoom(slideElementReference, children);
   useSlideCallbacks(slideEnvironment.isCurrentSlide, onEnter, onLeave);
 
   const slideTone = tone ?? detectedTone;
@@ -75,6 +79,7 @@ export function Slide({
       data-align={slideAlign}
       data-valign={valign ?? (cover || slideAlign === "center" ? "center" : "top")}
       data-tone={slideTone}
+      data-background={background === undefined ? undefined : classifySlideBackground(background)}
       data-cover={cover || undefined}
       data-transition={transition ?? presentationSettings.transition}
       data-current={slideEnvironment.isCurrentSlide || undefined}
@@ -127,7 +132,7 @@ function SlideLogo({ presentationLogo, slideTone, logoPlacement }: SlideLogoProp
 function createBackgroundStyle(backgroundValue: SlideBackgroundValue | undefined): CSSProperties | undefined {
   if (backgroundValue === undefined) return undefined;
   const backgroundKind = classifySlideBackground(backgroundValue);
-  if (backgroundKind === "color") return { backgroundColor: backgroundValue as string };
+  if (backgroundKind === "color") return { backgroundColor: backgroundValue as string, "--slide-color": backgroundValue as string } as CSSProperties;
   if (backgroundKind === "picture") return { backgroundImage: `url("${backgroundValue as string}")` };
   return undefined;
 }

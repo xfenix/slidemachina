@@ -48,7 +48,10 @@
     margin-bottom: 64px;
   }
 
+  /* A thumbnail keeps the format of the presentation, while the live canvas grows with the window. */
   [data-thumbnail] {
+    --canvas-width: var(--format-width);
+    --canvas-height: var(--format-height);
     position: relative;
     aspect-ratio: var(--canvas-width) / var(--canvas-height);
     overflow: hidden;

@@ -75,17 +75,17 @@ export function Presentation({
   const stepCountsReference = useRef<number[]>([]);
   const slideNavigation = useSlideNavigation(outlinedSlides.length, stepCountsReference);
   const { currentPosition } = slideNavigation;
-  const canvasSize = useMemo(() => {
-    const measuredCanvasSize = measureCanvasSize(aspectRatio);
-    if (measuredCanvasSize === undefined) throw new Error(pickInterfaceTexts(lang).wrongAspectRatio(aspectRatio));
-    return measuredCanvasSize;
+  const formatSize = useMemo(() => {
+    const measuredFormatSize = measureCanvasSize(aspectRatio);
+    if (measuredFormatSize === undefined) throw new Error(pickInterfaceTexts(lang).wrongAspectRatio(aspectRatio));
+    return measuredFormatSize;
   }, [aspectRatio, lang]);
-  const { canvasWidth, canvasHeight } = canvasSize;
+  const { canvasWidth: formatWidth, canvasHeight: formatHeight } = formatSize;
   const [isNavigatorOpen, setNavigatorOpen] = useOverviewAddress();
   const printPreparation = usePrintPreparation();
   const { isPrintView, printsSteps } = printPreparation;
   const { isMinimapShown, toggleMinimap } = useMinimapShowing(import.meta.env.DEV && !isPrintView && !isCoverPreview);
-  const { canvasScale, hasRoomUnderCanvas } = useCanvasLayout(canvasSize);
+  const { canvasScale, canvasWidth, canvasHeight, hasRoomUnderCanvas } = useCanvasLayout(formatSize);
   const [isPaused, setPaused] = useState(false);
   const { isToolbarHidden, toggleToolbar } = useToolbarHiding();
   const switchNavigator = (opensNavigator: boolean, chosenSlideIndex?: number) =>
@@ -148,6 +148,8 @@ export function Presentation({
   };
 
   const canvasStyle = {
+    "--format-width": formatWidth,
+    "--format-height": formatHeight,
     "--canvas-width": canvasWidth,
     "--canvas-height": canvasHeight,
     "--canvas-scale": canvasScale,
@@ -165,7 +167,7 @@ export function Presentation({
   return (
     <div data-presentation data-print-view={isPrintView || undefined} data-toolbar-under-canvas={hasRoomUnderCanvas || undefined} style={canvasStyle}>
       {title !== undefined && <title>{title}</title>}
-      <style>{`@page { size: ${canvasWidth}px ${canvasHeight}px; }`}</style>
+      <style>{`@page { size: ${formatWidth}px ${formatHeight}px; }`}</style>
       <div data-canvas>
         {[...outlinedSlides.keys()].map((slideIndex) => renderSlide(slideIndex))}
         {progress && outlinedSlides.length > 1 && (
@@ -175,7 +177,7 @@ export function Presentation({
           <SlideNavigator
             outlinedSlides={outlinedSlides}
             currentSlideIndex={currentPosition.slideIndex}
-            canvasWidth={canvasWidth}
+            formatWidth={formatWidth}
             canvasScale={canvasScale}
             languageCode={lang}
             renderThumbnail={(slideIndex) => renderSlide(slideIndex, Infinity)}
@@ -192,7 +194,7 @@ export function Presentation({
         <SlideMinimap
           slideCount={outlinedSlides.length}
           currentSlideIndex={currentPosition.slideIndex}
-          canvasWidth={canvasWidth}
+          formatWidth={formatWidth}
           languageCode={lang}
           renderThumbnail={(slideIndex) => renderSlide(slideIndex, Infinity)}
           goToSlide={slideNavigation.goToSlide}
@@ -226,7 +228,7 @@ export function Presentation({
       {printPreparation.isPrintPrepared && (
         <PrintPages
           slideCount={outlinedSlides.length}
-          canvasWidth={canvasWidth}
+          formatWidth={formatWidth}
           printsSteps={printsSteps}
           isPrintView={isPrintView}
           countSteps={(slideIndex) => stepCountsReference.current[slideIndex] ?? 0}

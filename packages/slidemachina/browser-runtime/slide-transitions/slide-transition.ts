@@ -69,6 +69,7 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
     ? describeWholeSlideLayers(outgoingSlide, incomingSlide, chosenTransition)
     : describeContentLayers(outgoingSlide, incomingSlide, morphPairs, rewordedPairs, codePairs);
   activeNamedLayers = namedLayers;
+  documentElement.toggleAttribute("data-color-flood", namedLayers.some((namedLayer) => namedLayer.layerClass === "slide-color"));
   const paintedShapes = findPaintedShapes(namedLayers);
   for (const namedLayer of namedLayers) {
     nameLayer(namedLayer.outgoingElement, namedLayer);

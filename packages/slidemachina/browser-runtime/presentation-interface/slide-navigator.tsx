@@ -21,7 +21,7 @@ type SlideGroup = {
 type SlideNavigatorProperties = {
   outlinedSlides: OutlinedSlide[];
   currentSlideIndex: number;
-  canvasWidth: number;
+  formatWidth: number;
   canvasScale: number;
   languageCode: string;
   renderThumbnail: (slideIndex: number) => ReactNode;
@@ -32,7 +32,7 @@ type SlideNavigatorProperties = {
 export function SlideNavigator({
   outlinedSlides,
   currentSlideIndex,
-  canvasWidth,
+  formatWidth,
   canvasScale,
   languageCode,
   renderThumbnail,
@@ -63,13 +63,13 @@ export function SlideNavigator({
 
   const leastThumbnailWidth = Math.max(minimumThumbnailWidth, minimumScreenThumbnailWidth / canvasScale);
   // The navigator covers the whole window, letterbox margins too: on a phone held upright it is the full screen, not a strip.
-  const navigatorWidth = Math.max(canvasWidth, window.innerWidth / canvasScale);
+  const navigatorWidth = Math.max(formatWidth, window.innerWidth / canvasScale);
   const columnCount = Math.max(minimumColumnCount, Math.floor((navigatorWidth - 2 * navigatorPadding + thumbnailGap) / (leastThumbnailWidth + thumbnailGap)));
   const thumbnailWidth = (navigatorWidth - 2 * navigatorPadding - (columnCount - 1) * thumbnailGap) / columnCount;
   const navigatorStyle = {
     "--navigator-columns": columnCount,
     "--navigator-gap": `${thumbnailGap}px`,
-    "--thumbnail-scale": thumbnailWidth / canvasWidth,
+    "--thumbnail-scale": thumbnailWidth / formatWidth,
   } as CSSProperties;
 
   return (

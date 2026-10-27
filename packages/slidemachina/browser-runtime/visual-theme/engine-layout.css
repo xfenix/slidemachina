@@ -46,10 +46,12 @@
     touch-action: pinch-zoom;
   }
 
+  /* A size container: a pinned block takes its size from the slide, h-[50cqh], as its edges do, whatever the content area. */
   [data-slide] {
     position: absolute;
     inset: 0;
     box-sizing: border-box;
+    container-type: size;
     overflow: hidden;
     background: var(--slide-background) center / cover no-repeat;
     color: var(--text-color);
@@ -112,6 +114,30 @@
     --scene-shadow-opacity: var(--scene-shadow-opacity-on-dark);
   }
 
+  /* One colour family on a coloured slide: on a light one the text is a deep shade of the slide hue, and muted text,
+     breadcrumbs and number are that text with the slide colour let through, not a grey of their own.
+     The presentation takes the colour of the current slide, so the progress line outside the slide gets the same shade. */
+  [data-presentation] {
+    --slide-color: var(--current-slide-background);
+  }
+
+  [data-presentation],
+  [data-slide] {
+    --text-color-on-color: oklch(from var(--slide-color) 0.32 min(0.14, c * 3) h);
+  }
+
+  [data-slide][data-background="color"][data-tone="light"] {
+    color: var(--text-color-on-color);
+  }
+
+  [data-slide][data-background="color"][data-tone="light"] > * {
+    --text-color: var(--text-color-on-color);
+  }
+
+  [data-slide][data-background="color"] > * {
+    --muted-color: color-mix(in oklab, var(--text-color) var(--muted-share-on-color), transparent);
+  }
+
   [data-logo] {
     position: absolute;
     top: var(--frame-top);
@@ -149,7 +175,6 @@
   [data-content] {
     position: absolute;
     inset: var(--content-top) var(--frame-padding) var(--content-bottom);
-    max-width: var(--content-max-width);
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -286,6 +311,14 @@
 
   [data-canvas]:has(> [data-slide][data-current][data-tone="dark"]) > [data-progress]:before {
     background: var(--progress-color-on-dark);
+  }
+
+  [data-canvas]:has(> [data-slide][data-current][data-background="color"]) > [data-progress]:before {
+    background: color-mix(in oklab, var(--text-color-on-color) var(--muted-share-on-color), transparent);
+  }
+
+  [data-canvas]:has(> [data-slide][data-current][data-background="color"][data-tone="dark"]) > [data-progress]:before {
+    background: color-mix(in oklab, var(--text-color-on-dark) var(--muted-share-on-color), transparent);
   }
 
   /* A pause: the screen goes black, the return button waits where the toolbar was. */
