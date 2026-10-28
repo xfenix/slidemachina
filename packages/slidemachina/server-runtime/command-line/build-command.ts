@@ -33,7 +33,7 @@ export async function runBuildCommand(siteLayout: SiteLayout, commandOptions: Bu
   const outputFolder = prepareOutputFolder(siteLayout, commandOptions.out);
   const pageSecret = chosenVariants.includes("protected") ? await choosePageSecret(isInteractive) : undefined;
   if (pageSecret !== undefined && pageSecret.length < shortestSafeSecretLength) log.warn(commandLineTexts.shortSecret);
-  const buildContext = { isInteractive, pageSecret };
+  const buildContext = { isInteractive, pageSecret, printsHidden: commandOptions.hidden === true };
 
   if (siteLayout.isRepository) {
     await buildRepository(siteLayout, chosenVariants, outputFolder, buildContext);

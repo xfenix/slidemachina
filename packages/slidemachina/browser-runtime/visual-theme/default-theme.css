@@ -105,6 +105,8 @@
     --toolbar-shadow: 0 10px 30px rgb(0 0 0 / 0.18), 0 0 0 1px var(--hairline-color-on-dark);
     --toolbar-icon-color: rgb(255 255 255 / 0.72);
     --interface-focus-ring-width: 2px;
+    /* A hidden slide in the navigator and the minimap: still readable, clearly out of the show. */
+    --hidden-thumbnail-opacity: 0.4;
     /* The progress line on the bottom edge of the slide: from the accent to the green, like the logo. */
     --progress-height: 6px;
     --progress-color: linear-gradient(90deg, var(--accent-color), var(--second-accent-color));

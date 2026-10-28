@@ -1,9 +1,7 @@
 import { writeFileSync } from "node:fs";
-import { pathToFileURL } from "node:url";
 import { unzipSync, zipSync } from "fflate";
 import sharp from "sharp";
-import { printViewParameter, printViewStepsValue } from "../../shared-between-runtimes/engine-constants.ts";
-import { launchChrome } from "../presentation-build/pdf-printing.ts";
+import { addressPrintView, launchChrome } from "../presentation-build/pdf-printing.ts";
 import { blendHighlightsOverPixels } from "./highlight-backdrop-sampling.ts";
 import { pageReadingConstants, pptxPageMarks, writeCaptureStylesheet } from "./pptx-page-marks.ts";
 import { drawSlideParts, inchesPerCanvasPixel } from "./pptx-slide-drawing.ts";
@@ -64,10 +62,8 @@ async function capturePictures(exportPage: Page, slideLayout: SlideLayout): Prom
   return capturedPictures;
 }
 
-async function openPrintView(exportPage: Page, pagePath: string): Promise<PageFormat> {
-  const printViewAddress = new URL(pathToFileURL(pagePath));
-  printViewAddress.search = `${printViewParameter}=${printViewStepsValue}`;
-  await exportPage.goto(printViewAddress.href);
+async function openPrintView(exportPage: Page, pagePath: string, printsHidden: boolean): Promise<PageFormat> {
+  await exportPage.goto(addressPrintView(pagePath, { printsSteps: true, printsHidden }));
   await exportPage.waitForSelector("[data-print-pages][data-print-ready]", { state: "attached", timeout: printWaitLimit });
   const pageFormat = await exportPage.evaluate(() => {
     const firstPage = document.querySelector<HTMLElement>("[data-print-page]")!;
@@ -83,12 +79,12 @@ async function openPrintView(exportPage: Page, pagePath: string): Promise<PageFo
 
 // Every slide of the print view becomes a slide of native text boxes, shapes, freeforms, pictures and videos; steps become entrance animations, <Notes> slide notes.
 // The print view shows a page per step: a slide takes its last page, a slide with code line steps takes every page, one slide per step.
-export async function exportPptx(pagePath: string, pptxPath: string): Promise<void> {
+export async function exportPptx(pagePath: string, pptxPath: string, printsHidden: boolean): Promise<void> {
   const { default: PptxGenJS } = await import("pptxgenjs");
   const chromeBrowser = await launchChrome();
   try {
     const exportPage = await chromeBrowser.newPage({ viewport: { width: printViewRoom, height: printViewRoom }, deviceScaleFactor: captureScale });
-    const { pageWidth, pageHeight } = await openPrintView(exportPage, pagePath);
+    const { pageWidth, pageHeight } = await openPrintView(exportPage, pagePath, printsHidden);
     const pptxPresentation = new PptxGenJS();
     pptxPresentation.defineLayout({ name: layoutName, width: pageWidth * inchesPerCanvasPixel, height: pageHeight * inchesPerCanvasPixel });
     pptxPresentation.layout = layoutName;

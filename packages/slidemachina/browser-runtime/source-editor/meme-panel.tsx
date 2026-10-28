@@ -3,7 +3,7 @@ import { isSourceEditProblemCode, pickEditorTexts, type EditorTexts } from "./ed
 import { sendSourceEdit, SourceEditFailure } from "./source-edit-requests.ts";
 import { memeSearchEndpoint } from "../../shared-between-runtimes/engine-constants.js";
 import type { MemeKind, MemeSearchAnswer } from "../../shared-between-runtimes/meme-template.js";
-import { readPositionFromHash } from "../slide-navigation/position-hash.ts";
+import { goToNextSlidePlace } from "./slide-actions.tsx";
 
 type PanelStatus = { statusTone: "progress" | "problem"; statusText: string };
 
@@ -58,7 +58,7 @@ export default function MemePanel({ languageCode, closePanel }: { languageCode: 
     setPanelStatus({ statusTone: "progress", statusText: editorTexts.memeInserting });
     try {
       await sendSourceEdit({ editKind: "meme", sourceLocation: slideLocation, memeKind, memeValue, storesLocally });
-      window.location.assign(`#${readPositionFromHash().slideIndex + 2}`);
+      goToNextSlidePlace();
       closePanel();
     } catch (insertFailure) {
       setPanelStatus(describeProblem(editorTexts, insertFailure instanceof SourceEditFailure ? insertFailure.problemCode : "writeFailed"));

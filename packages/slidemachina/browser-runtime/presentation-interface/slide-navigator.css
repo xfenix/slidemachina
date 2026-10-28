@@ -103,6 +103,26 @@
     text-align: center;
   }
 
+  /* A hidden slide is dimmed, its number badge carries a struck-through eye. */
+  [data-thumbnail][data-hidden] > [data-slide] {
+    opacity: var(--hidden-thumbnail-opacity);
+  }
+
+  [data-thumbnail][data-hidden] > [data-thumbnail-number] {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  [data-thumbnail-number] > svg {
+    width: 1em;
+    height: 1em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
   [data-thumbnail] > [data-slide] {
     width: calc(var(--canvas-width) * 1px);
     height: calc(var(--canvas-height) * 1px);

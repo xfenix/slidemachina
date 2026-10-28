@@ -2,6 +2,8 @@ import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode }
 import { pickInterfaceTexts } from "./interface-texts.ts";
 import { useWindowKeydown } from "../slide-navigation/keyboard-listener.ts";
 import type { OutlinedSlide } from "../presentation-core/slide-outline.tsx";
+import type { SlideNumbering } from "../slide-navigation/slide-numbering.ts";
+import { HiddenSlideIcon } from "./hidden-slide-icon.tsx";
 
 const navigatorPadding = 64;
 const thumbnailGap = 32;
@@ -20,6 +22,7 @@ type SlideGroup = {
 };
 type SlideNavigatorProperties = {
   outlinedSlides: OutlinedSlide[];
+  slideNumbering: SlideNumbering;
   currentSlideIndex: number;
   formatWidth: number;
   canvasScale: number;
@@ -31,6 +34,7 @@ type SlideNavigatorProperties = {
 
 export function SlideNavigator({
   outlinedSlides,
+  slideNumbering,
   currentSlideIndex,
   formatWidth,
   canvasScale,
@@ -38,6 +42,7 @@ export function SlideNavigator({
   renderThumbnail,
   closeNavigator,
 }: SlideNavigatorProperties) {
+  const interfaceTexts = pickInterfaceTexts(languageCode);
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(currentSlideIndex);
   const thumbnailElements = useRef<HTMLButtonElement[]>([]);
 
@@ -73,7 +78,7 @@ export function SlideNavigator({
   } as CSSProperties;
 
   return (
-    <dialog open data-navigator aria-label={pickInterfaceTexts(languageCode).navigatorLabel} style={navigatorStyle}>
+    <dialog open data-navigator aria-label={interfaceTexts.navigatorLabel} style={navigatorStyle}>
       <div data-navigator-scroller style={{ padding: navigatorPadding }}>
         {groupSlidesBySection(outlinedSlides).map((slideGroup) => (
           <section data-navigator-group key={slideGroup.slideIndexes[0]}>
@@ -85,23 +90,31 @@ export function SlideNavigator({
               </h2>
             )}
             <div data-navigator-grid>
-              {slideGroup.slideIndexes.map((slideIndex) => (
-                <button
-                  key={slideIndex}
-                  type="button"
-                  data-thumbnail
-                  data-thumbnail-index={slideIndex}
-                  data-selected={slideIndex === selectedSlideIndex || undefined}
-                  aria-current={slideIndex === currentSlideIndex || undefined}
-                  ref={(thumbnailElement) => {
-                    if (thumbnailElement !== null) thumbnailElements.current[slideIndex] = thumbnailElement;
-                  }}
-                  onClick={() => openSlide(slideIndex)}
-                >
-                  {renderThumbnail(slideIndex)}
-                  <span data-thumbnail-number>{slideIndex + 1}</span>
-                </button>
-              ))}
+              {slideGroup.slideIndexes.map((slideIndex) => {
+                const isHidden = slideNumbering.hiddenFlags[slideIndex] === true;
+                return (
+                  <button
+                    key={slideIndex}
+                    type="button"
+                    data-thumbnail
+                    data-thumbnail-index={slideIndex}
+                    data-selected={slideIndex === selectedSlideIndex || undefined}
+                    data-hidden={isHidden || undefined}
+                    title={isHidden ? interfaceTexts.hiddenSlideLabel : undefined}
+                    aria-current={slideIndex === currentSlideIndex || undefined}
+                    ref={(thumbnailElement) => {
+                      if (thumbnailElement !== null) thumbnailElements.current[slideIndex] = thumbnailElement;
+                    }}
+                    onClick={() => openSlide(slideIndex)}
+                  >
+                    {renderThumbnail(slideIndex)}
+                    <span data-thumbnail-number>
+                      {isHidden && <HiddenSlideIcon />}
+                      {slideNumbering.slideAddresses[slideIndex]}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </section>
         ))}

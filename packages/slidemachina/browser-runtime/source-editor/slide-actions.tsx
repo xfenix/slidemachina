@@ -1,5 +1,4 @@
 import { ToolbarButton } from "../presentation-interface/presentation-toolbar.tsx";
-import { readPositionFromHash } from "../slide-navigation/position-hash.ts";
 import type { EditorTexts, SourceEditProblemCode } from "./editor-texts.ts";
 import type { SlideAction, SourceEditAnswer, SourceEditRequest } from "./source-edit-requests.ts";
 
@@ -9,24 +8,32 @@ type SlideActionsProperties = {
   showProblem: (problemCode: SourceEditProblemCode) => void;
 };
 
+const slideSelector = "[data-canvas] > [data-slide]";
+
+// A new slide takes the place of the one after the shown slide: going there before the hot update lands on it after.
+export function goToNextSlidePlace() {
+  const slideElements = [...document.querySelectorAll<HTMLElement>(slideSelector)];
+  const nextSlideAddress = slideElements[slideElements.findIndex((slideElement) => slideElement.hasAttribute("data-current")) + 1]?.dataset.slideAddress;
+  if (nextSlideAddress !== undefined) window.location.assign(`#${nextSlideAddress}`);
+}
+
 // Buttons of the editor in the toolbar: the shown slide gets a neighbour, a copy, a new place or goes away; the page follows it.
 export function SlideActions({ editorTexts, runSourceEdit, showProblem }: SlideActionsProperties) {
   const changeShownSlide = async (slideAction: SlideAction) => {
-    const sourceLocation = document.querySelector<HTMLElement>("[data-canvas] > [data-slide][data-current]")?.dataset.sourceLocation;
+    const sourceLocation = document.querySelector<HTMLElement>(`${slideSelector}[data-current]`)?.dataset.sourceLocation;
     // The slide of a section is drawn by the engine: it has no place in the file.
     if (sourceLocation === undefined) {
       showProblem("slidePlaceUnknown");
       return;
     }
-    const shownSlideNumber = readPositionFromHash().slideIndex + 1;
     const editAnswer = await runSourceEdit({ editKind: "slide", sourceLocation, slideAction });
     if (editAnswer === undefined) return;
-    if (slideAction === "add" || slideAction === "duplicate") window.location.assign(`#${shownSlideNumber + 1}`);
+    if (slideAction === "add" || slideAction === "duplicate") goToNextSlidePlace();
     if (editAnswer.slideLocation === undefined) return;
     // A slide that stepped over a whole section moves by more than one number: the page finds it by its new place.
-    const slideElements = [...document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide]")];
-    const movedSlideIndex = slideElements.findIndex((slideElement) => slideElement.dataset.sourceLocation === editAnswer.slideLocation);
-    if (movedSlideIndex !== -1) window.location.assign(`#${movedSlideIndex + 1}`);
+    const slideElements = [...document.querySelectorAll<HTMLElement>(slideSelector)];
+    const movedSlideAddress = slideElements.find((slideElement) => slideElement.dataset.sourceLocation === editAnswer.slideLocation)?.dataset.slideAddress;
+    if (movedSlideAddress !== undefined) window.location.assign(`#${movedSlideAddress}`);
   };
   return (
     <>

@@ -28,6 +28,8 @@ export type SlideProperties = {
   logo?: boolean | SlideLogoPlacement;
   breadcrumbs?: boolean | string;
   number?: boolean;
+  // Skipped in the show and in the numbers, left out of print and export; the navigator still opens it.
+  hidden?: boolean;
   className?: string;
   // Called when the slide comes on screen and when it leaves; thumbnails and printed pages never call them.
   onEnter?: () => void;
@@ -48,6 +50,7 @@ export function Slide({
   logo = true,
   breadcrumbs = true,
   number = true,
+  hidden = false,
   className,
   onEnter,
   onLeave,
@@ -72,7 +75,7 @@ export function Slide({
   const logoPlacement = logo === true ? "top-right" : logo;
   const showsLogo = !plain && logoPlacement !== false && presentationLogo !== undefined;
   const showsBreadcrumbs = !plain && !cover && breadcrumbs !== false && breadcrumbTrail.length > 0;
-  const showsNumber = !plain && !cover && number;
+  const showsNumber = !plain && !cover && !hidden && number;
   // Printed copies carry the notes as text: the PowerPoint export reads them from the print view.
   const notesText = slideEnvironment.isSlideCopy ? writeNotesText(listSlideNotes(children)) : "";
 
@@ -86,6 +89,8 @@ export function Slide({
       data-tone={slideTone}
       data-background={background === undefined ? undefined : classifySlideBackground(background)}
       data-cover={cover || undefined}
+      data-hidden={hidden || undefined}
+      data-slide-address={slideEnvironment.slideAddress}
       data-transition={transition ?? presentationSettings.transition}
       data-current={slideEnvironment.isCurrentSlide || undefined}
       data-notes={notesText === "" ? undefined : notesText}

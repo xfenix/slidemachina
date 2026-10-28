@@ -7,12 +7,23 @@ type PrintViewBarProperties = {
   pageCount: number;
   printsSteps: boolean;
   choosePrintedSteps: (withSteps: boolean) => void;
+  printsHidden: boolean | undefined;
+  chooseHiddenSlides: (withHidden: boolean) => void;
   printPresentation: () => void;
   closePrintView: () => void;
 };
 
-// The print view keeps the toolbar's capsule: back to the slides, the steps switch and the print button.
-export function PrintViewBar({ languageCode, pageCount, printsSteps, choosePrintedSteps, printPresentation, closePrintView }: PrintViewBarProperties) {
+// The print view keeps the toolbar's capsule: back to the slides, the switches and the print button.
+export function PrintViewBar({
+  languageCode,
+  pageCount,
+  printsSteps,
+  choosePrintedSteps,
+  printsHidden,
+  chooseHiddenSlides,
+  printPresentation,
+  closePrintView,
+}: PrintViewBarProperties) {
   const interfaceTexts = pickInterfaceTexts(languageCode);
 
   useEffect(() => {
@@ -41,6 +52,12 @@ export function PrintViewBar({ languageCode, pageCount, printsSteps, choosePrint
         {interfaceTexts.printStepsTitle}
         <span data-print-switch />
       </button>
+      {printsHidden !== undefined && (
+        <button type="button" role="switch" aria-checked={printsHidden} title={interfaceTexts.printHiddenHint} onClick={() => chooseHiddenSlides(!printsHidden)}>
+          {interfaceTexts.printHiddenTitle}
+          <span data-print-switch />
+        </button>
+      )}
       <button type="button" data-print-view-print title={printShortcut} onClick={printPresentation}>
         <PrinterIcon />
         {interfaceTexts.printNowTitle}

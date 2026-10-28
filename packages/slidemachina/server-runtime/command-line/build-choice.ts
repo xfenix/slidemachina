@@ -3,7 +3,7 @@ import { cancel, isCancel, password, select } from "@clack/prompts";
 import { commandLineTexts } from "./command-line-texts.ts";
 
 export type BuildVariant = "html" | "protected" | "folder" | "zip" | "pdf" | "pdf-steps" | "pptx";
-export type BuildFlags = { html?: boolean, protected?: boolean, folder?: boolean, zip?: boolean, pdf?: boolean, steps?: boolean, pptx?: boolean, out?: string };
+export type BuildFlags = { html?: boolean, protected?: boolean, folder?: boolean, zip?: boolean, pdf?: boolean, steps?: boolean, hidden?: boolean, pptx?: boolean, out?: string };
 
 const buildVariantNames: BuildVariant[] = ["html", "protected", "folder", "zip", "pdf", "pdf-steps", "pptx"];
 const fileVariantNames = ["html", "protected", "folder", "zip"] as const;

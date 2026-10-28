@@ -4,9 +4,11 @@ import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts
 type TimerState = { runningSince?: number; elapsedBeforeRun: number };
 type PresenterTimerProperties = {
   languageCode: string;
-  slideIndex: number;
+  slideAddress: string;
   stepIndex: number;
-  slideCount: number;
+  // Hidden slides are left out: the schedule follows the numbers the audience sees.
+  shownNumber: number;
+  shownCount: number;
   talkMinutes?: number;
 };
 
@@ -41,11 +43,11 @@ export function keepFocus(pointerEvent: PointerEvent) {
 }
 
 // The timer waits at zero and starts with the first move, so the presenter window can open long before the talk.
-export function PresenterTimer({ languageCode, slideIndex, stepIndex, slideCount, talkMinutes }: PresenterTimerProperties) {
+export function PresenterTimer({ languageCode, slideAddress, stepIndex, shownNumber, shownCount, talkMinutes }: PresenterTimerProperties) {
   const interfaceTexts = pickInterfaceTexts(languageCode);
   const [timerState, setTimerState] = useState(readStoredTimer);
   const [currentTime, setCurrentTime] = useState(Date.now);
-  const openingPositionReference = useRef(`${slideIndex}.${stepIndex}`);
+  const openingPositionReference = useRef(`${slideAddress}.${stepIndex}`);
 
   useEffect(() => {
     const clockTicker = setInterval(() => setCurrentTime(Date.now()), clockTickInterval);
@@ -55,12 +57,12 @@ export function PresenterTimer({ languageCode, slideIndex, stepIndex, slideCount
     sessionStorage.setItem(timerStorageKey, JSON.stringify(timerState));
   }, [timerState]);
   useEffect(() => {
-    if (`${slideIndex}.${stepIndex}` === openingPositionReference.current) return;
+    if (`${slideAddress}.${stepIndex}` === openingPositionReference.current) return;
     openingPositionReference.current = "";
     setTimerState((previousTimer) =>
       previousTimer.runningSince === undefined && previousTimer.elapsedBeforeRun === 0 ? { runningSince: Date.now(), elapsedBeforeRun: 0 } : previousTimer,
     );
-  }, [slideIndex, stepIndex]);
+  }, [slideAddress, stepIndex]);
 
   const isRunning = timerState.runningSince !== undefined;
   const elapsedTime = timerState.elapsedBeforeRun + (timerState.runningSince === undefined ? 0 : Math.max(0, currentTime - timerState.runningSince));
@@ -68,10 +70,10 @@ export function PresenterTimer({ languageCode, slideIndex, stepIndex, slideCount
   const talkLength = talkMinutes === undefined ? undefined : talkMinutes * millisecondsPerMinute;
   const timeLeft = talkLength === undefined ? undefined : talkLength - elapsedTime;
   // Planned time for the slides already behind, minus the time spent: above zero the talk runs ahead.
-  const scheduleLead = talkLength === undefined ? 0 : (slideIndex / slideCount) * talkLength - elapsedTime;
+  const scheduleLead = talkLength === undefined ? 0 : (Math.max(0, shownNumber - 1) / shownCount) * talkLength - elapsedTime;
   const schedulePace = Math.abs(scheduleLead) < scheduleTolerance ? "even" : scheduleLead > 0 ? "ahead" : "behind";
   const progressStyle = {
-    "--slides-share": slideCount > 1 ? slideIndex / (slideCount - 1) : 1,
+    "--slides-share": shownCount > 1 ? Math.max(0, shownNumber - 1) / (shownCount - 1) : 1,
     "--time-share": talkLength === undefined ? 0 : Math.min(1, elapsedTime / talkLength),
   } as CSSProperties;
 

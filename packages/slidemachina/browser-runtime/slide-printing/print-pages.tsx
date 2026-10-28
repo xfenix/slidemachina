@@ -4,7 +4,7 @@ import { waitForPrintedPages } from "./print-readiness.ts";
 
 type PrintedPage = { slideIndex: number; revealedStep: number };
 type PrintPagesProperties = {
-  slideCount: number;
+  printedSlideIndexes: number[];
   formatWidth: number;
   printsSteps: boolean;
   isPrintView: boolean;
@@ -31,9 +31,9 @@ function usePrintViewScale(isPrintView: boolean, formatWidth: number): number {
 }
 
 // One page per slide in its final state, or one page per step: code lines and diagram steps included.
-export function listPrintedPages(slideCount: number, printsSteps: boolean, countSteps: (slideIndex: number) => number): PrintedPage[] {
+export function listPrintedPages(printedSlideIndexes: number[], printsSteps: boolean, countSteps: (slideIndex: number) => number): PrintedPage[] {
   const printedPages: PrintedPage[] = [];
-  for (let slideIndex = 0; slideIndex < slideCount; slideIndex += 1) {
+  for (const slideIndex of printedSlideIndexes) {
     if (!printsSteps) {
       printedPages.push({ slideIndex, revealedStep: Infinity });
       continue;
@@ -43,17 +43,17 @@ export function listPrintedPages(slideCount: number, printsSteps: boolean, count
   return printedPages;
 }
 
-export function PrintPages({ slideCount, formatWidth, printsSteps, isPrintView, countSteps, renderPrintedSlide, renderPrintViewBar }: PrintPagesProperties) {
+export function PrintPages({ printedSlideIndexes, formatWidth, printsSteps, isPrintView, countSteps, renderPrintedSlide, renderPrintViewBar }: PrintPagesProperties) {
   const pagesElementReference = useRef<HTMLDivElement>(null);
   const printViewScale = usePrintViewScale(isPrintView, formatWidth);
-  const [printedPages, setPrintedPages] = useState(() => listPrintedPages(slideCount, printsSteps, countSteps));
+  const [printedPages, setPrintedPages] = useState(() => listPrintedPages(printedSlideIndexes, printsSteps, countSteps));
 
   // Slides count their steps once they mount; pages opened right at load are listed again with those counts.
   useLayoutEffect(() => {
-    const countedPages = listPrintedPages(slideCount, printsSteps, countSteps);
+    const countedPages = listPrintedPages(printedSlideIndexes, printsSteps, countSteps);
     // oxlint-disable-next-line react/set-state-in-effect -- step counts arrive in a ref from mounted slides
     if (countedPages.length !== printedPages.length) setPrintedPages(countedPages);
-  }, [slideCount, printsSteps, countSteps, printedPages]);
+  }, [printedSlideIndexes, printsSteps, countSteps, printedPages]);
 
   // The mark tells the print view and the PDF build that every diagram and scene is in place.
   useEffect(() => {

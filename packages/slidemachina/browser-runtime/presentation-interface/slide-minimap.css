@@ -49,6 +49,10 @@
     pointer-events: none;
   }
 
+  [data-minimap-thumbnail][data-hidden] > [data-slide] {
+    opacity: var(--hidden-thumbnail-opacity);
+  }
+
   [data-minimap-thumbnail] [data-thumbnail-number] {
     right: 4px;
     bottom: 4px;

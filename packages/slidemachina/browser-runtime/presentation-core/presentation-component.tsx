@@ -19,6 +19,7 @@ import {
   type SlideAlign,
 } from "./slide-environment.ts";
 import { useSlideNavigation } from "../slide-navigation/slide-navigation.ts";
+import { findShownSlide, numberSlides } from "../slide-navigation/slide-numbering.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { SlideNavigator } from "../presentation-interface/slide-navigator.tsx";
@@ -80,8 +81,11 @@ export function Presentation({
 }: PresentationProperties) {
   const outlinedSlides = useMemo(() => buildSlideOutline(children), [children]);
   const pageTitle = useMemo(() => title ?? readPresentationTitle(children), [title, children]);
+  const slideNumbering = useMemo(() => numberSlides(outlinedSlides.map((outlinedSlide) => outlinedSlide.isHidden)), [outlinedSlides]);
+  const { shownNumbers, shownSlideIndexes } = slideNumbering;
+  const hasHiddenSlides = shownSlideIndexes.length < outlinedSlides.length;
   const stepCountsReference = useRef<number[]>([]);
-  const slideNavigation = useSlideNavigation(outlinedSlides.length, stepCountsReference);
+  const slideNavigation = useSlideNavigation(slideNumbering, stepCountsReference);
   const { currentPosition } = slideNavigation;
   const formatSize = useMemo(() => {
     const measuredFormatSize = measureCanvasSize(aspectRatio);
@@ -91,7 +95,11 @@ export function Presentation({
   const { canvasWidth: formatWidth, canvasHeight: formatHeight } = formatSize;
   const [isNavigatorOpen, setNavigatorOpen] = useOverviewAddress();
   const printPreparation = usePrintPreparation();
-  const { isPrintView, printsSteps } = printPreparation;
+  const { isPrintView, printsSteps, printsHidden } = printPreparation;
+  const printedSlideIndexes = useMemo(
+    () => (printsHidden ? [...outlinedSlides.keys()] : shownSlideIndexes),
+    [printsHidden, outlinedSlides, shownSlideIndexes],
+  );
   const { isMinimapShown, toggleMinimap } = useMinimapShowing(import.meta.env.DEV && !isPrintView && !isCoverPreview);
   const { canvasScale, canvasWidth, canvasHeight, hasRoomUnderCanvas } = useCanvasLayout(formatSize);
   const [isPaused, setPaused] = useState(false);
@@ -106,13 +114,13 @@ export function Presentation({
     [align, logo, lang, transition, speed],
   );
   const sectionTrails = useMemo(() => outlinedSlides.map((outlinedSlide) => outlinedSlide.sectionTrail), [outlinedSlides]);
-  const describeSlideEnvironment = useSlideEnvironments(sectionTrails, presentationSettings, stepCountsReference);
+  const describeSlideEnvironment = useSlideEnvironments(slideNumbering, sectionTrails, presentationSettings, stepCountsReference);
 
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
 
-  const reportPosition = useEffectEvent((slideIndex: number, stepIndex: number) => onChange?.({ slide: slideIndex + 1, step: stepIndex }));
+  const reportPosition = useEffectEvent((slideIndex: number, stepIndex: number) => onChange?.({ slide: shownNumbers[slideIndex] ?? slideIndex + 1, step: stepIndex }));
   useEffect(() => {
     if (!isCoverPreview && !isPresenterWindow) reportPosition(currentPosition.slideIndex, currentPosition.stepIndex);
   }, [currentPosition.slideIndex, currentPosition.stepIndex]);
@@ -136,13 +144,13 @@ export function Presentation({
       setPaused(isAudiencePaused);
     },
   });
-  const typedSlideNumber = useTypedSlideNumber((slideNumber) => steerSlides(slideNumber - 1));
+  const typedSlideNumber = useTypedSlideNumber((slideNumber) => steerSlides(findShownSlide(slideNumbering, slideNumber)));
   useKeyboardControls(
     {
       goForward: () => steerSlides("forward"),
       goBackward: () => steerSlides("backward"),
-      goToFirstSlide: () => steerSlides(0),
-      goToLastSlide: () => steerSlides(outlinedSlides.length - 1),
+      goToFirstSlide: () => steerSlides(findShownSlide(slideNumbering, 1)),
+      goToLastSlide: () => steerSlides(findShownSlide(slideNumbering, shownSlideIndexes.length)),
       // The presenter window has no navigator, toolbar or minimap; the slides window decides what a key does in a pause.
       openNavigator: isPresenterWindow ? () => undefined : unlessPaused(() => switchNavigator(true)),
       togglePause: () => steerSlides("pause"),
@@ -186,6 +194,7 @@ export function Presentation({
     return (
       <PresenterView
         outlinedSlides={outlinedSlides}
+        slideNumbering={slideNumbering}
         currentPosition={currentPosition}
         countSteps={(slideIndex) => stepCountsReference.current[slideIndex] ?? 0}
         renderSlide={renderSlide}
@@ -216,12 +225,17 @@ export function Presentation({
       <style>{`@page { size: ${formatWidth}px ${formatHeight}px; }`}</style>
       <div data-canvas>
         {[...outlinedSlides.keys()].map((slideIndex) => renderSlide(slideIndex))}
-        {progress && outlinedSlides.length > 1 && (
-          <div data-progress aria-hidden="true" style={{ "--progress-share": currentPosition.slideIndex / (outlinedSlides.length - 1) } as CSSProperties} />
+        {progress && shownSlideIndexes.length > 1 && (
+          <div
+            data-progress
+            aria-hidden="true"
+            style={{ "--progress-share": Math.max(0, (shownNumbers[currentPosition.slideIndex] ?? 1) - 1) / (shownSlideIndexes.length - 1) } as CSSProperties}
+          />
         )}
         {isNavigatorOpen && (
           <SlideNavigator
             outlinedSlides={outlinedSlides}
+            slideNumbering={slideNumbering}
             currentSlideIndex={currentPosition.slideIndex}
             formatWidth={formatWidth}
             canvasScale={canvasScale}
@@ -238,7 +252,7 @@ export function Presentation({
       </div>
       {isMinimapShown && !isNavigatorOpen && (
         <SlideMinimap
-          slideCount={outlinedSlides.length}
+          slideNumbering={slideNumbering}
           currentSlideIndex={currentPosition.slideIndex}
           formatWidth={formatWidth}
           languageCode={lang}
@@ -259,6 +273,8 @@ export function Presentation({
           languageCode={lang}
           printsSteps={printsSteps}
           choosePrintedSteps={printPreparation.choosePrintedSteps}
+          printsHidden={hasHiddenSlides ? printsHidden : undefined}
+          chooseHiddenSlides={printPreparation.chooseHiddenSlides}
           printPresentation={printPreparation.printPresentation}
           openPrintView={printPreparation.openPrintView}
         />
@@ -274,7 +290,7 @@ export function Presentation({
       </PresentationToolbar>
       {printPreparation.isPrintPrepared && (
         <PrintPages
-          slideCount={outlinedSlides.length}
+          printedSlideIndexes={printedSlideIndexes}
           formatWidth={formatWidth}
           printsSteps={printsSteps}
           isPrintView={isPrintView}
@@ -286,6 +302,8 @@ export function Presentation({
               pageCount={pageCount}
               printsSteps={printsSteps}
               choosePrintedSteps={printPreparation.choosePrintedSteps}
+              printsHidden={hasHiddenSlides ? printsHidden : undefined}
+              chooseHiddenSlides={printPreparation.chooseHiddenSlides}
               printPresentation={printPreparation.printPresentation}
               closePrintView={printPreparation.closePrintView}
             />

@@ -3,11 +3,13 @@ import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts
 import type { OutlinedSlide } from "../presentation-core/slide-outline.tsx";
 import { useWindowKeydown } from "../slide-navigation/keyboard-listener.ts";
 import type { PresentationPosition } from "../slide-navigation/position-hash.ts";
+import { findNeighbourSlide, type SlideNumbering } from "../slide-navigation/slide-numbering.ts";
 import type { SlideCommand } from "./presenter-channel.ts";
 import { keepFocus, PresenterTimer } from "./presenter-timer.tsx";
 
 type PresenterViewProperties = {
   outlinedSlides: OutlinedSlide[];
+  slideNumbering: SlideNumbering;
   currentPosition: PresentationPosition;
   countSteps: (slideIndex: number) => number;
   renderSlide: (slideIndex: number, copiedStep: number) => ReactNode;
@@ -59,6 +61,7 @@ function SlideFrame({ formatWidth, children }: SlideFrameProperties) {
 // The second window of the speaker: the slide on screen at its step, what comes next, notes, time and the place in the talk.
 export function PresenterView({
   outlinedSlides,
+  slideNumbering,
   currentPosition,
   countSteps,
   renderSlide,
@@ -74,7 +77,8 @@ export function PresenterView({
 }: PresenterViewProperties) {
   const interfaceTexts = pickInterfaceTexts(languageCode);
   const { slideIndex, stepIndex } = currentPosition;
-  const slideCount = outlinedSlides.length;
+  const { slideAddresses, shownNumbers, shownSlideIndexes } = slideNumbering;
+  const isHiddenSlide = slideNumbering.hiddenFlags[slideIndex] === true;
   const { sectionTrail, slideNotes } = outlinedSlides[slideIndex]!;
   const { notesSize, enlargeNotes, shrinkNotes } = useNotesSize();
   const notesReference = useRef<HTMLDivElement>(null);
@@ -86,12 +90,12 @@ export function PresenterView({
   }, [countSteps, slideIndex, stepIndex]);
 
   const hasNextStep = stepIndex < currentStepCount;
-  const isLastSlide = slideIndex === slideCount - 1;
+  const nextSlideIndex = findNeighbourSlide(slideNumbering, slideIndex, 1);
   const nextLabel = hasNextStep
     ? interfaceTexts.presenterNextStep(stepIndex + 1, currentStepCount)
-    : isLastSlide
+    : nextSlideIndex === undefined
       ? interfaceTexts.presenterLastSlide
-      : interfaceTexts.presenterNextSlide(slideIndex + 2);
+      : interfaceTexts.presenterNextSlide(slideAddresses[nextSlideIndex]!);
   // The latest note whose step is shown leads; notes for later steps wait dimmed.
   const leadingNoteStep = Math.max(0, ...slideNotes.map((slideNote) => slideNote.noteStep).filter((noteStep) => noteStep <= stepIndex));
   const marksLeadingNote = slideNotes.some((slideNote) => slideNote.noteStep > 0);
@@ -115,7 +119,11 @@ export function PresenterView({
       {pageTitle !== undefined && pageTitle !== "" && <title>{interfaceTexts.presenterTitle(pageTitle)}</title>}
       <header data-presenter-header>
         <p data-presenter-counter>
-          <strong>{interfaceTexts.presenterSlideCounter(slideIndex + 1, slideCount)}</strong>
+          <strong>
+            {isHiddenSlide
+              ? interfaceTexts.presenterHiddenSlide(slideAddresses[slideIndex]!)
+              : interfaceTexts.presenterSlideCounter(shownNumbers[slideIndex]!, shownSlideIndexes.length)}
+          </strong>
           {currentStepCount > 0 && <span>{interfaceTexts.presenterStepCounter(stepIndex, currentStepCount)}</span>}
           {typedDigits !== "" && <span data-presenter-typed-number>→ {typedDigits}</span>}
         </p>
@@ -137,14 +145,21 @@ export function PresenterView({
       </header>
       <section data-presenter-stage aria-label={interfaceTexts.presenterCurrentLabel}>
         <SlideFrame formatWidth={formatWidth}>{renderSlide(slideIndex, stepIndex)}</SlideFrame>
-        <PresenterTimer languageCode={languageCode} slideIndex={slideIndex} stepIndex={stepIndex} slideCount={slideCount} talkMinutes={talkMinutes} />
+        <PresenterTimer
+          languageCode={languageCode}
+          slideAddress={slideAddresses[slideIndex]!}
+          stepIndex={stepIndex}
+          shownNumber={shownNumbers[slideIndex]!}
+          shownCount={shownSlideIndexes.length}
+          talkMinutes={talkMinutes}
+        />
       </section>
       <aside data-presenter-side>
         <section data-presenter-next aria-label={nextLabel}>
           <h2>{nextLabel}</h2>
-          {!isLastSlide || hasNextStep ? (
+          {nextSlideIndex !== undefined || hasNextStep ? (
             <button type="button" aria-label={nextLabel} onPointerDown={keepFocus} onClick={() => steerSlides("forward")}>
-              <SlideFrame formatWidth={formatWidth}>{hasNextStep ? renderSlide(slideIndex, stepIndex + 1) : renderSlide(slideIndex + 1, 0)}</SlideFrame>
+              <SlideFrame formatWidth={formatWidth}>{hasNextStep || nextSlideIndex === undefined ? renderSlide(slideIndex, stepIndex + 1) : renderSlide(nextSlideIndex, 0)}</SlideFrame>
             </button>
           ) : (
             <div data-presenter-frame data-presenter-end />

@@ -53,7 +53,7 @@ test("сборка: один HTML-файл листается без серве�
   test.setTimeout(180_000);
   const outputFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-build-"));
   try {
-    await runCommand(process.execPath, [commandLineScript, "build", path.join(examplesFolder, demoFolderName), "--html", "--folder", "--steps", "--pptx", "--out", outputFolder]);
+    await runCommand(process.execPath, [commandLineScript, "build", path.join(examplesFolder, demoFolderName), "--html", "--folder", "--steps", "--pptx", "--hidden", "--out", outputFolder]);
     const singleFile = path.join(outputFolder, "demo-presentation.html");
     const assetFolder = path.join(outputFolder, "demo-presentation", "assets");
 
@@ -99,10 +99,10 @@ test("сборка: один HTML-файл листается без серве�
       await presenterPage.close();
     });
 
-    await test.step("печать из браузера: страница на слайд, без панели управления", async () => {
-      const demoSlideCount = await page.locator("[data-canvas] > [data-slide]").count();
+    await test.step("печать из браузера: страница на слайд без скрытых, без панели управления", async () => {
+      const shownSlideCount = await page.locator("[data-canvas] > [data-slide]:not([data-hidden])").count();
       const demoSceneCount = await page.locator("[data-canvas] > [data-slide] [data-scene]").count();
-      expect(await countPrintedPages(page)).toBe(demoSlideCount);
+      expect(await countPrintedPages(page)).toBe(shownSlideCount);
       await page.emulateMedia({ media: "print" });
       await expect(page.locator("[data-toolbar]")).toBeHidden();
       await expect(page.locator("[data-print-page]").first()).toBeVisible();
@@ -126,7 +126,9 @@ test("сборка: один HTML-файл листается без серве�
       );
       const findPptxSlideNumber = (slideNumber: number) => pptxSlidesPerSlide.slice(0, slideNumber).reduce((slideTotal, slideCount) => slideTotal + slideCount, 0);
       expect(pptxSlidesPerSlide.filter((slideCount) => slideCount > 1).length, "шаги строк кода — отдельные слайды").toBeGreaterThan(0);
+      // The build ran with --hidden: the backup slide after the last one is the last PowerPoint slide.
       expect(pptxSlideCount).toBe(findPptxSlideNumber(pptxSlidesPerSlide.length));
+      expect(readSlideXml(pptxSlideCount), "скрытый слайд с --hidden").toContain("Запасной слайд");
       const allSlidesXml = Array.from({ length: pptxSlideCount }, (_slideXml, slideIndex) => readSlideXml(slideIndex + 1)).join("");
       expect(allSlidesXml, "слово, перенесённое браузером, заканчивает строку дефисом: PowerPoint сам не переносит").toMatch(/\p{L}-<\/a:t><\/a:r><a:br\/>/u);
       expect(readSlideXml(1), "заголовок обложки — текстовое поле").toMatch(/<p:sp>(?:(?!<\/p:sp>).)*<a:t>Слайды из.кода<\/a:t>/s);
@@ -168,28 +170,33 @@ test("сборка: один HTML-файл листается без серве�
       expect(mainModuleText.includes("org.eclipse.elk"), "ELK в основном модуле").toBe(false);
       expect(agentationTraces.test(mainModuleText), "agentation в основном модуле").toBe(false);
       expect(mainModuleText.includes("THREE.WebGLRenderer"), "three.js в основном модуле").toBe(false);
-      const sceneModuleName = assetNames.find((assetName) => /^scene-view-.*\.js$/.test(assetName))!;
-      expect((await readFile(path.join(assetFolder, sceneModuleName), "utf8")).includes("THREE.WebGLRenderer"), "three.js в своём файле").toBe(true);
+      // The engine's scene and the demo's cube both load three.js on demand, so the bundler gives it a file of its own.
+      const separateScriptNames = assetNames.filter((assetName) => assetName.endsWith(".js") && assetName !== mainModuleName);
+      const separateScriptTexts = await Promise.all(separateScriptNames.map((assetName) => readFile(path.join(assetFolder, assetName), "utf8")));
+      expect(separateScriptTexts.some((scriptText) => scriptText.includes("THREE.WebGLRenderer")), "three.js в своём файле").toBe(true);
       for (const assetName of assetNames) {
         const assetText = await readFile(path.join(assetFolder, assetName), "latin1");
         expect(editorTraces.test(assetText), `редактор в ${assetName}`).toBe(false);
       }
     });
 
-    await test.step("печатная версия и PDF по шагам: страница на каждый шаг, раскадровка выключается", async () => {
+    await test.step("печатная версия и PDF по шагам: страница на каждый шаг со скрытыми, раскадровка и скрытые выключаются", async () => {
       const pdfBytes = await readFile(path.join(outputFolder, "demo-presentation-steps.pdf"));
       const pdfPageCount = countPdfPages(pdfBytes);
       // Blurred shadows, masks and gradient text become soft masks, and macOS Preview draws them as grey and blue patches.
       expect(pdfBytes.toString("latin1").match(/\/S\s*\/(Luminosity|Alpha)/g), "мягкие маски в PDF").toBeNull();
       await page.emulateMedia({ media: "screen" });
-      await page.goto(`${pathToFileURL(singleFile).href}?print=steps`);
+      await page.goto(`${pathToFileURL(singleFile).href}?print=steps&hidden`);
       await expect(page.locator("[data-print-pages][data-print-view]")).toHaveAttribute("data-print-ready");
       await expect(page.locator("[data-print-page]")).toHaveCount(pdfPageCount);
       await expect(page.locator("[data-canvas]")).toBeHidden();
       const slideCount = await page.locator("[data-canvas] > [data-slide]").count();
       expect(pdfPageCount).toBeGreaterThan(slideCount);
-      await page.getByRole("switch").click();
+      await page.getByRole("switch", { name: "Раскадровка" }).click();
       await expect(page.locator("[data-print-page]")).toHaveCount(slideCount);
+      await expect(page).toHaveURL(/\?print&hidden(#|$)/);
+      await page.getByRole("switch", { name: "Скрытые слайды" }).click();
+      await expect(page.locator("[data-print-page]")).toHaveCount(slideCount - 1);
       await expect(page).toHaveURL(/\?print(#|$)/);
       await page.keyboard.press("Escape");
       await expect(page.locator("[data-canvas]")).toBeVisible();

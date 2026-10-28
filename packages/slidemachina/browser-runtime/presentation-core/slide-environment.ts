@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo, type ComponentType, type RefObject 
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
+import type { SlideNumbering } from "../slide-navigation/slide-numbering.ts";
 
 export const SlideEnvironmentContext = createContext<SlideEnvironment | null>(null);
 
@@ -22,6 +23,7 @@ export type SlideState = { number: number; step: number; isCurrent: boolean; isC
 type SlideRenderState = { slideIndex: number; isCurrentSlide: boolean; isSlideNearby: boolean; isSlideCopy: boolean; revealedStep: number };
 type SlideEnvironment = {
   slideNumber: number;
+  slideAddress: string;
   sectionTrail: string[];
   isCurrentSlide: boolean;
   // Two slides or closer to the current one: videos start loading.
@@ -48,6 +50,7 @@ export function useSlide(): SlideState {
 
 // A slide whose state did not change gets the same environment object, so a key press re-renders only the slides it changes.
 export function useSlideEnvironments(
+  slideNumbering: SlideNumbering,
   sectionTrails: string[][],
   presentationSettings: PresentationSettings,
   stepCountsReference: RefObject<number[]>,
@@ -61,7 +64,8 @@ export function useSlideEnvironments(
       const cachedEnvironment = environmentCache.get(cacheKey);
       if (cachedEnvironment !== undefined) return cachedEnvironment;
       const slideEnvironment: SlideEnvironment = {
-        slideNumber: slideIndex + 1,
+        slideNumber: slideNumbering.shownNumbers[slideIndex] ?? slideIndex + 1,
+        slideAddress: slideNumbering.slideAddresses[slideIndex] ?? String(slideIndex + 1),
         sectionTrail: sectionTrails[slideIndex] ?? [],
         isCurrentSlide,
         isSlideNearby,
@@ -76,5 +80,5 @@ export function useSlideEnvironments(
       environmentCache.set(cacheKey, slideEnvironment);
       return slideEnvironment;
     };
-  }, [sectionTrails, presentationSettings, stepCountsReference]);
+  }, [slideNumbering, sectionTrails, presentationSettings, stepCountsReference]);
 }

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { flushSync } from "react-dom";
 import { readPositionFromHash, writePositionToHash, type PresentationPosition } from "./position-hash.ts";
+import { findNeighbourSlide, type SlideNumbering } from "./slide-numbering.ts";
 import { runSlideTransition } from "../slide-transitions/slide-transition.ts";
 
-export function useSlideNavigation(slideCount: number, stepCountsReference: RefObject<number[]>) {
-  const [requestedPosition, setRequestedPosition] = useState(readPositionFromHash);
-  const lastSlideIndex = Math.max(slideCount - 1, 0);
+export function useSlideNavigation(slideNumbering: SlideNumbering, stepCountsReference: RefObject<number[]>) {
+  const { slideAddresses } = slideNumbering;
+  const [requestedPosition, setRequestedPosition] = useState(() => readPositionFromHash(slideNumbering));
+  const lastSlideIndex = Math.max(slideAddresses.length - 1, 0);
   const currentPosition = fitPosition(requestedPosition, lastSlideIndex);
   // Fast repeated presses arrive before React re-renders, so moves start from this reference, not from state.
   const latestPositionReference = useRef(currentPosition);
@@ -45,11 +47,11 @@ export function useSlideNavigation(slideCount: number, stepCountsReference: RefO
 
   const { slideIndex: currentSlideIndex, stepIndex: currentStepIndex } = currentPosition;
   useEffect(() => {
-    writePositionToHash({ slideIndex: currentSlideIndex, stepIndex: currentStepIndex });
-  }, [currentSlideIndex, currentStepIndex]);
+    writePositionToHash({ slideIndex: currentSlideIndex, stepIndex: currentStepIndex }, slideAddresses);
+  }, [currentSlideIndex, currentStepIndex, slideAddresses]);
 
   useEffect(() => {
-    const followHashChange = () => applyPosition(fitPosition(readPositionFromHash(), lastSlideIndex));
+    const followHashChange = () => applyPosition(fitPosition(readPositionFromHash(slideNumbering), lastSlideIndex));
     window.addEventListener("hashchange", followHashChange);
     return () => window.removeEventListener("hashchange", followHashChange);
   });
@@ -59,14 +61,14 @@ export function useSlideNavigation(slideCount: number, stepCountsReference: RefO
     goForward: () =>
       movePosition(({ slideIndex, stepIndex }) => {
         if (stepIndex < countSteps(slideIndex)) return { slideIndex, stepIndex: stepIndex + 1 };
-        if (slideIndex < lastSlideIndex) return { slideIndex: slideIndex + 1, stepIndex: 0 };
-        return { slideIndex, stepIndex };
+        const nextSlideIndex = findNeighbourSlide(slideNumbering, slideIndex, 1);
+        return nextSlideIndex === undefined ? { slideIndex, stepIndex } : { slideIndex: nextSlideIndex, stepIndex: 0 };
       }),
     goBackward: () =>
       movePosition(({ slideIndex, stepIndex }) => {
         if (stepIndex > 0) return { slideIndex, stepIndex: stepIndex - 1 };
-        if (slideIndex > 0) return { slideIndex: slideIndex - 1, stepIndex: countSteps(slideIndex - 1) };
-        return { slideIndex, stepIndex };
+        const previousSlideIndex = findNeighbourSlide(slideNumbering, slideIndex, -1);
+        return previousSlideIndex === undefined ? { slideIndex, stepIndex } : { slideIndex: previousSlideIndex, stepIndex: countSteps(previousSlideIndex) };
       }),
     goToSlide: (slideIndex: number) =>
       applyPosition({ slideIndex: Math.min(Math.max(slideIndex, 0), lastSlideIndex), stepIndex: 0 }),

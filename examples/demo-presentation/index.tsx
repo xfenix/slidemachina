@@ -15,6 +15,7 @@ import printViewPicture from "./images/print-view.webp";
 import sceneOrbitPoster from "./images/scene-orbit-poster.webp";
 import sceneOrbitVideo from "./images/scene-orbit.webm";
 import slidemachinaMarkPicture from "./images/slidemachina-mark.svg";
+import { AssemblingCube } from "./assembling-cube.tsx";
 import { DraggableSticker } from "./draggable-sticker.tsx";
 import { OrbitSunrise } from "./orbit-sunrise.tsx";
 
@@ -302,15 +303,22 @@ export default (
         </div>
       </Machina.Slide>
 
-      <Machina.Slide plain background="#02030a">
-        <div className="machina-freeform-full">
+      <Machina.Slide cover plain align="left" valign="top" background="#02030a">
+        <div className="machina-freeform-full -z-1">
           <OrbitSunrise />
-          <div className="absolute top-(--frame-top) left-(--frame-padding) max-w-[1000px]">
-            <h1 className="mb-12 text-(length:--display-size)">Слайд без правил</h1>
-            <p className="machina-lead">Земля, рассвет и блик нарисованы шейдером: ни одной картинки</p>
-            <p className="machina-note" data-step>Ведите мышью: камера сдвинется, солнце выглянет из-за края</p>
-          </div>
         </div>
+        <h1>Слайд без правил</h1>
+        <p className="machina-lead">Земля, рассвет и блик нарисованы шейдером: ни одной картинки</p>
+        <p className="machina-note" data-step>Ведите мышью: камера сдвинется, солнце выглянет из-за края</p>
+      </Machina.Slide>
+
+      <Machina.Slide cover plain align="left" valign="bottom">
+        <div className="machina-freeform-full -z-1">
+          <AssemblingCube />
+        </div>
+        <h1>Живая обложка</h1>
+        <p className="machina-lead max-w-[760px]">Куб разбирается на части и собирается снова. Это код на three.js, а не видео</p>
+        <p className="machina-note">Ведите мышью и щёлкните по кубу</p>
       </Machina.Slide>
     </Machina.Section>
 
@@ -1246,6 +1254,25 @@ export default (
         </Machina.Notes>
       </Machina.Slide>
 
+      <Machina.Slide>
+        <h2>Скрытые слайды</h2>
+        <div className="machina-columns" style={{ gridTemplateColumns: "auto 1fr" }}>
+          <div>
+            <Machina.Code lang="tsx">{`
+              <Slide hidden>
+                <h2>Запасной слайд</h2>
+              </Slide>
+            `}</Machina.Code>
+          </div>
+          <ul data-steps>
+            <li>При показе его нет: стрелки идут мимо, номер и прогресс его не считают</li>
+            <li>В навигаторе он бледный, с перечёркнутым глазом. Адрес <code>#12+1</code> — первый скрытый после слайда 12</li>
+            <li>В PDF и PowerPoint его тоже нет. Вернуть: «Скрытые слайды» в меню печати или <code>--hidden</code> у сборки</li>
+            <li>Запасной слайд демо стоит после «Спасибо»: нажмите <kbd>Esc</kbd> и найдите его</li>
+          </ul>
+        </div>
+      </Machina.Slide>
+
       <Machina.Slide breadcrumbs="Шпаргалка">
         <h2>Клавиши</h2>
         <table>
@@ -1306,6 +1333,12 @@ export default (
         <Machina.Sphere size={0.8} position={[-1.6, 0.4, 1.6]} material="glossy" />
         <Machina.Cube size={[0.6, 1.8, 0.6]} position={[0.2, 0.9, -2.2]} rotation={[0, 12, 0]} color="var(--second-accent-color)" />
       </Machina.Scene>
+    </Machina.Slide>
+
+    <Machina.Slide hidden>
+      <h2>Запасной слайд</h2>
+      <p>Он скрыт: при показе, в PDF и PowerPoint его нет.</p>
+      <p>Он ждёт вопросов из зала. Открыть его можно из навигатора или по адресу.</p>
     </Machina.Slide>
   </Machina.Presentation>
 );

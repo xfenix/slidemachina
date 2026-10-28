@@ -1,34 +1,49 @@
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { printedStepsStorageKey, printViewParameter, printViewStepsValue } from "../../shared-between-runtimes/engine-constants.js";
+import {
+  printedHiddenStorageKey,
+  printedStepsStorageKey,
+  printViewHiddenParameter,
+  printViewParameter,
+  printViewStepsValue,
+} from "../../shared-between-runtimes/engine-constants.js";
 import { waitForPrintedPages } from "./print-readiness.ts";
 import { describeAddressWithParameter } from "../presentation-core/page-address.ts";
 
-function readPrintViewRequest(): { isPrintView: boolean; printsSteps?: boolean } {
+type PrintChoice = { printsSteps: boolean; printsHidden: boolean };
+
+function readPrintViewRequest(): { isPrintView: boolean; printChoice?: PrintChoice } {
   const searchParameters = new URLSearchParams(location.search);
   const requestedValue = searchParameters.get(printViewParameter);
   if (requestedValue === null) return { isPrintView: false };
-  return { isPrintView: true, printsSteps: requestedValue === printViewStepsValue };
+  return { isPrintView: true, printChoice: { printsSteps: requestedValue === printViewStepsValue, printsHidden: searchParameters.has(printViewHiddenParameter) } };
 }
 
-// "?print" or "?print=steps"; the slide position in the hash stays.
-function describePrintViewAddress(isPrintView: boolean, printsSteps: boolean): string {
+function readRememberedChoice(): PrintChoice {
+  return {
+    printsSteps: localStorage.getItem(printedStepsStorageKey) === "true",
+    printsHidden: localStorage.getItem(printedHiddenStorageKey) === "true",
+  };
+}
+
+// "?print", "?print=steps" or "?print=steps&hidden"; the slide position in the hash stays.
+function describePrintViewAddress(isPrintView: boolean, { printsSteps, printsHidden }: PrintChoice): string {
   const printViewValue = printsSteps ? printViewStepsValue : "";
-  return describeAddressWithParameter(printViewParameter, isPrintView ? printViewValue : undefined);
+  const printViewAddress = describeAddressWithParameter(printViewParameter, isPrintView ? printViewValue : undefined);
+  return describeAddressWithParameter(printViewHiddenParameter, isPrintView && printsHidden ? "" : undefined, printViewAddress);
 }
 
 // Pages appear synchronously on beforeprint. Chrome may lay them out again until its dialog closes, so they go on the next press on the page.
 export function usePrintPreparation() {
   const [isPrintView, setPrintView] = useState(() => readPrintViewRequest().isPrintView);
-  const [printsSteps, setPrintsSteps] = useState(
-    () => readPrintViewRequest().printsSteps ?? localStorage.getItem(printedStepsStorageKey) === "true",
-  );
+  const [printChoice, setPrintChoice] = useState(() => readPrintViewRequest().printChoice ?? readRememberedChoice());
   const [isPrintPrepared, setPrintPrepared] = useState(false);
   const isPrintingReference = useRef(false);
 
   useEffect(() => {
-    localStorage.setItem(printedStepsStorageKey, String(printsSteps));
-  }, [printsSteps]);
+    localStorage.setItem(printedStepsStorageKey, String(printChoice.printsSteps));
+    localStorage.setItem(printedHiddenStorageKey, String(printChoice.printsHidden));
+  }, [printChoice]);
 
   useEffect(() => {
     const preparePrint = () => flushSync(() => setPrintPrepared(true));
@@ -44,7 +59,7 @@ export function usePrintPreparation() {
     const followAddress = () => {
       const printViewRequest = readPrintViewRequest();
       setPrintView(printViewRequest.isPrintView);
-      if (printViewRequest.printsSteps !== undefined) setPrintsSteps(printViewRequest.printsSteps);
+      if (printViewRequest.printChoice !== undefined) setPrintChoice(printViewRequest.printChoice);
     };
     window.addEventListener("beforeprint", preparePrint);
     window.addEventListener("afterprint", finishPrint);
@@ -81,21 +96,24 @@ export function usePrintPreparation() {
     return () => window.removeEventListener("keydown", interceptPrintShortcut, true);
   });
 
-  const showPrintView = (shownAsPrintView: boolean, shownSteps: boolean) => {
-    history.pushState(history.state, "", describePrintViewAddress(shownAsPrintView, shownSteps));
+  const showPrintView = (shownAsPrintView: boolean) => {
+    history.pushState(history.state, "", describePrintViewAddress(shownAsPrintView, printChoice));
     setPrintView(shownAsPrintView);
+  };
+  const changePrintChoice = (changedChoice: Partial<PrintChoice>) => {
+    const nextChoice = { ...printChoice, ...changedChoice };
+    setPrintChoice(nextChoice);
+    if (isPrintView) history.replaceState(history.state, "", describePrintViewAddress(true, nextChoice));
   };
 
   return {
     isPrintView,
     isPrintPrepared: isPrintPrepared || isPrintView,
-    printsSteps,
+    ...printChoice,
     printPresentation: () => void printPresentation(),
-    choosePrintedSteps: (withSteps: boolean) => {
-      setPrintsSteps(withSteps);
-      if (isPrintView) history.replaceState(history.state, "", describePrintViewAddress(true, withSteps));
-    },
-    openPrintView: () => showPrintView(true, printsSteps),
-    closePrintView: () => showPrintView(false, printsSteps),
+    choosePrintedSteps: (withSteps: boolean) => changePrintChoice({ printsSteps: withSteps }),
+    chooseHiddenSlides: (withHidden: boolean) => changePrintChoice({ printsHidden: withHidden }),
+    openPrintView: () => showPrintView(true),
+    closePrintView: () => showPrintView(false),
   };
 }

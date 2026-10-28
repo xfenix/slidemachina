@@ -26,6 +26,7 @@ function readCommandLine() {
         zip: { type: "boolean" },
         pdf: { type: "boolean" },
         steps: { type: "boolean" },
+        hidden: { type: "boolean" },
         pptx: { type: "boolean" },
         out: { type: "string" },
         template: { type: "string" },

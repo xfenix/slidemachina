@@ -11,6 +11,7 @@ export type OutlinedSlide = {
   slideElement: ReactElement;
   sectionTrail: string[];
   slideNotes: SlideNote[];
+  isHidden: boolean;
 };
 
 const elementOutlineReader: SlideOutlineReader<ReactElement> = {
@@ -65,8 +66,10 @@ export function buildSlideOutline(presentationChildren: ReactNode): OutlinedSlid
     const sectionTitles = outlinedMarkup.sectionPlaces.map(nameSection);
     const sectionTrail = sectionTitles.filter((sectionTitle) => sectionTitle !== "");
     if (!outlinedMarkup.isGeneratedCover) {
-      const slideNotes = listSlideNotes((outlinedMarkup.slideNode.props as SlideProperties).children);
-      return { slideKey: `${enclosingKey}/${outlinedMarkup.slideNode.key}`, slideElement: outlinedMarkup.slideNode, sectionTrail, slideNotes };
+      const slideProperties = outlinedMarkup.slideNode.props as SlideProperties;
+      const slideNotes = listSlideNotes(slideProperties.children);
+      const isHidden = slideProperties.hidden === true;
+      return { slideKey: `${enclosingKey}/${outlinedMarkup.slideNode.key}`, slideElement: outlinedMarkup.slideNode, sectionTrail, slideNotes, isHidden };
     }
     const { sectionNumber } = outlinedMarkup.sectionPlaces.at(-1)!;
     const sectionCover = (
@@ -75,6 +78,6 @@ export function buildSlideOutline(presentationChildren: ReactNode): OutlinedSlid
         <SectionNumber sectionNumber={sectionNumber} />
       </Slide>
     );
-    return { slideKey: `${enclosingKey}/cover`, slideElement: sectionCover, sectionTrail, slideNotes: [] };
+    return { slideKey: `${enclosingKey}/cover`, slideElement: sectionCover, sectionTrail, slideNotes: [], isHidden: false };
   });
 }

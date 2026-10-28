@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { pickInterfaceTexts } from "./interface-texts.ts";
 import { usePopoverClosing } from "./popover-closing.ts";
 import { ToolbarButton } from "./presentation-toolbar.tsx";
+import { HiddenSlideIcon } from "./hidden-slide-icon.tsx";
 
 export const printShortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd+P" : "Ctrl+P";
 
@@ -9,12 +10,15 @@ type PrintMenuProperties = {
   languageCode: string;
   printsSteps: boolean;
   choosePrintedSteps: (withSteps: boolean) => void;
+  // Without hidden slides in the presentation there is no switch for them.
+  printsHidden: boolean | undefined;
+  chooseHiddenSlides: (withHidden: boolean) => void;
   printPresentation: () => void;
   openPrintView: () => void;
 };
 
-// The steps switch is remembered: Cmd+P and the print view use it next time too.
-export function PrintMenu({ languageCode, printsSteps, choosePrintedSteps, printPresentation, openPrintView }: PrintMenuProperties) {
+// The switches are remembered: Cmd+P and the print view use them next time too.
+export function PrintMenu({ languageCode, printsSteps, choosePrintedSteps, printsHidden, chooseHiddenSlides, printPresentation, openPrintView }: PrintMenuProperties) {
   const interfaceTexts = pickInterfaceTexts(languageCode);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const menuAnchorReference = useRef<HTMLDivElement>(null);
@@ -58,6 +62,16 @@ export function PrintMenu({ languageCode, printsSteps, choosePrintedSteps, print
             </span>
             <span data-print-switch />
           </button>
+          {printsHidden !== undefined && (
+            <button type="button" role="menuitemcheckbox" aria-checked={printsHidden} onClick={() => chooseHiddenSlides(!printsHidden)}>
+              <HiddenSlideIcon />
+              <span data-print-option-text>
+                <span data-print-option-title>{interfaceTexts.printHiddenTitle}</span>
+                <span data-print-option-hint>{interfaceTexts.printHiddenHint}</span>
+              </span>
+              <span data-print-switch />
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -605,8 +605,10 @@ test("демо листается, показывает шаги и навига
 
   await test.step("прогресс, миникарта, тезис, фон-видео и свой компонент с useSlide", async () => {
     const demoSlideCount = await page.locator("[data-canvas] > [data-slide]").count();
+    const shownSlideCount = await page.locator("[data-canvas] > [data-slide]:not([data-hidden])").count();
     await jumpToSlide(page, 3);
-    await expect(page.locator("[data-progress]")).toHaveAttribute("style", `--progress-share: ${2 / (demoSlideCount - 1)};`);
+    // The hidden slide of the demo is left out of the progress line.
+    await expect(page.locator("[data-progress]")).toHaveAttribute("style", `--progress-share: ${2 / (shownSlideCount - 1)};`);
     // The minimap of slidemachina dev lies over the right edge: off by default, M or its toolbar button shows it, the slide keeps its size.
     const slideMinimap = page.locator("[data-minimap]");
     await expect(slideMinimap).toHaveCount(0);
@@ -691,6 +693,23 @@ test("демо листается, показывает шаги и навига
     await overviewPage.keyboard.press("Escape");
     await expect(overviewPage.locator("[data-navigator]")).toHaveCount(0);
     await overviewPage.close();
+
+    // The backup slide after the last one: End and → stop before it, the navigator opens it as "N+1", ← leads back to N.
+    const shownSlideCount = await page.locator("[data-canvas] > [data-slide]:not([data-hidden])").count();
+    await page.keyboard.press("End");
+    await expect(page).toHaveURL(new RegExp(`#${shownSlideCount}$`));
+    await page.keyboard.press("ArrowRight");
+    await expect(page).toHaveURL(new RegExp(`#${shownSlideCount}$`));
+    await page.keyboard.press("o");
+    const hiddenThumbnail = slideNavigator.locator("[data-thumbnail][data-hidden]");
+    await expect(hiddenThumbnail.locator("[data-thumbnail-number]")).toHaveText(`${shownSlideCount}+1`);
+    await hiddenThumbnail.click();
+    await expect(page).toHaveURL(new RegExp(`#${shownSlideCount}\\+1$`));
+    await expect(currentSlide(page).locator("h2")).toHaveText("Запасной слайд");
+    await expect(currentSlide(page).locator("[data-slide-number]")).toHaveCount(0);
+    await page.keyboard.press("ArrowLeft");
+    await expect(page).toHaveURL(new RegExp(`#${shownSlideCount}$`));
+    await jumpToSlide(page, keysSlideNumber);
   });
 
   await test.step("панель гаснет без движения мыши и возвращается при движении, Agentation — вместе с ней", async () => {

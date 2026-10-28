@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { pickInterfaceTexts } from "./interface-texts.ts";
 import { ToolbarButton } from "./presentation-toolbar.tsx";
+import type { SlideNumbering } from "../slide-navigation/slide-numbering.ts";
 
 const minimapWidth = 168;
 const minimapPadding = 12;
@@ -9,7 +10,7 @@ const shownMinimapStorageKey = "slidemachina-minimap-shown";
 const thumbnailPreloadMargin = "600px 0px";
 
 type SlideMinimapProperties = {
-  slideCount: number;
+  slideNumbering: SlideNumbering;
   currentSlideIndex: number;
   formatWidth: number;
   languageCode: string;
@@ -18,6 +19,8 @@ type SlideMinimapProperties = {
 };
 type MinimapThumbnailProperties = {
   slideIndex: number;
+  slideAddress: string;
+  isHidden: boolean;
   isCurrent: boolean;
   renderThumbnail: (slideIndex: number) => ReactNode;
   goToSlide: (slideIndex: number) => void;
@@ -53,7 +56,7 @@ export function MinimapSwitch({ languageCode, isMinimapShown, toggleMinimap }: {
   );
 }
 
-export function SlideMinimap({ slideCount, currentSlideIndex, formatWidth, languageCode, renderThumbnail, goToSlide }: SlideMinimapProperties) {
+export function SlideMinimap({ slideNumbering, currentSlideIndex, formatWidth, languageCode, renderThumbnail, goToSlide }: SlideMinimapProperties) {
   const minimapStyle = {
     "--minimap-thumbnail-scale": (minimapWidth - 2 * minimapPadding) / formatWidth,
     width: minimapWidth,
@@ -61,10 +64,12 @@ export function SlideMinimap({ slideCount, currentSlideIndex, formatWidth, langu
   } as CSSProperties;
   return (
     <nav data-minimap aria-label={pickInterfaceTexts(languageCode).minimapLabel} style={minimapStyle}>
-      {Array.from({ length: slideCount }, (_, slideIndex) => (
+      {slideNumbering.slideAddresses.map((slideAddress, slideIndex) => (
         <MinimapThumbnail
           key={slideIndex}
           slideIndex={slideIndex}
+          slideAddress={slideAddress}
+          isHidden={slideNumbering.hiddenFlags[slideIndex] === true}
           isCurrent={slideIndex === currentSlideIndex}
           renderThumbnail={renderThumbnail}
           goToSlide={goToSlide}
@@ -75,7 +80,7 @@ export function SlideMinimap({ slideCount, currentSlideIndex, formatWidth, langu
 }
 
 // A thumbnail draws its slide copy only near the visible part of the strip: a deck of a hundred slides stays light.
-function MinimapThumbnail({ slideIndex, isCurrent, renderThumbnail, goToSlide }: MinimapThumbnailProperties) {
+function MinimapThumbnail({ slideIndex, slideAddress, isHidden, isCurrent, renderThumbnail, goToSlide }: MinimapThumbnailProperties) {
   const thumbnailReference = useRef<HTMLButtonElement>(null);
   const [isNearView, setNearView] = useState(false);
   useEffect(() => {
@@ -102,12 +107,13 @@ function MinimapThumbnail({ slideIndex, isCurrent, renderThumbnail, goToSlide }:
       ref={thumbnailReference}
       type="button"
       data-minimap-thumbnail
+      data-hidden={isHidden || undefined}
       aria-current={isCurrent || undefined}
       onPointerDown={(pointerEvent) => pointerEvent.preventDefault()}
       onClick={() => goToSlide(slideIndex)}
     >
       {isNearView && renderThumbnail(slideIndex)}
-      <span data-thumbnail-number>{slideIndex + 1}</span>
+      <span data-thumbnail-number>{slideAddress}</span>
     </button>
   );
 }

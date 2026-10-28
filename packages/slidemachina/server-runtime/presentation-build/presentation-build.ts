@@ -17,7 +17,7 @@ import type { BuildReport } from "./image-compression.ts";
 import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
 
 export type OutputPaths = Record<BuildVariant, string>;
-export type BuildContext = { isInteractive: boolean, pageSecret: string | undefined, buildReport: BuildReport, stepPrefix?: string };
+export type BuildContext = { isInteractive: boolean, pageSecret: string | undefined, printsHidden: boolean, buildReport: BuildReport, stepPrefix?: string };
 export type StepTitler = (shownTitle: string) => string;
 
 const singleFileVariants = new Set<BuildVariant>(["html", "protected", "pdf", "pdf-steps", "pptx"]);
@@ -96,7 +96,7 @@ export async function buildPresentation(
   buildContext: BuildContext,
   processBuiltPage?: (builtFolder: string, stepTitle: StepTitler) => Promise<void>,
 ): Promise<void> {
-  const { buildReport, isInteractive, pageSecret, stepPrefix } = buildContext;
+  const { buildReport, isInteractive, pageSecret, printsHidden, stepPrefix } = buildContext;
   const projectFolder = presentationLayout.rootFolder;
   const nameStepTitle: StepTitler = (shownTitle) => (stepPrefix === undefined ? shownTitle : `${stepPrefix} · ${shownTitle}`);
   const temporaryFolder = mkdtempSync(path.join(os.tmpdir(), "slidemachina-build-"));
@@ -137,12 +137,12 @@ export async function buildPresentation(
         const printsSteps = pdfVariant === "pdf-steps";
         await runBuildStep(
           nameStepTitle(commandLineTexts.printingPdf(printsSteps)),
-          () => printPdf(builtPage, outputPaths[pdfVariant], printsSteps),
+          () => printPdf(builtPage, outputPaths[pdfVariant], { printsSteps, printsHidden }),
           isInteractive,
         );
       }
       if (chosenVariants.includes("pptx")) {
-        await runBuildStep(nameStepTitle(commandLineTexts.exportingPptx), () => exportPptx(builtPage, outputPaths.pptx), isInteractive);
+        await runBuildStep(nameStepTitle(commandLineTexts.exportingPptx), () => exportPptx(builtPage, outputPaths.pptx, printsHidden), isInteractive);
       }
       builtPages.push(singleFileFolder);
     }
