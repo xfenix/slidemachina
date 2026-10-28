@@ -50,7 +50,7 @@ export default (
             <figcaption>файл на всю презентацию</figcaption>
           </figure>
           <figure className="machina-big-number">
-            <p>8</p>
+            <p>13</p>
             <figcaption>переходов между слайдами</figcaption>
           </figure>
           <figure className="machina-big-number">
@@ -61,7 +61,7 @@ export default (
         <p className="machina-source">Замеры сборки этого демо, октябрь 2026</p>
         <Machina.Notes>Три цифры, по одной на шаг. Не читайте подписи вслух.</Machina.Notes>
         <Machina.Notes step={1}>Один файл: слайды, схемы и код лежат в <code>index.tsx</code>.</Machina.Notes>
-        <Machina.Notes step={2}>Восемь переходов, морфинг среди них самый заметный.</Machina.Notes>
+        <Machina.Notes step={2}>Тринадцать переходов, морфинг среди них самый заметный.</Machina.Notes>
         <Machina.Notes step={3}>
           Подсветку делает сборка: <strong>в браузер не уходит ни строчки Shiki</strong>.
         </Machina.Notes>
@@ -762,12 +762,13 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide>
-        <h2>Восемь переходов</h2>
+        <h2>Тринадцать переходов</h2>
         <ul>
           <li><code>auto</code> - по умолчанию: морфинг или сдвиг</li>
           <li><code>morph</code> - общие элементы перетекают</li>
           <li><code>slide</code>, <code>fade</code>, <code>zoom</code> - сдвиг, проявление, приближение</li>
           <li><code>cube</code>, <code>flip</code> - куб и переворот</li>
+          <li><code>wipe</code>, <code>iris</code>, <code>blinds</code>, <code>mosaic</code>, <code>glitch</code> - шторка, круг, жалюзи, плитки, сбой</li>
           <li><code>none</code> - без перехода</li>
         </ul>
         <p className="machina-note">Скорость задаёт <code>speed</code>: <code>slow</code>, <code>fast</code> или число</p>
@@ -781,6 +782,31 @@ export default (
       <Machina.Slide transition="flip" align="center">
         <h2>Переворот</h2>
         <p>Слайд переворачивается, как карточка. Назад - в обратную сторону</p>
+      </Machina.Slide>
+
+      <Machina.Slide transition="wipe" background="var(--accent-soft-color)" align="center">
+        <h2>Шторка</h2>
+        <p>Новый слайд наезжает справа налево с мягким краем</p>
+      </Machina.Slide>
+
+      <Machina.Slide transition="iris" background="var(--dark-background)" align="center">
+        <h2>Круг</h2>
+        <p>Новый слайд раскрывается кругом из центра</p>
+      </Machina.Slide>
+
+      <Machina.Slide transition="blinds" align="center">
+        <h2>Жалюзи</h2>
+        <p>Слайд поворачивается полосами сверху вниз, как жалюзи</p>
+      </Machina.Slide>
+
+      <Machina.Slide transition="mosaic" background={duskPicture} align="center">
+        <h2>Плитки</h2>
+        <p>Слайд рассыпается на плитки, и они волной переворачиваются в новый</p>
+      </Machina.Slide>
+
+      <Machina.Slide transition="glitch" background="var(--dark-background)" align="center">
+        <h2>Сбой</h2>
+        <p>Текст дёргается и двоится красным и голубым. Фон и номер стоят на месте</p>
       </Machina.Slide>
     </Machina.Section>
 

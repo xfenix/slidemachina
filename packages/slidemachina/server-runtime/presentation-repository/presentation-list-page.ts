@@ -2,6 +2,7 @@ import path from "node:path";
 import { defaultAspectRatio, measureCanvasSize, type CanvasSize } from "../../shared-between-runtimes/canvas-size.ts";
 import { pickTextLanguage } from "../../shared-between-runtimes/text-language.ts";
 import { commandLineLanguage } from "../command-line/command-line-texts.ts";
+import { faviconLinks } from "../development-server/page-favicon.ts";
 import { escapeHtml } from "../presentation-build/html-escaping.ts";
 import { listPresentationFolders } from "./presentation-repository.ts";
 import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
@@ -141,7 +142,7 @@ export function renderListPage(presentationCards: ListedCard[], listModuleId: st
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="data:," />
+    ${faviconLinks}
     <title>${escapeHtml(listTexts.pageTitle)}</title>
     ${pageTransitionStyle}${headAddition}
     <script type="module" src="${listModuleId}"></script>

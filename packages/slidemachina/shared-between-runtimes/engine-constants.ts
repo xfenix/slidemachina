@@ -7,3 +7,5 @@ export const printViewParameter = "print";
 export const printViewStepsValue = "steps";
 export const printViewHiddenParameter = "hidden";
 export const memeSearchEndpoint = "/@slidemachina/meme-search";
+// Engine links carry it: a presentation with its own favicon removes them.
+export const engineFaviconAttribute = "data-engine-favicon";

@@ -31,6 +31,7 @@ import { useTouchControls } from "../slide-navigation/touch-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
 import { usePresenterSync, type SlideCommand } from "../presenter-view/presenter-channel.ts";
 import { PresenterView } from "../presenter-view/presenter-view.tsx";
+import { useCustomFavicon } from "./custom-favicon.ts";
 import { isPresenterWindow, openPresenterWindow, PresenterWindowSwitch } from "../presenter-view/presenter-window.tsx";
 
 // The list of a repository shows /talk/?cover in a frame, and the build photographs it: the first slide alone, every step shown.
@@ -45,6 +46,8 @@ export type PresentationProperties = {
   lang?: string;
   align?: SlideAlign;
   logo?: PresentationLogo;
+  // The tab icon, an imported picture: import favicon from "./favicon.svg". By default the slidemachina mark.
+  favicon?: string;
   transition?: SlideTransition;
   // "fast", "normal", "slow" or how many times faster than normal; a slide can set its own.
   speed?: TransitionSpeed;
@@ -71,6 +74,7 @@ export function Presentation({
   lang = "en",
   align = "left",
   logo,
+  favicon,
   transition = "auto",
   speed = "normal",
   breadcrumbsSeparator,
@@ -81,6 +85,7 @@ export function Presentation({
 }: PresentationProperties) {
   const outlinedSlides = useMemo(() => buildSlideOutline(children), [children]);
   const pageTitle = useMemo(() => title ?? readPresentationTitle(children), [title, children]);
+  useCustomFavicon(favicon);
   const slideNumbering = useMemo(() => numberSlides(outlinedSlides.map((outlinedSlide) => outlinedSlide.isHidden)), [outlinedSlides]);
   const { shownNumbers, shownSlideIndexes } = slideNumbering;
   const hasHiddenSlides = shownSlideIndexes.length < outlinedSlides.length;

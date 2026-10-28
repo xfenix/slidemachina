@@ -17,6 +17,9 @@ const editorTraces = /data-source-location|@slidemachina\/edit|data-editor-statu
 const agentationTraces = /data-agentation|--agentation-/;
 // Russian and English slides need only these subsets; Vietnamese, Greek, math and symbols only add weight. Oswald comes with the demo's meme.
 const keptFontFile = /^(onest|jetbrains-mono|oswald)-(latin|cyrillic)-wght-normal-.*\.woff2$/;
+// The demo shows about a hundred slides; Quick Look pictures of them stay small, about 17 KB each in base64.
+const smallestDemoSlideCount = 50;
+const largestPreviewPictureBytes = 25_000;
 
 // The folder build runs only from a web server, as on a real site.
 function serveFolder(servedFolder: string) {
@@ -65,6 +68,11 @@ test("сборка: один HTML-файл листается без серве�
       expect(/(src|href)="\.\/assets/.test(singleFileText), "ссылки на соседние файлы").toBe(false);
       expect(singleFileText.includes("data:image/webp;base64"), "картинка WebP внутри").toBe(true);
       expect(singleFileText.match(/data:font\/woff2;base64/g)?.length, "внутри только латиница и кириллица Onest, JetBrains Mono и Oswald").toBe(6);
+      expect(singleFileText.includes('<link rel="icon" href="data:image/svg+xml,'), "знак slidemachina во вкладке").toBe(true);
+      const quickLookPreview = /<noscript>[\s\S]*?<div data-script-free-preview>([\s\S]*?)<\/div>/.exec(singleFileText)?.[1] ?? "";
+      const previewPictureCount = quickLookPreview.match(/<img src="data:image\/webp;base64,/g)?.length ?? 0;
+      expect(previewPictureCount, "снимки слайдов для Quick Look").toBeGreaterThan(smallestDemoSlideCount);
+      expect(quickLookPreview.length / previewPictureCount, "снимок слайда для Quick Look легче 25 КБ").toBeLessThan(largestPreviewPictureBytes);
     });
 
     await test.step("один файл открывается с диска, листается, схемы раскладываются", async () => {

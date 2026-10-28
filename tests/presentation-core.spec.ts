@@ -558,7 +558,7 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("куб и переворот в обе стороны", async () => {
-    const flipSlideNumber = (await jumpToHeading(page, "Восемь переходов")) + 2;
+    const flipSlideNumber = (await jumpToHeading(page, "Тринадцать переходов")) + 2;
     await page.keyboard.press("PageDown");
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "cube");
     expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining(["::view-transition-new(slide-in) slidemachina-cube-in"]));
@@ -570,6 +570,35 @@ test("демо листается, показывает шаги и навига
     await expect(page.locator("html")).toHaveAttribute("data-slide-direction", "backward");
     expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining(["::view-transition-old(slide-out) slidemachina-flip-out"]));
     await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber - 1}$`));
+  });
+
+  await test.step("шторка, круг, жалюзи, плитки и сбой в обе стороны", async () => {
+    const flipSlideNumber = await findSlideNumber(page, "h2", "Переворот");
+    const transitionLayers = [
+      ["wipe", "::view-transition-new(slide-in) slidemachina-wipe", "::view-transition-old(slide-out) slidemachina-wipe"],
+      ["iris", "::view-transition-new(slide-in) slidemachina-color-flood", "::view-transition-old(slide-out) slidemachina-color-flood"],
+      ["blinds", "::view-transition-new(slide-in) slidemachina-blinds", "::view-transition-old(slide-out) slidemachina-blinds"],
+      ["mosaic", "::view-transition-new(slide-in) slidemachina-mosaic", "::view-transition-old(slide-out) slidemachina-mosaic"],
+      ["glitch", "::view-transition-new(slide-content-in) slidemachina-glitch-away", "::view-transition-old(slide-content-out) slidemachina-glitch-away"],
+    ] as const;
+    await page.keyboard.press("PageDown");
+    await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber}$`));
+    for (const [slidePosition, [transitionName, forwardLayer]] of transitionLayers.entries()) {
+      await page.keyboard.press("PageDown");
+      await expect(page.locator("html")).toHaveAttribute("data-slide-transition", transitionName);
+      expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining([forwardLayer]));
+      await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber + slidePosition + 1}$`));
+    }
+    for (const [slidePosition, [transitionName, , backwardLayer]] of [...transitionLayers.entries()].reverse()) {
+      await page.keyboard.press("PageUp");
+      await expect(page.locator("html")).toHaveAttribute("data-slide-transition", transitionName);
+      await expect(page.locator("html")).toHaveAttribute("data-slide-direction", "backward");
+      expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining([backwardLayer]));
+      await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber + slidePosition}$`));
+    }
+    await page.keyboard.press("PageUp");
+    await expect(page).toHaveURL(new RegExp(`#${flipSlideNumber - 1}$`));
+    await expect(page.locator("[style*=view-transition]")).toHaveCount(0);
   });
 
   await test.step("свайп листает, вертикальный жест и короткое касание — нет", async () => {

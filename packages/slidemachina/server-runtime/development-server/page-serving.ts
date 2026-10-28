@@ -1,6 +1,7 @@
 import path from "node:path";
 import { createEntryModuleCode, createListModuleCode, nameEntryModuleId, entryModulePrefix, listModuleId } from "./entry-modules.ts";
 import { installFeedbackServerCheck } from "./feedback-server-check.ts";
+import { faviconLinks } from "./page-favicon.ts";
 import { escapeHtml } from "../presentation-build/html-escaping.ts";
 import { createDevelopmentListPage, pageTransitionStyle } from "../presentation-repository/presentation-list-page.ts";
 import { listPresentationFolders } from "../presentation-repository/presentation-repository.ts";
@@ -17,7 +18,7 @@ export function createPresentationPageHtml(siteLayout: SiteLayout, presentationF
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="data:," />
+    ${faviconLinks}
     ${pageTransitionStyle}
   </head>
   <body>

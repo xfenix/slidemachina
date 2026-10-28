@@ -8,6 +8,7 @@ import { commandLineTexts, formatFileSize } from "../command-line/command-line-t
 import { zipFolder } from "./folder-archive.ts";
 import { encryptPage } from "./page-encryption.ts";
 import { printPdf } from "./pdf-printing.ts";
+import { addScriptFreePreview, quickLookSizeLimit } from "./script-free-preview.ts";
 import { exportPptx } from "../pptx-export/pptx-export.ts";
 import { presentationFileName } from "../presentation-repository/presentation-repository.ts";
 import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
@@ -124,7 +125,16 @@ export async function buildPresentation(
         isInteractive,
       );
       const builtPage = path.join(singleFileFolder, "index.html");
-      if (chosenVariants.includes("html")) copyFileSync(builtPage, outputPaths.html);
+      if (chosenVariants.includes("html")) {
+        copyFileSync(builtPage, outputPaths.html);
+        try {
+          const hasPreview = await runBuildStep(nameStepTitle(commandLineTexts.shootingPreview), () => addScriptFreePreview(builtPage, outputPaths.html), isInteractive);
+          if (!hasPreview) log.info(commandLineTexts.previewTooLarge(formatFileSize(quickLookSizeLimit)));
+        } catch (previewError) {
+          const previewProblem = previewError instanceof Error ? previewError.message : String(previewError);
+          log.warn(previewProblem === commandLineTexts.missingChrome ? commandLineTexts.previewWithoutChrome : commandLineTexts.previewFailed(previewProblem));
+        }
+      }
       if (pageSecret !== undefined) {
         const presentationTitle = readPresentationFile(projectFolder).presentationTitle ?? path.basename(projectFolder);
         await runBuildStep(

@@ -3,7 +3,7 @@ import { printViewHiddenParameter, printViewParameter, printViewStepsValue } fro
 import { commandLineTexts } from "../command-line/command-line-texts.ts";
 
 const printedViewport = { width: 1920, height: 1080 };
-const printWaitLimit = 60000;
+export const printWaitLimit = 60000;
 
 type PrintChoice = { printsSteps: boolean; printsHidden: boolean };
 

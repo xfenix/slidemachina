@@ -46,6 +46,8 @@ async function runFailingCommand(commandArguments: string[]) {
 
 // Works on a copy outside the repository, without node_modules, opened through a link as macOS opens /tmp.
 test("репозиторий презентаций: список с обложками, общая тема, правка темы на лету, сборка всех", async ({ page }) => {
+  // The build photographs covers and every slide for Quick Look in Chrome.
+  test.setTimeout(90_000);
   const scratchFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-repository-"));
   const copyFolder = path.join(scratchFolder, "examples");
   const linkedFolder = path.join(scratchFolder, "linked-examples");

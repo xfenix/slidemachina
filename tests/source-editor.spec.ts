@@ -78,6 +78,8 @@ async function sendEdit(editBody: object, requestHeaders: Record<string, string>
 
 // The editor writes to disk: a copy of the demo outside the repository, opened through a link as macOS opens /tmp.
 test("редактор правит текст, двигает блок схемы, меняет картинку и вставляет мемы прямо в файл", async ({ page }) => {
+  // The build of the demo photographs every slide for Quick Look in Chrome.
+  test.setTimeout(90_000);
   const scratchFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-editor-"));
   const examplesCopyFolder = path.join(scratchFolder, "examples");
   const copyFolder = path.join(examplesCopyFolder, demoFolderName);

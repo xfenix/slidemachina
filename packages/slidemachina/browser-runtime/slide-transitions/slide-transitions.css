@@ -1,6 +1,11 @@
 @layer slidemachina {
   :root {
     --slide-direction-sign: 1;
+    --wipe-softness: 18%;
+    --glitch-shift: 14px;
+    --glitch-split: 5px;
+    --glitch-red: rgb(255 0 80 / 0.85);
+    --glitch-cyan: rgb(0 230 255 / 0.85);
   }
 
   :root[data-slide-direction="backward"] {
@@ -48,7 +53,7 @@
 
   /* Whole slides move over a stage, so the cube has depth and the flipped card a shadow.
      The stage fills the canvas only: letterbox margins stay as they are and do not flash. */
-  :root:active-view-transition:is([data-slide-transition="slide"], [data-slide-transition="zoom"], [data-slide-transition="cube"], [data-slide-transition="flip"]) [data-canvas] {
+  :root:active-view-transition:is([data-slide-transition="slide"], [data-slide-transition="zoom"], [data-slide-transition="cube"], [data-slide-transition="flip"], [data-slide-transition="blinds"], [data-slide-transition="mosaic"]) [data-canvas] {
     background: var(--transition-stage-background);
   }
 
@@ -173,28 +178,28 @@
   }
 
   /* Fade goes through the background: the old text is gone, the background and number blend, the new text appears. */
-  :root[data-slide-transition="fade"]::view-transition-old(slide-content-out),
-  :root[data-slide-transition="fade"]::view-transition-old(*.leaving-frame) {
+  :root:is([data-slide-transition="fade"], [data-slide-transition="glitch"])::view-transition-old(slide-content-out),
+  :root:is([data-slide-transition="fade"], [data-slide-transition="glitch"])::view-transition-old(*.leaving-frame) {
     animation-duration: calc(var(--transition-time) * 0.5);
   }
 
-  :root[data-slide-transition="fade"]::view-transition-new(slide-content-in),
-  :root[data-slide-transition="fade"]::view-transition-new(*.arriving-frame) {
+  :root:is([data-slide-transition="fade"], [data-slide-transition="glitch"])::view-transition-new(slide-content-in),
+  :root:is([data-slide-transition="fade"], [data-slide-transition="glitch"])::view-transition-new(*.arriving-frame) {
     animation-delay: calc(var(--transition-time) * 0.5);
     animation-duration: calc(var(--transition-time) * 0.5);
   }
 
   /* The new background with its logo and number covers the old one in the middle, while little text is on screen. */
-  :root:is([data-slide-transition="morph"], [data-slide-transition="fade"])::view-transition-old(root) {
+  :root:is([data-slide-transition="morph"], [data-slide-transition="fade"], [data-slide-transition="glitch"])::view-transition-old(root) {
     animation: none;
   }
 
-  :root:is([data-slide-transition="morph"], [data-slide-transition="fade"])::view-transition-new(root) {
+  :root:is([data-slide-transition="morph"], [data-slide-transition="fade"], [data-slide-transition="glitch"])::view-transition-new(root) {
     animation-name: slidemachina-blend-midway;
   }
 
   /* Between a light and a dark slide every blend is grey: the background swaps at once, halfway, when the old text is gone. */
-  :root[data-tone-change]:is([data-slide-transition="morph"], [data-slide-transition="fade"])::view-transition-new(root) {
+  :root[data-tone-change]:is([data-slide-transition="morph"], [data-slide-transition="fade"], [data-slide-transition="glitch"])::view-transition-new(root) {
     animation-name: slidemachina-appear;
     animation-timing-function: steps(2, jump-none);
   }
@@ -261,9 +266,10 @@
     animation: slidemachina-zoom-away calc(var(--transition-time) * 0.4) var(--transition-easing) calc(var(--transition-time) * 0.6) both reverse;
   }
 
-  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-group(*),
-  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-old(*),
-  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"])::view-transition-new(*) {
+  /* An iris, tiles and strips cover more of the slide than a fade: they take the time of a turn. */
+  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"], [data-slide-transition="iris"], [data-slide-transition="blinds"], [data-slide-transition="mosaic"])::view-transition-group(*),
+  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"], [data-slide-transition="iris"], [data-slide-transition="blinds"], [data-slide-transition="mosaic"])::view-transition-old(*),
+  :root:is([data-slide-transition="cube"], [data-slide-transition="flip"], [data-slide-transition="iris"], [data-slide-transition="blinds"], [data-slide-transition="mosaic"])::view-transition-new(*) {
     animation-duration: var(--rotation-time);
   }
 
@@ -295,6 +301,96 @@
 
   :root[data-slide-transition="flip"]::view-transition-new(slide-in) {
     animation-name: slidemachina-flip-in, slidemachina-step-back;
+  }
+}
+
+@layer slidemachina {
+  /* Wipe and iris: the new slide covers the old one. Going back, the old slide uncovers the earlier one the same way in reverse. */
+  :root[data-slide-direction="forward"]:is([data-slide-transition="wipe"], [data-slide-transition="iris"])::view-transition-old(slide-out),
+  :root[data-slide-direction="backward"]:is([data-slide-transition="wipe"], [data-slide-transition="iris"])::view-transition-new(slide-in) {
+    animation: none;
+  }
+
+  :root[data-slide-direction="backward"]:is([data-slide-transition="wipe"], [data-slide-transition="iris"])::view-transition-group(slide-out) {
+    z-index: 1;
+  }
+
+  :root[data-slide-direction="backward"]:is([data-slide-transition="wipe"], [data-slide-transition="iris"])::view-transition-old(slide-out) {
+    animation-direction: reverse;
+  }
+
+  /* A soft edge sweeps from right to left, like the slide comes in. */
+  :root[data-slide-direction="forward"][data-slide-transition="wipe"]::view-transition-new(slide-in),
+  :root[data-slide-direction="backward"][data-slide-transition="wipe"]::view-transition-old(slide-out) {
+    mask-image: linear-gradient(to right, transparent var(--wipe-edge), #000 calc(var(--wipe-edge) + var(--wipe-softness)));
+    animation-name: slidemachina-wipe;
+  }
+
+  :root[data-slide-direction="forward"][data-slide-transition="iris"]::view-transition-new(slide-in),
+  :root[data-slide-direction="backward"][data-slide-transition="iris"]::view-transition-old(slide-out) {
+    animation-name: slidemachina-color-flood;
+  }
+
+  /* Tile masks come from tile-masks.ts once the layers exist; until then the new slide stays hidden, not a flash over the old one. */
+  :root:is([data-slide-transition="blinds"], [data-slide-transition="mosaic"])::view-transition-old(slide-out),
+  :root:is([data-slide-transition="blinds"], [data-slide-transition="mosaic"])::view-transition-new(slide-in) {
+    animation-name: none;
+    mask-repeat: no-repeat;
+  }
+
+  :root:is([data-slide-transition="blinds"], [data-slide-transition="mosaic"])::view-transition-new(slide-in) {
+    mask-image: linear-gradient(#000 0 0);
+    mask-size: 0 0;
+  }
+
+  /* Glitch: the old text jerks, splits into red and cyan and is gone by the middle; the new text comes the same way in reverse. */
+  :root[data-slide-transition="glitch"]::view-transition-old(slide-content-out),
+  :root[data-slide-transition="glitch"]::view-transition-new(slide-content-in) {
+    animation-name: slidemachina-glitch-away;
+    animation-timing-function: steps(7, jump-none);
+  }
+
+  :root[data-slide-transition="glitch"]::view-transition-new(slide-content-in) {
+    animation-direction: reverse;
+  }
+}
+
+@property --wipe-edge {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@keyframes slidemachina-wipe {
+  from {
+    --wipe-edge: 100%;
+  }
+  to {
+    --wipe-edge: calc(-1 * var(--wipe-softness));
+  }
+}
+
+@keyframes slidemachina-glitch-away {
+  from {
+    clip-path: inset(0);
+    filter: drop-shadow(0 0 0 transparent) drop-shadow(0 0 0 transparent);
+  }
+  30% {
+    translate: var(--glitch-shift) 0;
+    clip-path: inset(0);
+    filter: drop-shadow(var(--glitch-split) 0 0 var(--glitch-red)) drop-shadow(calc(-1 * var(--glitch-split)) 0 0 var(--glitch-cyan));
+  }
+  60% {
+    translate: calc(-1 * var(--glitch-shift)) 0;
+    transform: skewX(-8deg);
+    clip-path: inset(18% 0 30% 0);
+    filter: drop-shadow(calc(2 * var(--glitch-split)) 0 0 var(--glitch-red)) drop-shadow(calc(-2 * var(--glitch-split)) 0 0 var(--glitch-cyan));
+  }
+  to {
+    translate: calc(2 * var(--glitch-shift)) 0;
+    clip-path: inset(46% 0 46% 0);
+    filter: drop-shadow(calc(3 * var(--glitch-split)) 0 0 var(--glitch-red)) drop-shadow(calc(-3 * var(--glitch-split)) 0 0 var(--glitch-cyan));
+    opacity: 0;
   }
 }
 

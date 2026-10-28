@@ -4,6 +4,7 @@ import { carryLeavingWords, measureWordLayers, type WordBoxes } from "../element
 import { bendCrossingPaths, type MovingLayer } from "../element-morphing/morph-arcs.ts";
 import { markReachedSteps } from "../slide-steps/step-visibility.ts";
 import { findPaintedShapes, paintShapeGroups, readIncomingPaints } from "./shape-layers.ts";
+import { maskSlideTiles } from "./tile-masks.ts";
 import {
   clearLayerName,
   clearLayerNames,
@@ -16,9 +17,22 @@ import {
   type NamedLayer,
 } from "./transition-layers.ts";
 
-const wholeSlideTransitions = new Set(["slide", "zoom", "cube", "flip"]);
+export type SlideTransition =
+  | "auto"
+  | "morph"
+  | "slide"
+  | "fade"
+  | "zoom"
+  | "cube"
+  | "flip"
+  | "wipe"
+  | "iris"
+  | "blinds"
+  | "mosaic"
+  | "glitch"
+  | "none";
 
-export type SlideTransition = "auto" | "morph" | "slide" | "fade" | "zoom" | "cube" | "flip" | "none";
+const wholeSlideTransitions = new Set(["slide", "zoom", "cube", "flip", "wipe", "iris", "blinds", "mosaic"]);
 
 let activeNamedLayers: NamedLayer[] = [];
 // Word wrappers and code piece names are taken back by these functions when a transition ends.
@@ -108,6 +122,7 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
       shapePaints = [
         ...paintShapeGroups(paintedShapes),
         ...carryLeavingWords(rewordedPairs, describeWordLayerPrefix, outgoingWordBoxes, incomingWordBoxes),
+        ...maskSlideTiles(chosenTransition, outgoingSlide, isMovingForward),
       ];
     },
     () => {},

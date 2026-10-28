@@ -221,6 +221,7 @@ TypeScript подсказывает компоненты и их свойств�
 | Движение | `speed` у `Presentation` или `Slide`, длительности `--transition-duration` и соседние, кривая `--transition-easing` |
 | Формат | `<Presentation aspectRatio="4:3">`, по умолчанию `16:9`. Миниатюры, PDF и PowerPoint — в этом формате, на экране слайд растёт под окно до трети |
 | Разделитель крошек | `<Presentation breadcrumbsSeparator="/">`, по умолчанию `›` |
+| Иконка вкладки | `<Presentation favicon={favicon}>` с `import favicon from "./favicon.svg"`, по умолчанию знак slidemachina |
 
 - Логотип — `logo` у `Presentation`: файл, `{ light, dark }` для светлых и тёмных слайдов или компонент. Компонент получает `dark={true}` на тёмных слайдах. Логотип движка — `logo={Machina.SlidemachinaLogo}`.
 - Место логотипа — `logo` у `Slide`: `"top-right"` (по умолчанию), `"top"`, `"center"` над заголовком, `"bottom"` или `false`.

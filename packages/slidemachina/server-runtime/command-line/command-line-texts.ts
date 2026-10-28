@@ -68,6 +68,10 @@ const englishTexts = {
   buildingFiles: (isSingleFile: boolean): string => (isSingleFile ? "Building one HTML file" : "Building the folder"),
   printingPdf: (printsSteps: boolean): string => (printsSteps ? "Printing PDF by steps" : "Printing PDF"),
   encryptingFile: "Encrypting the file",
+  shootingPreview: "Taking pictures of the slides for Quick Look",
+  previewWithoutChrome: "Quick Look needs pictures of the slides, and they need Google Chrome. Browsers open the file as usual",
+  previewFailed: (problemText: string) => `No pictures of the slides for Quick Look: ${problemText}`,
+  previewTooLarge: (sizeLimit: string) => `Quick Look does not open HTML files over ${sizeLimit}, so the file has no pictures of the slides for it`,
   exportingPptx: "Exporting PowerPoint",
   builtOutput: (outputPath: string, outputSize: string) => `${outputPath}  ${outputSize}`,
   folderServingHint: (folderPath: string) => `A browser runs the folder only from a web server: npx serve ${folderPath}`,
@@ -106,6 +110,7 @@ const englishTexts = {
     error: "Wrong password",
     showPassword: "Show password",
     hidePassword: "Hide password",
+    browserNeeded: "The password works only in a browser. Open the file in Chrome, Safari or Firefox",
   },
 };
 
@@ -174,6 +179,10 @@ const russianTexts: typeof englishTexts = {
   buildingFiles: (isSingleFile) => (isSingleFile ? "Собираю один HTML-файл" : "Собираю папку"),
   printingPdf: (printsSteps) => (printsSteps ? "Печатаю PDF по шагам" : "Печатаю PDF"),
   encryptingFile: "Шифрую файл",
+  shootingPreview: "Снимаю слайды для Quick Look",
+  previewWithoutChrome: "Для Quick Look нужны снимки слайдов, а для снимков — Google Chrome. В браузере файл откроется как обычно",
+  previewFailed: (problemText) => `Не получилось снять слайды для Quick Look: ${problemText}`,
+  previewTooLarge: (sizeLimit) => `Quick Look не открывает HTML больше ${sizeLimit}, поэтому снимков слайдов для него в файле нет`,
   exportingPptx: "Собираю PowerPoint",
   builtOutput: (outputPath, outputSize) => `${outputPath}  ${outputSize}`,
   folderServingHint: (folderPath) => `Браузер запустит папку только с веб-сервера: npx serve ${folderPath}`,
@@ -212,6 +221,7 @@ const russianTexts: typeof englishTexts = {
     error: "Пароль не подошёл",
     showPassword: "Показать пароль",
     hidePassword: "Скрыть пароль",
+    browserNeeded: "Пароль можно ввести только в браузере. Откройте файл в Chrome, Safari или Firefox",
   },
 };
 
