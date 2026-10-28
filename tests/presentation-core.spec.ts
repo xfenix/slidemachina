@@ -765,26 +765,24 @@ test("демо листается, показывает шаги и навига
     // The section opens with its own <Slide cover>: no generated cover before it, and its h1 names the section in the breadcrumbs.
     await expect(page.locator("[data-canvas] > [data-slide] h1[data-section-number]", { hasText: /^3D$/ })).toHaveCount(0);
     await expect(page.locator("[data-canvas] > [data-slide]").nth(sceneCoverNumber).locator("[data-breadcrumbs]")).toHaveText("3D");
-    const heroCanvas = page.locator("[data-canvas] > [data-slide]").nth(sceneCoverNumber).locator("[data-scene-canvas]");
+    const coverCanvas = page.locator("[data-canvas] > [data-slide]").nth(sceneCoverNumber - 1).locator("[data-scene-canvas]");
+    const stepCanvas = page.locator("[data-canvas] > [data-slide]").nth(sceneCoverNumber).locator("[data-scene-canvas]");
     // The next slide is hidden, yet its still frame is drawn: the transition snapshot is never empty.
-    await expect.poll(async () => (await sampleSceneCanvas(heroCanvas)).paintedPixels, { timeout: 10_000 }).toBeGreaterThan(250);
-    const stillFrame = (await sampleSceneCanvas(heroCanvas)).frameFingerprint;
+    await expect.poll(async () => (await sampleSceneCanvas(stepCanvas)).paintedPixels, { timeout: 10_000 }).toBeGreaterThan(100);
+    await expect.poll(async () => (await sampleSceneCanvas(coverCanvas)).paintedPixels).toBeGreaterThan(250);
+    const cubeOnlyFrame = await sampleSceneCanvas(stepCanvas);
+    const coverFrame = (await sampleSceneCanvas(coverCanvas)).frameFingerprint;
     await page.waitForTimeout(300);
-    expect((await sampleSceneCanvas(heroCanvas)).frameFingerprint, "сцена на скрытом слайде стоит").toBe(stillFrame);
-    await page.keyboard.press("PageDown");
-    await expect(page).toHaveURL(new RegExp(`#${sceneCoverNumber + 1}$`));
-    await expect.poll(async () => (await sampleSceneCanvas(heroCanvas)).frameFingerprint, { message: "камера облетает сцену" }).not.toBe(stillFrame);
+    expect((await sampleSceneCanvas(stepCanvas)).frameFingerprint, "сцена на скрытом слайде стоит").toBe(cubeOnlyFrame.frameFingerprint);
+    await expect.poll(async () => (await sampleSceneCanvas(coverCanvas)).frameFingerprint, { message: "камера облетает сцену" }).not.toBe(coverFrame);
 
     await page.keyboard.press("PageDown");
-    await expect(page).toHaveURL(new RegExp(`#${sceneCoverNumber + 2}$`));
-    const stepCanvas = currentSlide(page).locator("[data-scene-canvas]");
-    await expect.poll(async () => (await sampleSceneCanvas(stepCanvas)).paintedPixels).toBeGreaterThan(100);
-    const cubeOnlyPixels = (await sampleSceneCanvas(stepCanvas)).paintedPixels;
+    await expect(page).toHaveURL(new RegExp(`#${sceneCoverNumber + 1}$`));
     await page.keyboard.press("PageDown");
     await expect(currentSlide(page).locator("[data-scene-step][data-step-reached]")).toHaveCount(1);
-    await expect.poll(async () => (await sampleSceneCanvas(stepCanvas)).paintedPixels, { message: "сфера появилась" }).toBeGreaterThan(cubeOnlyPixels * 1.3);
+    await expect.poll(async () => (await sampleSceneCanvas(stepCanvas)).paintedPixels, { message: "сфера появилась" }).toBeGreaterThan(cubeOnlyFrame.paintedPixels * 1.3);
     await page.keyboard.press("o");
-    const sceneThumbnail = page.locator("[data-navigator] [data-thumbnail]").nth(sceneCoverNumber + 1).locator("[data-scene-canvas]");
+    const sceneThumbnail = page.locator("[data-navigator] [data-thumbnail]").nth(sceneCoverNumber).locator("[data-scene-canvas]");
     await expect.poll(async () => (await sampleSceneCanvas(sceneThumbnail)).paintedPixels).toBeGreaterThan(100);
     await page.keyboard.press("Escape");
   });

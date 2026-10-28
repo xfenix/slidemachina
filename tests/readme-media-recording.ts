@@ -48,7 +48,7 @@ const chromeEndpoint = process.env.SLIDEMACHINA_CHROME_ENDPOINT;
 const recordedClips: RecordedClip[] = [
   { fileName: "morph-transition.webp", startHeading: "Морфинг любых блоков", stopHeading: "Тринадцать переходов", keepsEveryPixel: true },
   { fileName: "diagram-steps.webp", startHeading: "Схема собирается по шагам", stopHeading: "Схема перестраивается сама", keepsEveryPixel: true },
-  { fileName: "scene-3d.webp", startHeading: "Сцена в 3D", stopHeading: "Свет и цвет из темы", keepsEveryPixel: false },
+  { fileName: "scene-3d.webp", startHeading: "Сцена по шагам", stopHeading: "Свет и цвет из темы", keepsEveryPixel: false },
 ];
 const shotStills: ShotStill[] = [
   { fileName: "slide-code.webp", slideHeading: "Код из файла" },

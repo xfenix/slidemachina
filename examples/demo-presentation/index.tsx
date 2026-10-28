@@ -873,26 +873,21 @@ export default (
         </Machina.Scene>
       </Machina.Slide>
 
-      <Machina.Slide background="var(--dark-background)" transition="zoom">
-        <h2>Сцена в 3D</h2>
-        <p className="machina-lead">Куб и сфера пишутся тегами, свет движок ставит сам</p>
-        <Machina.Scene full orbit>
-          <Machina.Cube size={1.5} position={[-1.7, 0.75, 0.2]} rotation={[0, 28, 0]} material="glossy" />
-          <Machina.Sphere size={1.6} position={[0.1, 0.8, 0.6]} color="var(--text-color)" material="glossy" />
-          <Machina.Sphere size={1} position={[1.5, 0.5, -0.4]} color="var(--muted-color)" material="metal" />
-          <Machina.Cube size={[0.7, 2.4, 0.7]} position={[2.5, 1.2, -1]} rotation={[0, 18, 0]} color="var(--second-accent-color)" />
-        </Machina.Scene>
-      </Machina.Slide>
-
       <Machina.Slide>
-        <h2>Шаги внутри сцены</h2>
+        <h2>Сцена по шагам</h2>
         <div className="machina-columns">
-          <ul data-steps>
-            <li>Появляется сфера</li>
-            <li>Куб переезжает и поворачивается</li>
-            <li>Камера заходит сбоку</li>
-            <li>Над сценой встаёт текст</li>
-          </ul>
+          <div>
+            <Machina.Code lang="tsx" lines="| 3 | 4 | 5 | 6">{`
+              <Scene>
+                <Cube id="cube" size={1.3} material="glossy" />
+                <Sphere position={[1.4, 0.5, 0]} step />
+                <Move on="cube" position={[-1.4, 0.6, 0]} step />
+                <Camera position={[5, 2.5, 5]} step />
+                <Text position={[0, 2.3, 0]} step>Готово</Text>
+              </Scene>
+            `}</Machina.Code>
+            <p className="machina-note">Без <code>Camera</code> кадр подбирается сам под все шаги. three.js грузится, только если в презентации есть сцена</p>
+          </div>
           <div>
             <Machina.Scene>
               <Machina.Cube id="cube" size={1.3} position={[0, 0.65, 0]} rotation={[0, 20, 0]} material="glossy" />
@@ -916,33 +911,6 @@ export default (
           <Machina.Move on="ball" color="var(--second-accent-color)" step />
         </Machina.Scene>
         <figcaption>Цвет объектов — из темы. Свет и цвет меняются по шагам</figcaption>
-      </Machina.Slide>
-
-      <Machina.Slide>
-        <h2>Разметка сцены</h2>
-        <div className="machina-columns">
-          <div>
-            <Machina.Code lang="tsx" lines="| 3 | 4 | 5">{`
-              <Scene orbit>
-                <Cube size={1.5} material="glossy" />
-                <Sphere id="ball" position={[2, 0.5, 0]} step />
-                <Move on="ball" position={[-2, 0.5, 0]} step />
-                <Camera position={[5, 3, 6]} step />
-                <Text position={[0, 2, 0]}>Привет</Text>
-              </Scene>
-            `}</Machina.Code>
-            <p className="machina-note">three.js грузится, только если в презентации есть сцена</p>
-          </div>
-          <div>
-            <Machina.Scene orbit>
-              <Machina.Cube size={1.5} material="glossy" />
-              <Machina.Sphere id="ball" position={[2, 0.5, 0]} step={1} />
-              <Machina.Move on="ball" position={[-2, 0.5, 0]} step={2} />
-              <Machina.Camera position={[5, 3, 6]} step={3} />
-              <Machina.Text position={[0, 2, 0]}>Привет</Machina.Text>
-            </Machina.Scene>
-          </div>
-        </div>
       </Machina.Slide>
     </Machina.Section>
 
