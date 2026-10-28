@@ -2,7 +2,7 @@
 
 Движок HTML-презентаций на React. Заменяет reveal.js 4 в презентациях `~/web/private-presentations` и `~/web/conference-presentations/revealjs`.
 
-В документе итог стадий 1–29, 31, 33 и 34. Файлы стадий удалены, их история — в git.
+В документе итог стадий 1–29, 31, 33, 34, 36 и 37. Файлы стадий удалены, их история — в git.
 
 ## Что это и для кого
 
@@ -193,7 +193,7 @@ export default (
 | `<table>` | Таблица. Шапка — `<thead>`, строки — `<tbody>`. Вся таблица одним начертанием и кеглем `--table-text-size`, шапка приглушённым цветом, строки основным |
 | `<table className="machina-compare">` | Сравнение двух–четырёх решений. Первая колонка — критерии, решения делят остальное поровну и стоят по центру. Отметки — `<td className="machina-yes" />` (галочка цвета акцента) и `<td className="machina-no" />` (серый прочерк) |
 | `<div className="machina-columns">` | Колонки. Каждый прямой потомок — колонка |
-| `<figure><blockquote>…</blockquote><figcaption>Автор</figcaption></figure>` | Цитата с автором. `<blockquote>` без `figure` — цитата без автора |
+| `<figure><blockquote>…</blockquote><figcaption>Автор</figcaption></figure>` | Цитата с автором. От базовой линии цитаты до заглавных автора `--quote-author-gap` (по умолчанию `--heading-gap`, 80 px): цитата набрана кеглем заголовка, и с 40 px автор читался её последней строкой. `<blockquote>` без `figure` — цитата без автора |
 | `<figure className="machina-big-number"><p>42</p><figcaption>…</figcaption></figure>` | Большое число с подписью |
 | `<div className="machina-card">` | Карточка данных: фон блока, скругление, поле. `machina-card-stretch` — на всё свободное место |
 | `<ul className="machina-bars">` с `<li style={{ height: "30%" }} />` | Столбики графика: высота каждого — `height` в процентах |

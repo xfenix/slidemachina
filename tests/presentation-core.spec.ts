@@ -285,6 +285,9 @@ test("демо листается, показывает шаги и навига
     await jumpToSlide(page, await findSlideNumber(page, "blockquote"));
     await expect.poll(() => videoElement.evaluate((pausedVideo: HTMLVideoElement) => pausedVideo.paused)).toBe(true);
     await expect(currentSlide(page).locator("figcaption")).toHaveText("Антуан де Сент-Экзюпери, «Планета людей»");
+    // The author stands the gap under a heading below the last baseline of the quote, further than the lines of the quote from each other.
+    const [quoteText, quoteAuthor] = await measureOnCanvas(page, ["figure > blockquote", "figure > figcaption"]);
+    expect(Math.abs(quoteAuthor!.top - quoteText!.bottom - 80)).toBeLessThan(1);
   });
 
   await test.step("свободная вёрстка: в рамке под заголовком до низа области, на весь слайд — от края до края", async () => {

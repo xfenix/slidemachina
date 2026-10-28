@@ -151,6 +151,8 @@
     --table-text-size: var(--secondary-text-size);
     --quote-size: var(--display-size);
     --quote-author-size: var(--secondary-text-size);
+    /* From the last baseline of a quote to the capitals of its author: the gap under a heading, wider than between the lines of the quote: 1lh - 1cap, about 44 px. */
+    --quote-author-gap: var(--heading-gap);
     --compare-criteria-width: 30%;
     --compare-cell-padding: 24px;
     --big-number-size: var(--display-size);

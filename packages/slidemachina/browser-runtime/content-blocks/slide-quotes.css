@@ -42,7 +42,7 @@
   }
 
   [data-slide] blockquote + figcaption {
-    margin-top: var(--block-gap);
+    margin-top: var(--quote-author-gap);
     color: var(--muted-color);
     font-size: var(--quote-author-size);
     text-box: trim-both cap alphabetic;

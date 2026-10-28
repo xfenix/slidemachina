@@ -320,24 +320,24 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide background="var(--accent-soft-color)" transition="fade">
-        <p className="machina-thesis">Один слайд - одна мысль</p>
+        <p className="machina-thesis">Тезис - одна мысль на цветном слайде</p>
       </Machina.Slide>
 
       <Machina.Slide background="var(--second-accent-soft-color)" transition="fade">
-        <p className="machina-thesis-small">Фраза длиннее берёт кегль поменьше. Цвет слайда задаёт проп background</p>
+        <p className="machina-thesis-small">Тезис длиннее набран кеглем поменьше, а цвет слайда задаёт проп background</p>
       </Machina.Slide>
 
       <Machina.Slide>
         <h2>Тезис</h2>
         <Machina.Code lang="tsx">{`
           <Slide background="var(--accent-soft-color)">
-            <p className="machina-thesis">Один слайд - одна мысль</p>
+            <p className="machina-thesis">Тезис - одна мысль на цветном слайде</p>
           </Slide>
         `}</Machina.Code>
         <ul>
-          <li>Фраза без заголовка стоит в центре слайда</li>
-          <li>Два кегля: <code>machina-thesis</code> и <code>machina-thesis-small</code></li>
-          <li>Цвет текста движок подбирает под фон</li>
+          <li>Одна фраза без заголовка стоит в центре слайда</li>
+          <li>Короткая фраза - <code>machina-thesis</code>, длинная - <code>machina-thesis-small</code></li>
+          <li>Цвет слайда задаёт проп <code>background</code>, цвет текста движок подбирает под фон</li>
         </ul>
       </Machina.Slide>
 
