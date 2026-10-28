@@ -86,9 +86,6 @@ export function PresenterTimer({ languageCode, slideAddress, stepIndex, shownNum
   return (
     <>
       <section data-presenter-timer aria-label={interfaceTexts.presenterTimerLabel}>
-        <p data-presenter-elapsed data-running={isRunning || undefined}>
-          {formatDuration(elapsedTime)}
-        </p>
         <p data-presenter-schedule>
           {!hasStarted && <span>{interfaceTexts.presenterTimerWaiting}</span>}
           {hasStarted && timeLeft !== undefined && (
@@ -106,7 +103,15 @@ export function PresenterTimer({ languageCode, slideAddress, stepIndex, shownNum
             </>
           )}
         </p>
-        <div data-presenter-timer-buttons>
+        <div data-presenter-readings>
+          <p data-presenter-elapsed data-running={isRunning || undefined}>
+            {formatDuration(elapsedTime)}
+          </p>
+          <p data-presenter-clock aria-label={interfaceTexts.presenterClockLabel}>
+            {new Date(currentTime).toLocaleTimeString(languageCode, { hour: "2-digit", minute: "2-digit" })}
+          </p>
+        </div>
+        <div data-presenter-buttons>
           <button type="button" onPointerDown={keepFocus} onClick={switchTimer}>
             {isRunning ? interfaceTexts.presenterPauseTimer : interfaceTexts.presenterStartTimer}
           </button>
@@ -114,9 +119,6 @@ export function PresenterTimer({ languageCode, slideAddress, stepIndex, shownNum
             {interfaceTexts.presenterResetTimer}
           </button>
         </div>
-        <p data-presenter-clock aria-label={interfaceTexts.presenterClockLabel}>
-          {new Date(currentTime).toLocaleTimeString(languageCode, { hour: "2-digit", minute: "2-digit" })}
-        </p>
       </section>
       <div data-presenter-progress aria-hidden="true" style={progressStyle}>
         <span data-presenter-progress-slides />

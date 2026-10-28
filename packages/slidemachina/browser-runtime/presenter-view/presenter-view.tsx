@@ -132,42 +132,34 @@ export function PresenterView({
             <span key={trailPosition}>{sectionTitle}</span>
           ))}
         </nav>
-        {isAudiencePaused && (
-          <output data-presenter-status="paused">
-            {interfaceTexts.presenterPaused}
-          </output>
-        )}
-        {!isAudienceConnected && (
-          <output data-presenter-status="alone">
-            {interfaceTexts.presenterDisconnected}
-          </output>
-        )}
       </header>
-      <section data-presenter-stage aria-label={interfaceTexts.presenterCurrentLabel}>
+      <section data-presenter-current aria-label={interfaceTexts.presenterCurrentLabel}>
         <SlideFrame formatWidth={formatWidth}>{renderSlide(slideIndex, stepIndex)}</SlideFrame>
-        <PresenterTimer
-          languageCode={languageCode}
-          slideAddress={slideAddresses[slideIndex]!}
-          stepIndex={stepIndex}
-          shownNumber={shownNumbers[slideIndex]!}
-          shownCount={shownSlideIndexes.length}
-          talkMinutes={talkMinutes}
-        />
+        {isAudiencePaused && <output data-presenter-status="paused">{interfaceTexts.presenterPaused}</output>}
+        {!isAudienceConnected && <output data-presenter-status="alone">{interfaceTexts.presenterDisconnected}</output>}
       </section>
-      <aside data-presenter-side>
-        <section data-presenter-next aria-label={nextLabel}>
-          <h2>{nextLabel}</h2>
-          {nextSlideIndex !== undefined || hasNextStep ? (
-            <button type="button" aria-label={nextLabel} onPointerDown={keepFocus} onClick={() => steerSlides("forward")}>
-              <SlideFrame formatWidth={formatWidth}>{hasNextStep || nextSlideIndex === undefined ? renderSlide(slideIndex, stepIndex + 1) : renderSlide(nextSlideIndex, 0)}</SlideFrame>
-            </button>
-          ) : (
-            <div data-presenter-frame data-presenter-end />
-          )}
-        </section>
-        <section data-presenter-notes aria-label={interfaceTexts.presenterNotesLabel}>
-          <div data-presenter-notes-bar>
-            <h2>{interfaceTexts.presenterNotesLabel}</h2>
+      <section data-presenter-next aria-label={nextLabel}>
+        <h2>{nextLabel}</h2>
+        {nextSlideIndex !== undefined || hasNextStep ? (
+          <button type="button" aria-label={nextLabel} onPointerDown={keepFocus} onClick={() => steerSlides("forward")}>
+            <SlideFrame formatWidth={formatWidth}>{hasNextStep || nextSlideIndex === undefined ? renderSlide(slideIndex, stepIndex + 1) : renderSlide(nextSlideIndex, 0)}</SlideFrame>
+          </button>
+        ) : (
+          <div data-presenter-frame data-presenter-end />
+        )}
+      </section>
+      <PresenterTimer
+        languageCode={languageCode}
+        slideAddress={slideAddresses[slideIndex]!}
+        stepIndex={stepIndex}
+        shownNumber={shownNumbers[slideIndex]!}
+        shownCount={shownSlideIndexes.length}
+        talkMinutes={talkMinutes}
+      />
+      <section data-presenter-notes aria-label={interfaceTexts.presenterNotesLabel}>
+        <div data-presenter-notes-bar>
+          <h2>{interfaceTexts.presenterNotesLabel}</h2>
+          <div data-presenter-buttons>
             <button type="button" aria-label={interfaceTexts.presenterSmallerNotes} title={interfaceTexts.presenterSmallerNotes} onPointerDown={keepFocus} onClick={shrinkNotes} disabled={notesSize <= smallestNotesSize}>
               A−
             </button>
@@ -175,21 +167,21 @@ export function PresenterView({
               A+
             </button>
           </div>
-          <div ref={notesReference} data-presenter-notes-text style={{ "--notes-size": `${notesSize}px` } as CSSProperties}>
-            {slideNotes.length === 0 && <p data-presenter-no-notes>{interfaceTexts.presenterNoNotes}</p>}
-            {slideNotes.map((slideNote, notePosition) => (
-              <div
-                key={notePosition}
-                data-presenter-note
-                data-note-ahead={slideNote.noteStep > stepIndex || undefined}
-                data-note-leading={(marksLeadingNote && slideNote.noteStep === leadingNoteStep) || undefined}
-              >
-                {slideNote.noteContent}
-              </div>
-            ))}
-          </div>
-        </section>
-      </aside>
+        </div>
+        <div ref={notesReference} data-presenter-notes-text style={{ "--notes-size": `${notesSize}px` } as CSSProperties}>
+          {slideNotes.length === 0 && <p data-presenter-no-notes>{interfaceTexts.presenterNoNotes}</p>}
+          {slideNotes.map((slideNote, notePosition) => (
+            <div
+              key={notePosition}
+              data-presenter-note
+              data-note-ahead={slideNote.noteStep > stepIndex || undefined}
+              data-note-leading={(marksLeadingNote && slideNote.noteStep === leadingNoteStep) || undefined}
+            >
+              {slideNote.noteContent}
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
