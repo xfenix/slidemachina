@@ -5,6 +5,7 @@ import { intro, log, outro } from "@clack/prompts";
 import { askBuildVariant, askPageSecret, pickFlaggedVariants } from "./build-choice.ts";
 import type { BuildFlags, BuildVariant } from "./build-choice.ts";
 import { commandLineLanguage, commandLineTexts } from "./command-line-texts.ts";
+import { shareChrome } from "../presentation-build/chrome-sharing.ts";
 import { buildPresentation, namePresentationOutputs, reportBuild } from "../presentation-build/presentation-build.ts";
 import { isInsideFolder } from "../presentation-repository/presentation-repository.ts";
 import { buildRepository } from "../presentation-repository/repository-build.ts";
@@ -33,15 +34,20 @@ export async function runBuildCommand(siteLayout: SiteLayout, commandOptions: Bu
   const outputFolder = prepareOutputFolder(siteLayout, commandOptions.out);
   const pageSecret = chosenVariants.includes("protected") ? await choosePageSecret(isInteractive) : undefined;
   if (pageSecret !== undefined && pageSecret.length < shortestSafeSecretLength) log.warn(commandLineTexts.shortSecret);
-  const buildContext = { isInteractive, pageSecret, printsHidden: commandOptions.hidden === true };
+  const sharedChrome = shareChrome();
+  const buildContext = { isInteractive, pageSecret, printsHidden: commandOptions.hidden === true, sharedChrome };
 
-  if (siteLayout.isRepository) {
-    await buildRepository(siteLayout, chosenVariants, outputFolder, buildContext);
-  } else {
-    const outputPaths = namePresentationOutputs(outputFolder, path.basename(siteLayout.rootFolder));
-    const buildReport = { savedPictureBytes: new Map(), videoSizes: new Map() };
-    await buildPresentation(siteLayout, chosenVariants, outputPaths, { ...buildContext, buildReport });
-    reportBuild(chosenVariants, outputPaths, buildReport);
+  try {
+    if (siteLayout.isRepository) {
+      await buildRepository(siteLayout, chosenVariants, outputFolder, buildContext);
+    } else {
+      const outputPaths = namePresentationOutputs(outputFolder, path.basename(siteLayout.rootFolder));
+      const buildReport = { savedPictureBytes: new Map(), videoSizes: new Map() };
+      await buildPresentation(siteLayout, chosenVariants, outputPaths, { ...buildContext, buildReport });
+      reportBuild(chosenVariants, outputPaths, buildReport);
+    }
+  } finally {
+    await sharedChrome.closeChrome();
   }
   const elapsedSeconds = ((performance.now() - buildStart) / 1000).toLocaleString(commandLineLanguage, { maximumFractionDigits: 1 });
   outro(commandLineTexts.buildFinished(elapsedSeconds));

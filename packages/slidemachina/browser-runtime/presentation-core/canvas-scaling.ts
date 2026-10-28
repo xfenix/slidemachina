@@ -5,6 +5,8 @@ import type { CanvasSize } from "../../shared-between-runtimes/canvas-size.js";
 const toolbarRoomHeight = 76;
 // A 16:9 canvas grows up to 21:9 in a wide window and to 4:3 in a tall one; a phone held upright still gets margins.
 const largestCanvasGrowth = 4 / 3;
+// Fitters refit on the next frame or two after a resize; this pause covers them with room to spare.
+const resizeSettlingPause = 500;
 
 type CanvasLayout = CanvasSize & { canvasScale: number; hasRoomUnderCanvas: boolean };
 
@@ -39,4 +41,17 @@ export function useCanvasLayout(formatSize: CanvasSize): CanvasLayout {
     return () => window.removeEventListener("resize", remeasureCanvas);
   }, [formatSize]);
   return canvasLayout;
+}
+
+// Distant slides skip layout, so their resize observers stay silent: for a moment after the canvas changes size
+// every slide is laid out again, and big numbers, code and diagrams fit the new room before they come on screen.
+export function useCanvasResizing({ canvasWidth, canvasHeight }: CanvasSize): boolean {
+  const currentSize = `${canvasWidth}×${canvasHeight}`;
+  const [settledSize, setSettledSize] = useState(currentSize);
+  useEffect(() => {
+    if (currentSize === settledSize) return;
+    const settlingTimer = setTimeout(() => setSettledSize(currentSize), resizeSettlingPause);
+    return () => clearTimeout(settlingTimer);
+  }, [currentSize, settledSize]);
+  return currentSize !== settledSize;
 }

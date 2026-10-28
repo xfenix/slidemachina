@@ -1,28 +1,32 @@
 import { writeFileSync } from "node:fs";
 import { unzipSync, zipSync } from "fflate";
 import sharp from "sharp";
-import { addressPrintView, launchChrome } from "../presentation-build/pdf-printing.ts";
+import { openWorkingTabs, shareWorkBetweenTabs } from "../presentation-build/chrome-sharing.ts";
+import { addressPrintView, printWaitLimit } from "../presentation-build/pdf-printing.ts";
 import { blendHighlightsOverPixels } from "./highlight-backdrop-sampling.ts";
 import { pageReadingConstants, pptxPageMarks, writeCaptureStylesheet } from "./pptx-page-marks.ts";
 import { drawSlideParts, inchesPerCanvasPixel } from "./pptx-slide-drawing.ts";
 import { writeStepAnimations } from "./pptx-step-animations.ts";
 import { splitNotesParagraphs } from "./pptx-notes-paragraphs.ts";
+import { shareRepeatedMedia } from "./pptx-media-sharing.ts";
 import { layoutPageFunctions } from "./slide-layout-reading.ts";
 import { pseudoTextPageFunctions } from "./pseudo-text-materializing.ts";
 import { capturePageFunctions, capturePicture } from "./slide-picture-capturing.ts";
 import { stylePageFunctions } from "./slide-style-reading.ts";
 import { textPageFunctions } from "./slide-text-reading.ts";
 import { vectorPageFunctions } from "./slide-vector-reading.ts";
-import type { Page } from "playwright-core";
+import type { Browser, Page } from "playwright-core";
+import type { SharedChrome } from "../presentation-build/chrome-sharing.ts";
 import type { SlideAnimation } from "./pptx-slide-drawing.ts";
 import type { CapturedPicture } from "./slide-picture-capturing.ts";
 import type { ExportedPage, PicturePart, SlideLayout } from "./slide-part-types.ts";
 
 type PageFormat = { pageWidth: number; pageHeight: number };
+type ExportTab = { exportPage: Page; pageFormat: PageFormat };
+type ReadPage = { slideLayout: SlideLayout; capturedPictures: Map<string, CapturedPicture | undefined>; notesText: string | null | undefined };
 
 // Pictures are taken at twice the canvas size: sharp on a projector, and the slide text is native anyway.
 const captureScale = 2;
-const printWaitLimit = 60000;
 // The print view keeps margins around its pages; the window holds a page with them at full size.
 const printViewRoom = 256;
 const layoutName = "slidemachina";
@@ -77,33 +81,46 @@ async function openPrintView(exportPage: Page, pagePath: string, printsHidden: b
   return pageFormat;
 }
 
+async function openExportTab(chromeBrowser: Browser, pagePath: string, printsHidden: boolean): Promise<ExportTab> {
+  const exportPage = await chromeBrowser.newPage({ viewport: { width: printViewRoom, height: printViewRoom }, deviceScaleFactor: captureScale });
+  return { exportPage, pageFormat: await openPrintView(exportPage, pagePath, printsHidden) };
+}
+
+// Reading a page marks and unmarks its own elements only, so tabs read different pages at once.
+async function readExportedPage({ exportPage }: ExportTab, { pageIndex, isStepFrame }: ExportedPage): Promise<ReadPage> {
+  const slideLayout = await exportPage.evaluate<SlideLayout>(`readSlideLayout(${pageIndex}, ${isStepFrame})`);
+  const capturedPictures = await capturePictures(exportPage, slideLayout);
+  await blendHighlightsOverPixels(exportPage, pageIndex, slideLayout);
+  const notesText = await exportPage.evaluate((shownPageIndex) => document.querySelectorAll("[data-print-page]")[shownPageIndex]!.querySelector("[data-slide]")?.getAttribute("data-notes"), pageIndex);
+  return { slideLayout, capturedPictures, notesText };
+}
+
 // Every slide of the print view becomes a slide of native text boxes, shapes, freeforms, pictures and videos; steps become entrance animations, <Notes> slide notes.
 // The print view shows a page per step: a slide takes its last page, a slide with code line steps takes every page, one slide per step.
-export async function exportPptx(pagePath: string, pptxPath: string, printsHidden: boolean): Promise<void> {
+export async function exportPptx(pagePath: string, pptxPath: string, printsHidden: boolean, sharedChrome: SharedChrome): Promise<void> {
   const { default: PptxGenJS } = await import("pptxgenjs");
-  const chromeBrowser = await launchChrome();
+  const chromeBrowser = await sharedChrome.openChrome();
+  const exportTabs = await openWorkingTabs(() => openExportTab(chromeBrowser, pagePath, printsHidden));
   try {
-    const exportPage = await chromeBrowser.newPage({ viewport: { width: printViewRoom, height: printViewRoom }, deviceScaleFactor: captureScale });
-    const { pageWidth, pageHeight } = await openPrintView(exportPage, pagePath, printsHidden);
+    const [firstTab] = exportTabs;
+    const { pageWidth, pageHeight } = firstTab!.pageFormat;
+    const exportedPages = await firstTab!.exportPage.evaluate<ExportedPage[]>("listExportedPages()");
+    const readPages = await shareWorkBetweenTabs(exportTabs, exportedPages, readExportedPage);
     const pptxPresentation = new PptxGenJS();
     pptxPresentation.defineLayout({ name: layoutName, width: pageWidth * inchesPerCanvasPixel, height: pageHeight * inchesPerCanvasPixel });
     pptxPresentation.layout = layoutName;
-    const slideAnimations: SlideAnimation[] = [];
-    for (const { pageIndex, isStepFrame } of await exportPage.evaluate<ExportedPage[]>("listExportedPages()")) {
-      const slideLayout = await exportPage.evaluate<SlideLayout>(`readSlideLayout(${pageIndex}, ${isStepFrame})`);
-      const capturedPictures = await capturePictures(exportPage, slideLayout);
-      await blendHighlightsOverPixels(exportPage, pageIndex, slideLayout);
+    const slideAnimations: SlideAnimation[] = readPages.map(({ slideLayout, capturedPictures, notesText }) => {
       const pptxSlide = pptxPresentation.addSlide();
       const animatedObjects = drawSlideParts(pptxSlide, slideLayout, capturedPictures);
-      const notesText = await exportPage.evaluate((shownPageIndex) => document.querySelectorAll("[data-print-page]")[shownPageIndex]!.querySelector("[data-slide]")?.getAttribute("data-notes"), pageIndex);
       if (notesText != null) pptxSlide.addNotes(notesText);
-      slideAnimations.push({ stepDuration: slideLayout.stepDuration, animatedObjects });
-    }
+      return { stepDuration: slideLayout.stepDuration, animatedObjects };
+    });
     const pptxFiles = unzipSync((await pptxPresentation.write({ outputType: "uint8array" })) as Uint8Array);
     writeStepAnimations(pptxFiles, slideAnimations);
     splitNotesParagraphs(pptxFiles);
+    shareRepeatedMedia(pptxFiles);
     writeFileSync(pptxPath, zipSync(pptxFiles));
   } finally {
-    await chromeBrowser.close();
+    await Promise.all(exportTabs.map(({ exportPage }) => exportPage.close()));
   }
 }

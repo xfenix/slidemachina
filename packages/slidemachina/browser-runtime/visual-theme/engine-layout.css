@@ -76,6 +76,13 @@
     visibility: hidden;
   }
 
+  /* A slide more than two away skips style and layout: a key press restyles a few slides, not the whole talk.
+     Nearby slides stay rendered, so step changes made while they were away settle out of sight. Right after a resize
+     every slide is laid out, so the fitters of distant slides see the new size. */
+  [data-canvas]:not([data-resizing]) > [data-slide][data-distant] {
+    content-visibility: hidden;
+  }
+
   /* The cover on the list is a still copy of the first slide: no step caught halfway through its animation. */
   [data-cover-preview] [data-canvas] > [data-slide] {
     visibility: visible;

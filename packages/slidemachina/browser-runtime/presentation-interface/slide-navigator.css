@@ -65,6 +65,8 @@
     scroll-margin-block: calc(var(--navigator-fade) + var(--thumbnail-outline-width) + var(--thumbnail-outline-offset));
     cursor: pointer;
     transition: outline-color 0.2s;
+    /* Thumbnails below the fold skip layout and paint until they scroll in: the grid opens with a few dozen slides, not the whole talk. */
+    content-visibility: auto;
   }
 
   /* A hairline over the slide: a dark slide does not melt into the dark navigator. */

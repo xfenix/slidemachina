@@ -15,11 +15,14 @@ import { readPresentationFile } from "../source-transforms/presentation-settings
 import { createBuildConfiguration } from "../development-server/vite-configuration.ts";
 import type { BuildVariant } from "../command-line/build-choice.ts";
 import type { BuildReport } from "./image-compression.ts";
+import type { SharedChrome } from "./chrome-sharing.ts";
 import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
 
 export type OutputPaths = Record<BuildVariant, string>;
-export type BuildContext = { isInteractive: boolean, pageSecret: string | undefined, printsHidden: boolean, buildReport: BuildReport, stepPrefix?: string };
+export type BuildContext = { isInteractive: boolean, pageSecret: string | undefined, printsHidden: boolean, sharedChrome: SharedChrome, buildReport: BuildReport, stepPrefix?: string };
 export type StepTitler = (shownTitle: string) => string;
+// A step may leave a message for after the spinner, such as why the Quick Look pictures are missing.
+type ChromeStep = { stepTitle: string; stepWork: () => Promise<(() => void) | void> };
 
 const singleFileVariants = new Set<BuildVariant>(["html", "protected", "pdf", "pdf-steps", "pptx"]);
 const pdfVariantNames: BuildVariant[] = ["pdf", "pdf-steps"];
@@ -89,6 +92,29 @@ export function reportBuild(chosenVariants: BuildVariant[], outputPaths: OutputP
   }
 }
 
+// The pictures never stop the build: a missing Chrome or a too big file only leaves a message.
+async function shootPreviewQuietly(builtPage: string, htmlPath: string, sharedChrome: SharedChrome): Promise<(() => void) | void> {
+  try {
+    const hasPreview = await addScriptFreePreview(builtPage, htmlPath, sharedChrome);
+    if (!hasPreview) return () => log.info(commandLineTexts.previewTooLarge(formatFileSize(quickLookSizeLimit)));
+  } catch (previewError) {
+    const previewProblem = previewError instanceof Error ? previewError.message : String(previewError);
+    return () => log.warn(previewProblem === commandLineTexts.missingChrome ? commandLineTexts.previewWithoutChrome : commandLineTexts.previewFailed(previewProblem));
+  }
+}
+
+function listChromeSteps(chosenVariants: BuildVariant[], builtPage: string, outputPaths: OutputPaths, printsHidden: boolean, sharedChrome: SharedChrome): ChromeStep[] {
+  const previewSteps = chosenVariants.includes("html") ? [{ stepTitle: commandLineTexts.shootingPreview, stepWork: () => shootPreviewQuietly(builtPage, outputPaths.html, sharedChrome) }] : [];
+  const pdfSteps = pdfVariantNames
+    .filter((variantName) => chosenVariants.includes(variantName))
+    .map((pdfVariant) => {
+      const printsSteps = pdfVariant === "pdf-steps";
+      return { stepTitle: commandLineTexts.printingPdf(printsSteps), stepWork: () => printPdf(builtPage, outputPaths[pdfVariant], { printsSteps, printsHidden }, sharedChrome) };
+    });
+  const pptxSteps = chosenVariants.includes("pptx") ? [{ stepTitle: commandLineTexts.exportingPptx, stepWork: () => exportPptx(builtPage, outputPaths.pptx, printsHidden, sharedChrome) }] : [];
+  return [...previewSteps, ...pdfSteps, ...pptxSteps];
+}
+
 // Folder and zip come first: in a repository the folder is the presentation's own output folder, other files go into it after.
 export async function buildPresentation(
   presentationLayout: SiteLayout,
@@ -97,7 +123,7 @@ export async function buildPresentation(
   buildContext: BuildContext,
   processBuiltPage?: (builtFolder: string, stepTitle: StepTitler) => Promise<void>,
 ): Promise<void> {
-  const { buildReport, isInteractive, pageSecret, printsHidden, stepPrefix } = buildContext;
+  const { buildReport, isInteractive, pageSecret, printsHidden, sharedChrome, stepPrefix } = buildContext;
   const projectFolder = presentationLayout.rootFolder;
   const nameStepTitle: StepTitler = (shownTitle) => (stepPrefix === undefined ? shownTitle : `${stepPrefix} · ${shownTitle}`);
   const temporaryFolder = mkdtempSync(path.join(os.tmpdir(), "slidemachina-build-"));
@@ -125,16 +151,6 @@ export async function buildPresentation(
         isInteractive,
       );
       const builtPage = path.join(singleFileFolder, "index.html");
-      if (chosenVariants.includes("html")) {
-        copyFileSync(builtPage, outputPaths.html);
-        try {
-          const hasPreview = await runBuildStep(nameStepTitle(commandLineTexts.shootingPreview), () => addScriptFreePreview(builtPage, outputPaths.html), isInteractive);
-          if (!hasPreview) log.info(commandLineTexts.previewTooLarge(formatFileSize(quickLookSizeLimit)));
-        } catch (previewError) {
-          const previewProblem = previewError instanceof Error ? previewError.message : String(previewError);
-          log.warn(previewProblem === commandLineTexts.missingChrome ? commandLineTexts.previewWithoutChrome : commandLineTexts.previewFailed(previewProblem));
-        }
-      }
       if (pageSecret !== undefined) {
         const presentationTitle = readPresentationFile(projectFolder).presentationTitle ?? path.basename(projectFolder);
         await runBuildStep(
@@ -143,16 +159,16 @@ export async function buildPresentation(
           isInteractive,
         );
       }
-      for (const pdfVariant of pdfVariantNames.filter((variantName) => chosenVariants.includes(variantName))) {
-        const printsSteps = pdfVariant === "pdf-steps";
-        await runBuildStep(
-          nameStepTitle(commandLineTexts.printingPdf(printsSteps)),
-          () => printPdf(builtPage, outputPaths[pdfVariant], { printsSteps, printsHidden }),
+      if (chosenVariants.includes("html")) copyFileSync(builtPage, outputPaths.html);
+      const chromeSteps = listChromeSteps(chosenVariants, builtPage, outputPaths, printsHidden, sharedChrome);
+      // Pictures, PDF and PowerPoint take tabs of one Chrome at once: printing mostly waits while the export keeps the processor busy.
+      if (chromeSteps.length > 0) {
+        const stepReports = await runBuildStep(
+          nameStepTitle(chromeSteps.map(({ stepTitle }) => stepTitle).join(" · ")),
+          () => Promise.all(chromeSteps.map(({ stepWork }) => stepWork())),
           isInteractive,
         );
-      }
-      if (chosenVariants.includes("pptx")) {
-        await runBuildStep(nameStepTitle(commandLineTexts.exportingPptx), () => exportPptx(builtPage, outputPaths.pptx, printsHidden), isInteractive);
+        for (const stepReport of stepReports) stepReport?.();
       }
       builtPages.push(singleFileFolder);
     }

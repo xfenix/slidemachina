@@ -1,21 +1,11 @@
 import { pathToFileURL } from "node:url";
 import { printViewHiddenParameter, printViewParameter, printViewStepsValue } from "../../shared-between-runtimes/engine-constants.ts";
-import { commandLineTexts } from "../command-line/command-line-texts.ts";
+import type { SharedChrome } from "./chrome-sharing.ts";
 
 const printedViewport = { width: 1920, height: 1080 };
 export const printWaitLimit = 60000;
 
 type PrintChoice = { printsSteps: boolean; printsHidden: boolean };
-
-export async function launchChrome() {
-  const { chromium } = await import("playwright-core");
-  try {
-    // Without a GPU, as on most CI machines, Chrome needs this flag to draw 3D scenes in software.
-    return await chromium.launch({ channel: "chrome", args: ["--enable-unsafe-swiftshader"] });
-  } catch {
-    throw new Error(commandLineTexts.missingChrome);
-  }
-}
 
 // "?print=steps&hidden": the print view of the built file with the pages the build asked for.
 export function addressPrintView(pagePath: string, { printsSteps, printsHidden }: PrintChoice): string {
@@ -25,16 +15,16 @@ export function addressPrintView(pagePath: string, { printsSteps, printsHidden }
 }
 
 // Prints the print view of the built one-file page in headless Chrome with the browser's own print styles, as Cmd+P does.
-export async function printPdf(pagePath: string, printedPdfPath: string, printChoice: PrintChoice): Promise<void> {
-  const chromeBrowser = await launchChrome();
+export async function printPdf(pagePath: string, printedPdfPath: string, printChoice: PrintChoice, sharedChrome: SharedChrome): Promise<void> {
+  const chromeBrowser = await sharedChrome.openChrome();
+  // Pages take the size of the canvas from @page, whatever the window: the window only has to be wide enough for the print view.
+  const printedPage = await chromeBrowser.newPage({ viewport: printedViewport });
   try {
-    // Pages take the size of the canvas from @page, whatever the window: the window only has to be wide enough for the print view.
-    const printedPage = await chromeBrowser.newPage({ viewport: printedViewport });
     await printedPage.goto(addressPrintView(pagePath, printChoice));
     // The print view marks its pages once every diagram is laid out, every scene drawn and every picture loaded.
     await printedPage.waitForSelector("[data-print-pages][data-print-ready]", { state: "attached", timeout: printWaitLimit });
     await printedPage.pdf({ path: printedPdfPath, preferCSSPageSize: true, printBackground: true });
   } finally {
-    await chromeBrowser.close();
+    await printedPage.close();
   }
 }

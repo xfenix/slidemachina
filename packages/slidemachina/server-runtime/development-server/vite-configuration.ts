@@ -40,6 +40,8 @@ export function createViteConfiguration(siteLayout: SiteLayout, serverOptions: S
         "react-dom",
         "react-dom/client",
         "agentation",
+        // The QR block is engine code, which the scan skips: found late, it would reload the page on the first start.
+        "uqr",
         // Found only when the first scene loads; listed here, so Vite does not reload the page to bundle them mid-talk.
         "three",
         "three/examples/jsm/environments/RoomEnvironment.js",

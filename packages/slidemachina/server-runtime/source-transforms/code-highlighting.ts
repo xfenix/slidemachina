@@ -5,8 +5,10 @@ import type { Element, Text } from "hast";
 
 type CodeToken = string | [string, string | undefined, string | undefined];
 type HighlightedLine = { tokens: CodeToken[], marked: boolean, number: number };
+type HighlightedCode = { lines: HighlightedLine[] };
 
 const codeThemes = { light: "github-light-high-contrast", dark: "github-dark-default" };
+const highlightedBlocks = new Map<string, Promise<HighlightedCode>>();
 
 async function loadHighlighter(languageName: string) {
   const shikiHighlighter = await getSingletonHighlighter({ themes: Object.values(codeThemes), langs: [] });
@@ -52,8 +54,19 @@ function compactLineElement(lineElement: Element): HighlightedLine {
   return { tokens: lineTokens, marked: lineClasses.includes("highlighted"), number: Number(lineElement.properties.dataSourceLine) };
 }
 
+// An edit re-runs the whole file through the plugin: unchanged blocks take their tokens from here instead of Shiki.
+export function highlightCodeOnce(codeText: string, languageName: string, isWholeFile: boolean): Promise<HighlightedCode> {
+  const highlightKey = JSON.stringify([languageName, isWholeFile, codeText]);
+  let highlighting = highlightedBlocks.get(highlightKey);
+  if (highlighting === undefined) {
+    highlighting = highlightCode(codeText, languageName, isWholeFile);
+    highlightedBlocks.set(highlightKey, highlighting);
+  }
+  return highlighting;
+}
+
 // Shiki runs only here, at build time: the browser gets coloured tokens and never loads grammars.
-export async function highlightCode(codeText: string, languageName: string, isWholeFile: boolean): Promise<{ lines: HighlightedLine[] }> {
+async function highlightCode(codeText: string, languageName: string, isWholeFile: boolean): Promise<HighlightedCode> {
   const { shikiHighlighter, loadedLanguage } = await loadHighlighter(languageName);
   const codeTree = shikiHighlighter.codeToHast(dedentCode(codeText, isWholeFile), {
     lang: loadedLanguage,

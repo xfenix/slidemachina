@@ -3,7 +3,7 @@ import path from "node:path";
 import MagicString from "magic-string";
 import { measureCanvasSize } from "../../shared-between-runtimes/canvas-size.ts";
 import { commandLineTexts } from "../command-line/command-line-texts.ts";
-import { highlightCode } from "./code-highlighting.ts";
+import { highlightCodeOnce } from "./code-highlighting.ts";
 import { readSettingsFor } from "./presentation-settings.ts";
 import { isSlideSourceFile } from "../presentation-repository/presentation-repository.ts";
 import { installMemeSearch } from "../development-server/meme-search-server.ts";
@@ -48,7 +48,7 @@ async function highlightCodeElement(
     languageName ??= path.extname(codeFilePath).slice(1);
   }
   if (codeText === undefined) return undefined;
-  return highlightCode(codeText, languageName ?? "text", codeFileSource !== undefined);
+  return highlightCodeOnce(codeText, languageName ?? "text", codeFileSource !== undefined);
 }
 
 // Build-time pass over the slide sources: highlights <Code> with Shiki and typographs the text on slides.

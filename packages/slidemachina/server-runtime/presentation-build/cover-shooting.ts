@@ -1,8 +1,8 @@
 import path from "node:path";
 import sharp from "sharp";
-import { launchChrome } from "./pdf-printing.ts";
 import { coverWidth } from "../presentation-repository/presentation-list-page.ts";
-import type { Browser, Page } from "playwright-core";
+import type { Page } from "playwright-core";
+import type { SharedChrome } from "./chrome-sharing.ts";
 import type { CanvasSize } from "../../shared-between-runtimes/canvas-size.ts";
 
 // A made-up address: Playwright answers it from the built folder, so a folder build needs no web server either.
@@ -22,31 +22,21 @@ async function waitForStillCover(coverPage: Page): Promise<void> {
   await coverPage.evaluate(() => new Promise((resolveFrames) => requestAnimationFrame(() => requestAnimationFrame(resolveFrames))));
 }
 
-// One Chrome for all covers of a build. Without Chrome the list shows titles in place of covers.
-export function createCoverCamera() {
-  let chromeLaunch: Promise<Browser> | undefined;
-  return {
-    async shootCover(builtFolder: string, coverPath: string, { canvasWidth, canvasHeight }: CanvasSize): Promise<void> {
-      chromeLaunch ??= launchChrome();
-      const chromeBrowser = await chromeLaunch;
-      // A window of the canvas size shows the slide without letterbox margins.
-      const coverPage = await chromeBrowser.newPage({ viewport: { width: canvasWidth, height: canvasHeight } });
-      try {
-        await coverPage.route(`${coverOrigin}/**`, (interceptedRoute) => {
-          const requestedPath = decodeURIComponent(new URL(interceptedRoute.request().url()).pathname);
-          return interceptedRoute.fulfill({ path: path.join(builtFolder, requestedPath) });
-        });
-        await coverPage.goto(`${coverOrigin}/index.html?cover`);
-        await waitForStillCover(coverPage);
-        const screenshotBytes = await coverPage.screenshot();
-        await sharp(screenshotBytes).resize({ width: coverWidth }).webp({ quality: webpQuality, smartSubsample: true }).toFile(coverPath);
-      } finally {
-        await coverPage.close();
-      }
-    },
-    async close(): Promise<void> {
-      const chromeBrowser = await chromeLaunch?.catch(() => undefined);
-      await chromeBrowser?.close();
-    },
-  };
+// Covers take tabs of the build's Chrome. Without Chrome the list shows titles in place of covers.
+export async function shootCover(sharedChrome: SharedChrome, builtFolder: string, coverPath: string, { canvasWidth, canvasHeight }: CanvasSize): Promise<void> {
+  const chromeBrowser = await sharedChrome.openChrome();
+  // A window of the canvas size shows the slide without letterbox margins.
+  const coverPage = await chromeBrowser.newPage({ viewport: { width: canvasWidth, height: canvasHeight } });
+  try {
+    await coverPage.route(`${coverOrigin}/**`, (interceptedRoute) => {
+      const requestedPath = decodeURIComponent(new URL(interceptedRoute.request().url()).pathname);
+      return interceptedRoute.fulfill({ path: path.join(builtFolder, requestedPath) });
+    });
+    await coverPage.goto(`${coverOrigin}/index.html?cover`);
+    await waitForStillCover(coverPage);
+    const screenshotBytes = await coverPage.screenshot();
+    await sharp(screenshotBytes).resize({ width: coverWidth }).webp({ quality: webpQuality, smartSubsample: true }).toFile(coverPath);
+  } finally {
+    await coverPage.close();
+  }
 }

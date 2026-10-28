@@ -93,6 +93,7 @@ export function Slide({
       data-slide-address={slideEnvironment.slideAddress}
       data-transition={transition ?? presentationSettings.transition}
       data-current={slideEnvironment.isCurrentSlide || undefined}
+      data-distant={(!slideEnvironment.isSlideNearby && !slideEnvironment.isSlideCopy) || undefined}
       data-notes={notesText === "" ? undefined : notesText}
       {...pickSourceMarks(otherProperties)}
       inert={!slideEnvironment.isCurrentSlide}

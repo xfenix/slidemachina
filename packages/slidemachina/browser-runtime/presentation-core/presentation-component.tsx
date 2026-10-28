@@ -1,6 +1,6 @@
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { defaultAspectRatio, measureCanvasSize, type AspectRatio } from "../../shared-between-runtimes/canvas-size.js";
-import { useCanvasLayout } from "./canvas-scaling.ts";
+import { useCanvasLayout, useCanvasResizing } from "./canvas-scaling.ts";
 import { DevelopmentFeedback } from "../presentation-interface/development-feedback.tsx";
 import { EditorSwitch } from "../source-editor/editor-switch.tsx";
 import { MemePanelSwitch } from "../source-editor/meme-panel-switch.tsx";
@@ -107,6 +107,7 @@ export function Presentation({
   );
   const { isMinimapShown, toggleMinimap } = useMinimapShowing(import.meta.env.DEV && !isPrintView && !isCoverPreview);
   const { canvasScale, canvasWidth, canvasHeight, hasRoomUnderCanvas } = useCanvasLayout(formatSize);
+  const isCanvasResizing = useCanvasResizing({ canvasWidth, canvasHeight });
   const [isPaused, setPaused] = useState(false);
   const { isToolbarHidden, toggleToolbar } = useToolbarHiding();
   const switchNavigator = (opensNavigator: boolean, chosenSlideIndex?: number) =>
@@ -228,7 +229,7 @@ export function Presentation({
     <div data-presentation data-print-view={isPrintView || undefined} data-toolbar-under-canvas={hasRoomUnderCanvas || undefined} style={canvasStyle}>
       {pageTitle !== undefined && pageTitle !== "" && <title>{pageTitle}</title>}
       <style>{`@page { size: ${formatWidth}px ${formatHeight}px; }`}</style>
-      <div data-canvas>
+      <div data-canvas data-resizing={isCanvasResizing || undefined}>
         {[...outlinedSlides.keys()].map((slideIndex) => renderSlide(slideIndex))}
         {progress && shownSlideIndexes.length > 1 && (
           <div

@@ -38,6 +38,9 @@ const shortestFrameSeconds = 1 / 30;
 const millisecondsInSecond = 1000;
 const frameBorderWidth = 1;
 const frameBorderColor = "#d0d7de";
+// The slowest lossless encoding: the same pixels, a tenth lighter than the default.
+const largestStillEffort = 6;
+const tightestLosslessQuality = 100;
 const mixedEncodingQuality = 95;
 const encodingEffort = 4;
 const mediaFolder = path.join(workspaceFolder, "docs", "readme");
@@ -91,7 +94,7 @@ async function shootStills(browserConnection: Browser) {
     const slideNumber = await findSlideNumber(demoPage, headingSelector, shotStill.slideHeading);
     await openSlide(demoPage, `${slideNumber}.${builtSlideStep}`);
     const framedPicture = await drawFrameBorder(await demoPage.screenshot());
-    await framedPicture.webp({ lossless: true }).toFile(path.join(mediaFolder, shotStill.fileName));
+    await framedPicture.webp({ lossless: true, effort: largestStillEffort, quality: tightestLosslessQuality }).toFile(path.join(mediaFolder, shotStill.fileName));
   }
   await demoPage.context().close();
 }

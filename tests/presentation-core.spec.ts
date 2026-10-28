@@ -65,10 +65,12 @@ function collectTransitionAnimations(page: Page) {
   );
 }
 
+// A distant slide skips style updates, so a finished fade on it stays listed until it comes near; only running ones count.
 function listTransitionAnimations(page: Page) {
   return page.evaluate(() =>
     document
       .getAnimations()
+      .filter((runningAnimation) => runningAnimation.playState !== "finished")
       .map((runningAnimation) => `${(runningAnimation.effect as KeyframeEffect).pseudoElement} ${(runningAnimation instanceof CSSAnimation ? runningAnimation.animationName : runningAnimation.id)}`),
   );
 }

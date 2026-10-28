@@ -5,7 +5,7 @@ import { styleText } from "node:util";
 import { log } from "@clack/prompts";
 import { build } from "vite";
 import { commandLineTexts } from "../command-line/command-line-texts.ts";
-import { createCoverCamera } from "../presentation-build/cover-shooting.ts";
+import { shootCover } from "../presentation-build/cover-shooting.ts";
 import { buildPresentation, removeOldOutput, reportBuild, reportBuiltOutput, runBuildStep } from "../presentation-build/presentation-build.ts";
 import { readPresentationCards } from "./presentation-list-page.ts";
 import { createListBuildConfiguration } from "../development-server/vite-configuration.ts";
@@ -66,41 +66,36 @@ export async function buildRepository(
   outputFolder: string,
   buildContext: Omit<BuildContext, "buildReport">,
 ): Promise<void> {
-  const { isInteractive } = buildContext;
-  const coverCamera = createCoverCamera();
+  const { isInteractive, sharedChrome } = buildContext;
   // A cover of a protected presentation would show what the password hides: its card keeps only the title.
   let shootsCovers = chosenVariants.some((variantName) => variantName !== "protected");
   const builtCards: ListedCard[] = [];
-  try {
-    for (const presentationCard of readPresentationCards(siteLayout.rootFolder)) {
-      const { folderName } = presentationCard;
-      const presentationOutput = path.join(outputFolder, folderName);
-      removeOldOutput(presentationOutput);
-      mkdirSync(presentationOutput, { recursive: true });
-      const outputPaths = nameRepositoryOutputs(presentationOutput, folderName);
-      const buildReport = { savedPictureBytes: new Map(), videoSizes: new Map() };
-      let hasCover = false;
-      const shootCover = async (builtFolder: string, stepTitle: StepTitler): Promise<void> => {
-        if (!shootsCovers) return;
-        try {
-          const coverPath = path.join(presentationOutput, coverFileName);
-          await runBuildStep(stepTitle(commandLineTexts.shootingCover), () => coverCamera.shootCover(builtFolder, coverPath, presentationCard.canvasSize), isInteractive);
-          hasCover = true;
-        } catch (coverError) {
-          const coverProblem = coverError instanceof Error ? coverError.message : String(coverError);
-          const isChromeMissing = coverProblem === commandLineTexts.missingChrome;
-          if (isChromeMissing) shootsCovers = false;
-          log.warn(isChromeMissing ? commandLineTexts.coversWithoutChrome : commandLineTexts.coverFailed(folderName, coverProblem));
-        }
-      };
-      const presentationFolder = path.join(siteLayout.rootFolder, folderName);
-      const presentationLayout = { rootFolder: presentationFolder, isRepository: false, themeStylesheet: siteLayout.themeStylesheet, listAddress: "../index.html" };
-      await buildPresentation(presentationLayout, chosenVariants, outputPaths, { ...buildContext, buildReport, stepPrefix: folderName }, shootCover);
-      reportBuild(chosenVariants, outputPaths, buildReport, false);
-      builtCards.push(describeBuiltCard(presentationCard, chosenVariants, outputPaths, hasCover));
-    }
-  } finally {
-    await coverCamera.close();
+  for (const presentationCard of readPresentationCards(siteLayout.rootFolder)) {
+    const { folderName } = presentationCard;
+    const presentationOutput = path.join(outputFolder, folderName);
+    removeOldOutput(presentationOutput);
+    mkdirSync(presentationOutput, { recursive: true });
+    const outputPaths = nameRepositoryOutputs(presentationOutput, folderName);
+    const buildReport = { savedPictureBytes: new Map(), videoSizes: new Map() };
+    let hasCover = false;
+    const shootPresentationCover = async (builtFolder: string, stepTitle: StepTitler): Promise<void> => {
+      if (!shootsCovers) return;
+      try {
+        const coverPath = path.join(presentationOutput, coverFileName);
+        await runBuildStep(stepTitle(commandLineTexts.shootingCover), () => shootCover(sharedChrome, builtFolder, coverPath, presentationCard.canvasSize), isInteractive);
+        hasCover = true;
+      } catch (coverError) {
+        const coverProblem = coverError instanceof Error ? coverError.message : String(coverError);
+        const isChromeMissing = coverProblem === commandLineTexts.missingChrome;
+        if (isChromeMissing) shootsCovers = false;
+        log.warn(isChromeMissing ? commandLineTexts.coversWithoutChrome : commandLineTexts.coverFailed(folderName, coverProblem));
+      }
+    };
+    const presentationFolder = path.join(siteLayout.rootFolder, folderName);
+    const presentationLayout = { rootFolder: presentationFolder, isRepository: false, themeStylesheet: siteLayout.themeStylesheet, listAddress: "../index.html" };
+    await buildPresentation(presentationLayout, chosenVariants, outputPaths, { ...buildContext, buildReport, stepPrefix: folderName }, shootPresentationCover);
+    reportBuild(chosenVariants, outputPaths, buildReport, false);
+    builtCards.push(describeBuiltCard(presentationCard, chosenVariants, outputPaths, hasCover));
   }
   await runBuildStep(commandLineTexts.buildingList, () => buildListPage(siteLayout, builtCards, outputFolder), isInteractive);
   const { shownPath } = reportBuiltOutput(path.join(outputFolder, "index.html"));
