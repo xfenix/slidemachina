@@ -1,0 +1,27 @@
+@layer slidemachina {
+  /* A data card: blocks inside stand one under another. Cards pair by their order when slides morph, see morph-matching.ts. */
+  [data-slide] .machina-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--block-gap);
+    padding: var(--frame-padding);
+    border-radius: var(--block-radius);
+    background: var(--code-background);
+  }
+
+  [data-slide] .machina-card > * {
+    margin: 0;
+  }
+
+  /* Nothing hangs out of a card: in a later column it keeps its own padding instead of the hang of list markers. */
+  [data-slide] .machina-columns > .machina-card:not(:first-child) {
+    padding-left: var(--frame-padding);
+  }
+
+  /* The card grows to the bottom of the content, and a chart inside grows with it. */
+  [data-slide] .machina-card-stretch {
+    flex: 1;
+    align-self: stretch;
+    min-height: 0;
+  }
+}

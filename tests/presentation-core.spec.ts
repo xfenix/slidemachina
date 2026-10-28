@@ -300,7 +300,13 @@ test("демо листается, показывает шаги и навига
 
     await jumpToHeading(page, "Слайд без правил");
     expect(await currentSlide(page).locator(".machina-freeform-full").boundingBox()).toEqual(await currentSlide(page).boundingBox());
-    await expect(currentSlide(page).locator(".machina-freeform-full canvas")).toHaveJSProperty("width", 1280);
+    await expect(currentSlide(page)).toHaveCSS("background-color", "rgb(2, 3, 10)");
+    const sunriseCanvas = currentSlide(page).locator(".machina-freeform-full canvas");
+    await expect(sunriseCanvas).toHaveJSProperty("width", 1280);
+    // In development React runs effects twice: a canvas whose WebGL context was lost paints white over the slide.
+    await expect.poll(async () => (await sampleSceneCanvas(sunriseCanvas)).paintedPixels, { message: "шейдер рисует Землю" }).toBeGreaterThan(250);
+    const slidePictureWidths = await currentSlide(page).locator("img").evaluateAll((pictureElements: HTMLImageElement[]) => pictureElements.map(({ naturalWidth }) => naturalWidth));
+    expect(slidePictureWidths, "на слайде нет битых картинок").not.toContain(0);
   });
 
   await test.step("мем: подписи — текст в полях шаблона, шрифт Oswald подогнан под поле", async () => {
@@ -507,6 +513,12 @@ test("демо листается, показывает шаги и навига
     await page.keyboard.press("PageDown");
     await expect(page).toHaveURL(new RegExp(`#${cardSlideNumber + 1}$`));
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "morph");
+    // No morph names: the card pairs by its order, the empty bars by their place in the row, and their layers draw them as plain shapes.
+    expect(await collectTransitionAnimations(page)).toEqual(
+      expect.arrayContaining(
+        [0, 1, 2, 3, 4].map((pairPosition) => `::view-transition-group(morph-${pairPosition}) slidemachina-shape-paint`),
+      ),
+    );
     await page.keyboard.press("PageUp");
     await expect(page.locator("html")).toHaveAttribute("data-slide-direction", "backward");
   });

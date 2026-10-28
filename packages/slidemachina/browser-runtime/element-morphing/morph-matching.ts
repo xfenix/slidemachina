@@ -4,6 +4,14 @@ const textSelector = "h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption";
 const mediaSelector = "img, video, iframe";
 const codeSelector = "pre";
 const candidateSelector = `[morph], ${textSelector}, ${mediaSelector}, ${codeSelector}`;
+// Engine blocks with a fixed role pair by their order on the slide when nothing pairs them exactly.
+const orderedBlockRoles = [
+  { roleName: "card", roleSelector: ".machina-card" },
+  { roleName: "big-number", roleSelector: ".machina-big-number > p" },
+  { roleName: "big-number-caption", roleSelector: ".machina-big-number > figcaption" },
+  { roleName: "bar", roleSelector: ".machina-bars > li" },
+];
+const orderedBlockSelector = orderedBlockRoles.map((blockRole) => blockRole.roleSelector).join(", ");
 
 export type MorphPair = {
   outgoingElement: HTMLElement;
@@ -25,8 +33,10 @@ function listVisibleCandidates(slideElement: HTMLElement, selector: string): HTM
 }
 
 // data-morph-text marks text inside other blocks, such as a diagram box label, so it does not stretch with its box.
+// An empty text tag, such as a bar of machina-bars, is a shape: its layer draws the background and the corners.
 export function isTextElement(candidateElement: HTMLElement): boolean {
-  return candidateElement.matches(`${textSelector}, ${codeSelector}, [data-morph-text]`);
+  if (candidateElement.hasAttribute("data-morph-text")) return true;
+  return candidateElement.matches(`${textSelector}, ${codeSelector}`) && candidateElement.textContent.trim() !== "";
 }
 
 // Same rules as reveal.js auto-animate: explicit morph name first, then text, media source and code.
@@ -41,12 +51,25 @@ function describeMorphKey(candidateElement: HTMLElement): string | undefined {
   return normalizedText ? `${candidateElement.tagName}:${normalizedText}` : undefined;
 }
 
+// A bar keeps its place in the row: the third bar of a chart pairs with the third bar of the same chart.
+function describeRoleKey(candidateElement: HTMLElement): string | undefined {
+  if (candidateElement.hasAttribute("morph")) return undefined;
+  const blockRole = orderedBlockRoles.find((orderedRole) => candidateElement.matches(orderedRole.roleSelector));
+  if (blockRole?.roleName !== "bar") return blockRole?.roleName;
+  return `bar:${[...candidateElement.parentElement!.children].indexOf(candidateElement)}`;
+}
+
 // Repeated keys pair up in document order: the second "Итоги" matches the second "Итоги".
-function collectKeyedElements(slideElement: HTMLElement): Map<string, HTMLElement> {
+function collectKeyedElements(
+  slideElement: HTMLElement,
+  selector: string,
+  describeKey: (candidateElement: HTMLElement) => string | undefined,
+  pairedElements: Set<HTMLElement>,
+): Map<string, HTMLElement> {
   const keyedElements = new Map<string, HTMLElement>();
   const occurrenceCounts = new Map<string, number>();
-  for (const candidateElement of listVisibleCandidates(slideElement, candidateSelector)) {
-    const morphKey = describeMorphKey(candidateElement);
+  for (const candidateElement of listVisibleCandidates(slideElement, selector)) {
+    const morphKey = pairedElements.has(candidateElement) ? undefined : describeKey(candidateElement);
     if (morphKey === undefined) continue;
     const occurrenceNumber = (occurrenceCounts.get(morphKey) ?? 0) + 1;
     occurrenceCounts.set(morphKey, occurrenceNumber);
@@ -55,14 +78,27 @@ function collectKeyedElements(slideElement: HTMLElement): Map<string, HTMLElemen
   return keyedElements;
 }
 
-export function findMorphPairs(outgoingSlide: HTMLElement, incomingSlide: HTMLElement): MorphPair[] {
-  const incomingElements = collectKeyedElements(incomingSlide);
+function pairKeyedElements(
+  outgoingSlide: HTMLElement,
+  incomingSlide: HTMLElement,
+  selector: string,
+  describeKey: (candidateElement: HTMLElement) => string | undefined,
+  pairedElements: Set<HTMLElement>,
+): MorphPair[] {
+  const incomingElements = collectKeyedElements(incomingSlide, selector, describeKey, pairedElements);
   const morphPairs: MorphPair[] = [];
-  for (const [morphKey, outgoingElement] of collectKeyedElements(outgoingSlide)) {
+  for (const [morphKey, outgoingElement] of collectKeyedElements(outgoingSlide, selector, describeKey, pairedElements)) {
     const incomingElement = incomingElements.get(morphKey);
     if (incomingElement !== undefined) morphPairs.push({ outgoingElement, incomingElement });
   }
   return morphPairs;
+}
+
+// Exact pairs first, then engine blocks by order among the rest: a changed number still glides into its place.
+export function findMorphPairs(outgoingSlide: HTMLElement, incomingSlide: HTMLElement): MorphPair[] {
+  const exactPairs = pairKeyedElements(outgoingSlide, incomingSlide, candidateSelector, describeMorphKey, new Set());
+  const exactlyPairedElements = new Set(exactPairs.flatMap((morphPair) => [morphPair.outgoingElement, morphPair.incomingElement]));
+  return [...exactPairs, ...pairKeyedElements(outgoingSlide, incomingSlide, orderedBlockSelector, describeRoleKey, exactlyPairedElements)];
 }
 
 // Innermost text only: a <li> with a <p> inside is reworded through the <p>.

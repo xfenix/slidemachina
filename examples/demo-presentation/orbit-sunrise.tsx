@@ -274,12 +274,16 @@ function StillSunrise() {
 }
 
 // The sunrise plays once on entering the slide, the camera follows the mouse.
+// Each run of the effect paints on a canvas of its own: a released WebGL context never comes back,
+// and React in development runs the effect twice on one element.
 function LiveSunrise() {
-  const canvasReference = useRef<HTMLCanvasElement>(null);
+  const stageReference = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
-    const canvasElement = canvasReference.current!;
+    const canvasElement = document.createElement("canvas");
+    canvasElement.className = "absolute inset-0 size-full";
+    stageReference.current!.append(canvasElement);
     const shaderPainter = createShaderPainter(canvasElement);
-    if (shaderPainter === undefined) return;
+    if (shaderPainter === undefined) return () => canvasElement.remove();
     const startTime = performance.now();
     const pointerTarget = { pointerX: 0, pointerY: 0 };
     const smoothedPointer = { pointerX: 0, pointerY: 0 };
@@ -302,9 +306,10 @@ function LiveSunrise() {
       cancelAnimationFrame(animationFrameRequest);
       window.removeEventListener("pointermove", followPointer);
       shaderPainter.releasePainter();
+      canvasElement.remove();
     };
   }, []);
-  return <canvas ref={canvasReference} aria-hidden className="absolute inset-0 size-full" />;
+  return <div ref={stageReference} aria-hidden className="contents" />;
 }
 
 // Copies and reduced motion show one still frame of the risen sun. A slide that is neither on screen nor a copy draws nothing and holds no WebGL context.

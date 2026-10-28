@@ -1,9 +1,11 @@
 import type { Locator } from "@playwright/test";
 
 // A small copy of a scene canvas: how many pixels differ from its corner, the empty or printed background colour,
-// and a fingerprint that changes when the frame moves.
+// and a fingerprint that changes when the frame moves. The copy is taken in an animation frame, right after the scene
+// has drawn it: a WebGL canvas that does not keep its drawing buffer reads as empty from any other task.
 export function sampleSceneCanvas(sceneCanvas: Locator) {
-  return sceneCanvas.evaluate((canvasElement: HTMLCanvasElement) => {
+  return sceneCanvas.evaluate(async (canvasElement: HTMLCanvasElement) => {
+    await new Promise(requestAnimationFrame);
     const sampleCanvas = document.createElement("canvas");
     Object.assign(sampleCanvas, { width: 96, height: 54 });
     const sampleContext = sampleCanvas.getContext("2d")!;

@@ -1,0 +1,32 @@
+@layer slidemachina {
+  /* A bar chart from plain markup: every <li> is a bar, its height is the author's style="height: 30%".
+     [data-content] outweighs the text width limit of lists. Bars pair by their place in the row, see morph-matching.ts. */
+  [data-slide] [data-content] .machina-bars {
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-end;
+    align-self: stretch;
+    gap: var(--block-gap);
+    max-width: none;
+    height: var(--display-size);
+    margin-left: 0;
+    padding: 0;
+  }
+
+  [data-slide] [data-content] .machina-card-stretch > .machina-bars {
+    flex: 1;
+    height: auto;
+  }
+
+  [data-slide] .machina-bars > li {
+    flex: 1;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--inline-radius);
+    background: var(--accent-color);
+  }
+
+  [data-slide] .machina-bars > li:before {
+    content: none;
+  }
+}

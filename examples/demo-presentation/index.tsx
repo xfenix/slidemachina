@@ -686,41 +686,44 @@ export default (
     <Machina.Section title="Переходы">
       <Machina.Slide>
         <h2>Морфинг любых блоков</h2>
-        <div morph="story-card" className="flex w-1/2 flex-col gap-(--block-gap) rounded-(--block-radius) bg-(--code-background) p-(--frame-padding)">
-          <p morph="story-label" className="m-0 text-(length:--secondary-text-size) text-(--muted-color) [text-box:trim-both_cap_alphabetic]">Выручка за год</p>
-          <p morph="story-number" className="m-0 text-(length:--display-size) leading-none [text-box:trim-both_cap_alphabetic] font-bold tracking-(--heading-letter-spacing) text-(--accent-color)">+72%</p>
-          <div className="flex h-(--display-size) items-end gap-(--block-gap)">
-            <div morph="story-bar-1" className="h-[30%] flex-1 rounded-(--inline-radius) bg-(--accent-color) opacity-40" />
-            <div morph="story-bar-2" className="h-[55%] flex-1 rounded-(--inline-radius) bg-(--accent-color) opacity-60" />
-            <div morph="story-bar-3" className="h-[70%] flex-1 rounded-(--inline-radius) bg-(--accent-color) opacity-80" />
-            <div morph="story-bar-4" className="h-full flex-1 rounded-(--inline-radius) bg-(--accent-color)" />
+        <div className="machina-columns">
+          <div className="machina-card">
+            <figure className="machina-big-number"><p>+72%</p><figcaption>Выручка за год</figcaption></figure>
+            <ul className="machina-bars">
+              <li style={{ height: "30%" }} />
+              <li style={{ height: "55%" }} />
+              <li style={{ height: "70%" }} />
+              <li style={{ height: "100%" }} />
+            </ul>
+          </div>
+          <div className="machina-card">
+            <figure className="machina-big-number"><p>1,3 млн</p><figcaption>Клиентов</figcaption></figure>
+          </div>
+          <div className="machina-card">
+            <figure className="machina-big-number"><p>4,9</p><figcaption>Оценка в магазине приложений</figcaption></figure>
           </div>
         </div>
-        <figcaption>Карточка</figcaption>
+        <figcaption>Три карточки</figcaption>
       </Machina.Slide>
 
       <Machina.Slide>
         <h2>Морфинг любых блоков</h2>
-        <div morph="story-card" className="flex w-full flex-1 flex-col gap-(--block-gap) rounded-(--block-radius) bg-(--code-background) p-(--frame-padding)">
-          <div className="flex items-baseline justify-between">
-            <p morph="story-label" className="m-0 text-(length:--secondary-text-size) text-(--muted-color) [text-box:trim-both_cap_alphabetic]">Выручка за год</p>
-            <p morph="story-number" className="m-0 text-(length:--heading-size) leading-none [text-box:trim-both_cap_alphabetic] font-bold tracking-(--heading-letter-spacing) text-(--accent-color)">+72%</p>
-          </div>
-          <div className="flex flex-1 items-end gap-(--block-gap)">
-            <div morph="story-bar-1" className="h-[30%] flex-1 rounded-(--inline-radius) bg-(--accent-color) opacity-40" />
-            <div morph="story-bar-2" className="h-[55%] flex-1 rounded-(--inline-radius) bg-(--accent-color) opacity-60" />
-            <div morph="story-bar-3" className="h-[70%] flex-1 rounded-(--inline-radius) bg-(--accent-color) opacity-80" />
-            <div morph="story-bar-4" className="h-full flex-1 rounded-(--inline-radius) bg-(--accent-color)" />
-          </div>
+        <div className="machina-card machina-card-stretch">
+          <figure className="machina-big-number"><p>+72%</p><figcaption>Выручка за год</figcaption></figure>
+          <ul className="machina-bars">
+            <li style={{ height: "30%" }} />
+            <li style={{ height: "55%" }} />
+            <li style={{ height: "70%" }} />
+            <li style={{ height: "100%" }} />
+          </ul>
         </div>
         <figcaption>Карточка стала графиком</figcaption>
       </Machina.Slide>
 
       <Machina.Slide align="center">
         <h2>Морфинг любых блоков</h2>
-        <p morph="story-label" className="text-(length:--secondary-text-size) text-(--muted-color)">Выручка за год</p>
-        <p morph="story-number" className="text-(length:--display-size) leading-none font-bold tracking-(--heading-letter-spacing) text-(--accent-color)">+72%</p>
-        <figcaption>График стал большим числом. Пары задаёт атрибут <code>morph</code></figcaption>
+        <figure className="machina-big-number"><p>+72%</p><figcaption>Выручка за год</figcaption></figure>
+        <p className="machina-note">График стал большим числом. Пары движок нашёл сам</p>
       </Machina.Slide>
 
       <Machina.Slide align="center">
