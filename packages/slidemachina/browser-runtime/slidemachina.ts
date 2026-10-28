@@ -4,6 +4,7 @@ export { Presentation, type PresentationPosition, type PresentationProperties } 
 export type { AspectRatio } from "../shared-between-runtimes/canvas-size.js";
 export { Section, type SectionProperties } from "./presentation-core/section-component.tsx";
 export { Slide, type SlideLogoPlacement, type SlideProperties, type SlideVerticalAlign } from "./presentation-core/slide-component.tsx";
+export { Notes, type NotesProperties } from "./presentation-core/slide-notes.tsx";
 export { Code, type CodeProperties } from "./content-blocks/code-block/code-component.tsx";
 export { Image, type ImageFloat, type ImageProperties } from "./content-blocks/image-component.tsx";
 export { Video, type VideoProperties } from "./content-blocks/video-component.tsx";

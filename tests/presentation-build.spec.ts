@@ -83,6 +83,22 @@ test("сборка: один HTML-файл листается без серве�
       await expect.poll(async () => (await sampleSceneCanvas(sceneCanvas)).paintedPixels, { message: "сцена рисуется из файла" }).toBeGreaterThan(250);
     });
 
+    await test.step("окно докладчика из файла: заметки только в нём, листать можно из любого окна", async () => {
+      const notesSlideNumber = await findSlideNumber(page, "h2", "Заметки и окно докладчика");
+      await page.goto(`${pathToFileURL(singleFile).href}#${notesSlideNumber}`);
+      await expect(page.locator("[data-canvas] > [data-current] h2")).toHaveText(/Заметки\sи\sокно/);
+      await expect(page.locator("body")).not.toContainText("Заметки видны только здесь");
+      const [presenterPage] = await Promise.all([page.waitForEvent("popup"), page.keyboard.press("p")]);
+      const presenterCounter = presenterPage.locator("[data-presenter-counter]");
+      await expect(presenterPage.locator("[data-presenter-notes-text]")).toContainText("Заметки видны только здесь");
+      await expect(presenterCounter).toContainText(`Слайд ${notesSlideNumber} из`);
+      await page.keyboard.press("ArrowRight");
+      await expect(presenterCounter).toContainText("шаг 1 из");
+      await presenterPage.keyboard.press("ArrowRight");
+      await expect(page).toHaveURL(new RegExp(`#${notesSlideNumber}\\.2$`));
+      await presenterPage.close();
+    });
+
     await test.step("печать из браузера: страница на слайд, без панели управления", async () => {
       const demoSlideCount = await page.locator("[data-canvas] > [data-slide]").count();
       const demoSceneCount = await page.locator("[data-canvas] > [data-slide] [data-scene]").count();
@@ -98,7 +114,7 @@ test("сборка: один HTML-файл листается без серве�
       await page.emulateMedia({ media: "screen" });
     });
 
-    await test.step("PowerPoint: слайд на слайд, текст и стрелки схем — объекты PowerPoint, шаги схемы — анимация по щелчку", async () => {
+    await test.step("PowerPoint: слайд на слайд, текст и стрелки схем — объекты PowerPoint, шаги схемы — анимация по щелчку, <Notes> — заметки слайда", async () => {
       const pptxFiles = unzipSync(await readFile(path.join(outputFolder, "demo-presentation.pptx")));
       const readSlideXml = (slideNumber: number) => strFromU8(pptxFiles[`ppt/slides/slide${slideNumber}.xml`] ?? new Uint8Array());
       const pptxSlideCount = Object.keys(pptxFiles).filter((filePath) => /^ppt\/slides\/slide\d+\.xml$/.test(filePath)).length;
@@ -129,6 +145,9 @@ test("сборка: один HTML-файл листается без серве�
       const diagramSlideXml = readSlideXml(diagramSlideNumber);
       expect(diagramSlideXml, "стрелка — фигура").toContain("<a:custGeom>");
       expect(diagramSlideXml.match(/delay="indefinite"/g)?.length, "щелчок на каждый шаг").toBe(diagramSteps);
+      const notesSlideNumber = findPptxSlideNumber(await findSlideNumber(page, "h2", "Заметки и окно докладчика"));
+      const speakerNotesXml = strFromU8(pptxFiles[`ppt/notesSlides/notesSlide${notesSlideNumber}.xml`] ?? new Uint8Array());
+      expect(speakerNotesXml, "заметки докладчика, строка — абзац").toMatch(/здесь:(?:(?!<\/a:p>).)*<\/a:p><a:p>(?:(?!<\/a:p>).)*В\sPowerPoint\sони\sпопадают/s);
     });
 
     await test.step("папка: ELK и three.js отдельными файлами, в основном модуле нет ни ELK, ни three.js, ни agentation, редактора нет нигде", async () => {

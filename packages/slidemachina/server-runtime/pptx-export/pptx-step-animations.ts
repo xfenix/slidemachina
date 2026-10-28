@@ -1,4 +1,4 @@
-import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
+import { strFromU8, strToU8 } from "fflate";
 import { videoNamePrefix } from "./pptx-slide-drawing.ts";
 import type { AnimatedObject, SlideAnimation } from "./pptx-slide-drawing.ts";
 import type { AppearanceEffect } from "./slide-part-types.ts";
@@ -104,8 +104,8 @@ function separateObjectNumbers(slideXml: string): string {
   });
 }
 
-export function writeStepAnimations(pptxBytes: Uint8Array, slideAnimations: SlideAnimation[]): Uint8Array {
-  const pptxFiles = unzipSync(pptxBytes);
+// Works on the unpacked files of the written presentation, so the export unpacks and packs it once.
+export function writeStepAnimations(pptxFiles: Record<string, Uint8Array>, slideAnimations: SlideAnimation[]): void {
   slideAnimations.forEach(({ animatedObjects, stepDuration }, slideIndex) => {
     const slidePath = `ppt/slides/slide${slideIndex + 1}.xml`;
     const slideBytes = pptxFiles[slidePath];
@@ -117,5 +117,4 @@ export function writeStepAnimations(pptxBytes: Uint8Array, slideAnimations: Slid
     const timingXml = writeTiming(animatedObjects, objectIdentifiers, Math.round(stepDuration));
     if (timingXml !== undefined) pptxFiles[slidePath] = strToU8(slideXml.replace("</p:sld>", `${timingXml}</p:sld>`));
   });
-  return zipSync(pptxFiles);
 }

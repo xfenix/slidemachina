@@ -28,6 +28,9 @@ import { buildSlideOutline, readPresentationTitle } from "./slide-outline.tsx";
 import { runNavigatorTransition } from "../slide-transitions/navigator-transition.ts";
 import { useTouchControls } from "../slide-navigation/touch-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
+import { usePresenterSync, type SlideCommand } from "../presenter-view/presenter-channel.ts";
+import { PresenterView } from "../presenter-view/presenter-view.tsx";
+import { isPresenterWindow, openPresenterWindow, PresenterWindowSwitch } from "../presenter-view/presenter-window.tsx";
 
 // The list of a repository shows /talk/?cover in a frame, and the build photographs it: the first slide alone, every step shown.
 const isCoverPreview = new URLSearchParams(location.search).has("cover");
@@ -56,6 +59,8 @@ export type PresentationProperties = {
   progress?: boolean;
   // Called after every move: slide number from 1, step from 0. Also on load, with the position from the address.
   onChange?: (position: PresentationPosition) => void;
+  // Minutes for the talk: the presenter view shows the time left and whether the talk runs ahead or behind.
+  duration?: number;
 };
 export type PresentationPosition = { slide: number; step: number };
 
@@ -71,6 +76,7 @@ export function Presentation({
   aspectRatio = defaultAspectRatio,
   progress = true,
   onChange,
+  duration,
 }: PresentationProperties) {
   const outlinedSlides = useMemo(() => buildSlideOutline(children), [children]);
   const pageTitle = useMemo(() => title ?? readPresentationTitle(children), [title, children]);
@@ -95,7 +101,6 @@ export function Presentation({
       if (chosenSlideIndex !== undefined) slideNavigation.jumpToSlide(chosenSlideIndex);
       setNavigatorOpen(opensNavigator);
     }, chosenSlideIndex ?? currentPosition.slideIndex);
-  const typedSlideNumber = useTypedSlideNumber((slideNumber) => slideNavigation.goToSlide(slideNumber - 1));
   const presentationSettings: PresentationSettings = useMemo(
     () => ({ align, logo, lang, transition, speed }),
     [align, logo, lang, transition, speed],
@@ -109,29 +114,48 @@ export function Presentation({
 
   const reportPosition = useEffectEvent((slideIndex: number, stepIndex: number) => onChange?.({ slide: slideIndex + 1, step: stepIndex }));
   useEffect(() => {
-    if (!isCoverPreview) reportPosition(currentPosition.slideIndex, currentPosition.stepIndex);
+    if (!isCoverPreview && !isPresenterWindow) reportPosition(currentPosition.slideIndex, currentPosition.stepIndex);
   }, [currentPosition.slideIndex, currentPosition.stepIndex]);
 
   // In a pause any slide key only brings the slide back: the audience never sees it change behind the black screen.
   const unlessPaused = <ActionArguments extends unknown[]>(slideAction: (...actionArguments: ActionArguments) => void) =>
     isPaused ? () => setPaused(false) : slideAction;
+  const runSlideCommand = (slideCommand: SlideCommand) => {
+    if (slideCommand === "pause") setPaused((wasPaused) => !wasPaused);
+    else if (slideCommand === "forward") unlessPaused(slideNavigation.goForward)();
+    else if (slideCommand === "backward") unlessPaused(slideNavigation.goBackward)();
+    else unlessPaused(slideNavigation.goToSlide)(slideCommand);
+  };
+  const { isAudienceConnected, steerSlides } = usePresenterSync({
+    windowRole: isPresenterWindow ? "presenter" : isPrintView || isCoverPreview ? "alone" : "audience",
+    currentPosition,
+    isPaused,
+    runSlideCommand,
+    followAudience: (slidePosition, isAudiencePaused) => {
+      slideNavigation.showPosition(slidePosition);
+      setPaused(isAudiencePaused);
+    },
+  });
+  const typedSlideNumber = useTypedSlideNumber((slideNumber) => steerSlides(slideNumber - 1));
   useKeyboardControls(
     {
-      goForward: unlessPaused(slideNavigation.goForward),
-      goBackward: unlessPaused(slideNavigation.goBackward),
-      goToFirstSlide: unlessPaused(() => slideNavigation.goToSlide(0)),
-      goToLastSlide: unlessPaused(() => slideNavigation.goToSlide(outlinedSlides.length - 1)),
-      openNavigator: unlessPaused(() => switchNavigator(true)),
-      togglePause: () => setPaused((wasPaused) => !wasPaused),
+      goForward: () => steerSlides("forward"),
+      goBackward: () => steerSlides("backward"),
+      goToFirstSlide: () => steerSlides(0),
+      goToLastSlide: () => steerSlides(outlinedSlides.length - 1),
+      // The presenter window has no navigator, toolbar or minimap; the slides window decides what a key does in a pause.
+      openNavigator: isPresenterWindow ? () => undefined : unlessPaused(() => switchNavigator(true)),
+      togglePause: () => steerSlides("pause"),
       toggleFullscreen,
-      toggleToolbar,
-      toggleMinimap: import.meta.env.DEV ? toggleMinimap : undefined,
-      typeDigit: unlessPaused(typedSlideNumber.appendDigit),
+      toggleToolbar: isPresenterWindow ? () => undefined : toggleToolbar,
+      toggleMinimap: import.meta.env.DEV && !isPresenterWindow ? toggleMinimap : undefined,
+      openPresenterWindow: isPresenterWindow ? undefined : openPresenterWindow,
+      typeDigit: isPresenterWindow ? typedSlideNumber.appendDigit : unlessPaused(typedSlideNumber.appendDigit),
       confirmTypedNumber: typedSlideNumber.digits === "" ? undefined : typedSlideNumber.confirmNumber,
     },
     !isNavigatorOpen && !isPrintView,
   );
-  useTouchControls(unlessPaused(slideNavigation.goForward), unlessPaused(slideNavigation.goBackward), !isNavigatorOpen && !isPrintView);
+  useTouchControls(() => steerSlides("forward"), () => steerSlides("backward"), !isNavigatorOpen && !isPrintView);
 
   // A copy is a thumbnail or a printed page: it is never current and shows the step it is given.
   const renderSlide = (slideIndex: number, copiedStep?: number) => {
@@ -157,6 +181,26 @@ export function Presentation({
     "--canvas-scale": canvasScale,
     ...(breadcrumbsSeparator === undefined ? {} : { "--breadcrumbs-separator": JSON.stringify(breadcrumbsSeparator) }),
   } as CSSProperties;
+
+  if (isPresenterWindow) {
+    return (
+      <PresenterView
+        outlinedSlides={outlinedSlides}
+        currentPosition={currentPosition}
+        countSteps={(slideIndex) => stepCountsReference.current[slideIndex] ?? 0}
+        renderSlide={renderSlide}
+        canvasStyle={canvasStyle}
+        formatWidth={formatWidth}
+        languageCode={lang}
+        pageTitle={pageTitle}
+        talkMinutes={duration}
+        typedDigits={typedSlideNumber.digits}
+        isAudienceConnected={isAudienceConnected}
+        isAudiencePaused={isAudienceConnected && isPaused}
+        steerSlides={steerSlides}
+      />
+    );
+  }
 
   if (isCoverPreview) {
     return (
@@ -210,6 +254,7 @@ export function Presentation({
         toggleNavigator={() => switchNavigator(!isNavigatorOpen)}
         toggleFullscreen={toggleFullscreen}
       >
+        <PresenterWindowSwitch languageCode={lang} />
         <PrintMenu
           languageCode={lang}
           printsSteps={printsSteps}

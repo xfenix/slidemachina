@@ -1,0 +1,414 @@
+@layer slidemachina {
+  /* The presenter window is always dark, like the toolbar and the navigator: it sits next to a dark room. */
+  [data-presenter-view] {
+    --presenter-gap: 24px;
+    --presenter-timer-room: 168px;
+    --presenter-panel-background: rgb(255 255 255 / 0.04);
+    --presenter-button-background: rgb(255 255 255 / 0.08);
+    --presenter-behind-color: oklch(0.82 0.14 75);
+    --presenter-overtime-color: oklch(0.72 0.17 25);
+    position: fixed;
+    inset: 0;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      "header header"
+      "stage side";
+    gap: var(--presenter-gap);
+    padding: var(--presenter-gap) var(--presenter-gap) calc(var(--presenter-gap) + var(--progress-height));
+    background: var(--dark-background);
+    color: var(--text-color-on-dark);
+    font-family: var(--font-text);
+    font-size: 18px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* The interface of the window only: slide copies and notes keep their own headings and paragraphs. */
+  :is([data-presenter-header], [data-presenter-timer], [data-presenter-next], [data-presenter-notes-bar], [data-presenter-notes-text]) > :is(h2, p) {
+    margin: 0;
+    font-weight: inherit;
+  }
+
+  :is([data-presenter-next], [data-presenter-notes-bar]) > h2 {
+    color: var(--muted-color-on-dark);
+    font-size: 15px;
+    letter-spacing: 0.02em;
+  }
+
+  [data-presenter-header] {
+    grid-area: header;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 28px;
+  }
+
+  [data-presenter-counter] {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    color: var(--muted-color-on-dark);
+    font-variant-numeric: tabular-nums;
+  }
+
+  [data-presenter-counter] strong {
+    color: var(--text-color-on-dark);
+    font-size: 26px;
+    font-weight: inherit;
+  }
+
+  [data-presenter-typed-number] {
+    color: var(--accent-color-on-dark);
+  }
+
+  [data-presenter-trail] {
+    color: var(--muted-color-on-dark);
+  }
+
+  [data-presenter-trail] > span + span:before {
+    content: var(--breadcrumbs-separator, "›");
+    padding-inline: 0.5em;
+  }
+
+  [data-presenter-status] {
+    margin-left: auto;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-color-on-dark) 22%, transparent);
+  }
+
+  [data-presenter-status="alone"] {
+    background: color-mix(in srgb, var(--presenter-behind-color) 18%, transparent);
+    color: var(--presenter-behind-color);
+  }
+
+  /* Both columns are size containers: a slide frame takes the width that still fits their height. */
+  :is([data-presenter-stage], [data-presenter-side]) {
+    container-type: size;
+    display: flex;
+    flex-direction: column;
+    gap: var(--presenter-gap);
+    min-height: 0;
+  }
+
+  [data-presenter-stage] {
+    grid-area: stage;
+  }
+
+  [data-presenter-side] {
+    grid-area: side;
+  }
+
+  [data-presenter-frame] {
+    --canvas-width: var(--format-width);
+    --canvas-height: var(--format-height);
+    position: relative;
+    flex: none;
+    aspect-ratio: var(--format-width) / var(--format-height);
+    overflow: hidden;
+    border-radius: var(--block-radius);
+    background: var(--presenter-panel-background);
+    box-shadow: 0 0 0 1px var(--hairline-color-on-dark);
+  }
+
+  [data-presenter-stage] > [data-presenter-frame] {
+    width: min(100cqw, (100cqh - var(--presenter-timer-room) - var(--presenter-gap)) * var(--format-width) / var(--format-height));
+  }
+
+  [data-presenter-next] [data-presenter-frame] {
+    width: min(100cqw, 34cqh * var(--format-width) / var(--format-height));
+  }
+
+  [data-presenter-frame] > [data-slide] {
+    width: calc(var(--canvas-width) * 1px);
+    height: calc(var(--canvas-height) * 1px);
+    inset: 0 auto auto 0;
+    transform-origin: 0 0;
+    scale: var(--presenter-slide-scale, 0);
+    text-align: start;
+    pointer-events: none;
+  }
+
+  [data-presenter-end] {
+    background: none;
+    box-shadow: inset 0 0 0 1px var(--hairline-color-on-dark);
+  }
+
+  [data-presenter-next] {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* A click on what comes next moves forward, like the arrow key. */
+  [data-presenter-next] > button {
+    all: unset;
+    display: block;
+    width: fit-content;
+    border-radius: var(--block-radius);
+    outline: 2px solid transparent;
+    outline-offset: 3px;
+    cursor: pointer;
+  }
+
+  [data-presenter-next] > button:is(:hover, :focus-visible) {
+    outline-color: var(--accent-color-on-dark);
+  }
+
+  [data-presenter-notes] {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px 24px 0;
+    border-radius: var(--block-radius);
+    background: var(--presenter-panel-background);
+  }
+
+  [data-presenter-notes-bar] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  [data-presenter-notes-bar] > h2 + button {
+    margin-left: auto;
+  }
+
+  :is([data-presenter-notes-bar], [data-presenter-timer-buttons]) button {
+    all: unset;
+    box-sizing: border-box;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 18px;
+    background: var(--presenter-button-background);
+    color: var(--text-color-on-dark);
+    font-size: 16px;
+    line-height: 36px;
+    cursor: pointer;
+  }
+
+  :is([data-presenter-notes-bar], [data-presenter-timer-buttons]) button:hover:not(:disabled) {
+    background: rgb(255 255 255 / 0.14);
+  }
+
+  :is([data-presenter-notes-bar], [data-presenter-timer-buttons]) button:focus-visible {
+    outline: var(--interface-focus-ring-width) solid var(--accent-color-on-dark);
+    outline-offset: 2px;
+  }
+
+  :is([data-presenter-notes-bar], [data-presenter-timer-buttons]) button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* Notes read from a step away: large, short lines, the size set by A− and A+ or − and +. */
+  [data-presenter-notes-text] {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 24px;
+    font-size: var(--notes-size);
+    line-height: 1.42;
+    text-wrap: pretty;
+  }
+
+  /* The leading mark hangs left of the text, inside the scrolling box, so the box starts that far left. */
+  [data-presenter-notes-text] {
+    margin-left: -16px;
+  }
+
+  [data-presenter-note] {
+    padding-left: 13px;
+    border-left: 3px solid transparent;
+  }
+
+  [data-presenter-note] + [data-presenter-note] {
+    margin-top: 0.6em;
+  }
+
+  [data-presenter-note][data-note-leading] {
+    border-left-color: var(--accent-color-on-dark);
+  }
+
+  [data-presenter-note][data-note-ahead] {
+    opacity: 0.38;
+  }
+
+  [data-presenter-note] :is(p, ul, ol) {
+    margin: 0 0 0.5em;
+  }
+
+  [data-presenter-note] > :last-child {
+    margin-bottom: 0;
+  }
+
+  [data-presenter-note] :is(ul, ol) {
+    padding-left: 1.1em;
+  }
+
+  [data-presenter-note] li + li {
+    margin-top: 0.2em;
+  }
+
+  [data-presenter-note] li::marker {
+    color: var(--accent-color-on-dark);
+  }
+
+  [data-presenter-note] strong {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  [data-presenter-note] mark {
+    padding: 0 0.15em;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--accent-color-on-dark) 35%, transparent);
+    color: inherit;
+  }
+
+  [data-presenter-note] :is(code, kbd) {
+    padding: 0.05em 0.3em;
+    border-radius: 6px;
+    background: var(--presenter-button-background);
+    font-family: var(--font-code);
+    font-size: 0.85em;
+  }
+
+  [data-presenter-no-notes] {
+    padding-left: 16px;
+    color: var(--muted-color-on-dark);
+    font-size: 20px;
+  }
+
+  [data-presenter-timer] {
+    flex: 1;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      "elapsed schedule clock"
+      "elapsed buttons clock";
+    align-items: center;
+    align-content: end;
+    gap: 8px 32px;
+    min-height: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  [data-presenter-elapsed] {
+    grid-area: elapsed;
+    color: var(--muted-color-on-dark);
+    font-size: 96px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  [data-presenter-elapsed][data-running] {
+    color: var(--text-color-on-dark);
+  }
+
+  [data-presenter-schedule] {
+    grid-area: schedule;
+    align-self: end;
+    display: flex;
+    flex-direction: column;
+    color: var(--muted-color-on-dark);
+    font-size: 22px;
+  }
+
+  [data-presenter-time-left][data-overtime] {
+    color: var(--presenter-overtime-color);
+  }
+
+  [data-presenter-pace="ahead"] {
+    color: var(--second-accent-color-on-dark);
+  }
+
+  [data-presenter-pace="behind"] {
+    color: var(--presenter-behind-color);
+  }
+
+  [data-presenter-pace="even"] {
+    color: var(--text-color-on-dark);
+  }
+
+  [data-presenter-timer-buttons] {
+    grid-area: buttons;
+    align-self: start;
+    display: flex;
+    gap: 8px;
+  }
+
+  [data-presenter-clock] {
+    grid-area: clock;
+    color: var(--muted-color-on-dark);
+    font-size: 44px;
+    line-height: 1;
+  }
+
+  /* The bottom edge, as on the slides: how far the talk has gone, and a white tick for how far the time has. */
+  [data-presenter-progress] {
+    position: absolute;
+    inset: auto 0 0;
+    height: var(--progress-height);
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  [data-presenter-progress-slides] {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--slides-share) * 100%);
+    background: var(--progress-color-on-dark);
+  }
+
+  [data-presenter-progress-time] {
+    position: absolute;
+    bottom: 0;
+    left: calc(var(--time-share) * 100%);
+    width: 3px;
+    height: calc(var(--progress-height) * 2.5);
+    translate: -50% 0;
+    background: #fff;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-presenter-note] {
+      transition:
+        opacity 0.3s,
+        border-color 0.3s;
+    }
+
+    [data-presenter-progress-slides] {
+      transition: width 0.4s var(--transition-easing);
+    }
+  }
+
+  /* A narrow or upright window stacks the columns and scrolls. */
+  @media (max-aspect-ratio: 1 / 1) {
+    [data-presenter-view] {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto auto;
+      grid-template-areas: "header" "stage" "side";
+      overflow-y: auto;
+    }
+
+    :is([data-presenter-stage], [data-presenter-side]) {
+      container-type: inline-size;
+    }
+
+    [data-presenter-stage] > [data-presenter-frame],
+    [data-presenter-next] [data-presenter-frame] {
+      width: 100%;
+    }
+
+    [data-presenter-notes] {
+      min-height: 50vh;
+    }
+  }
+}

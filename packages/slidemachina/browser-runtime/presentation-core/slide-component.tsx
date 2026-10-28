@@ -11,6 +11,7 @@ import { useBottomBandRoom } from "./bottom-band-room.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { useStepVisibility } from "../slide-steps/step-visibility.ts";
+import { listSlideNotes, writeNotesText } from "./slide-notes.tsx";
 
 export type SlideLogoPlacement = "top-right" | "top" | "center" | "bottom";
 export type SlideVerticalAlign = "top" | "center" | "bottom";
@@ -72,6 +73,8 @@ export function Slide({
   const showsLogo = !plain && logoPlacement !== false && presentationLogo !== undefined;
   const showsBreadcrumbs = !plain && !cover && breadcrumbs !== false && breadcrumbTrail.length > 0;
   const showsNumber = !plain && !cover && number;
+  // Printed copies carry the notes as text: the PowerPoint export reads them from the print view.
+  const notesText = slideEnvironment.isSlideCopy ? writeNotesText(listSlideNotes(children)) : "";
 
   return (
     <section
@@ -85,6 +88,7 @@ export function Slide({
       data-cover={cover || undefined}
       data-transition={transition ?? presentationSettings.transition}
       data-current={slideEnvironment.isCurrentSlide || undefined}
+      data-notes={notesText === "" ? undefined : notesText}
       {...pickSourceMarks(otherProperties)}
       inert={!slideEnvironment.isCurrentSlide}
       style={{ ...createBackgroundStyle(background), "--transition-speed": resolveSpeedFactor(speed ?? presentationSettings.speed) } as CSSProperties}

@@ -11,6 +11,8 @@ type KeyboardActions = {
   toggleToolbar: () => void;
   // Only in slidemachina dev, where the minimap is.
   toggleMinimap?: () => void;
+  // Missing in the presenter window itself.
+  openPresenterWindow?: () => void;
   typeDigit: (typedDigit: string) => void;
   // Missing while no digits are typed: Enter then keeps its own job, such as opening a focused link.
   confirmTypedNumber?: () => void;
@@ -24,7 +26,7 @@ export function useKeyboardControls(keyboardActions: KeyboardActions, isEnabled:
   }, isEnabled);
 }
 
-// Letters are matched by physical key, so B, O, F and H work in any keyboard layout.
+// Letters are matched by physical key, so B, O, F, H and P work in any keyboard layout.
 function pickKeyboardAction(keyboardEvent: KeyboardEvent, keyboardActions: KeyboardActions) {
   if (/^[0-9]$/.test(keyboardEvent.key)) return () => keyboardActions.typeDigit(keyboardEvent.key);
   switch (keyboardEvent.code) {
@@ -40,6 +42,8 @@ function pickKeyboardAction(keyboardEvent: KeyboardEvent, keyboardActions: Keybo
       return keyboardActions.toggleToolbar;
     case "KeyM":
       return keyboardActions.toggleMinimap;
+    case "KeyP":
+      return keyboardActions.openPresenterWindow;
   }
   switch (keyboardEvent.key) {
     case "ArrowRight":

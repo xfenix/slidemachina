@@ -4,11 +4,13 @@ import { listMarkupElements } from "./markup-elements.ts";
 import { Section, type SectionProperties } from "./section-component.tsx";
 import { SectionNumber } from "./section-number.tsx";
 import { Slide, type SlideProperties } from "./slide-component.tsx";
+import { listSlideNotes, type SlideNote } from "./slide-notes.tsx";
 
 export type OutlinedSlide = {
   slideKey: string;
   slideElement: ReactElement;
   sectionTrail: string[];
+  slideNotes: SlideNote[];
 };
 
 const elementOutlineReader: SlideOutlineReader<ReactElement> = {
@@ -63,7 +65,8 @@ export function buildSlideOutline(presentationChildren: ReactNode): OutlinedSlid
     const sectionTitles = outlinedMarkup.sectionPlaces.map(nameSection);
     const sectionTrail = sectionTitles.filter((sectionTitle) => sectionTitle !== "");
     if (!outlinedMarkup.isGeneratedCover) {
-      return { slideKey: `${enclosingKey}/${outlinedMarkup.slideNode.key}`, slideElement: outlinedMarkup.slideNode, sectionTrail };
+      const slideNotes = listSlideNotes((outlinedMarkup.slideNode.props as SlideProperties).children);
+      return { slideKey: `${enclosingKey}/${outlinedMarkup.slideNode.key}`, slideElement: outlinedMarkup.slideNode, sectionTrail, slideNotes };
     }
     const { sectionNumber } = outlinedMarkup.sectionPlaces.at(-1)!;
     const sectionCover = (
@@ -72,6 +75,6 @@ export function buildSlideOutline(presentationChildren: ReactNode): OutlinedSlid
         <SectionNumber sectionNumber={sectionNumber} />
       </Slide>
     );
-    return { slideKey: `${enclosingKey}/cover`, slideElement: sectionCover, sectionTrail };
+    return { slideKey: `${enclosingKey}/cover`, slideElement: sectionCover, sectionTrail, slideNotes: [] };
   });
 }

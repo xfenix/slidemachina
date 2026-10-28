@@ -30,10 +30,14 @@ function StepMeter() {
 }
 
 export default (
-  <Machina.Presentation date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo}>
+  <Machina.Presentation date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo} duration={20}>
     <Machina.Slide cover logo="center">
       <h1>Слайды из кода</h1>
       <p className="machina-lead">Шаги, схемы, 3D и морфинг в одном файле</p>
+      <Machina.Notes>
+        <p>Поздоровайтесь и назовите тему.</p>
+        <p>Нажмите <kbd>P</kbd>: откроется окно докладчика с этими заметками.</p>
+      </Machina.Notes>
     </Machina.Slide>
 
     <Machina.Section title="Зачем">
@@ -54,6 +58,12 @@ export default (
           </figure>
         </div>
         <p className="machina-source">Замеры сборки этого демо, октябрь 2026</p>
+        <Machina.Notes>Три цифры, по одной на шаг. Не читайте подписи вслух.</Machina.Notes>
+        <Machina.Notes step={1}>Один файл: слайды, схемы и код лежат в <code>index.tsx</code>.</Machina.Notes>
+        <Machina.Notes step={2}>Восемь переходов, морфинг среди них самый заметный.</Machina.Notes>
+        <Machina.Notes step={3}>
+          Подсветку делает сборка: <strong>в браузер не уходит ни строчки Shiki</strong>.
+        </Machina.Notes>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -148,6 +158,12 @@ export default (
           <p className="machina-note" data-step={1} data-step-effect="fade">
             Пометка стоит под списком, а появилась с первым пунктом: <code>data-step=&#123;1&#125;</code>
           </p>
+          <Machina.Notes>
+            <ul>
+              <li>Покажите, что пункт появляется по нажатию</li>
+              <li>Подсветка стоит на части строки: это <em>отдельный шаг</em></li>
+            </ul>
+          </Machina.Notes>
         </Machina.Slide>
 
         <Machina.Slide>
@@ -1198,6 +1214,38 @@ export default (
     </Machina.Section>
 
     <Machina.Section title="Управление" cover={false}>
+      <Machina.Slide>
+        <h2>Заметки и окно докладчика</h2>
+        <div className="machina-columns" style={{ gridTemplateColumns: "auto 1fr" }}>
+          <div>
+            <Machina.Code lang="tsx">{`
+              <Slide>
+                <h2>Выручка</h2>
+                <Notes>
+                  Начните с цифры
+                </Notes>
+                <Notes step={1}>
+                  Про первый пункт
+                </Notes>
+              </Slide>
+            `}</Machina.Code>
+          </div>
+          <ul data-steps>
+            <li><kbd>P</kbd> открывает окно докладчика</li>
+            <li>В нём слайд на экране, следующий шаг, заметки и время</li>
+            <li>Листать можно в любом окне, второе идёт следом</li>
+            <li><code>duration=&#123;20&#125;</code> у <code>Presentation</code> покажет запас или отставание</li>
+          </ul>
+        </div>
+        <Machina.Notes>
+          <p>Заметки видны только здесь: на слайде, в навигаторе и в PDF их нет.</p>
+          <p>В PowerPoint они попадают в заметки к слайду.</p>
+        </Machina.Notes>
+        <Machina.Notes step={3}>
+          Листайте отсюда: стрелки, пробел или клик по следующему слайду справа.
+        </Machina.Notes>
+      </Machina.Slide>
+
       <Machina.Slide breadcrumbs="Шпаргалка">
         <h2>Клавиши</h2>
         <table>
@@ -1221,6 +1269,10 @@ export default (
             <tr>
               <td><kbd>B</kbd></td>
               <td>пауза: чёрный экран и кнопка возврата</td>
+            </tr>
+            <tr>
+              <td><kbd>P</kbd></td>
+              <td>окно докладчика с заметками</td>
             </tr>
             <tr>
               <td><kbd>F</kbd></td>

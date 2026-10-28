@@ -1,5 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { unzipSync, zipSync } from "fflate";
 import sharp from "sharp";
 import { printViewParameter, printViewStepsValue } from "../../shared-between-runtimes/engine-constants.ts";
 import { launchChrome } from "../presentation-build/pdf-printing.ts";
@@ -7,6 +8,7 @@ import { blendHighlightsOverPixels } from "./highlight-backdrop-sampling.ts";
 import { pageReadingConstants, pptxPageMarks, writeCaptureStylesheet } from "./pptx-page-marks.ts";
 import { drawSlideParts, inchesPerCanvasPixel } from "./pptx-slide-drawing.ts";
 import { writeStepAnimations } from "./pptx-step-animations.ts";
+import { splitNotesParagraphs } from "./pptx-notes-paragraphs.ts";
 import { layoutPageFunctions } from "./slide-layout-reading.ts";
 import { pseudoTextPageFunctions } from "./pseudo-text-materializing.ts";
 import { capturePageFunctions, capturePicture } from "./slide-picture-capturing.ts";
@@ -79,7 +81,7 @@ async function openPrintView(exportPage: Page, pagePath: string): Promise<PageFo
   return pageFormat;
 }
 
-// Every slide of the print view becomes a slide of native text boxes, shapes, freeforms, pictures and videos; steps become entrance animations.
+// Every slide of the print view becomes a slide of native text boxes, shapes, freeforms, pictures and videos; steps become entrance animations, <Notes> slide notes.
 // The print view shows a page per step: a slide takes its last page, a slide with code line steps takes every page, one slide per step.
 export async function exportPptx(pagePath: string, pptxPath: string): Promise<void> {
   const { default: PptxGenJS } = await import("pptxgenjs");
@@ -95,11 +97,16 @@ export async function exportPptx(pagePath: string, pptxPath: string): Promise<vo
       const slideLayout = await exportPage.evaluate<SlideLayout>(`readSlideLayout(${pageIndex}, ${isStepFrame})`);
       const capturedPictures = await capturePictures(exportPage, slideLayout);
       await blendHighlightsOverPixels(exportPage, pageIndex, slideLayout);
-      const animatedObjects = drawSlideParts(pptxPresentation.addSlide(), slideLayout, capturedPictures);
+      const pptxSlide = pptxPresentation.addSlide();
+      const animatedObjects = drawSlideParts(pptxSlide, slideLayout, capturedPictures);
+      const notesText = await exportPage.evaluate((shownPageIndex) => document.querySelectorAll("[data-print-page]")[shownPageIndex]!.querySelector("[data-slide]")?.getAttribute("data-notes"), pageIndex);
+      if (notesText != null) pptxSlide.addNotes(notesText);
       slideAnimations.push({ stepDuration: slideLayout.stepDuration, animatedObjects });
     }
-    const pptxBytes = (await pptxPresentation.write({ outputType: "uint8array" })) as Uint8Array;
-    writeFileSync(pptxPath, writeStepAnimations(pptxBytes, slideAnimations));
+    const pptxFiles = unzipSync((await pptxPresentation.write({ outputType: "uint8array" })) as Uint8Array);
+    writeStepAnimations(pptxFiles, slideAnimations);
+    splitNotesParagraphs(pptxFiles);
+    writeFileSync(pptxPath, zipSync(pptxFiles));
   } finally {
     await chromeBrowser.close();
   }

@@ -12,6 +12,12 @@ export function useSlideNavigation(slideCount: number, stepCountsReference: RefO
 
   const countSteps = (slideIndex: number) => stepCountsReference.current[slideIndex] ?? 0;
 
+  // Shows a position at once, without a slide transition: the navigator plays its own, the presenter window has none.
+  const showPosition = (nextPosition: PresentationPosition) => {
+    latestPositionReference.current = nextPosition;
+    setRequestedPosition(nextPosition);
+  };
+
   const applyPosition = (nextPosition: PresentationPosition) => {
     const previousPosition = fitPosition(latestPositionReference.current, lastSlideIndex);
     latestPositionReference.current = nextPosition;
@@ -64,12 +70,8 @@ export function useSlideNavigation(slideCount: number, stepCountsReference: RefO
       }),
     goToSlide: (slideIndex: number) =>
       applyPosition({ slideIndex: Math.min(Math.max(slideIndex, 0), lastSlideIndex), stepIndex: 0 }),
-    // The navigator plays its own transition: the slide changes inside it, without a slide transition of its own.
-    jumpToSlide: (slideIndex: number) => {
-      const nextPosition = { slideIndex: Math.min(Math.max(slideIndex, 0), lastSlideIndex), stepIndex: 0 };
-      latestPositionReference.current = nextPosition;
-      setRequestedPosition(nextPosition);
-    },
+    jumpToSlide: (slideIndex: number) => showPosition({ slideIndex: Math.min(Math.max(slideIndex, 0), lastSlideIndex), stepIndex: 0 }),
+    showPosition,
   };
 }
 
