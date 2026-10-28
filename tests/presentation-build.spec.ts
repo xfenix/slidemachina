@@ -196,6 +196,12 @@ test("сборка: один HTML-файл листается без серве�
       await page.emulateMedia({ media: "screen" });
       await page.goto(`${pathToFileURL(singleFile).href}?print=steps&hidden`);
       await expect(page.locator("[data-print-pages][data-print-view]")).toHaveAttribute("data-print-ready");
+      // The cover cube paints its picture after three.js loads; every canvas prints as a picture of itself.
+      const coverCubePicture = page.locator("[data-print-page]", { hasText: "Живая обложка" }).first().locator("img").first();
+      expect(await coverCubePicture.evaluate((pictureElement: HTMLImageElement) => pictureElement.currentSrc.startsWith("data:image/") && pictureElement.naturalWidth > 0), "куб обложки в печати").toBe(true);
+      const canvasPictureStates = await page.locator("[data-print-pages] canvas").evaluateAll((canvasElements) => canvasElements.map((canvasElement) => getComputedStyle(canvasElement).content.startsWith('url("data:image/png')));
+      expect(canvasPictureStates.length, "холсты на страницах печати").toBeGreaterThan(0);
+      expect(canvasPictureStates.every(Boolean), "холсты печатаются картинками").toBe(true);
       await expect(page.locator("[data-print-page]")).toHaveCount(pdfPageCount);
       await expect(page.locator("[data-canvas]")).toBeHidden();
       const slideCount = await page.locator("[data-canvas] > [data-slide]").count();
