@@ -286,6 +286,22 @@ test("демо листается, показывает шаги и навига
     await expect(currentSlide(page).locator("figcaption")).toHaveText("Антуан де Сент-Экзюпери, «Планета людей»");
   });
 
+  await test.step("свободная вёрстка: в рамке под заголовком до низа области, на весь слайд — от края до края", async () => {
+    await jumpToHeading(page, "Свободная вёрстка в рамке");
+    const freeformBox = (await currentSlide(page).locator(".machina-freeform").boundingBox())!;
+    const contentBox = (await currentSlide(page).locator("[data-content]").boundingBox())!;
+    const headingBox = (await currentSlide(page).locator("h2").boundingBox())!;
+    expect(freeformBox.y).toBeGreaterThan(headingBox.y + headingBox.height);
+    expect(freeformBox.y + freeformBox.height).toBeCloseTo(contentBox.y + contentBox.height, 0);
+    expect(freeformBox.width).toBeCloseTo(contentBox.width, 0);
+    await expect(currentSlide(page).locator(".machina-freeform")).toHaveCSS("text-box-trim", "none");
+    await expect(currentSlide(page).locator("[data-slide-number]")).toHaveCount(1);
+
+    await jumpToHeading(page, "Слайд без правил");
+    expect(await currentSlide(page).locator(".machina-freeform-full").boundingBox()).toEqual(await currentSlide(page).boundingBox());
+    await expect(currentSlide(page).locator(".machina-freeform-full canvas")).toHaveJSProperty("width", 1280);
+  });
+
   await test.step("мем: подписи — текст в полях шаблона, шрифт Oswald подогнан под поле", async () => {
     await jumpToSlide(page, await findSlideNumber(page, "[data-meme-field] > p", "Извольте вставить мем"));
     const memeElement = currentSlide(page).locator("[data-meme]");
@@ -787,7 +803,8 @@ test("демо листается, показывает шаги и навига
           const roomBox = roomElement.getBoundingClientRect();
           const textLine = roomBox.left + (Number.parseFloat(getComputedStyle(roomElement).paddingLeft) * roomBox.width) / roomElement.offsetWidth;
           const codeStart = codeViewport.querySelector("[data-code-line]")!.getBoundingClientRect().left;
-          const hangsCode = !codeViewport.closest("[data-align='center']");
+          // Centred slides and freeform blocks have no text line for the code to hang from.
+          const hangsCode = !codeViewport.closest("[data-align='center'], .machina-freeform");
           if (hangsCode && Math.abs(codeStart - textLine) > 1) foundProblems.push(`${describeSlide(codeViewport)}: код не на линии текста`);
         }
         for (const numberElement of document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide] .machina-big-number > p")) {

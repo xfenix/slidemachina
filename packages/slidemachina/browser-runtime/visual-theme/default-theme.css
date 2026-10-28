@@ -256,7 +256,7 @@
     margin-bottom: 0;
   }
 
-  [data-slide][data-align="left"][data-valign="top"] [data-content] > :first-child:not([data-media-frame="full"], [data-scene="full"], [data-cover] [data-media]) {
+  [data-slide][data-align="left"][data-valign="top"] [data-content] > :first-child:not([data-media-frame="full"], [data-scene="full"], .machina-freeform-full, [data-cover] [data-media]) {
     max-width: calc(100% - var(--logo-clearance));
   }
 

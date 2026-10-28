@@ -26,7 +26,7 @@ function readThemeVariable(page: Page, variableName: string) {
   );
 }
 
-// Engine defaults, the shared theme/style.css, then the presentation's own style.css with the brand it imports: each later one wins.
+// Engine defaults, the shared theme/style.css, the brand index.tsx imports, then the presentation's own style.css: each later one wins.
 async function expectThemeCascade(page: Page, ownSectionBackground: string) {
   expect(await readThemeVariable(page, "--frame-padding"), "переменная движка").toBe("64px");
   expect(await readThemeVariable(page, "--slidemachina-test-shared-theme"), "общая тема").toBe("#fee600");

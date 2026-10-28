@@ -1,0 +1,22 @@
+@layer slidemachina {
+  /* The rest of the content area under the heading, inside the frame. Its children are out of the engine's flow:
+     no gaps, no trimmed lines, no column; the block is the box for absolute positioning. */
+  [data-slide] [data-content] .machina-freeform {
+    position: relative;
+    flex: 1 1 0;
+    align-self: stretch;
+    min-height: 0;
+    text-box: normal;
+  }
+
+  /* The whole slide from edge to edge, as Image full. On a plain slide it is an empty sheet. */
+  [data-slide] [data-content] .machina-freeform-full {
+    position: absolute;
+    top: calc(var(--content-top) * -1);
+    left: calc(var(--frame-padding) * -1);
+    width: calc(var(--canvas-width) * 1px);
+    height: calc(var(--canvas-height) * 1px);
+    margin: 0;
+    text-box: normal;
+  }
+}

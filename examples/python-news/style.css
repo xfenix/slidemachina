@@ -1,6 +1,4 @@
-@import "../theme/yellow-brand.css";
-
-/* Своя тема доклада: она сильнее общей. Здесь только цвет слайдов-разделов, остальное — из theme/yellow-brand.css. */
+/* Своя тема доклада сильнее бренда из index.tsx. Здесь только цвет слайдов-разделов, остальное — из theme/yellow-brand.css. */
 :root {
   --section-background: #3c91cd;
 }

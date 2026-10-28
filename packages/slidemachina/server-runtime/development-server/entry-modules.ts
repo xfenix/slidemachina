@@ -44,14 +44,13 @@ function createStylesheetImports(stylesheetPaths: string[]): string {
   return stylesheetPaths.map((stylesheetPath) => `import ${JSON.stringify(stylesheetPath)};`).join("\n");
 }
 
-// Engine first, then the repository theme, then the presentation's own style.css: later rules win.
+// Engine, the repository theme, the CSS that index.tsx imports, then the presentation's own style.css: later rules win.
 export function createEntryModuleCode(siteLayout: SiteLayout, presentationFolder: string, isDevelopment: boolean): string {
   const sitePath = toSitePath(siteLayout, presentationFolder);
   const ownStylesheet = existsSync(path.join(presentationFolder, "style.css")) ? `${sitePath}/style.css` : undefined;
   const stylesheetPaths = [
     ...[...engineStylesheets, ...(isDevelopment ? developmentStylesheets : [])].map((stylesheetName) => path.join(enginePackageFolder, stylesheetName)),
     siteLayout.themeStylesheet,
-    ownStylesheet,
   ].filter((stylesheetPath) => stylesheetPath !== undefined);
   const presentationModuleId = JSON.stringify(`${sitePath}/${presentationFileName}`);
   // A presentation of a repository links back to the list: "../" in dev, "../index.html" in dist/ that also opens from disk.
@@ -60,6 +59,7 @@ export function createEntryModuleCode(siteLayout: SiteLayout, presentationFolder
 ${createStylesheetImports(stylesheetPaths)}
 import { mountPresentation } from ${JSON.stringify(path.join(enginePackageFolder, "browser-runtime", "presentation-core", "presentation-mounting.tsx"))};
 import presentationElement from ${presentationModuleId};
+${createStylesheetImports(ownStylesheet === undefined ? [] : [ownStylesheet])}
 
 mountPresentation(presentationElement, ${listAddress});
 if (import.meta.hot) {

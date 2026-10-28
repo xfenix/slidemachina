@@ -1,6 +1,7 @@
 import * as Machina from "slidemachina";
 import logoOnDarkPicture from "../theme/logo-on-dark.svg";
 import logoPicture from "../theme/logo.svg";
+import "../theme/yellow-brand.css";
 
 export default (
   <Machina.Presentation title="Итоги квартала" date="2026-10-16" lang="ru" aspectRatio="4:3" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>

@@ -15,6 +15,8 @@ import printViewPicture from "./images/print-view.webp";
 import sceneOrbitPoster from "./images/scene-orbit-poster.webp";
 import sceneOrbitVideo from "./images/scene-orbit.webm";
 import slidemachinaMarkPicture from "./images/slidemachina-mark.svg";
+import { DraggableSticker } from "./draggable-sticker.tsx";
+import { OrbitSunrise } from "./orbit-sunrise.tsx";
 
 // A component of the presentation lives right here, above the slides. It shows the step of its own slide via useSlide().
 function StepMeter() {
@@ -260,6 +262,39 @@ export default (
           </ul>
         </div>
         <p className="machina-note">Презентация 4:3 «Итоги квартала» лежит в <code>examples/team-sync</code></p>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Свободная вёрстка в рамке</h2>
+        <div className="machina-freeform">
+          <svg aria-hidden className="absolute top-0 left-0 h-full w-[1180px] overflow-visible" viewBox="0 0 1180 640">
+            <path d="M 180 210 C 300 520, 480 520, 600 400 S 900 120, 1000 200" fill="none" stroke="var(--muted-color)" strokeWidth="4" strokeDasharray="4 16" strokeLinecap="round" />
+          </svg>
+          <DraggableSticker startLeft={40} startTop={60} tiltDegrees={-5} stickerColor="#ffe066">Любая вёрстка</DraggableSticker>
+          <DraggableSticker startLeft={470} startTop={300} tiltDegrees={3} stickerColor="#ffb3c7">Свой React и JS</DraggableSticker>
+          <DraggableSticker startLeft={880} startTop={70} tiltDegrees={-2} stickerColor="#a9e5bb">Тащите мышью</DraggableSticker>
+          <div className="absolute right-0 bottom-0 w-[600px]">
+            <Machina.Code lang="tsx">{`
+              <Slide>
+                <h2>Заголовок</h2>
+                <div className="machina-freeform">
+                  …
+                </div>
+              </Slide>
+            `}</Machina.Code>
+          </div>
+        </div>
+      </Machina.Slide>
+
+      <Machina.Slide plain background="#02030a">
+        <div className="machina-freeform-full">
+          <OrbitSunrise />
+          <div className="absolute top-(--frame-top) left-(--frame-padding) max-w-[1000px]">
+            <h1 className="mb-12 text-(length:--display-size)">Слайд без правил</h1>
+            <p className="machina-lead">Земля, рассвет и блик нарисованы шейдером: ни одной картинки</p>
+            <p className="machina-note" data-step>Ведите мышью: камера сдвинется, солнце выглянет из-за края</p>
+          </div>
+        </div>
       </Machina.Slide>
     </Machina.Section>
 
@@ -1012,6 +1047,7 @@ export default (
               talks/
                 theme/
                   style.css
+                  brand.css
                 team-sync/
                   index.tsx
                 python-news/
@@ -1022,6 +1058,7 @@ export default (
           <ul data-steps>
             <li><code>theme/</code> - общая тема: шрифты, цвета, логотип</li>
             <li><code>style.css</code> в папке презентации сильнее общей темы</li>
+            <li>Тему части докладов подключает сам <code>index.tsx</code>: <code>import "../theme/brand.css"</code></li>
             <li><code>npm create slidemachina</code> в корне добавляет презентацию</li>
             <li><code>npx slidemachina dev</code> в корне открывает список презентаций</li>
             <li>Новые доклады в списке первыми, порядок - по дате</li>

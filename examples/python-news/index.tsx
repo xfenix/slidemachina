@@ -1,6 +1,7 @@
 import * as Machina from "slidemachina";
 import logoOnDarkPicture from "../theme/logo-on-dark.svg";
 import logoPicture from "../theme/logo.svg";
+import "../theme/yellow-brand.css";
 
 export default (
   <Machina.Presentation title="Python 3.15: что нового" date="2026-10-02" lang="ru" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
