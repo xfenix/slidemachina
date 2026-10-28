@@ -293,7 +293,7 @@ test("демо листается, показывает шаги и навига
   });
 
   await test.step("свободная вёрстка: в рамке под заголовком до низа области, на весь слайд — от края до края", async () => {
-    await jumpToHeading(page, "Свободная вёрстка в рамке");
+    await jumpToHeading(page, "Свободная вёрстка");
     const freeformBox = (await currentSlide(page).locator(".machina-freeform").boundingBox())!;
     const contentBox = (await currentSlide(page).locator("[data-content]").boundingBox())!;
     const headingBox = (await currentSlide(page).locator("h2").boundingBox())!;
@@ -650,7 +650,7 @@ test("демо листается, показывает шаги и навига
     await slideMinimap.locator("[data-minimap-thumbnail]").nth(4).click();
     await expect(page).toHaveURL(/#5$/);
     await page.mouse.move(640, 500);
-    await page.getByRole("button", { name: "Миникарта · M" }).click();
+    await page.getByRole("button", { name: "Мини-карта · M" }).click();
     await expect(slideMinimap).toHaveCount(0);
 
     // A thesis stands in the middle of the slide both ways; its soft accent background is light, so the text is a deep shade of its hue.

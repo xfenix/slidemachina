@@ -41,11 +41,11 @@ npx slidemachina build --pptx        # PowerPoint: текст и схемы мо
 ```
 
 - Заголовок вкладки и списка презентаций — `h1` первой обложки. Нужен другой — `title` у `Presentation`.
-- `Section` — раздел. Из разделов получаются обложки, хлебные крошки и оглавление в навигаторе. Свой `<Machina.Slide cover>` первым в разделе заменяет обложку с номером. Его `h1` — название раздела, если нет `title`. `cover={false}` убирает обложку раздела.
+- `Section` — раздел. Из разделов получаются обложки, хлебные крошки и группы в обзоре слайдов. Свой `<Machina.Slide cover>` первым в разделе заменяет обложку с номером. Его `h1` — название раздела, если нет `title`. `cover={false}` убирает обложку раздела.
 - `Slide`: `cover` — обложка, `align` — `left`, `center` или `right`, `valign` — `top`, `center` или `bottom`, `background="#14161d"` или картинка, `plain` — без логотипа, крошек и номера, `transition` — свой переход.
-- Переходы: `auto`, `morph`, `slide`, `fade`, `zoom`, `cube`, `flip`, `none`. По умолчанию `auto`: если на соседних слайдах есть общие элементы, они перетекают, если нет — слайд сдвигается.
+- Переходы: `auto`, `morph`, `slide`, `fade`, `zoom`, `cube`, `flip`, `wipe`, `iris`, `blinds`, `mosaic`, `glitch`, `none`. По умолчанию `auto`: если на соседних слайдах есть общие элементы, они перетекают, если нет — слайд сдвигается.
 - Скорость переходов и шагов — `speed` у `Presentation` или `Slide`: `fast`, `normal` (по умолчанию), `slow` или число. `speed={2}` — вдвое быстрее.
-- Формат слайдов — `aspectRatio` у `Presentation`: `"16:9"` (по умолчанию), `"4:3"`, `"16:10"`, `"9:16"` или любая пара чисел. Формат один на всю презентацию. В нём навигатор, PDF и PowerPoint. На экране слайд растёт под окно, но не больше чем на треть: фон доходит до краёв, кегли не меняются. Дальше по краям поля цвета слайда.
+- Формат слайдов — `aspectRatio` у `Presentation`: `"16:9"` (по умолчанию), `"4:3"`, `"16:10"`, `"9:16"` или любая пара чисел. Формат один на всю презентацию. В нём обзор слайдов, PDF и PowerPoint. На экране слайд растёт под окно, но не больше чем на треть: фон доходит до краёв, размер шрифта не меняется. Дальше по краям поля цвета слайда.
 
 ## Блоки
 
@@ -61,14 +61,14 @@ npx slidemachina build --pptx        # PowerPoint: текст и схемы мо
 | Сравнение | `<table className="machina-compare">` — критерии слева, два–четыре решения справа. Отметки: `<td className="machina-yes" />` и `<td className="machina-no" />` |
 | Цитата | `<figure><blockquote>Текст</blockquote><figcaption>Автор</figcaption></figure>` |
 | Большое число | `<figure className="machina-big-number"><p>42</p><figcaption>подпись</figcaption></figure>` |
-| Текст | `<p className="machina-lead">` — вводная фраза, под заголовком слайда — подзаголовок, `<p>` — основной текст, `<p className="machina-note">` — пометка мелким шрифтом |
+| Текст | `<p className="machina-lead">` — вводная фраза, под заголовком слайда — подзаголовок, `<p>` — основной текст, `<p className="machina-note">` — примечание мелким шрифтом |
 | Подпись и источник | `<figcaption>…</figcaption>` сразу после блока, `<p className="machina-source">…</p>` — сноска с линией |
 | QR-код | `<QR value="https://…" logo={logo} />` — на свободное место, фон прозрачный. В колонках ставьте код слева |
 | Мем | `<Meme src={picture}><p>Верх</p><p>Низ</p></Meme>` — подписи поверх картинки: первая сверху, вторая снизу. `data-place` у подписи двигает её, `float` ставит мем сбоку от текста |
 | Тезис | `<Slide background="var(--accent-color)"><p className="machina-thesis">Одна мысль</p></Slide>` — фраза в центре слайда. Помельче — `machina-thesis-small` |
 | Блок поверх слайда | `<div className="machina-pin-bottom machina-pin-right">…</div>` — блок прижат к краю слайда и не двигает остальное |
 | Схема | `<Diagram><Box id="a">A</Box><Box id="b">B</Box><Arrow from="a" to="b" /></Diagram>` |
-| Диаграмма обмена | `<Sequence><Actor id="a">A</Actor><Actor id="b">B</Actor><Message from="a" to="b" label="запрос" /></Sequence>` |
+| Sequence-диаграмма | `<Sequence><Actor id="a">A</Actor><Actor id="b">B</Actor><Message from="a" to="b" label="запрос" /></Sequence>` |
 | 3D-сцена | `<Scene orbit><Cube size={1.5} /><Sphere position={[2, 0.5, 0]} step /></Scene>` |
 
 Мем проще вставить с панели в `npm run dev`, кнопка со смайликом:
@@ -91,7 +91,7 @@ npx slidemachina build --pptx        # PowerPoint: текст и схемы мо
 | F | полный экран |
 | H | спрятать панель |
 | E | редактор: текст, картинки и слайды правятся прямо на слайде, только в `npm run dev` |
-| M | миникарта слайдов справа, только в `npm run dev` |
+| M | мини-карта слайдов справа, только в `npm run dev` |
 | Cmd+P или Ctrl+P | печать в PDF |
 
 На телефоне и планшете листает свайп или касание: справа — дальше, слева — назад.

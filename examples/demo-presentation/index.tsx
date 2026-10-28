@@ -120,7 +120,7 @@ export default (
         <Machina.Code lang="bash">{`npx slidemachina dev my-talk`}</Machina.Code>
         <ul data-steps>
           <li>Слайды лежат в <code>index.tsx</code></li>
-          <li>Из разделов получаются хлебные крошки и навигатор</li>
+          <li>Из разделов получаются хлебные крошки и обзор слайдов</li>
           <li>Сохранили файл - слайд обновился на том же шаге</li>
         </ul>
       </Machina.Slide>
@@ -142,7 +142,7 @@ export default (
             <li>Раздел открывает слайд с номером «02»</li>
             <li>Вложенный <code>Section</code> - подраздел с номером «02.1»</li>
             <li>Внизу слева крошки: раздел › подраздел</li>
-            <li>Навигатор группирует слайды так же</li>
+            <li>В обзоре слайдов те же группы</li>
           </ul>
         </div>
       </Machina.Slide>
@@ -157,7 +157,7 @@ export default (
             </li>
           </ul>
           <p className="machina-note" data-step={1} data-step-effect="fade">
-            Пометка стоит под списком, а появилась с первым пунктом: <code>data-step=&#123;1&#125;</code>
+            Примечание стоит под списком, а появилось с первым пунктом: <code>data-step=&#123;1&#125;</code>
           </p>
           <Machina.Notes>
             <ul>
@@ -213,7 +213,7 @@ export default (
         <h2>Почему текст слева</h2>
         <ul data-steps>
           <li>Каждая строка начинается с одной вертикали, глаз не ищет начало</li>
-          <li>Строки разной длины не скачут, как при выключке по центру</li>
+          <li>Строки разной длины не скачут, как при выравнивании по центру</li>
           <li>Заголовок, список, код и таблица стоят на одной линии</li>
           <li>По центру - обложки, цитаты и тезисы в одну фразу</li>
         </ul>
@@ -282,7 +282,7 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide>
-        <h2>Свободная вёрстка в рамке</h2>
+        <h2>Свободная вёрстка</h2>
         <div className="machina-freeform">
           <svg aria-hidden className="absolute top-0 left-0 h-full w-[1180px] overflow-visible" viewBox="0 0 1180 640">
             <path d="M 180 210 C 300 520, 480 520, 600 400 S 900 120, 1000 200" fill="none" stroke="var(--muted-color)" strokeWidth="4" strokeDasharray="4 16" strokeLinecap="round" />
@@ -331,9 +331,9 @@ export default (
           <h2>Три уровня текста</h2>
           <p className="machina-lead">Подзаголовок</p>
           <p>Основной текст</p>
-          <p className="machina-note">Пометка</p>
+          <p className="machina-note">Примечание</p>
         `}</Machina.Code>
-        <p className="machina-note">Пометка мелким шрифтом идёт после блоков</p>
+        <p className="machina-note">Примечание мелким шрифтом идёт после блоков</p>
       </Machina.Slide>
 
       <Machina.Slide transition="fade" align="center" number={false}>
@@ -348,7 +348,7 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide background="var(--second-accent-soft-color)" transition="fade">
-        <p className="machina-thesis-small">Тезис длиннее набран кеглем поменьше, а цвет слайда задаёт проп background</p>
+        <p className="machina-thesis-small">Тезис длиннее набран шрифтом поменьше, а цвет слайда задаёт проп background</p>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -393,8 +393,8 @@ export default (
 
       <Machina.Slide>
         <h2>Картинка занимает всё свободное место</h2>
-        <Machina.Image src={navigatorPicture} stretch alt="Навигатор по слайдам">
-          <figcaption>Навигатор: <kbd>Esc</kbd> открывает все слайды</figcaption>
+        <Machina.Image src={navigatorPicture} stretch alt="Обзор слайдов">
+          <figcaption>Обзор слайдов: <kbd>Esc</kbd> открывает все слайды</figcaption>
         </Machina.Image>
       </Machina.Slide>
 
@@ -529,7 +529,7 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide>
-        <h2>Зачем вешать знаки в поле</h2>
+        <h2>Зачем нужна висячая пунктуация</h2>
         <ul data-steps>
           <li>Глаз находит начало строки по левому краю</li>
           <li>Знак в начале строки делает выемку в левом крае, и строка кажется сдвинутой</li>
@@ -560,7 +560,7 @@ export default (
             hangInMargin(hangingMark);
           }
         `}</Machina.Code>
-        <figcaption>Символы кода на линии текста. Плашка, номера строк и <code>$</code> - в поле</figcaption>
+        <figcaption>Символы кода на линии текста. Фон кода, номера строк и <code>$</code> - за левым краем</figcaption>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -589,7 +589,7 @@ export default (
         <h2>Схемы прямо в презентации</h2>
         <ul data-steps>
           <li>Блоки и стрелки пишутся тегами</li>
-          <li>Раскладку считает библиотека ELK, двигать блоки руками не нужно</li>
+          <li>Блоки расставляет библиотека ELK, руками их двигать не нужно</li>
           <li><code>Focus</code> выделяет нужную часть, остальное гаснет</li>
           <li>Блоки появляются по шагам, схема перетекает в следующую</li>
         </ul>
@@ -692,7 +692,7 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide background="var(--dark-background)">
-        <h2>Диаграмма обмена тоже из тегов</h2>
+        <h2>Sequence-диаграмма тоже из тегов</h2>
         <Machina.Sequence>
           <Machina.Actor id="slides">index.tsx<small>слайды</small></Machina.Actor>
           <Machina.Actor id="vite">Vite</Machina.Actor>
@@ -848,7 +848,7 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide cover align="left">
-        <Machina.Image src={navigatorSectionsPicture} alt="Навигатор: разделы и миниатюры слайдов" />
+        <Machina.Image src={navigatorSectionsPicture} alt="Обзор слайдов: разделы и миниатюры" />
         <h1>Сто слайдов за минуту</h1>
         <p className="machina-lead">Картинка слева: <code>Image</code> стоит перед текстом</p>
       </Machina.Slide>
@@ -990,7 +990,7 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide>
-        <h2>Устали генерировать коды на qrcodemonkey?</h2>
+        <h2>QR-код из одного тега</h2>
         <div className="machina-columns" style={{ gridTemplateColumns: "3fr 7fr" }}>
           <div>
             <Machina.QR value="https://github.com/xfenix/slidemachina" logo={slidemachinaMarkPicture}>
@@ -1023,7 +1023,7 @@ export default (
         <div className="machina-columns">
           <ul data-steps>
             <li><kbd>Cmd</kbd> <kbd>P</kbd> - слайд на страницу</li>
-            <li>«Раскадровка» - страница на каждый шаг</li>
+            <li>«По шагам» в меню печати - страница на каждый шаг</li>
             <li><code>?print</code> в адресе - все слайды столбиком</li>
             <li>Фон и схемы печатаются вектором</li>
           </ul>
@@ -1155,7 +1155,7 @@ export default (
         <p className="machina-lead">В <code>slidemachina dev</code> на панели внизу есть ещё кнопки</p>
         <Machina.Image src={developmentToolbarPicture} alt="Панель с включённым редактором" />
         <ul data-steps>
-          <li>Миникарта показывает все слайды справа</li>
+          <li>Мини-карта показывает все слайды справа</li>
           <li>Карандаш включает редактор, рядом встают кнопки слайда</li>
           <li>Новый слайд, копия, раньше, позже, удалить</li>
           <li>Смайлик открывает панель «Мем»</li>
@@ -1203,7 +1203,7 @@ export default (
           <Machina.Actor id="vite">Vite</Machina.Actor>
           <Machina.Actor id="slides">index.tsx<small>слайды</small></Machina.Actor>
           <Machina.Message from="browser" to="vite" label="правка и версия файла" step />
-          <Machina.Message id="write" from="vite" to="slides" label="точечная запись" step />
+          <Machina.Message id="write" from="vite" to="slides" label="запись только правки" step />
           <Machina.Message from="vite" to="browser" label="обнови index.tsx" step />
           <Machina.Message from="browser" to="browser" label="слайд и шаг на месте" step />
           <Machina.Focus on={["write"]} step />
@@ -1228,9 +1228,9 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide>
-        <h2>Миникарта</h2>
-        <Machina.Image src={minimapPicture} stretch alt="Миникарта слайдов справа от слайда">
-          <figcaption>Все слайды поверх правого края, как миникарта в редакторе кода. Включает кнопка на панели или <kbd>M</kbd></figcaption>
+        <h2>Мини-карта</h2>
+        <Machina.Image src={minimapPicture} stretch alt="Мини-карта слайдов справа от слайда">
+          <figcaption>Все слайды поверх правого края, как мини-карта в редакторе кода. Включает кнопка на панели или <kbd>M</kbd></figcaption>
         </Machina.Image>
       </Machina.Slide>
 
@@ -1272,7 +1272,7 @@ export default (
           </ul>
         </div>
         <Machina.Notes>
-          <p>Заметки видны только здесь: на слайде, в навигаторе и в PDF их нет.</p>
+          <p>Заметки видны только здесь: на слайде, в обзоре слайдов и в PDF их нет.</p>
           <p>В PowerPoint они попадают в заметки к слайду.</p>
         </Machina.Notes>
         <Machina.Notes step={3}>
@@ -1292,7 +1292,7 @@ export default (
           </div>
           <ul data-steps>
             <li>При показе его нет: стрелки идут мимо, номер и прогресс его не считают</li>
-            <li>В навигаторе он бледный, с перечёркнутым глазом. Адрес <code>#12+1</code> — первый скрытый после слайда 12</li>
+            <li>В обзоре слайдов он бледный, с перечёркнутым глазом. Адрес <code>#12+1</code> — первый скрытый после слайда 12</li>
             <li>В PDF и PowerPoint его тоже нет. Вернуть: «Скрытые слайды» в меню печати или <code>--hidden</code> у сборки</li>
             <li>Запасной слайд демо стоит после «Спасибо»: нажмите <kbd>Esc</kbd> и найдите его</li>
           </ul>
@@ -1337,7 +1337,7 @@ export default (
             </tr>
             <tr>
               <td><kbd>E</kbd> <kbd>M</kbd></td>
-              <td>редактор и миникарта в <code>slidemachina dev</code></td>
+              <td>редактор и мини-карта в <code>slidemachina dev</code></td>
             </tr>
             <tr>
               <td><kbd>Cmd</kbd> <kbd>P</kbd></td>
@@ -1364,7 +1364,7 @@ export default (
     <Machina.Slide hidden>
       <h2>Запасной слайд</h2>
       <p>Он скрыт: при показе, в PDF и PowerPoint его нет.</p>
-      <p>Он ждёт вопросов из зала. Открыть его можно из навигатора или по адресу.</p>
+      <p>Он ждёт вопросов из зала. Открыть его можно из обзора слайдов или по адресу.</p>
     </Machina.Slide>
   </Machina.Presentation>
 );

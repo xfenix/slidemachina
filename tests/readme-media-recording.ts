@@ -54,7 +54,7 @@ const shotStills: ShotStill[] = [
   { fileName: "slide-code.webp", slideHeading: "Код из файла" },
   { fileName: "slide-typography.webp", slideHeading: "В slidemachina буквы стоят ровно" },
   { fileName: "slide-photo.webp", slideHeading: "Картинка на весь слайд" },
-  { fileName: "slide-qr.webp", slideHeading: "Устали генерировать коды на qrcodemonkey?" },
+  { fileName: "slide-qr.webp", slideHeading: "QR-код из одного тега" },
 ];
 
 // The border keeps a white slide apart from the white GitHub page.

@@ -200,7 +200,7 @@ test("сборка: один HTML-файл листается без серве�
       await expect(page.locator("[data-canvas]")).toBeHidden();
       const slideCount = await page.locator("[data-canvas] > [data-slide]").count();
       expect(pdfPageCount).toBeGreaterThan(slideCount);
-      await page.getByRole("switch", { name: "Раскадровка" }).click();
+      await page.getByRole("switch", { name: "По шагам" }).click();
       await expect(page.locator("[data-print-page]")).toHaveCount(slideCount);
       await expect(page).toHaveURL(/\?print&hidden(#|$)/);
       await page.getByRole("switch", { name: "Скрытые слайды" }).click();
