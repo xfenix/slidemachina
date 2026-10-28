@@ -6,7 +6,7 @@ import type MagicString from "magic-string";
 type EditKind = "text" | "picture" | "box";
 
 // Engine parts that pass the marks on to their own element; a group marks its place for moved boxes, a slide for slides added after it.
-const markedEngineParts: Record<string, EditKind | undefined> = { Source: "text", Image: "picture", Box: "box", Group: undefined, Slide: undefined };
+const markedEngineParts: Record<string, EditKind | undefined> = { Image: "picture", Box: "box", Group: undefined, Slide: undefined };
 const unwritableTextTags = new Set(["pre", "script", "style", "textarea", "title"]);
 const sourceVersionLength = 12;
 
@@ -37,7 +37,7 @@ function hasReplaceablePicture(elementNode: SyntaxNode): boolean {
 function pickEditKind(elementNode: SyntaxNode, elementName: string, engineKind: EditKind | undefined): EditKind | undefined {
   if (engineKind === "box") return "box";
   if (engineKind === "picture" || elementName === "img") return hasReplaceablePicture(elementNode) ? "picture" : undefined;
-  const writesText = engineKind === "text" || (/^[a-z]/.test(elementName) && !unwritableTextTags.has(elementName));
+  const writesText = /^[a-z]/.test(elementName) && !unwritableTextTags.has(elementName);
   return writesText && isPlainTextElement(elementNode) ? "text" : undefined;
 }
 

@@ -6,6 +6,7 @@ import { useSlideEnvironment, type PresentationLogo, type SlideAlign } from "./s
 import { pickSourceMarks } from "./source-marks.ts";
 import { useBigNumberFitting } from "./width-fitting.ts";
 import { useFloatFitting } from "./float-fitting.ts";
+import { useSourceWidthFitting } from "./source-width-fitting.ts";
 import { useBottomBandRoom } from "./bottom-band-room.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/transition-speed.ts";
@@ -58,6 +59,7 @@ export function Slide({
   useStepVisibility(slideElementReference, slideEnvironment.revealedStep, slideEnvironment.reportStepCount);
   useBigNumberFitting(slideElementReference, children);
   useFloatFitting(slideElementReference, children);
+  useSourceWidthFitting(slideElementReference, children);
   useBottomBandRoom(slideElementReference, children);
   useSlideCallbacks(slideEnvironment.isCurrentSlide, onEnter, onLeave);
 

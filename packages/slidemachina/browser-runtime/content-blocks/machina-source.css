@@ -1,6 +1,6 @@
 @layer slidemachina {
   /* A footnote under the blocks it cites: a hairline across the content, or as wide as the picture right above it. */
-  [data-slide] [data-content] [data-source] {
+  [data-slide] [data-content] .machina-source {
     align-self: stretch;
     max-width: var(--source-width, none);
     margin: 0 0 var(--block-gap) var(--source-offset, 0px);

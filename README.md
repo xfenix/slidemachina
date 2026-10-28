@@ -61,7 +61,7 @@ import * as Machina from "slidemachina";
 import logoPicture from "./images/logo.svg";
 
 export default (
-  <Machina.Presentation title="Доклад" lang="ru" aspectRatio="16:9" logo={logoPicture}>
+  <Machina.Presentation lang="ru" logo={logoPicture}>
     <Machina.Slide cover>
       <h1>Доклад</h1>
     </Machina.Slide>
@@ -215,7 +215,7 @@ TypeScript подсказывает компоненты и их свойств�
 | Шрифты | `--font-text`, `--font-heading`, `--font-code`. Свой шрифт — через `@font-face` в том же `style.css` |
 | Кегли | Четыре уровня: `--secondary-text-size` 28, `--text-size` 40, `--heading-size` 56, `--display-size` 112. Остальные размеры берутся от них |
 | Рамка слайда | `--frame-padding` по бокам и снизу, `--frame-top` сверху, `--heading-gap` под заголовком |
-| Обложки разделов | `--section-background`, `--section-number-start-color`, `--section-number-end-color`, `--section-number-size`, `--section-texture`. Или свой слайд в `cover` у `Section` |
+| Обложки разделов | `--section-background`, `--section-number-start-color`, `--section-number-end-color`, `--section-number-size`, `--section-texture`. Или свой `<Slide cover>` первым в разделе |
 | Движение | `speed` у `Presentation` или `Slide`, длительности `--transition-duration` и соседние, кривая `--transition-easing` |
 | Формат | `<Presentation aspectRatio="4:3">`, по умолчанию `16:9`. Миниатюры, PDF и PowerPoint — в этом формате, на экране слайд растёт под окно до трети |
 | Разделитель крошек | `<Presentation breadcrumbsSeparator="/">`, по умолчанию `›` |

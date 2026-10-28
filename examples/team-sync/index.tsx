@@ -4,7 +4,7 @@ import logoPicture from "../theme/logo.svg";
 import "../theme/yellow-brand.css";
 
 export default (
-  <Machina.Presentation title="Итоги квартала" date="2026-10-16" lang="ru" aspectRatio="4:3" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
+  <Machina.Presentation date="2026-10-16" lang="ru" aspectRatio="4:3" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
     <Machina.Slide cover>
       <h1>Итоги квартала</h1>
       <p className="machina-lead">Команда платформы, октябрь 2026</p>
@@ -38,7 +38,7 @@ export default (
             <figcaption>команда для сборки</figcaption>
           </figure>
         </div>
-        <Machina.Source>Пример для slidemachina, числа условные</Machina.Source>
+        <p className="machina-source">Пример для slidemachina, числа условные</p>
       </Machina.Slide>
     </Machina.Section>
 

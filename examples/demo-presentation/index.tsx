@@ -30,7 +30,7 @@ function StepMeter() {
 }
 
 export default (
-  <Machina.Presentation title="slidemachina" date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo}>
+  <Machina.Presentation date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo}>
     <Machina.Slide cover logo="center">
       <h1>Слайды из кода</h1>
       <p className="machina-lead">Шаги, схемы, 3D и морфинг в одном файле</p>
@@ -53,7 +53,7 @@ export default (
             <figcaption>весит подсветка кода в браузере</figcaption>
           </figure>
         </div>
-        <Machina.Source>Замеры сборки этого демо, октябрь 2026</Machina.Source>
+        <p className="machina-source">Замеры сборки этого демо, октябрь 2026</p>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -433,7 +433,7 @@ export default (
           import { Code, Presentation, Slide } from "slidemachina";
 
           export default (
-            <Presentation title="Доклад" lang="ru">
+            <Presentation lang="ru">
               <Slide cover>
                 <h1>Доклад</h1>
               </Slide>
@@ -807,22 +807,19 @@ export default (
       </Machina.Slide>
     </Machina.Section>
 
-    <Machina.Section
-      title="3D"
-      cover={
-        <Machina.Slide cover align="left" valign="top" background="var(--dark-background)">
-          <p className="machina-note">Раздел со своей обложкой</p>
-          <h1>3D</h1>
-          <p className="machina-lead"><code>{"cover={<Slide>…</Slide>}"}</code> заменяет стандартный слайд раздела</p>
-          <Machina.Scene full orbit>
-            <Machina.Sphere size={1.8} position={[0, 0.9, 1]} color="var(--muted-color)" material="metal" />
-            <Machina.Cube size={1.6} position={[-2, 0.8, -1]} rotation={[0, 30, 0]} material="glossy" />
-            <Machina.Cube size={[0.8, 2.8, 0.8]} position={[2, 1.4, -1.5]} rotation={[0, 18, 0]} color="var(--text-color)" material="glossy" />
-            <Machina.Sphere size={1} position={[2.2, 0.5, 1.4]} color="var(--second-accent-color)" material="glossy" />
-          </Machina.Scene>
-        </Machina.Slide>
-      }
-    >
+    <Machina.Section>
+      <Machina.Slide cover align="left" valign="top" background="var(--dark-background)">
+        <p className="machina-note">Раздел со своей обложкой</p>
+        <h1>3D</h1>
+        <p className="machina-lead">Первый <code>{"<Slide cover>"}</code> раздела встаёт вместо слайда с номером, его <code>h1</code> идёт в крошки</p>
+        <Machina.Scene full orbit>
+          <Machina.Sphere size={1.8} position={[0, 0.9, 1]} color="var(--muted-color)" material="metal" />
+          <Machina.Cube size={1.6} position={[-2, 0.8, -1]} rotation={[0, 30, 0]} material="glossy" />
+          <Machina.Cube size={[0.8, 2.8, 0.8]} position={[2, 1.4, -1.5]} rotation={[0, 18, 0]} color="var(--text-color)" material="glossy" />
+          <Machina.Sphere size={1} position={[2.2, 0.5, 1.4]} color="var(--second-accent-color)" material="glossy" />
+        </Machina.Scene>
+      </Machina.Slide>
+
       <Machina.Slide background="var(--dark-background)" transition="zoom">
         <h2>Сцена в 3D</h2>
         <p className="machina-lead">Куб и сфера пишутся тегами, свет движок ставит сам</p>

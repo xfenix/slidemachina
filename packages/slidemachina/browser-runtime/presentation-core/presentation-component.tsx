@@ -24,7 +24,7 @@ import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { SlideNavigator } from "../presentation-interface/slide-navigator.tsx";
 import { MinimapSwitch, SlideMinimap, useMinimapShowing } from "../presentation-interface/slide-minimap.tsx";
 import { useOverviewAddress } from "../presentation-interface/overview-address.ts";
-import { buildSlideOutline } from "./slide-outline.tsx";
+import { buildSlideOutline, readPresentationTitle } from "./slide-outline.tsx";
 import { runNavigatorTransition } from "../slide-transitions/navigator-transition.ts";
 import { useTouchControls } from "../slide-navigation/touch-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
@@ -36,6 +36,7 @@ const nearbySlideDistance = 2;
 
 export type PresentationProperties = {
   children?: ReactNode;
+  // Only when the tab should read differently: by default the title is the h1 of the opening <Slide cover>.
   title?: string;
   lang?: string;
   align?: SlideAlign;
@@ -72,6 +73,7 @@ export function Presentation({
   onChange,
 }: PresentationProperties) {
   const outlinedSlides = useMemo(() => buildSlideOutline(children), [children]);
+  const pageTitle = useMemo(() => title ?? readPresentationTitle(children), [title, children]);
   const stepCountsReference = useRef<number[]>([]);
   const slideNavigation = useSlideNavigation(outlinedSlides.length, stepCountsReference);
   const { currentPosition } = slideNavigation;
@@ -166,7 +168,7 @@ export function Presentation({
 
   return (
     <div data-presentation data-print-view={isPrintView || undefined} data-toolbar-under-canvas={hasRoomUnderCanvas || undefined} style={canvasStyle}>
-      {title !== undefined && <title>{title}</title>}
+      {pageTitle !== undefined && pageTitle !== "" && <title>{pageTitle}</title>}
       <style>{`@page { size: ${formatWidth}px ${formatHeight}px; }`}</style>
       <div data-canvas>
         {[...outlinedSlides.keys()].map((slideIndex) => renderSlide(slideIndex))}

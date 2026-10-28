@@ -8,7 +8,6 @@ export { Code, type CodeProperties } from "./content-blocks/code-block/code-comp
 export { Image, type ImageFloat, type ImageProperties } from "./content-blocks/image-component.tsx";
 export { Video, type VideoProperties } from "./content-blocks/video-component.tsx";
 export type { MediaFit } from "./content-blocks/media-frame.tsx";
-export { Source, type SourceProperties } from "./content-blocks/source-component.tsx";
 export { QR, type QRProperties } from "./content-blocks/qr-block/qr-component.tsx";
 export type { QRCorrection } from "./content-blocks/qr-block/qr-module-shapes.ts";
 export { Meme, type MemeProperties } from "./content-blocks/meme-block/meme-component.tsx";

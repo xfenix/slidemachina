@@ -11,7 +11,8 @@ const runCommand = promisify(execFile);
 const repositoryServerPort = 5197;
 const repositoryServerAddress = `http://localhost:${repositoryServerPort}`;
 // Newest first, by <Presentation date>.
-const presentationTitles = ["slidemachina", "Итоги квартала", "Python 3.15: что нового"];
+// The demo and team-sync have no title: the list takes the h1 of the opening cover. python-news overrides it with title.
+const presentationTitles = ["Слайды из кода", "Итоги квартала", "Python 3.15: что нового"];
 const coverHeadings = ["Слайды из кода", "Итоги квартала", "Python 3.15"];
 // The ELK worker itself and three.js: a cover of a first slide without a diagram or a scene needs neither.
 const heavyRequestPattern = /elk-worker\.min\.js(?!\?url)|\/three\/|scene-view/;

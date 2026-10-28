@@ -152,14 +152,12 @@ function ensureEngineParts(syntaxTree: SyntaxNode, editedSource: MagicString, pa
   return (partName) => engineNames[partName] ?? partName;
 }
 
-// The new slide follows the shown one; after a section's own slide (cover={<Slide>}) it opens the section.
+// The new slide follows the shown one.
 export function insertSlideAfter(sourceCode: string, filePath: string, slidePlace: SourcePlace, insertedSlide: InsertedSlide): string {
   const { syntaxTree, foundElements } = locateElements(sourceCode, filePath, [slidePlace]);
   const { elementNode: slideNode, parentNode } = foundElements[0]!;
   const editedSource = new MagicString(sourceCode);
-  const isChildSlide = parentNode?.children?.includes(slideNode) === true;
-  const isSectionCover = !isChildSlide && parentNode?.type === "JSXElement" && slideNode.start < parentNode.openingElement.end;
-  if (!isChildSlide && !isSectionCover) throw new SourceEditProblem("slidePlaceUnknown");
+  if (parentNode?.children?.includes(slideNode) !== true) throw new SourceEditProblem("slidePlaceUnknown");
   const nameEnginePart = ensureEngineParts(syntaxTree, editedSource, ["Slide", ...insertedSlide.engineParts]);
   const { mediaImport } = insertedSlide;
   if (mediaImport !== undefined) {
@@ -170,13 +168,8 @@ export function insertSlideAfter(sourceCode: string, filePath: string, slidePlac
   }
   const slideName = nameEnginePart("Slide");
   const slideLines = [`<${slideName}>`, ...insertedSlide.writeMarkup(nameEnginePart).map((markupLine) => `  ${markupLine}`), `</${slideName}>`];
-  if (isChildSlide) {
-    const slideIndent = readIndent(sourceCode, slideNode.start);
-    editedSource.appendLeft(slideNode.end, `\n${slideLines.map((slideLine) => `\n${slideIndent}${slideLine}`).join("")}`);
-  } else {
-    const slideIndent = `${readIndent(sourceCode, parentNode.start)}  `;
-    editedSource.appendLeft(parentNode.openingElement.end, `${slideLines.map((slideLine) => `\n${slideIndent}${slideLine}`).join("")}\n`);
-  }
+  const slideIndent = readIndent(sourceCode, slideNode.start);
+  editedSource.appendLeft(slideNode.end, `\n${slideLines.map((slideLine) => `\n${slideIndent}${slideLine}`).join("")}`);
   return editedSource.toString();
 }
 

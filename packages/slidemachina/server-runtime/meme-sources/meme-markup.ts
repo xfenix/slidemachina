@@ -38,7 +38,7 @@ function shortenAddress(fullAddress: string): string {
   return fullAddress.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 }
 
-// The source is the caption of the picture: grey, right under it, without the line of a <Source> footnote.
+// The source is the caption of the picture: grey, right under it, without the line of a machina-source footnote.
 function writeSourceCaption(sourceText: string): string {
   return `  <figcaption>${escapeJsxText(sourceText)}</figcaption>`;
 }

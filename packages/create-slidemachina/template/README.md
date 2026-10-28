@@ -27,7 +27,7 @@ npx slidemachina build --pptx        # PowerPoint: текст и схемы мо
 Компоненты берутся одним импортом: `import * as Machina from "slidemachina"`. Дальше `<Machina.Slide>`, `<Machina.Image>` и так далее, в таблице ниже приставка опущена.
 
 ```tsx
-<Machina.Presentation title="Мой доклад" lang="ru" logo={{ light: logo, dark: logoOnDark }}>
+<Machina.Presentation lang="ru" logo={{ light: logo, dark: logoOnDark }}>
   <Machina.Slide cover>
     <h1>Мой доклад</h1>
   </Machina.Slide>
@@ -40,7 +40,8 @@ npx slidemachina build --pptx        # PowerPoint: текст и схемы мо
 </Machina.Presentation>
 ```
 
-- `Section` — раздел. Из разделов получаются обложки, хлебные крошки и оглавление в навигаторе. `cover={false}` убирает обложку раздела, `cover={<Machina.Slide>…</Machina.Slide>}` заменяет её своей.
+- Заголовок вкладки и списка презентаций — `h1` первой обложки. Нужен другой — `title` у `Presentation`.
+- `Section` — раздел. Из разделов получаются обложки, хлебные крошки и оглавление в навигаторе. Свой `<Machina.Slide cover>` первым в разделе заменяет обложку с номером. Его `h1` — название раздела, если нет `title`. `cover={false}` убирает обложку раздела.
 - `Slide`: `cover` — обложка, `align` — `left`, `center` или `right`, `valign` — `top`, `center` или `bottom`, `background="#14161d"` или картинка, `plain` — без логотипа, крошек и номера, `transition` — свой переход.
 - Переходы: `auto`, `morph`, `slide`, `fade`, `zoom`, `cube`, `flip`, `none`. По умолчанию `auto`: если на соседних слайдах есть общие элементы, они перетекают, если нет — слайд сдвигается.
 - Скорость переходов и шагов — `speed` у `Presentation` или `Slide`: `fast`, `normal` (по умолчанию), `slow` или число. `speed={2}` — вдвое быстрее.
@@ -61,7 +62,7 @@ npx slidemachina build --pptx        # PowerPoint: текст и схемы мо
 | Цитата | `<figure><blockquote>Текст</blockquote><figcaption>Автор</figcaption></figure>` |
 | Большое число | `<figure className="machina-big-number"><p>42</p><figcaption>подпись</figcaption></figure>` |
 | Текст | `<p className="machina-lead">` — вводная фраза, под заголовком слайда — подзаголовок, `<p>` — основной текст, `<p className="machina-note">` — пометка мелким шрифтом |
-| Подпись и источник | `<figcaption>…</figcaption>` сразу после блока, `<Source>…</Source>` |
+| Подпись и источник | `<figcaption>…</figcaption>` сразу после блока, `<p className="machina-source">…</p>` — сноска с линией |
 | QR-код | `<QR value="https://…" logo={logo} />` — на свободное место, фон прозрачный. В колонках ставьте код слева |
 | Мем | `<Meme src={picture}><p>Верх</p><p>Низ</p></Meme>` — подписи поверх картинки: первая сверху, вторая снизу. `data-place` у подписи двигает её, `float` ставит мем сбоку от текста |
 | Тезис | `<Slide background="var(--accent-color)"><p className="machina-thesis">Одна мысль</p></Slide>` — фраза в центре слайда. Помельче — `machina-thesis-small` |

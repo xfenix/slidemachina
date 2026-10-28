@@ -115,7 +115,8 @@ test("демо листается, показывает шаги и навига
 
   await test.step("обложка, тема и Tailwind", async () => {
     await expect(page).toHaveURL(/#1$/);
-    await expect(page).toHaveTitle("slidemachina");
+    // No title on <Presentation>: the tab reads the h1 of the opening cover, typographed like the slide.
+    await expect(page).toHaveTitle(/^Слайды из\sкода$/);
     await expect(currentSlide(page).locator("h1")).toHaveText("Слайды из кода");
     await expect(currentSlide(page)).toHaveAttribute("data-align", "center");
     await expect(currentSlide(page).locator("p")).toHaveCSS("color", "rgb(108, 112, 128)");
@@ -220,7 +221,7 @@ test("демо листается, показывает шаги и навига
     await expect(columnElements.nth(0)).toHaveAttribute("data-step-reached");
     await expect(columnElements.nth(1)).not.toHaveAttribute("data-step-reached");
     // The source is a footnote one block gap under the baseline of the blocks it cites, set apart by a hairline across them.
-    const sourceElement = currentSlide(page).locator("[data-source]");
+    const sourceElement = currentSlide(page).locator(".machina-source");
     const sourceBox = await sourceElement.boundingBox();
     const columnsBox = await currentSlide(page).locator(".machina-columns").boundingBox();
     const slideScale = (await currentSlide(page).boundingBox())!.height / 1080;
@@ -692,6 +693,9 @@ test("демо листается, показывает шаги и навига
 
   await test.step("3D-сцена: кадр готов до перехода, шаги двигают объекты, анимируется только текущий слайд", async () => {
     const sceneCoverNumber = await jumpToHeading(page, "3D");
+    // The section opens with its own <Slide cover>: no generated cover before it, and its h1 names the section in the breadcrumbs.
+    await expect(page.locator("[data-canvas] > [data-slide] h1[data-section-number]", { hasText: /^3D$/ })).toHaveCount(0);
+    await expect(page.locator("[data-canvas] > [data-slide]").nth(sceneCoverNumber).locator("[data-breadcrumbs]")).toHaveText("3D");
     const heroCanvas = page.locator("[data-canvas] > [data-slide]").nth(sceneCoverNumber).locator("[data-scene-canvas]");
     // The next slide is hidden, yet its still frame is drawn: the transition snapshot is never empty.
     await expect.poll(async () => (await sampleSceneCanvas(heroCanvas)).paintedPixels, { timeout: 10_000 }).toBeGreaterThan(250);
@@ -762,14 +766,14 @@ test("демо листается, показывает шаги и навига
     const typographedParagraph = currentSlide(page).locator(".machina-columns > div > p").last();
     await editFileWhile(
       demoPresentationFile,
-      (originalPresentation) => originalPresentation.replace('<Machina.Presentation title="slidemachina"', '<Machina.Presentation typography={false} title="slidemachina"'),
+      (originalPresentation) => originalPresentation.replace('<Machina.Presentation ', '<Machina.Presentation typography={false} '),
       () => expect(typographedParagraph).toHaveText(/^"Кавычки" станут ёлочками, дефис - тире/),
     );
     await expect(typographedParagraph).toHaveText(/^«Кавычки»/);
   });
 
   const setAspectRatio = (aspectRatio: string) => (originalPresentation: string) =>
-    originalPresentation.replace('<Machina.Presentation title="slidemachina"', `<Machina.Presentation aspectRatio="${aspectRatio}" title="slidemachina"`);
+    originalPresentation.replace('<Machina.Presentation ', `<Machina.Presentation aspectRatio="${aspectRatio}" `);
 
   await test.step("формат 16:9 по умолчанию и 9:16: холст растёт под окно на треть, остальное — поля, печать в формате", async () => {
     const canvasElement = page.locator("[data-canvas]");
