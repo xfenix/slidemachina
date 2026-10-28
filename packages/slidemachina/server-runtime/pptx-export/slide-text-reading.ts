@@ -193,6 +193,7 @@ function measureTextLines(
     });
     let needsLeadingPadding = ownerWrappers[0] === textWrapper;
     let lastPlacedLine: TextLine | undefined;
+    let trailingRect: DOMRect | undefined;
     const textNode = textWrapper.firstChild as Text;
     for (let characterOffset = 0; characterOffset < textNode.data.length; ) {
       const characterLength = textNode.data.codePointAt(characterOffset)! > pageReadingConstants.largestSingleUnitCode ? 2 : 1;
@@ -200,7 +201,17 @@ function measureTextLines(
       characterRange.setStart(textNode, characterOffset);
       characterRange.setEnd(textNode, characterOffset + characterLength);
       characterOffset += characterLength;
-      const characterRect = [...characterRange.getClientRects()].find((clientRect) => clientRect.height > 0);
+      // At a hyphenated break the hyphen the browser draws is one more rect of both letters around it: the last of one, the first of the next.
+      const characterRects = [...characterRange.getClientRects()].filter((clientRect) => clientRect.height > 0);
+      const [firstRect] = characterRects;
+      const followsHyphen =
+        trailingRect !== undefined &&
+        firstRect !== undefined &&
+        characterRects.length > 1 &&
+        Math.abs(firstRect.left - trailingRect.left) < pageReadingConstants.layoutTolerance &&
+        Math.abs(firstRect.top - trailingRect.top) < pageReadingConstants.layoutTolerance;
+      trailingRect = characterRects.length > 1 ? characterRects.at(-1) : undefined;
+      const characterRect = followsHyphen ? characterRects.at(-1) : firstRect;
       const isSpaceCharacter = characterText.trim() === "";
       if (characterRect === undefined || characterText === "\n" || (isSpaceCharacter && characterRect.width < pageReadingConstants.collapsedSpaceWidth)) continue;
       const characterMiddle = (characterRect.top + characterRect.bottom) / 2;
@@ -208,6 +219,11 @@ function measureTextLines(
       if (characterMiddle < visibleArea.top || characterMiddle > visibleArea.bottom || characterCentre < visibleArea.left || characterCentre > visibleArea.right) continue;
       let currentLine = textLines.at(-1);
       if (currentLine === undefined || characterMiddle > currentLine.lineBottom) {
+        // PowerPoint does not hyphenate: the line gets the hyphen as a character.
+        if (followsHyphen && lastPlacedLine !== undefined) {
+          lastPlacedLine.lineCharacters.push({ characterText: "-", runStyleIndex, characterLeft: firstRect.left, characterRight: firstRect.right });
+          lastPlacedLine.lineRight = Math.max(lastPlacedLine.lineRight, firstRect.right);
+        }
         currentLine = { lineCharacters: [], lineTop: characterRect.top, lineBottom: characterRect.bottom, lineLeft: characterRect.left, lineRight: characterRect.right, lastRight: characterRect.left };
         textLines.push(currentLine);
       }

@@ -127,6 +127,8 @@ test("сборка: один HTML-файл листается без серве�
       const findPptxSlideNumber = (slideNumber: number) => pptxSlidesPerSlide.slice(0, slideNumber).reduce((slideTotal, slideCount) => slideTotal + slideCount, 0);
       expect(pptxSlidesPerSlide.filter((slideCount) => slideCount > 1).length, "шаги строк кода — отдельные слайды").toBeGreaterThan(0);
       expect(pptxSlideCount).toBe(findPptxSlideNumber(pptxSlidesPerSlide.length));
+      const allSlidesXml = Array.from({ length: pptxSlideCount }, (_slideXml, slideIndex) => readSlideXml(slideIndex + 1)).join("");
+      expect(allSlidesXml, "слово, перенесённое браузером, заканчивает строку дефисом: PowerPoint сам не переносит").toMatch(/\p{L}-<\/a:t><\/a:r><a:br\/>/u);
       expect(readSlideXml(1), "заголовок обложки — текстовое поле").toMatch(/<p:sp>(?:(?!<\/p:sp>).)*<a:t>Слайды из.кода<\/a:t>/s);
       expect(readSlideXml(1), "логотип — картинка").toContain("<p:pic>");
       // A code box in a line is the highlight of its run, so it moves with the letters in any font.

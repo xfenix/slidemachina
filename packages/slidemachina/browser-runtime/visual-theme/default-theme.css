@@ -329,6 +329,15 @@
     text-wrap: pretty;
   }
 
+  /* Reading text breaks long words by the browser's dictionary for the page language: the text itself stays as written, so copying is clean. Display text keeps words whole. */
+  [data-slide] :is(p, li, figcaption, .machina-note):not(.machina-thesis, .machina-thesis-small, .machina-big-number *, .machina-bars *, .machina-source, blockquote *, blockquote + figcaption, [data-meme] *) {
+    hyphens: auto;
+  }
+
+  [data-slide] :is(code, kbd, samp, pre) {
+    hyphens: manual;
+  }
+
   /* The mark has no width and sticks out to the left; mid-line the hidden copy in the space before it gives the width back. */
   [data-hanging-mark] {
     display: inline-flex;

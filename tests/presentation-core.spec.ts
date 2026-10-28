@@ -392,11 +392,15 @@ test("демо листается, показывает шаги и навига
     expect(await listLitLines(page)).toEqual([2, 3, 4]);
   });
 
-  await test.step("типограф правит текст, но не код, кавычка в начале строки висит за краем", async () => {
+  await test.step("типограф правит текст, но не код, длинные слова переносит браузер, кавычка в начале строки висит за краем", async () => {
     await jumpToHeading(page, "Типограф");
     const typographedParagraph = currentSlide(page).locator(".machina-columns > div > p").last();
     // toHaveText folds non-breaking spaces into plain ones, so the raw text is read.
     expect(await typographedParagraph.textContent()).toMatch(/^«Кавычки» станут ёлочками, дефис\u00A0— тире/);
+    // Words break by the browser's dictionary: no soft hyphens in the text, nothing to strip on copy. Headings keep words whole.
+    await expect(typographedParagraph).toHaveCSS("hyphens", "auto");
+    await expect(currentSlide(page).locator("h2")).toHaveCSS("hyphens", "manual");
+    expect(await page.locator("[data-canvas]").textContent()).not.toContain("\u00AD");
     await expect(currentSlide(page).locator("[data-code]")).toContainText('"Кавычки" станут ёлочками, дефис - тире.');
     // Technical words in plain text keep their spelling: the address part ?print and a place in a file.
     const listedTexts = (await page.locator("[data-canvas] li").allTextContents()).join("\n");
