@@ -18,6 +18,8 @@ export type SlideTextRun = {
   letterSpacing: number;
   outlineStroke?: StrokeStyle;
   highlightColor?: PaintColor;
+  // A translucent highlight over a picture keeps its box: the export mixes it with the pixels there.
+  highlightBox?: SlidePartBox;
 };
 export type PathCommand =
   | { commandKind: "move" | "line"; endPoint: [number, number] }

@@ -7,6 +7,7 @@ import {
   isElementRotated,
   measureEffectiveOpacity,
   measureElementScale,
+  measureRelativeBox,
   pickViewerFont,
   readRunHighlight,
 } from "./slide-style-reading.ts";
@@ -111,6 +112,11 @@ function describeRunStyle(textWrapper: HTMLElement, textHolder: HTMLElement, hol
     highlightOwner = currentElement;
     break;
   }
+  const highlightColor = highlightOwner === undefined ? undefined : readRunHighlight(highlightOwner, pageElement);
+  const highlightBox =
+    highlightOwner !== undefined && highlightColor !== undefined && highlightColor.colorOpacity < 1
+      ? measureRelativeBox(highlightOwner.getBoundingClientRect(), pageElement.getBoundingClientRect())
+      : undefined;
   const viewerFont = pickViewerFont(wrapperStyle.fontFamily);
   const fontShorthand = `${wrapperStyle.fontStyle} ${wrapperStyle.fontWeight} ${wrapperStyle.fontSize}`;
   return {
@@ -123,7 +129,8 @@ function describeRunStyle(textWrapper: HTMLElement, textHolder: HTMLElement, hol
     textColor,
     letterSpacing: (Number.parseFloat(wrapperStyle.letterSpacing) || 0) * holderScale,
     outlineStroke: strokeColor === undefined ? undefined : { strokeColor, strokeWidth: strokeWidth * holderScale, isDashed: false },
-    highlightColor: highlightOwner === undefined ? undefined : readRunHighlight(highlightOwner, pageElement),
+    highlightColor,
+    highlightBox,
     letterCase: wrapperStyle.textTransform,
     spaceWidth: measureSpaceWidth(`${fontShorthand} ${wrapperStyle.fontFamily}`) * holderScale,
     viewerSpaceWidth: measureSpaceWidth(`${fontShorthand} "${viewerFont}"`) * holderScale,

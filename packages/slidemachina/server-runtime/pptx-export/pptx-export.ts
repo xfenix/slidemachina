@@ -3,6 +3,7 @@ import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 import { printViewParameter, printViewStepsValue } from "../../shared-between-runtimes/engine-constants.ts";
 import { launchChrome } from "../presentation-build/pdf-printing.ts";
+import { blendHighlightsOverPixels } from "./highlight-backdrop-sampling.ts";
 import { pageReadingConstants, pptxPageMarks, writeCaptureStylesheet } from "./pptx-page-marks.ts";
 import { drawSlideParts, inchesPerCanvasPixel } from "./pptx-slide-drawing.ts";
 import { writeStepAnimations } from "./pptx-step-animations.ts";
@@ -93,6 +94,7 @@ export async function exportPptx(pagePath: string, pptxPath: string): Promise<vo
     for (const { pageIndex, isStepFrame } of await exportPage.evaluate<ExportedPage[]>("listExportedPages()")) {
       const slideLayout = await exportPage.evaluate<SlideLayout>(`readSlideLayout(${pageIndex}, ${isStepFrame})`);
       const capturedPictures = await capturePictures(exportPage, slideLayout);
+      await blendHighlightsOverPixels(exportPage, pageIndex, slideLayout);
       const animatedObjects = drawSlideParts(pptxPresentation.addSlide(), slideLayout, capturedPictures);
       slideAnimations.push({ stepDuration: slideLayout.stepDuration, animatedObjects });
     }

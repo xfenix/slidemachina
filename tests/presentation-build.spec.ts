@@ -116,6 +116,8 @@ test("сборка: один HTML-файл листается без серве�
       // A code box in a line is the highlight of its run, so it moves with the letters in any font.
       const inlineCodeSlideXml = readSlideXml(findPptxSlideNumber(await findSlideNumber(page, "li code", "index.tsx")));
       expect(inlineCodeSlideXml, "плашка кода — подсветка текста").toMatch(/<a:highlight>(?:(?!<\/a:r>).)*<a:t>index\.tsx<\/a:t>/s);
+      const pictureCodeSlideXml = readSlideXml(findPptxSlideNumber(await findSlideNumber(page, ".machina-lead code", "plain")));
+      expect(pictureCodeSlideXml, "плашка кода над картинкой — тоже подсветка").toMatch(/<a:highlight>(?:(?!<\/a:r>).)*<a:t>plain<\/a:t>/s);
       // PowerPoint strokes over the fill: the outline goes on a copy underneath, the caption itself stays white.
       const memeSlideXml = readSlideXml(findPptxSlideNumber(await findSlideNumber(page, "[data-meme-field]", "Схема, код, 3D")));
       expect(memeSlideXml, "подпись мема белая").toMatch(/<a:solidFill><a:srgbClr val="FFFFFF"\/><\/a:solidFill>(?:(?!<\/a:r>).)*<a:t>СХЕМА, КОД, 3D<\/a:t>/s);

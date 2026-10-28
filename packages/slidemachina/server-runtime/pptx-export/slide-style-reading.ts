@@ -106,11 +106,12 @@ export function blendOverBackdrop(paintColor: PaintColor, paintedElement: Elemen
 
 // An inline box with a plain fill behind native text, such as code or a key, becomes the highlight of its run:
 // a shape at the browser's place misses the letters once PowerPoint sets them in its own font.
+// A translucent fill over a picture stays translucent here: the export mixes it with the pixels under it.
 export function readRunHighlight(paintedElement: Element, pageElement: Element): PaintColor | undefined {
   const elementStyle = getComputedStyle(paintedElement);
   if (elementStyle.display !== "inline" || elementStyle.backgroundImage !== "none" || paintedElement.querySelector(`[${pptxPageMarks.textWrapper}]`) === null) return undefined;
   const fillColor = convertCssColor(elementStyle.backgroundColor, measureEffectiveOpacity(paintedElement, pageElement));
-  return fillColor === undefined ? undefined : blendOverBackdrop(fillColor, paintedElement, pageElement);
+  return fillColor === undefined ? undefined : (blendOverBackdrop(fillColor, paintedElement, pageElement) ?? fillColor);
 }
 
 // Rotated text and boxes stay in the picture of the slide: a native object here would stand upright.
