@@ -3,6 +3,7 @@ import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import type { SlideNumbering } from "../slide-navigation/slide-numbering.ts";
+import type { StepEffect } from "../slide-steps/step-attributes.ts";
 
 export const SlideEnvironmentContext = createContext<SlideEnvironment | null>(null);
 
@@ -17,6 +18,7 @@ export type PresentationSettings = {
   lang: string;
   transition: SlideTransition;
   speed: TransitionSpeed;
+  stepEffect?: StepEffect;
 };
 // What a custom component on a slide may read: useSlide() inside any element of a <Slide>.
 export type SlideState = { number: number; step: number; isCurrent: boolean; isCopy: boolean };

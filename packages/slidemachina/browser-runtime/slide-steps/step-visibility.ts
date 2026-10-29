@@ -2,8 +2,12 @@ import { useLayoutEffect, type RefObject } from "react";
 
 // Fired on the slide right after steps are marked, so blocks such as <Code lines> follow in the same frame.
 export const stepChangeEventName = "slidemachina-steps";
-// Names the step attributes a sequence wrote on its item, so a changed or removed data-steps can take them back.
-const sequenceStepMark = "data-sequence-step";
+// Names the step attributes the engine wrote on an element: a sequence's step and effect, or the slide's default effect.
+// A changed or removed data-steps or stepEffect takes them back.
+const writtenStepMark = "data-written-step";
+// The step just revealed, one forward from the step before: only it plays an animation such as glitch.
+const arrivingStepMark = "data-step-arriving";
+const lastRevealedSteps = new WeakMap<HTMLElement, number>();
 
 export function useStepVisibility(
   slideElementReference: RefObject<HTMLElement | null>,
@@ -27,9 +31,9 @@ function listSequenceItems(sequenceElement: HTMLElement): HTMLElement[] {
 
 // <ul data-steps>: every item becomes a step; data-steps={3} puts them on steps 3, 4, 5. An item's own attributes win.
 function markSequenceSteps(slideElement: HTMLElement) {
-  for (const markedItem of slideElement.querySelectorAll<HTMLElement>(`[${sequenceStepMark}]`)) {
-    for (const writtenAttribute of markedItem.getAttribute(sequenceStepMark)!.split(" ")) markedItem.removeAttribute(writtenAttribute);
-    markedItem.removeAttribute(sequenceStepMark);
+  for (const markedItem of slideElement.querySelectorAll<HTMLElement>(`[${writtenStepMark}]`)) {
+    for (const writtenAttribute of markedItem.getAttribute(writtenStepMark)!.split(" ")) markedItem.removeAttribute(writtenAttribute);
+    markedItem.removeAttribute(writtenStepMark);
   }
   for (const sequenceElement of slideElement.querySelectorAll<HTMLElement>("[data-steps]")) {
     const firstStepNumber = Number.parseInt(sequenceElement.dataset.steps ?? "", 10);
@@ -42,19 +46,43 @@ function markSequenceSteps(slideElement: HTMLElement) {
         sequenceItem.dataset.stepEffect = sequenceEffect;
         writtenAttributes.push("data-step-effect");
       }
-      sequenceItem.setAttribute(sequenceStepMark, writtenAttributes.join(" "));
+      sequenceItem.setAttribute(writtenStepMark, writtenAttributes.join(" "));
     });
+  }
+}
+
+// <Slide stepEffect> or <Presentation stepEffect> goes to every step that names no effect of its own, after the sequences gave theirs.
+function markDefaultEffects(slideElement: HTMLElement) {
+  const defaultEffect = slideElement.dataset.defaultStepEffect;
+  if (defaultEffect === undefined) return;
+  for (const stepElement of slideElement.querySelectorAll<HTMLElement>("[data-step]:not([data-step-effect])")) {
+    stepElement.dataset.stepEffect = defaultEffect;
+    const earlierWrites = stepElement.getAttribute(writtenStepMark);
+    stepElement.setAttribute(writtenStepMark, earlierWrites === null ? "data-step-effect" : `${earlierWrites} data-step-effect`);
+  }
+}
+
+// Marks only a move one step forward: a slide opened again, or opened at its last step, shows its steps in place.
+function markArrivingSteps(slideElement: HTMLElement, stepElements: HTMLElement[], revealedStep: number) {
+  const previousRevealedStep = lastRevealedSteps.get(slideElement);
+  lastRevealedSteps.set(slideElement, revealedStep);
+  if (previousRevealedStep === revealedStep) return;
+  const movedOneForward = previousRevealedStep === revealedStep - 1;
+  for (const stepElement of stepElements) {
+    stepElement.toggleAttribute(arrivingStepMark, movedOneForward && Number(stepElement.dataset.stepIndex) === revealedStep);
   }
 }
 
 // Returns the number of steps on the slide.
 export function markReachedSteps(slideElement: HTMLElement, revealedStep: number): number {
   markSequenceSteps(slideElement);
+  markDefaultEffects(slideElement);
   const stepElements = [...slideElement.querySelectorAll<HTMLElement>("[data-step]")];
   const stepCount = numberStepElements(stepElements);
   for (const stepElement of stepElements) {
     stepElement.toggleAttribute("data-step-reached", Number(stepElement.dataset.stepIndex) <= revealedStep);
   }
+  markArrivingSteps(slideElement, stepElements, revealedStep);
   return stepCount;
 }
 

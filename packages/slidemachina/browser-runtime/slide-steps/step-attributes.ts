@@ -1,4 +1,4 @@
-export type StepEffect = "fade" | "rise" | "scale" | "highlight" | "dim";
+export type StepEffect = "fade" | "rise" | "scale" | "glitch" | "highlight" | "dim";
 export type StepAttributes = {
   "data-step": number | true;
   "data-step-effect": StepEffect;

@@ -52,7 +52,7 @@ npx slidemachina build --pptx        # PowerPoint: текст и схемы мо
 | Блок | Пример |
 | --- | --- |
 | Список по шагам | `<ul data-steps><li>Первый</li><li>Второй</li></ul>`. `data-steps={3}` — с третьего шага |
-| Шаг на любом месте | `<span data-step data-step-effect="highlight">вот так</span>`, эффекты `rise`, `fade`, `scale`, `highlight`, `dim` |
+| Шаг на любом месте | `<span data-step data-step-effect="highlight">вот так</span>`, эффекты `rise`, `fade`, `scale`, `glitch`, `highlight`, `dim`; для всех шагов — `<Presentation stepEffect="glitch">` |
 | Код | `<Code lang="ts">{"const answer = 42;"}</Code>` или `<Code src="./app.py" lines="2-4 \| 8" numbers />` — строки по шагам, `numbers` — номера строк |
 | Картинка | `<Image src={photo} stretch />` — на свободное место, `full` — на весь слайд. `float="left"` или `"right"` — текст обтекает картинку. На обложке `<Image>` перед текстом стоит слева от него, после — справа |
 | Видео | `<Video src={clip} poster={still} stretch />` — играет без звука, пока слайд на экране |

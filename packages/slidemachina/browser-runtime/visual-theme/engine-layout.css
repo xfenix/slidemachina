@@ -265,7 +265,7 @@
   }
 
   /* A list with data-steps carries data-step-effect for its items and stays visible itself. */
-  :where([data-step]):is([data-step-effect="fade"], [data-step-effect="rise"], [data-step-effect="scale"], [data-step]:not([data-step-effect])):not([data-step-reached]) {
+  :where([data-step]):is([data-step-effect="fade"], [data-step-effect="rise"], [data-step-effect="scale"], [data-step-effect="glitch"], [data-step]:not([data-step-effect])):not([data-step-reached]) {
     opacity: 0;
     visibility: hidden;
   }
@@ -276,6 +276,17 @@
 
   :where([data-step])[data-step-effect="scale"]:not([data-step-reached]) {
     scale: 0.85;
+  }
+
+  /* Glitch comes in the way a slide does with the glitch transition. A step shown again, on a slide opened again, stands still. */
+  :where([data-step])[data-step-effect="glitch"] {
+    transition-duration: 0s;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-step-effect="glitch"][data-step-reached][data-step-arriving] {
+      animation: slidemachina-glitch-away var(--step-time) steps(7, jump-none) reverse both;
+    }
   }
 
   [data-step-effect="highlight"][data-step-reached] {

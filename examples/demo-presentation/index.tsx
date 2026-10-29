@@ -173,6 +173,7 @@ export default (
             <li data-step><code>rise</code> - по умолчанию: поднимается снизу</li>
             <li data-step data-step-effect="fade"><code>fade</code> - проявляется на месте</li>
             <li data-step data-step-effect="scale"><code>scale</code> - вырастает</li>
+            <li data-step data-step-effect="glitch"><code>glitch</code> - проступает рывками сквозь помехи</li>
             <li data-step data-step-effect="highlight"><code>highlight</code> - загорается цветом</li>
             <li data-step data-step-effect="dim"><code>dim</code> - гаснет</li>
           </ul>

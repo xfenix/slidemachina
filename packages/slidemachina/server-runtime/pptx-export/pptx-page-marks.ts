@@ -25,7 +25,7 @@ export const pageReadingConstants = {
   layoutTolerance: 0.5,
   boldFontWeight: 600,
   largestSingleUnitCode: 0xffff,
-  appearanceEffects: ["rise", "fade", "scale"],
+  appearanceEffects: ["rise", "fade", "scale", "glitch"],
   defaultStepDuration: 300,
   gapSpaceShare: 1.5,
   percentScale: 100,

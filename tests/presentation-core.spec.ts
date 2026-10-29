@@ -180,6 +180,18 @@ test("демо листается, показывает шаги и навига
     await expect(currentSlide(page).locator("[data-step-effect=highlight]")).not.toHaveAttribute("data-step-reached");
   });
 
+  await test.step("глитч шага играет только на шаге вперёд", async () => {
+    await jumpToHeading(page, "Эффекты шагов");
+    const glitchItem = currentSlide(page).locator("[data-step-effect=glitch]");
+    await expect(glitchItem).toHaveCSS("visibility", "hidden");
+    for (const _ of ["rise", "fade", "scale", "glitch"]) await page.keyboard.press("ArrowRight");
+    await expect(glitchItem).toHaveAttribute("data-step-arriving");
+    await expect(glitchItem).toHaveCSS("animation-name", "slidemachina-glitch-away");
+    await page.keyboard.press("ArrowRight");
+    await expect(glitchItem).not.toHaveAttribute("data-step-arriving");
+    await expect(glitchItem).toHaveCSS("visibility", "visible");
+  });
+
   await test.step("фон: цвет и картинка", async () => {
     await jumpToHeading(page, "Тёмный фон");
     await expect(currentSlide(page)).toHaveAttribute("data-tone", "dark");

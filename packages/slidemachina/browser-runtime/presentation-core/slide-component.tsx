@@ -11,6 +11,7 @@ import { useBottomBandRoom } from "./bottom-band-room.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { useStepVisibility } from "../slide-steps/step-visibility.ts";
+import type { StepEffect } from "../slide-steps/step-attributes.ts";
 import { listSlideNotes, writeNotesText } from "./slide-notes.tsx";
 
 export type SlideLogoPlacement = "top-right" | "top" | "center" | "bottom";
@@ -24,6 +25,8 @@ export type SlideProperties = {
   tone?: SlideTone;
   transition?: SlideTransition;
   speed?: TransitionSpeed;
+  // The effect of every step on the slide that names none of its own; data-step-effect on an element or a list wins.
+  stepEffect?: StepEffect;
   plain?: boolean;
   logo?: boolean | SlideLogoPlacement;
   breadcrumbs?: boolean | string;
@@ -46,6 +49,7 @@ export function Slide({
   tone,
   transition,
   speed,
+  stepEffect,
   plain = false,
   logo = true,
   breadcrumbs = true,
@@ -92,6 +96,7 @@ export function Slide({
       data-hidden={hidden || undefined}
       data-slide-address={slideEnvironment.slideAddress}
       data-transition={transition ?? presentationSettings.transition}
+      data-default-step-effect={stepEffect ?? presentationSettings.stepEffect}
       data-current={slideEnvironment.isCurrentSlide || undefined}
       data-distant={(!slideEnvironment.isSlideNearby && !slideEnvironment.isSlideCopy) || undefined}
       data-notes={notesText === "" ? undefined : notesText}

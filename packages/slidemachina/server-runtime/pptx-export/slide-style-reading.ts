@@ -133,7 +133,7 @@ export function measureElementScale(paintedElement: Element): number {
   return paintedElement.getBoundingClientRect().width / paintedElement.offsetWidth;
 }
 
-// highlight and dim change a visible element, so only appearing steps become entrance animations.
+// highlight and dim change a visible element, so only appearing steps become entrance animations; PowerPoint has no glitch, it fades in.
 export function findStepOwner(paintedNode: Node, pageElement: Element): HTMLElement | undefined {
   const startElement = paintedNode instanceof HTMLElement ? paintedNode : paintedNode.parentElement;
   for (let currentElement = startElement; currentElement !== null && currentElement !== pageElement; currentElement = currentElement.parentElement) {
@@ -144,7 +144,8 @@ export function findStepOwner(paintedNode: Node, pageElement: Element): HTMLElem
 
 export function describePartStep(stepOwner: HTMLElement | undefined): PartStep {
   if (stepOwner === undefined) return { stepNumber: 0, stepEffect: "fade" };
-  const stepEffect = (stepOwner.dataset.stepEffect ?? "rise") as AppearanceEffect;
+  const ownEffect = stepOwner.dataset.stepEffect ?? "rise";
+  const stepEffect = (ownEffect === "glitch" ? "fade" : ownEffect) as AppearanceEffect;
   return { stepNumber: Number(stepOwner.dataset.stepIndex), stepEffect };
 }
 

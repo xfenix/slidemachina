@@ -22,6 +22,7 @@ import { useSlideNavigation } from "../slide-navigation/slide-navigation.ts";
 import { findShownSlide, numberSlides } from "../slide-navigation/slide-numbering.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
+import type { StepEffect } from "../slide-steps/step-attributes.ts";
 import { SlideNavigator } from "../presentation-interface/slide-navigator.tsx";
 import { MinimapSwitch, SlideMinimap, useMinimapShowing } from "../presentation-interface/slide-minimap.tsx";
 import { useOverviewAddress } from "../presentation-interface/overview-address.ts";
@@ -51,6 +52,8 @@ export type PresentationProperties = {
   transition?: SlideTransition;
   // "fast", "normal", "slow" or how many times faster than normal; a slide can set its own.
   speed?: TransitionSpeed;
+  // The effect of every step that names none of its own, "rise" by default; a slide can set its own.
+  stepEffect?: StepEffect;
   // Stands between a section and its subsection in the breadcrumbs and the navigator: "/", "·", "→".
   breadcrumbsSeparator?: string;
   // Read by the build, which typographs the slide text; false keeps the text exactly as written.
@@ -77,6 +80,7 @@ export function Presentation({
   favicon,
   transition = "auto",
   speed = "normal",
+  stepEffect,
   breadcrumbsSeparator,
   aspectRatio = defaultAspectRatio,
   progress = true,
@@ -116,8 +120,8 @@ export function Presentation({
       setNavigatorOpen(opensNavigator);
     }, chosenSlideIndex ?? currentPosition.slideIndex);
   const presentationSettings: PresentationSettings = useMemo(
-    () => ({ align, logo, lang, transition, speed }),
-    [align, logo, lang, transition, speed],
+    () => ({ align, logo, lang, transition, speed, stepEffect }),
+    [align, logo, lang, transition, speed, stepEffect],
   );
   const sectionTrails = useMemo(() => outlinedSlides.map((outlinedSlide) => outlinedSlide.sectionTrail), [outlinedSlides]);
   const describeSlideEnvironment = useSlideEnvironments(slideNumbering, sectionTrails, presentationSettings, stepCountsReference);
