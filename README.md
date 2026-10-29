@@ -46,15 +46,6 @@ npm run dev               # слайды в браузере, правки ви�
 npm run build             # спросит, что собрать
 ```
 
-> [!NOTE]
-> Пакетов в npm пока нет. Презентации запускаются из этого репозитория:
-> ```bash
-> git clone https://github.com/xfenix/slidemachina && cd slidemachina
-> npm install
-> npm run demo                       # демо со всеми возможностями
-> npx slidemachina dev <папка>       # своя папка с index.tsx рядом с examples/
-> ```
-
 ## Как выглядит презентация
 
 ```tsx
@@ -235,10 +226,6 @@ TypeScript подсказывает компоненты и их свойств�
 Все переменные с описанием — в разделе «Тема» в [docs/slidemachina.md](docs/slidemachina.md).
 
 </details>
-
-## Чего пока нет
-
-- Пакетов в npm.
 
 ## Разработка
 
