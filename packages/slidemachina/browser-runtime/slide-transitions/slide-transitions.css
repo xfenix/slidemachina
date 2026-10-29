@@ -6,6 +6,8 @@
     --glitch-split: 5px;
     --glitch-red: rgb(255 0 80 / 0.85);
     --glitch-cyan: rgb(0 230 255 / 0.85);
+    /* The clip reaches past the box: big digits and their shifted colours stick out of the line, and must not be cut. */
+    --glitch-room: -50%;
   }
 
   :root[data-slide-direction="backward"] {
@@ -372,23 +374,23 @@
 
 @keyframes slidemachina-glitch-away {
   from {
-    clip-path: inset(0);
+    clip-path: inset(var(--glitch-room));
     filter: drop-shadow(0 0 0 transparent) drop-shadow(0 0 0 transparent);
   }
   30% {
     translate: var(--glitch-shift) 0;
-    clip-path: inset(0);
+    clip-path: inset(var(--glitch-room));
     filter: drop-shadow(var(--glitch-split) 0 0 var(--glitch-red)) drop-shadow(calc(-1 * var(--glitch-split)) 0 0 var(--glitch-cyan));
   }
   60% {
     translate: calc(-1 * var(--glitch-shift)) 0;
     transform: skewX(-8deg);
-    clip-path: inset(18% 0 30% 0);
+    clip-path: inset(18% var(--glitch-room) 30% var(--glitch-room));
     filter: drop-shadow(calc(2 * var(--glitch-split)) 0 0 var(--glitch-red)) drop-shadow(calc(-2 * var(--glitch-split)) 0 0 var(--glitch-cyan));
   }
   to {
     translate: calc(2 * var(--glitch-shift)) 0;
-    clip-path: inset(46% 0 46% 0);
+    clip-path: inset(46% var(--glitch-room) 46% var(--glitch-room));
     filter: drop-shadow(calc(3 * var(--glitch-split)) 0 0 var(--glitch-red)) drop-shadow(calc(-3 * var(--glitch-split)) 0 0 var(--glitch-cyan));
     opacity: 0;
   }

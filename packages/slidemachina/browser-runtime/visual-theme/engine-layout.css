@@ -285,7 +285,7 @@
 
   @media (prefers-reduced-motion: no-preference) {
     [data-step-effect="glitch"][data-step-reached][data-step-arriving] {
-      animation: slidemachina-glitch-away var(--step-time) steps(7, jump-none) reverse both;
+      animation: slidemachina-glitch-away var(--step-time) steps(7, jump-none) reverse;
     }
   }
 
