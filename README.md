@@ -224,7 +224,7 @@ TypeScript подсказывает компоненты и их свойств�
 | Иконка вкладки | `<Presentation favicon={favicon}>` с `import favicon from "./favicon.svg"`, по умолчанию знак slidemachina |
 
 - Логотип — `logo` у `Presentation`: файл, `{ light, dark }` для светлых и тёмных слайдов или компонент. Компонент получает `dark={true}` на тёмных слайдах. Логотип движка — `logo={Machina.SlidemachinaLogo}`.
-- Место логотипа — `logo` у `Slide`: `"top-right"` (по умолчанию), `"top"`, `"center"` над заголовком, `"bottom"` или `false`.
+- Место логотипа — `logo` у `Slide`: `"top-right"` (по умолчанию), `"top-left"`, `"top"`, `"center"` над заголовком, `"bottom"` или `false`.
 - Тёмный слайд — `background` у `Slide`, цвет или картинка.
 - Один слайд по-своему — `className` у `Slide` и классы Tailwind прямо в разметке.
 - Общая тема нескольких докладов — `theme/style.css` в репозитории презентаций. Тема доклада сильнее общей.

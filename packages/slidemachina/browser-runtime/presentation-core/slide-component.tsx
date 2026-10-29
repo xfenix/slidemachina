@@ -14,7 +14,7 @@ import { useStepVisibility } from "../slide-steps/step-visibility.ts";
 import type { StepEffect } from "../slide-steps/step-attributes.ts";
 import { listSlideNotes, writeNotesText } from "./slide-notes.tsx";
 
-export type SlideLogoPlacement = "top-right" | "top" | "center" | "bottom";
+export type SlideLogoPlacement = "top-right" | "top-left" | "top" | "center" | "bottom";
 export type SlideVerticalAlign = "top" | "center" | "bottom";
 export type SlideProperties = {
   children?: ReactNode;

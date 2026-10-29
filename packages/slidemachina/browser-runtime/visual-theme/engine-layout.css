@@ -152,6 +152,11 @@
     height: var(--logo-height);
   }
 
+  [data-logo][data-logo-placement="top-left"] {
+    right: auto;
+    left: var(--frame-padding);
+  }
+
   [data-logo]:is([data-logo-placement="top"], [data-logo-placement="bottom"]) {
     right: auto;
     left: 50%;
@@ -220,8 +225,8 @@
     --content-bottom: var(--content-top);
   }
 
-  /* Right-aligned content at the top would run into the logo in the corner, so it starts under the logo, as text under a heading. */
-  [data-slide][data-align="right"][data-valign="top"]:has(> [data-logo-placement="top-right"]) [data-content] {
+  /* Content at the top on the logo's side would run into the logo in the corner, so it starts under the logo, as text under a heading. */
+  [data-slide][data-valign="top"]:is([data-align="right"]:has(> [data-logo-placement="top-right"]), [data-align="left"]:has(> [data-logo-placement="top-left"])) [data-content] {
     padding-top: calc(var(--logo-height) + var(--heading-gap));
   }
 
