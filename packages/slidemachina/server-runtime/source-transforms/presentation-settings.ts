@@ -24,11 +24,11 @@ const defaultPresentationSettings: PresentationSettings = {
 
 const fragmentNames = new Set(["Fragment", "React.Fragment"]);
 
-function isSwitchedOn(attributeNode: SyntaxNode | undefined): boolean {
+export function isSwitchedOn(attributeNode: SyntaxNode | undefined): boolean {
   return attributeNode !== undefined && (attributeNode.value === null || attributeNode.value?.expression?.value === true);
 }
 
-function createSyntaxOutlineReader(engineNames: Record<string, string>): SlideOutlineReader<SyntaxNode> {
+export function createSyntaxOutlineReader(engineNames: Record<string, string>): SlideOutlineReader<SyntaxNode> {
   return {
     classifyMarkupNode: (markupNode) => {
       if (markupNode.type === "JSXFragment" || fragmentNames.has(readElementName(markupNode) ?? "")) return "fragment";

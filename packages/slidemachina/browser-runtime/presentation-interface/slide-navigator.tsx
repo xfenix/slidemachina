@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode }
 import { pickInterfaceTexts } from "./interface-texts.ts";
 import { useWindowKeydown } from "../slide-navigation/keyboard-listener.ts";
 import type { OutlinedSlide } from "../presentation-core/slide-outline.tsx";
-import type { SlideNumbering } from "../slide-navigation/slide-numbering.ts";
+import type { SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
 import { HiddenSlideIcon } from "./hidden-slide-icon.tsx";
 
 const navigatorPadding = 64;

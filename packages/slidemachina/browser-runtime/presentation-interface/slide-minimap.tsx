@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { pickInterfaceTexts } from "./interface-texts.ts";
 import { ToolbarButton } from "./presentation-toolbar.tsx";
-import type { SlideNumbering } from "../slide-navigation/slide-numbering.ts";
+import type { SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
 
 const minimapWidth = 168;
 const minimapPadding = 12;

@@ -3,7 +3,7 @@ import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts
 import type { OutlinedSlide } from "../presentation-core/slide-outline.tsx";
 import { useWindowKeydown } from "../slide-navigation/keyboard-listener.ts";
 import type { PresentationPosition } from "../slide-navigation/position-hash.ts";
-import { findNeighbourSlide, type SlideNumbering } from "../slide-navigation/slide-numbering.ts";
+import { findNeighbourSlide, type SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
 import type { SlideCommand } from "./presenter-channel.ts";
 import { keepFocus, PresenterTimer } from "./presenter-timer.tsx";
 

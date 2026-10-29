@@ -5,7 +5,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { expect, test, type Page } from "@playwright/test";
-import { commandLineScript, examplesFolder, projectCreatorScript, skipsGeneratedFiles, waitForServer, workspaceFolder } from "./test-helpers.ts";
+import { commandLineScript, demoFolderName, examplesFolder, projectCreatorScript, skipsGeneratedFiles, waitForServer, workspaceFolder } from "./test-helpers.ts";
 
 const runCommand = promisify(execFile);
 const repositoryServerPort = 5197;
@@ -156,16 +156,29 @@ test("репозиторий презентаций: список с облож�
       await expect(page).toHaveURL(/\/dist\/index\.html$/);
     });
 
-    await test.step("npm create slidemachina: презентация с README и главными переменными темы", async () => {
+    await test.step("slidemachina check: замечания по каждой презентации, в JSON — с местом и правилом", async () => {
+      const checkReport = JSON.parse(await runFailingCommand(["check", copyFolder, "--json"])) as { file: string; rule: string; line: number }[];
+      // The demo is a catalogue of features: more sections than a talk should have.
+      expect(checkReport.find(({ rule }) => rule === "manySections")?.file).toContain(demoFolderName);
+      expect(checkReport.filter(({ file }) => !file.includes(demoFolderName)), "доклады примеров по правилам").toEqual([]);
+    });
+
+    await test.step("npm create slidemachina: презентация с README, главными переменными темы и файлами для агентов", async () => {
       const createdFolder = path.join(scratchFolder, "created");
       await mkdir(createdFolder);
       await runCommand(process.execPath, [projectCreatorScript, "my-talk"], { cwd: createdFolder });
-      const projectReadme = await readFile(path.join(createdFolder, "my-talk", "README.md"), "utf8");
+      const projectFolder = path.join(createdFolder, "my-talk");
+      const projectReadme = await readFile(path.join(projectFolder, "README.md"), "utf8");
       for (const readmePart of ["npm run dev", "--pdf", "<Diagram>", "Esc", "--accent-color"]) expect(projectReadme).toContain(readmePart);
-      const projectStyle = await readFile(path.join(createdFolder, "my-talk", "style.css"), "utf8");
+      const projectStyle = await readFile(path.join(projectFolder, "style.css"), "utf8");
       for (const themeVariable of ["--accent-color", "--section-background", "--dark-background", "--transition-stage-background"]) {
         expect(projectStyle).toContain(`/* ${themeVariable}:`);
       }
+      expect(await readFile(path.join(projectFolder, "CLAUDE.md"), "utf8")).toContain("@AGENTS.md");
+      expect(await readFile(path.join(projectFolder, "AGENTS.md"), "utf8")).toContain("llms.txt");
+      expect(await readFile(path.join(projectFolder, ".claude", "skills", "slidemachina", "SKILL.md"), "utf8")).toContain("name: slidemachina");
+      // The template itself follows the rules it gives the agent.
+      await runCommand(process.execPath, [commandLineScript, "check", projectFolder]);
     });
   } finally {
     developmentServer.kill();

@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, type ComponentType, type RefObject 
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
-import type { SlideNumbering } from "../slide-navigation/slide-numbering.ts";
+import type { SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
 import type { StepEffect } from "../slide-steps/step-attributes.ts";
 
 export const SlideEnvironmentContext = createContext<SlideEnvironment | null>(null);

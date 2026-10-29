@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "slidemachina dev",
-    "build": "slidemachina build"
+    "build": "slidemachina build",
+    "check": "slidemachina check"
   },
   "dependencies": {
     "slidemachina": "^1.0.0"

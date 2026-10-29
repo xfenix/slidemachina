@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { flushSync } from "react-dom";
 import { readPositionFromHash, writePositionToHash, type PresentationPosition } from "./position-hash.ts";
-import { findNeighbourSlide, type SlideNumbering } from "./slide-numbering.ts";
+import { findNeighbourSlide, type SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
 import { runSlideTransition } from "../slide-transitions/slide-transition.ts";
 
 export function useSlideNavigation(slideNumbering: SlideNumbering, stepCountsReference: RefObject<number[]>) {

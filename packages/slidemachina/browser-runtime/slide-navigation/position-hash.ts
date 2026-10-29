@@ -1,4 +1,4 @@
-import { findShownSlide, type SlideNumbering } from "./slide-numbering.ts";
+import { findShownSlide, type SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
 
 export type PresentationPosition = {
   slideIndex: number;

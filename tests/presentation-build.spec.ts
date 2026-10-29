@@ -230,6 +230,14 @@ test("сборка: один HTML-файл листается без серве�
         folderServer.close();
       }
     });
+
+    await test.step("slidemachina shot: слайд на шаге в PNG размером с холст", async () => {
+      const shotPath = path.join(outputFolder, "slide.png");
+      await runCommand(process.execPath, [commandLineScript, "shot", "2.1", path.join(examplesFolder, demoFolderName), "--out", shotPath]);
+      // Width and height stand in the IHDR chunk right after the PNG signature.
+      const pictureBytes = await readFile(shotPath);
+      expect([pictureBytes.readUInt32BE(16), pictureBytes.readUInt32BE(20)]).toEqual([1920, 1080]);
+    });
   } finally {
     await rm(outputFolder, { recursive: true, force: true });
   }

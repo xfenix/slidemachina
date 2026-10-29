@@ -8,7 +8,11 @@
 npm install
 npm run dev      # открыть в браузере, правки видны сразу
 npm run build    # собрать: спросит, что именно
+npm run check    # проверить слайды по правилам понятного доклада
+npx slidemachina shot 5   # снимок слайда 5 в slide-5.png
 ```
+
+Агенту хватит `AGENTS.md` рядом: там команды и правила подачи, а Claude Code возьмёт ещё скилл из `.claude/skills/slidemachina`.
 
 Без вопросов, например в CI:
 

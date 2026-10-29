@@ -34,6 +34,7 @@ function readCommandLine() {
         url: { type: "string" },
         animated: { type: "boolean" },
         local: { type: "boolean" },
+        json: { type: "boolean" },
       },
     });
   } catch (parseError) {
@@ -45,7 +46,11 @@ function readCommandLine() {
 }
 
 const parsedCommandLine = readCommandLine();
-const [commandName, projectFolderArgument = "."] = parsedCommandLine.positionals;
+const [commandName] = parsedCommandLine.positionals;
+// slidemachina shot 12 my-talk: the slide comes before the folder.
+const [slidePosition, projectFolderArgument = "."] = commandName === "shot" ? parsedCommandLine.positionals.slice(1) : [undefined, parsedCommandLine.positionals[1]];
+// "12", "12.2" after two steps, "12+1" for the first hidden slide after 12, as in the address of the slide.
+const slidePositionPattern = /^\d+(\+\d+)?(\.\d+)?$/;
 
 if (commandName === "meme") {
   // The meme command needs no Vite: it searches, downloads and prints markup.
@@ -54,10 +59,12 @@ if (commandName === "meme") {
   process.exit(0);
 }
 
-if (commandName !== "dev" && commandName !== "build") {
+if (commandName !== "dev" && commandName !== "build" && commandName !== "check" && commandName !== "shot") {
   console.log(commandLineTexts.usage);
   process.exit(commandName === undefined ? 0 : 1);
 }
+
+if (commandName === "shot" && !slidePositionPattern.test(slidePosition ?? "")) stopWithProblem(commandLineTexts.wrongSlidePosition(slidePosition ?? ""));
 
 const portText = parsedCommandLine.values.port;
 const portNumber = portText === undefined ? undefined : Number(portText);
@@ -71,6 +78,25 @@ const siteLayout = existsSync(requestedFolder) ? describeSite(realpathSync(reque
 if (siteLayout === undefined) {
   console.error(commandLineTexts.missingPresentationFile(requestedFolder));
   process.exit(1);
+}
+
+if (commandName === "check") {
+  const { runCheckCommand } = await import("./check-command.ts");
+  process.exit(runCheckCommand(siteLayout, parsedCommandLine.values));
+}
+
+if (commandName === "shot") {
+  if (siteLayout.isRepository) stopWithProblem(commandLineTexts.shotNeedsPresentation);
+  const { shootSlide } = await import("../presentation-build/slide-shooting.ts");
+  const picturePath = path.resolve(parsedCommandLine.values.out ?? `slide-${slidePosition!.replace(/[+.]/g, "-")}.png`);
+  try {
+    await shootSlide(siteLayout, slidePosition!, picturePath);
+  } catch (shotError) {
+    console.error(shotError instanceof Error ? shotError.message : String(shotError));
+    process.exit(1);
+  }
+  console.log(commandLineTexts.shotSaved(path.relative(process.cwd(), picturePath)));
+  process.exit(0);
 }
 
 if (commandName === "build") {

@@ -115,10 +115,10 @@ function writeRepositoryPresentation(presentationFolder: string): void {
   cpSync(path.join(templateFolder, "images", "dusk.webp"), path.join(presentationFolder, "images", "dusk.webp"));
 }
 
-// The repository root: package.json, tsconfig.json and .gitignore of the template, a theme with its logos, one presentation.
+// The repository root: package.json, tsconfig.json, .gitignore and the agent files of the template, a theme with its logos, one presentation.
 function writeRepositoryFiles(repositoryFolder: string): void {
   mkdirSync(repositoryFolder, { recursive: true });
-  for (const sharedFileName of ["package.json", "tsconfig.json", "gitignore"]) {
+  for (const sharedFileName of ["package.json", "tsconfig.json", "gitignore", "AGENTS.md", "CLAUDE.md", ".claude"]) {
     cpSync(path.join(templateFolder, sharedFileName), path.join(repositoryFolder, sharedFileName), { recursive: true });
   }
   finishCopiedTemplate(repositoryFolder);

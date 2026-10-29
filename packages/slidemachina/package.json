@@ -10,13 +10,15 @@
   "files": [
     "browser-runtime",
     "server-runtime",
-    "shared-between-runtimes"
+    "shared-between-runtimes",
+    "llms.txt"
   ],
   "exports": {
     ".": {
       "types": "./browser-runtime/slidemachina.ts",
       "default": "./browser-runtime/slidemachina.ts"
-    }
+    },
+    "./llms.txt": "./llms.txt"
   },
   "dependencies": {
     "@clack/prompts": "^1.8.1",

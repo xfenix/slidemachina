@@ -967,13 +967,10 @@ export default (
             `}</Machina.Code>
           </div>
           <ul data-steps>
-            <li><code>theme/</code> - общая тема: шрифты, цвета, логотип</li>
-            <li><code>style.css</code> в папке презентации сильнее общей темы</li>
-            <li>Тему части докладов подключает сам <code>index.tsx</code>: <code>import "../theme/brand.css"</code></li>
-            <li><code>npm create slidemachina</code> в корне добавляет презентацию</li>
-            <li><code>npx slidemachina dev</code> в корне открывает список презентаций</li>
-            <li>Новые доклады в списке первыми, порядок - по дате</li>
-            <li>Папки <code>theme</code> и <code>dist</code> в список не попадают</li>
+            <li><code>theme/</code> - общая тема, <code>style.css</code> доклада сильнее неё</li>
+            <li>Тема части докладов - импорт в <code>index.tsx</code>: <code>import "../theme/brand.css"</code></li>
+            <li><code>npm create slidemachina</code> в корне добавляет доклад</li>
+            <li><code>npx slidemachina dev</code> в корне открывает список, новые доклады первыми</li>
           </ul>
         </div>
       </Machina.Slide>
@@ -1028,11 +1025,10 @@ export default (
         <h2>Правка прямо на слайде</h2>
         <ul data-steps>
           <li><kbd>E</kbd> или карандаш включают редактор</li>
-          <li>Текст: нажмите и пишите. <kbd>Enter</kbd> сохраняет, <kbd>Esc</kbd> отменяет</li>
-          <li>Картинка: перетащите на неё файл, он ляжет в <code>images/</code></li>
-          <li>Блок схемы: тяните в другую колонку или на другое место</li>
-          <li>Слайд: кнопки на панели добавляют, копируют, двигают и удаляют</li>
-          <li>Правка сразу записывается в <code>index.tsx</code>, слайд остаётся на том же шаге</li>
+          <li>Текст: нажмите и пишите, <kbd>Enter</kbd> сохраняет</li>
+          <li>Картинка: перетащите на неё файл</li>
+          <li>Блок схемы: тяните на другое место</li>
+          <li>Правка сразу ложится в <code>index.tsx</code></li>
         </ul>
       </Machina.Slide>
 
@@ -1077,11 +1073,9 @@ export default (
         <h2>Замечание агенту кликом по слайду</h2>
         <ul data-steps>
           <li>Кнопка Agentation на панели в режиме <code>dev</code></li>
-          <li>Нажмите на заголовок, картинку или блок и напишите, что поправить</li>
-          <li>Замечание уходит в Claude Code через MCP-сервер <code>agentation-mcp</code></li>
-          <li>В замечании есть место в файле: <code>index.tsx:42:7</code></li>
-          <li>Нет сервера - замечания остаются в браузере</li>
-          <li>В сборку Agentation не попадает</li>
+          <li>Нажмите на блок и напишите, что поправить</li>
+          <li>Замечание уйдёт в Claude Code с местом в файле: <code>index.tsx:42:7</code></li>
+          <li>Без MCP-сервера <code>agentation-mcp</code> оно останется в браузере</li>
         </ul>
       </Machina.Slide>
     </Machina.Section>
@@ -1130,10 +1124,10 @@ export default (
             `}</Machina.Code>
           </div>
           <ul data-steps>
-            <li>При показе его нет: стрелки идут мимо, номер и прогресс его не считают</li>
-            <li>В обзоре слайдов он бледный, с перечёркнутым глазом. Адрес <code>#12+1</code> — первый скрытый после слайда 12</li>
-            <li>В PDF и PowerPoint его тоже нет. Вернуть: «Скрытые слайды» в меню печати или <code>--hidden</code> у сборки</li>
-            <li>Запасной слайд демо стоит после «Спасибо»: нажмите <kbd>Esc</kbd> и найдите его</li>
+            <li>При показе его нет: стрелки, номер и прогресс идут мимо</li>
+            <li>В обзоре он бледный, адрес <code>#12+1</code></li>
+            <li>В PDF его нет, вернуть - <code>--hidden</code> у сборки</li>
+            <li>Запасной слайд демо - после «Спасибо»: нажмите <kbd>Esc</kbd></li>
           </ul>
         </div>
       </Machina.Slide>

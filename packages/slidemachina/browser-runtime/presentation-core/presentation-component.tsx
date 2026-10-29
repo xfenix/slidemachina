@@ -19,7 +19,7 @@ import {
   type SlideAlign,
 } from "./slide-environment.ts";
 import { useSlideNavigation } from "../slide-navigation/slide-navigation.ts";
-import { findShownSlide, numberSlides } from "../slide-navigation/slide-numbering.ts";
+import { findShownSlide, numberSlides } from "../../shared-between-runtimes/slide-numbering.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import type { StepEffect } from "../slide-steps/step-attributes.ts";
