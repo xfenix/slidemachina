@@ -51,11 +51,18 @@ jobs:
           npx slidemachina check
           npx slidemachina build --html
 
+      # A version already on npm, published by hand or by an earlier run of this release, is skipped: the run can be repeated.
       - name: Publish
         run: |
           npmTag="${{ github.event.release.prerelease && 'next' || 'latest' }}"
-          npm publish --workspace packages/slidemachina --access public --provenance --tag "$npmTag"
-          npm publish --workspace packages/create-slidemachina --access public --provenance --tag "$npmTag"
+          for packageFolder in packages/slidemachina packages/create-slidemachina; do
+            packageSpec="$(node -p "const manifest = require('./$packageFolder/package.json'); manifest.name + '@' + manifest.version")"
+            if npm view "$packageSpec" version > /dev/null 2>&1; then
+              echo "$packageSpec is already on npm"
+            else
+              npm publish --workspace "$packageFolder" --access public --provenance --tag "$npmTag"
+            fi
+          done
         env:
           # Not needed once trusted publishing is set up on npmjs.com for both packages.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
