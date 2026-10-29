@@ -10,6 +10,7 @@
 </p>
 
 <p align="center">
+  <img alt="Версия 1.0" src="https://img.shields.io/badge/version-1.0-1e3064">
   <img alt="React 19" src="https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white">
   <img alt="Vite 8" src="https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white">
@@ -127,7 +128,7 @@ TypeScript подсказывает компоненты и их свойств�
 Ещё:
 - заметки `<Notes>` в слайде и окно докладчика по <kbd>P</kbd>: слайд на экране, следующий шаг, заметки крупным шрифтом, таймер, часы и запас по времени. Листать можно из любого окна, работает и в HTML-файле с диска;
 - 13 переходов: `morph`, `slide`, `fade`, `zoom`, `cube`, `flip`, `wipe`, `iris`, `blinds`, `mosaic`, `glitch`, а ещё `auto` и `none`. Скорость задаётся для всей презентации или для слайда;
-- шаги на списке, таблице, колонках, части схемы или сцены;
+- шаги на списке, таблице, колонках, части схемы или сцены. Шесть эффектов: `rise`, `fade`, `scale`, `glitch`, `highlight`, `dim`. Один эффект на всю презентацию или слайд — `stepEffect`;
 - обзор слайдов с миниатюрами, переход по номеру, пауза с чёрным экраном, полный экран, полоса прогресса;
 - слайд-тезис в одну фразу, фон из видео, GIF или веб-страницы, блок поверх вёрстки;
 - хуки для своего кода: `useSlide()`, `onEnter`, `onLeave`, `onChange`;
@@ -173,7 +174,7 @@ TypeScript подсказывает компоненты и их свойств�
 |---|---|---|
 | Разметка | HTML: `<section>` в `index.html` | JSX в `index.tsx` с подсказками TypeScript |
 | Разделы | Вложенные `<section>` — вертикальные слайды. Хлебных крошек и обложек разделов нет | `Section`: обложка с номером, хлебные крошки, группы в обзоре слайдов |
-| Шаги | `class="fragment"` на каждом элементе | `step` на списке, таблице, колонках, части схемы или сцены |
+| Шаги | `class="fragment"` на каждом элементе | `step` на списке, таблице, колонках, части схемы или сцены. Эффект для всех шагов — одно свойство `stepEffect` |
 | Морфинг | `data-auto-animate` на обоих слайдах, пары через `data-id` | Включён по умолчанию. Общие элементы, слова и куски кода находятся сами |
 | Подсветка кода | highlight.js в браузере | Shiki при сборке: в браузере 0 КБ кода подсветки |
 | Схемы | Mermaid сторонним плагином | Блок-схемы и sequence-диаграммы из тегов. Блоки схемы расставляет ELK |
@@ -219,6 +220,7 @@ TypeScript подсказывает компоненты и их свойств�
 | Поля слайда | `--frame-padding` по бокам и снизу, `--frame-top` сверху, `--heading-gap` под заголовком |
 | Обложки разделов | `--section-background`, `--section-number-start-color`, `--section-number-end-color`, `--section-number-size`, `--section-texture`. Или свой `<Slide cover>` первым в разделе |
 | Движение | `speed` у `Presentation` или `Slide`, длительности `--transition-duration` и соседние, кривая `--transition-easing` |
+| Шаги | `stepEffect` у `Presentation` или `Slide`: `rise` (по умолчанию), `fade`, `scale`, `glitch`, `highlight`, `dim`. `data-step-effect` у элемента сильнее |
 | Формат | `<Presentation aspectRatio="4:3">`, по умолчанию `16:9`. Миниатюры, PDF и PowerPoint — в этом формате, на экране слайд растёт под окно до трети |
 | Разделитель крошек | `<Presentation breadcrumbsSeparator="/">`, по умолчанию `›` |
 | Иконка вкладки | `<Presentation favicon={favicon}>` с `import favicon from "./favicon.svg"`, по умолчанию знак slidemachina |

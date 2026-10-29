@@ -5,8 +5,6 @@ import editorPicture from "./images/source-editor.webp";
 import glassCardsPicture from "./images/glass-cards.webp";
 import glassCardsSquarePicture from "./images/glass-cards-square.webp";
 import jdMemePicture from "./images/memes/jd.jpg";
-import memePanelPicture from "./images/meme-panel.webp";
-import minimapPicture from "./images/minimap.webp";
 import orbitMemePicture from "./images/memes/orbit.gif";
 import navigatorPicture from "./images/navigator.webp";
 import navigatorSectionsPicture from "./images/navigator-sections.webp";
@@ -177,6 +175,7 @@ export default (
             <li data-step data-step-effect="highlight"><code>highlight</code> - загорается цветом</li>
             <li data-step data-step-effect="dim"><code>dim</code> - гаснет</li>
           </ul>
+          <p className="machina-note">Один эффект на все шаги: <code>stepEffect="glitch"</code> у <code>Presentation</code> или <code>Slide</code></p>
         </Machina.Slide>
       </Machina.Section>
 
@@ -205,21 +204,6 @@ export default (
     </Machina.Section>
 
     <Machina.Section title="Вёрстка">
-      <Machina.Slide align="center">
-        <h2>По центру</h2>
-        <p><code>align="center"</code> на слайде или на всей презентации</p>
-      </Machina.Slide>
-
-      <Machina.Slide>
-        <h2>Почему текст слева</h2>
-        <ul data-steps>
-          <li>Каждая строка начинается с одной вертикали, глаз не ищет начало</li>
-          <li>Строки разной длины не скачут, как при выравнивании по центру</li>
-          <li>Заголовок, список, код и таблица стоят на одной линии</li>
-          <li>По центру - обложки, цитаты и тезисы в одну фразу</li>
-        </ul>
-      </Machina.Slide>
-
       <Machina.Slide background="var(--dark-background)">
         <h2>Тёмный фон</h2>
         <Machina.Code lang="tsx">{`
@@ -252,7 +236,7 @@ export default (
         <h2>Логотип там, где нужен</h2>
         <Machina.Code lang="tsx">{`<Slide logo="center" number={false}>`}</Machina.Code>
         <p>Логотип встал над заголовком, номер слайда спрятан</p>
-        <p>Другие места логотипа: <code>top</code> и <code>bottom</code></p>
+        <p>Другие места логотипа: <code>top-left</code>, <code>top</code> и <code>bottom</code></p>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -345,25 +329,11 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide background="var(--accent-soft-color)" transition="fade">
-        <p className="machina-thesis">Тезис - одна мысль на цветном слайде</p>
+        <p className="machina-thesis">Тезис - одна мысль на цветном слайде: <code>machina-thesis</code></p>
       </Machina.Slide>
 
       <Machina.Slide background="var(--second-accent-soft-color)" transition="fade">
-        <p className="machina-thesis-small">Тезис длиннее набран шрифтом поменьше, а цвет слайда задаёт проп background</p>
-      </Machina.Slide>
-
-      <Machina.Slide>
-        <h2>Тезис</h2>
-        <Machina.Code lang="tsx">{`
-          <Slide background="var(--accent-soft-color)">
-            <p className="machina-thesis">Тезис - одна мысль на цветном слайде</p>
-          </Slide>
-        `}</Machina.Code>
-        <ul>
-          <li>Одна фраза без заголовка стоит в центре слайда</li>
-          <li>Короткая фраза - <code>machina-thesis</code>, длинная - <code>machina-thesis-small</code></li>
-          <li>Цвет слайда задаёт проп <code>background</code>, цвет текста движок подбирает под фон</li>
-        </ul>
+        <p className="machina-thesis-small">Длинный тезис набран мельче: <code>machina-thesis-small</code>. Цвет слайда задаёт <code>background</code>, цвет текста движок подбирает сам</p>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -383,15 +353,6 @@ export default (
     </Machina.Section>
 
     <Machina.Section title="Картинки">
-      <Machina.Slide align="center">
-        <h2>Картинка по центру</h2>
-        <div className="w-[880px]">
-          <Machina.Image src={glassCardsPicture} alt="Стеклянные карточки с текстом и графиком">
-            <figcaption>Ширину задаёт обёртка: <code>className="w-[880px]"</code></figcaption>
-          </Machina.Image>
-        </div>
-      </Machina.Slide>
-
       <Machina.Slide>
         <h2>Картинка занимает всё свободное место</h2>
         <Machina.Image src={navigatorPicture} stretch alt="Обзор слайдов">
@@ -540,31 +501,6 @@ export default (
       </Machina.Slide>
 
       <Machina.Slide>
-        <h2>Висят все знаки в начале строки</h2>
-        <p>"Кавычки" выходят за край, буквы стоят на линии заголовка</p>
-        <p>(Скобки) висят так же</p>
-        <ul>
-          <li>Маркеры списка</li>
-        </ul>
-        <ol data-steps>
-          <li>Номера списка</li>
-          <li>Стоят правым краем, как в таблице</li>
-        </ol>
-      </Machina.Slide>
-
-      <Machina.Slide>
-        <h2>Код висит так же</h2>
-        <Machina.Code lang="bash">{`npm create slidemachina`}</Machina.Code>
-        <Machina.Code lang="tsx" numbers>{`
-          const hangingMarks = ["«", "„", "(", "$"];
-          for (const hangingMark of hangingMarks) {
-            hangInMargin(hangingMark);
-          }
-        `}</Machina.Code>
-        <figcaption>Символы кода на линии текста. Фон кода, номера строк и <code>$</code> - за левым краем</figcaption>
-      </Machina.Slide>
-
-      <Machina.Slide>
         <h2>Типограф</h2>
         <div className="machina-columns">
           <div>
@@ -586,16 +522,6 @@ export default (
     </Machina.Section>
 
     <Machina.Section title="Схемы">
-      <Machina.Slide>
-        <h2>Схемы прямо в презентации</h2>
-        <ul data-steps>
-          <li>Блоки и стрелки пишутся тегами</li>
-          <li>Блоки расставляет библиотека ELK, руками их двигать не нужно</li>
-          <li><code>Focus</code> выделяет нужную часть, остальное гаснет</li>
-          <li>Блоки появляются по шагам, схема перетекает в следующую</li>
-        </ul>
-      </Machina.Slide>
-
       <Machina.Slide className="[--diagram-max-scale:1.5]">
         <h2>Пишете теги, получаете схему</h2>
         <div className="machina-columns" style={{ gridTemplateColumns: "auto 1fr" }}>
@@ -824,22 +750,6 @@ export default (
         <p className="machina-lead">Посередине, на фото. Цвет текста движок подбирает по яркости картинки</p>
       </Machina.Slide>
 
-      <Machina.Slide cover align="left" valign="top">
-        <h1>Планы на 2027</h1>
-        <p className="machina-lead">Над полосой слева сверху: <code>align="left"</code>, <code>valign="top"</code></p>
-        <div className="machina-pin-bottom machina-pin-left machina-pin-right h-[50cqh]">
-          <img src={glassCardsPicture} alt="" className="size-full object-cover" />
-        </div>
-      </Machina.Slide>
-
-      <Machina.Slide cover align="center" valign="center">
-        <h1>Планы на 2027</h1>
-        <p className="machina-lead">Над полосой в центре: <code>align="center"</code>, <code>valign="center"</code></p>
-        <div className="machina-pin-bottom machina-pin-left machina-pin-right h-[50cqh]">
-          <img src={glassCardsPicture} alt="" className="size-full object-cover" />
-        </div>
-      </Machina.Slide>
-
       <Machina.Slide cover align="right" valign="bottom">
         <h1>Планы на 2027</h1>
         <p className="machina-lead">Над полосой справа снизу: <code>align="right"</code>, <code>valign="bottom"</code></p>
@@ -1037,24 +947,6 @@ export default (
           </tbody>
         </table>
       </Machina.Slide>
-
-      <Machina.Slide align="center">
-        <h2>Один файл</h2>
-        <div className="machina-columns" data-steps>
-          <figure className="machina-big-number">
-            <p>1</p>
-            <figcaption>файл с картинками и шрифтами</figcaption>
-          </figure>
-          <figure className="machina-big-number">
-            <p>0,5</p>
-            <figcaption>секунды на сборку</figcaption>
-          </figure>
-          <figure className="machina-big-number">
-            <p>0 КБ</p>
-            <figcaption>весит редактор в сборке</figcaption>
-          </figure>
-        </div>
-      </Machina.Slide>
     </Machina.Section>
 
     <Machina.Section title="Много презентаций">
@@ -1179,28 +1071,6 @@ export default (
           <Machina.Focus step />
         </Machina.Sequence>
         <figcaption>Если файл изменили после загрузки, правка не запишется</figcaption>
-      </Machina.Slide>
-
-      <Machina.Slide>
-        <h2>Мем с панели</h2>
-        <div className="machina-columns" style={{ gridTemplateColumns: "2fr 3fr" }}>
-          <div>
-            <Machina.Image src={memePanelPicture} stretch alt="Панель «Мем»: поиск шаблона ducreux" />
-          </div>
-          <ul data-steps>
-            <li>Смайлик на панели открывает поиск шаблонов memegen и GIF</li>
-            <li>Подойдёт и ссылка на картинку или страницу с ней</li>
-            <li>Мем встаёт новым слайдом после текущего</li>
-            <li>Подписи и их места пишутся прямо в <code>index.tsx</code></li>
-          </ul>
-        </div>
-      </Machina.Slide>
-
-      <Machina.Slide>
-        <h2>Мини-карта</h2>
-        <Machina.Image src={minimapPicture} stretch alt="Мини-карта слайдов справа от слайда">
-          <figcaption>Все слайды поверх правого края, как мини-карта в редакторе кода. Включает кнопка на панели или <kbd>M</kbd></figcaption>
-        </Machina.Image>
       </Machina.Slide>
 
       <Machina.Slide>

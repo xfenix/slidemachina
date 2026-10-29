@@ -1,6 +1,6 @@
 {
   "name": "slidemachina",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "HTML presentations as React components",
   "license": "MIT",
   "type": "module",
