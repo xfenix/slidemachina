@@ -1,0 +1,61 @@
+# A published GitHub release publishes slidemachina and create-slidemachina to npm.
+# The version comes from the release tag: v1.2.0 publishes 1.2.0. A pre-release goes out under the npm tag "next".
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  # npm provenance and trusted publishing prove the package was built here, from this commit.
+  id-token: write
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 26
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: npm ci
+
+      - name: Check the code
+        run: npm run check
+
+      - name: Prepare the packages
+        run: node .github/prepare-npm-packages.ts "${{ github.event.release.tag_name }}"
+
+      # The packed packages work from node_modules, as on a user's machine: a new project, its slides checked and built.
+      - name: Try the packed packages
+        run: |
+          releaseFolder="$RUNNER_TEMP/release-try"
+          mkdir -p "$releaseFolder"
+          npm pack --workspace packages/slidemachina --workspace packages/create-slidemachina --pack-destination "$releaseFolder"
+          cd "$releaseFolder"
+          npm init -y > /dev/null
+          npm install ./create-slidemachina-*.tgz
+          npx create-slidemachina my-talk
+          cd my-talk
+          npm install ../slidemachina-*.tgz
+          npx slidemachina check
+          npx slidemachina build --html
+
+      - name: Publish
+        run: |
+          npmTag="${{ github.event.release.prerelease && 'next' || 'latest' }}"
+          npm publish --workspace packages/slidemachina --access public --provenance --tag "$npmTag"
+          npm publish --workspace packages/create-slidemachina --access public --provenance --tag "$npmTag"
+        env:
+          # Not needed once trusted publishing is set up on npmjs.com for both packages.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

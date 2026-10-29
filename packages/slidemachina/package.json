@@ -3,6 +3,24 @@
   "version": "1.0.0",
   "description": "HTML presentations as React components",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xfenix/slidemachina.git",
+    "directory": "packages/slidemachina"
+  },
+  "homepage": "https://github.com/xfenix/slidemachina#readme",
+  "bugs": {
+    "url": "https://github.com/xfenix/slidemachina/issues"
+  },
+  "keywords": [
+    "presentation",
+    "slides",
+    "react",
+    "reveal.js",
+    "pdf",
+    "pptx",
+    "vite"
+  ],
   "type": "module",
   "bin": {
     "slidemachina": "./server-runtime/command-line/slidemachina.ts"

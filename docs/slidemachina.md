@@ -669,7 +669,23 @@ README показывает слайды демо из `docs/readme/` и сни�
 
 В тексте демо имена из кода (атрибуты, пропсы, классы, компоненты, пути, команды) — в `<code>`, клавиши — в `<kbd>`. Названия продуктов (Chrome, Agentation, ELK) — текстом.
 
-Пакет движка публикуется исходниками TypeScript: CLI запускает Vite 8, Vite компилирует движок вместе с презентацией. Node 26 запускает .ts напрямую, но не стирает типы в node_modules: опубликованному пакету понадобится шаг сборки.
+Код страницы публикуется исходниками TypeScript: Vite компилирует его вместе с презентацией. Код Node — CLI, сервер, сборка и `create-project.ts` — публикуется JavaScript: Node 26 запускает `.ts` напрямую, но не стирает типы в `node_modules` (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`).
+
+### Публикация в npm
+
+Релиз на GitHub публикует оба пакета: `.github/workflows/publish-npm.yml`, событие `release: published`.
+
+1. Версия — из тега релиза: `v1.2.0` публикует `1.2.0`. Пре-релиз GitHub уходит в npm с тегом `next`, остальные — `latest`.
+2. `npm ci` и `npm run check`.
+3. `.github/prepare-npm-packages.ts <тег>`:
+   - компилирует `server-runtime`, `shared-between-runtimes` и `create-project.ts` в `.js` рядом с `.ts`: `tsc --ignoreConfig --noCheck --rewriteRelativeImportExtensions`, импорты `./x.ts` становятся `./x.js`;
+   - переключает `bin` обоих пакетов на `.js`, `files` создателя проекта — на `create-project.js`;
+   - ставит версию обоим пакетам и `slidemachina@^<версия>` в шаблон;
+   - кладёт в пакеты `README.md` и `LICENSE` из корня. Ссылки README на файлы репозитория становятся абсолютными на тег релиза: на странице npm относительные пути не открываются.
+4. Пробная установка: упакованный `create-slidemachina` создаёт проект, в него ставится упакованный `slidemachina`, затем `slidemachina check` и `slidemachina build --html`. Так ловится пакет, который не запустится у пользователя.
+5. `npm publish --provenance` обоих пакетов, сначала движок.
+
+Вход в npm — секрет `NPM_TOKEN` или доверенная публикация (trusted publishing) на npmjs.com: тогда npm берёт токен OIDC от GitHub и секрет не нужен. Для подписи происхождения в `package.json` пакетов стоит `repository` с этим репозиторием. Сгенерированные файлы в `.gitignore`.
 
 ### Раскладка движка
 

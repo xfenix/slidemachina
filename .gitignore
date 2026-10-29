@@ -29,3 +29,10 @@ npm-debug.log*
 .vscode/
 *.swp
 .serena/
+
+# Пакеты для npm: .github/prepare-npm-packages.ts в CI кладёт рядом JavaScript, README и лицензию
+packages/*/README.md
+packages/*/LICENSE
+packages/slidemachina/server-runtime/**/*.js
+packages/slidemachina/shared-between-runtimes/*.js
+packages/create-slidemachina/create-project.js

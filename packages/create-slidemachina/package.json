@@ -3,6 +3,24 @@
   "version": "1.0.0",
   "description": "Creates a slidemachina presentation: npm create slidemachina",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xfenix/slidemachina.git",
+    "directory": "packages/create-slidemachina"
+  },
+  "homepage": "https://github.com/xfenix/slidemachina#readme",
+  "bugs": {
+    "url": "https://github.com/xfenix/slidemachina/issues"
+  },
+  "keywords": [
+    "presentation",
+    "slides",
+    "react",
+    "reveal.js",
+    "pdf",
+    "pptx",
+    "vite"
+  ],
   "type": "module",
   "bin": {
     "create-slidemachina": "./create-project.ts"

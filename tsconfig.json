@@ -19,6 +19,6 @@
       "slidemachina": ["./packages/slidemachina/browser-runtime/slidemachina.ts"]
     }
   },
-  "include": ["packages/slidemachina", "packages/create-slidemachina/*.ts", "examples", "tests", "playwright.config.ts"],
+  "include": ["packages/slidemachina", "packages/create-slidemachina/*.ts", "examples", "tests", "playwright.config.ts", ".github/*.ts"],
   "exclude": ["**/dist", "**/node_modules"]
 }
