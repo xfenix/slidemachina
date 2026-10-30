@@ -3,6 +3,7 @@ import { parseLineSteps, useCodeLineSteps } from "./code-line-steps.ts";
 import { createStepAttributes } from "../../slide-steps/step-attributes.ts";
 import { pickSourceMarks } from "../../presentation-core/source-marks.ts";
 import { useWidthFitting, type WidthFitting } from "../../presentation-core/width-fitting.ts";
+import { useSlideEnvironment } from "../../presentation-core/slide-environment.ts";
 
 // Long lines get a smaller font down to 20 px, then wrap: code never sticks out of its block.
 // The box hangs out to the left with a negative margin, so that margin is room too; a column moved over by the hang has it as padding.
@@ -57,8 +58,9 @@ export function Code({ children, lang, src, lines, numbers, title, highlightedCo
   const codeLineCount = shownCode.lines.length;
   const lastLineNumber = shownCode.lines.at(-1)?.number ?? codeLineCount;
   const lineSteps = useMemo(() => parseLineSteps(lines, lastLineNumber), [lines, lastLineNumber]);
-  useCodeLineSteps(codeElementReference, lineSteps);
-  useWidthFitting(codeElementReference, codeWidthFitting, shownCode);
+  const { isSlideDistant } = useSlideEnvironment();
+  useCodeLineSteps(codeElementReference, lineSteps, shownCode);
+  useWidthFitting(codeElementReference, codeWidthFitting, shownCode, isSlideDistant);
   const shownTitle = title ?? src?.split("/").at(-1);
   const isOneLine = codeLineCount === 1 && shownTitle === undefined && numbers !== true;
   const numberStyle = numbers === true ? ({ "--code-number-digits": String(lastLineNumber).length } as CSSProperties) : undefined;

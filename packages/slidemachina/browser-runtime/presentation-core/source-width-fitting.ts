@@ -24,8 +24,9 @@ function followMediaWidth(sourceElement: HTMLElement, mediaElement: HTMLElement)
 }
 
 // <p className="machina-source"> is plain markup, so the slide finds the footnotes under pictures itself.
-export function useSourceWidthFitting(slideElementReference: RefObject<HTMLElement | null>, slideContent: unknown) {
+export function useSourceWidthFitting(slideElementReference: RefObject<HTMLElement | null>, slideContent: unknown, isSlideDistant: boolean) {
   useLayoutEffect(() => {
+    if (isSlideDistant) return;
     const sourceElements = slideElementReference.current?.querySelectorAll<HTMLElement>("[data-content] .machina-source") ?? [];
     const stopFollowers = [...sourceElements].flatMap((sourceElement) => {
       sourceElement.style.removeProperty("--source-width");
@@ -36,5 +37,5 @@ export function useSourceWidthFitting(slideElementReference: RefObject<HTMLEleme
     return () => {
       for (const stopFollower of stopFollowers) stopFollower();
     };
-  }, [slideElementReference, slideContent]);
+  }, [slideElementReference, slideContent, isSlideDistant]);
 }

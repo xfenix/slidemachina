@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 export const workspaceFolder = fileURLToPath(new URL("..", import.meta.url));
 export const commandLineScript = path.join(workspaceFolder, "packages", "slidemachina", "server-runtime", "command-line", "slidemachina.ts");
@@ -18,17 +18,24 @@ export function currentSlide(page: Page) {
 }
 
 // Slides are found by what they show, not by number, so tests follow the demo when slides are added.
+// Right after load only the shown slide and its neighbours are drawn: the search waits for the rest.
 export async function findSlideNumber(page: Page, partSelector: string, partText?: string) {
-  const slideNumber = await page.locator("[data-canvas] > [data-slide]").evaluateAll(
-    (slideElements, [searchedSelector, searchedText]) =>
-      slideElements.findIndex((slideElement) =>
-        [...slideElement.querySelectorAll(searchedSelector!)].some(
-          (partElement) => searchedText === undefined || partElement.textContent.replace(/\s+/g, " ").trim() === searchedText,
-        ),
-      ) + 1,
-    [partSelector, partText],
-  );
-  if (slideNumber === 0) throw new Error(`В демо нет слайда с ${partSelector} ${partText ?? ""}`);
+  let slideNumber = 0;
+  await expect
+    .poll(
+      async () =>
+        (slideNumber = await page.locator("[data-canvas] > [data-slide]").evaluateAll(
+          (slideElements, [searchedSelector, searchedText]) =>
+            slideElements.findIndex((slideElement) =>
+              [...slideElement.querySelectorAll(searchedSelector!)].some(
+                (partElement) => searchedText === undefined || partElement.textContent.replace(/\s+/g, " ").trim() === searchedText,
+              ),
+            ) + 1,
+          [partSelector, partText],
+        )),
+      { message: `В демо нет слайда с ${partSelector} ${partText ?? ""}` },
+    )
+    .toBeGreaterThan(0);
   return slideNumber;
 }
 

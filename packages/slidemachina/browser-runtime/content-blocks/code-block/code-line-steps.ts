@@ -48,10 +48,10 @@ function lightLines(codeElement: HTMLElement, litLineNumbers: Set<number>, lineS
 }
 
 // Lines are lit in the DOM, so a transition snapshot shows the right lines and scroll position.
-export function useCodeLineSteps(codeElementReference: RefObject<HTMLElement | null>, lineSteps: Array<Set<number>>) {
+export function useCodeLineSteps(codeElementReference: RefObject<HTMLElement | null>, lineSteps: Array<Set<number>>, shownCode: unknown) {
   const shownStepReference = useRef({ stepIndex: -1, wasOnCurrentSlide: false });
 
-  // Runs after every render: hot reload brings new line elements without the lit marks.
+  // Hot reload brings new line elements without the lit marks. A slide that comes near sends the step event again.
   useLayoutEffect(() => {
     const codeElement = codeElementReference.current;
     const slideElement = codeElement?.closest<HTMLElement>("[data-slide]");
@@ -59,17 +59,20 @@ export function useCodeLineSteps(codeElementReference: RefObject<HTMLElement | n
     const showReachedStep = () => {
       const reachedStepIndex = codeElement.querySelectorAll("[data-code-step][data-step-reached]").length;
       const isOnCurrentSlide = slideElement.hasAttribute("data-current");
+      const isSlideDistant = slideElement.hasAttribute("data-distant");
       const shownStep = shownStepReference.current;
       const stepChanged = reachedStepIndex !== shownStep.stepIndex;
       // A step on the open slide scrolls smoothly; a slide that is just arriving jumps, so its snapshot is already in place.
       let lineScroll: LineScroll = "instant";
       if (!stepChanged && isOnCurrentSlide === shownStep.wasOnCurrentSlide) lineScroll = "keep";
       else if (stepChanged && isOnCurrentSlide && shownStep.wasOnCurrentSlide) lineScroll = "smooth";
-      shownStepReference.current = { stepIndex: reachedStepIndex, wasOnCurrentSlide: isOnCurrentSlide };
+      // A distant slide is scrolled once it comes near: the step stays unshown, so that move scrolls.
+      if (isSlideDistant) lineScroll = "keep";
+      shownStepReference.current = { stepIndex: isSlideDistant ? -1 : reachedStepIndex, wasOnCurrentSlide: isOnCurrentSlide };
       lightLines(codeElement, lineSteps[reachedStepIndex] ?? new Set(), lineScroll);
     };
     showReachedStep();
     slideElement.addEventListener(stepChangeEventName, showReachedStep);
     return () => slideElement.removeEventListener(stepChangeEventName, showReachedStep);
-  });
+  }, [codeElementReference, lineSteps, shownCode]);
 }

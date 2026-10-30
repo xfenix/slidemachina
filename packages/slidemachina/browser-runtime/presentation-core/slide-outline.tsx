@@ -79,7 +79,7 @@ export function buildSlideOutline(presentationChildren: ReactNode): OutlinedSlid
         <h1 data-section-number={sectionNumber} {...pickSourceMarks(outlinedMarkup.sectionPlaces.at(-1)!.sectionNode.props as object)}>
           {sectionTitles.at(-1)}
         </h1>
-        <SectionNumber sectionNumber={sectionNumber} />
+        <SectionNumber sectionNumber={sectionNumber} sectionTitle={sectionTitles.at(-1)} />
       </Slide>
     );
     return { slideKey: `${enclosingKey}/cover`, slideElement: sectionCover, sectionTrail, slideNotes: [], isHidden: false };

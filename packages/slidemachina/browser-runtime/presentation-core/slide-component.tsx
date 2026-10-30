@@ -65,10 +65,11 @@ export function Slide({
   const slideElementReference = useRef<HTMLElement>(null);
   const detectedTone = useBackgroundTone(slideElementReference, background, className);
   useStepVisibility(slideElementReference, slideEnvironment.revealedStep, slideEnvironment.reportStepCount);
-  useBigNumberFitting(slideElementReference, children);
-  useFloatFitting(slideElementReference, children);
-  useSourceWidthFitting(slideElementReference, children);
-  useBottomBandRoom(slideElementReference, children);
+  const { isSlideDistant } = slideEnvironment;
+  useBigNumberFitting(slideElementReference, children, isSlideDistant);
+  useFloatFitting(slideElementReference, children, isSlideDistant);
+  useSourceWidthFitting(slideElementReference, children, isSlideDistant);
+  useBottomBandRoom(slideElementReference, children, isSlideDistant);
   useSlideCallbacks(slideEnvironment.isCurrentSlide, onEnter, onLeave);
 
   const slideTone = tone ?? detectedTone;
@@ -98,7 +99,7 @@ export function Slide({
       data-transition={transition ?? presentationSettings.transition}
       data-default-step-effect={stepEffect ?? presentationSettings.stepEffect}
       data-current={slideEnvironment.isCurrentSlide || undefined}
-      data-distant={(!slideEnvironment.isSlideNearby && !slideEnvironment.isSlideCopy) || undefined}
+      data-distant={isSlideDistant || undefined}
       data-notes={notesText === "" ? undefined : notesText}
       {...pickSourceMarks(otherProperties)}
       inert={!slideEnvironment.isCurrentSlide}

@@ -7,13 +7,15 @@ const bottomBandSelector = ":scope > .machina-pin-bottom.machina-pin-left.machin
 function reserveBandRoom(contentElement: HTMLElement) {
   const bandElements = [...contentElement.querySelectorAll<HTMLElement>(bottomBandSelector)];
   const bandTop = Math.min(...bandElements.map((bandElement) => bandElement.offsetTop));
-  const bandRoom = contentElement.clientHeight - bandTop;
-  if (bandElements.length === 0 || bandRoom <= 0) contentElement.style.removeProperty("--bottom-band-room");
+  // A slide without a band is not measured: reading its height would lay out every slide on load.
+  const bandRoom = bandElements.length === 0 ? 0 : contentElement.clientHeight - bandTop;
+  if (bandRoom <= 0) contentElement.style.removeProperty("--bottom-band-room");
   else contentElement.style.setProperty("--bottom-band-room", `${bandRoom}px`);
 }
 
-export function useBottomBandRoom(slideElementReference: RefObject<HTMLElement | null>, slideContent: unknown) {
+export function useBottomBandRoom(slideElementReference: RefObject<HTMLElement | null>, slideContent: unknown, isSlideDistant: boolean) {
   useLayoutEffect(() => {
+    if (isSlideDistant) return;
     const contentElement = slideElementReference.current?.querySelector<HTMLElement>(":scope > [data-content]");
     if (contentElement === null || contentElement === undefined) return;
     reserveBandRoom(contentElement);
@@ -30,5 +32,5 @@ export function useBottomBandRoom(slideElementReference: RefObject<HTMLElement |
       sizeObserver.disconnect();
       cancelAnimationFrame(refitFrame);
     };
-  }, [slideElementReference, slideContent]);
+  }, [slideElementReference, slideContent, isSlideDistant]);
 }

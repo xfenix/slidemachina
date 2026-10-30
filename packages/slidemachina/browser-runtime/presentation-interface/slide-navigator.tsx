@@ -14,6 +14,8 @@ const minimumScreenThumbnailWidth = 140;
 const minimumColumnCount = 2;
 // Rows matter more than columns when the next row is found among groups of different length.
 const rowDistanceWeight = 100_000;
+// Thumbnails up to a screen above or below the view draw their slide ahead, so scrolling does not show empty frames.
+const thumbnailPreloadMargin = "100% 0px";
 
 type SlideGroup = {
   trailKey: string;
@@ -45,10 +47,39 @@ export function SlideNavigator({
   const interfaceTexts = pickInterfaceTexts(languageCode);
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(currentSlideIndex);
   const thumbnailElements = useRef<HTMLButtonElement[]>([]);
+  const scrollerReference = useRef<HTMLDivElement>(null);
+  const [drawnSlideIndexes, setDrawnSlideIndexes] = useState<ReadonlySet<number>>(() => new Set());
 
   useLayoutEffect(() => {
     thumbnailElements.current[selectedSlideIndex]?.scrollIntoView({ block: "nearest" });
   }, [selectedSlideIndex]);
+
+  // Only thumbnails near the view draw their slide: a long talk opens its grid as fast as a short one.
+  // The first screen is found before the opening snapshot; the observer adds the rest while scrolling.
+  useLayoutEffect(() => {
+    const scrollerElement = scrollerReference.current;
+    if (scrollerElement === null) return;
+    const drawThumbnails = (nearSlideIndexes: number[]) =>
+      setDrawnSlideIndexes((drawnIndexes) =>
+        nearSlideIndexes.every((slideIndex) => drawnIndexes.has(slideIndex)) ? drawnIndexes : new Set([...drawnIndexes, ...nearSlideIndexes]),
+      );
+    const scrollerBox = scrollerElement.getBoundingClientRect();
+    drawThumbnails(
+      thumbnailElements.current.flatMap((thumbnailElement, slideIndex) => {
+        const thumbnailBox = thumbnailElement.getBoundingClientRect();
+        return thumbnailBox.bottom > scrollerBox.top - scrollerBox.height && thumbnailBox.top < scrollerBox.bottom + scrollerBox.height ? [slideIndex] : [];
+      }),
+    );
+    const visibilityObserver = new IntersectionObserver(
+      (observedEntries) =>
+        drawThumbnails(
+          observedEntries.filter((observedEntry) => observedEntry.isIntersecting).map((observedEntry) => Number((observedEntry.target as HTMLElement).dataset.thumbnailIndex)),
+        ),
+      { root: scrollerElement, rootMargin: thumbnailPreloadMargin },
+    );
+    for (const thumbnailElement of thumbnailElements.current) visibilityObserver.observe(thumbnailElement);
+    return () => visibilityObserver.disconnect();
+  }, []);
 
   const openSlide = (slideIndex: number) => closeNavigator(slideIndex);
 
@@ -79,7 +110,7 @@ export function SlideNavigator({
 
   return (
     <dialog open data-navigator aria-label={interfaceTexts.navigatorLabel} style={navigatorStyle}>
-      <div data-navigator-scroller style={{ padding: navigatorPadding }}>
+      <div ref={scrollerReference} data-navigator-scroller style={{ padding: navigatorPadding }}>
         {groupSlidesBySection(outlinedSlides).map((slideGroup) => (
           <section data-navigator-group key={slideGroup.slideIndexes[0]}>
             {slideGroup.sectionTrail.length > 0 && (
@@ -107,7 +138,7 @@ export function SlideNavigator({
                     }}
                     onClick={() => openSlide(slideIndex)}
                   >
-                    {renderThumbnail(slideIndex)}
+                    {drawnSlideIndexes.has(slideIndex) && renderThumbnail(slideIndex)}
                     <span data-thumbnail-number>
                       {isHidden && <HiddenSlideIcon />}
                       {slideNumbering.slideAddresses[slideIndex]}

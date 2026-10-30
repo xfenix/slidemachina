@@ -54,21 +54,27 @@ function watchWidthFitting(fittedElement: HTMLElement, widthFitting: WidthFittin
   };
 }
 
-export function useWidthFitting(fittedElementReference: RefObject<HTMLElement | null>, widthFitting: WidthFitting, fittedContent: unknown) {
+export function useWidthFitting(
+  fittedElementReference: RefObject<HTMLElement | null>,
+  widthFitting: WidthFitting,
+  fittedContent: unknown,
+  isSlideDistant: boolean,
+) {
   useLayoutEffect(() => {
     const fittedElement = fittedElementReference.current;
-    if (fittedElement === null) return;
+    if (fittedElement === null || isSlideDistant) return;
     return watchWidthFitting(fittedElement, widthFitting);
-  }, [fittedElementReference, widthFitting, fittedContent]);
+  }, [fittedElementReference, widthFitting, fittedContent, isSlideDistant]);
 }
 
 // <figure className="machina-big-number"> is plain markup, so the slide finds its numbers itself.
-export function useBigNumberFitting(slideElementReference: RefObject<HTMLElement | null>, slideContent: unknown) {
+export function useBigNumberFitting(slideElementReference: RefObject<HTMLElement | null>, slideContent: unknown, isSlideDistant: boolean) {
   useLayoutEffect(() => {
+    if (isSlideDistant) return;
     const numberElements = slideElementReference.current?.querySelectorAll<HTMLElement>(".machina-big-number > p") ?? [];
     const stopWatchers = [...numberElements].map((numberElement) => watchWidthFitting(numberElement, bigNumberWidthFitting));
     return () => {
       for (const stopWatcher of stopWatchers) stopWatcher();
     };
-  }, [slideElementReference, slideContent]);
+  }, [slideElementReference, slideContent, isSlideDistant]);
 }

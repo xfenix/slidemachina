@@ -32,6 +32,7 @@ import { useTouchControls } from "../slide-navigation/touch-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
 import { usePresenterSync, type SlideCommand } from "../presenter-view/presenter-channel.ts";
 import { useCustomFavicon } from "./custom-favicon.ts";
+import { useEverySlideAfterFirstFrame } from "./slide-deferring.ts";
 import { isPresenterWindow, openPresenterWindow, PresenterWindowSwitch } from "../presenter-view/presenter-window.tsx";
 
 // Only the presenter window runs this code: the audience never loads it.
@@ -127,6 +128,7 @@ export function Presentation({
   );
   const sectionTrails = useMemo(() => outlinedSlides.map((outlinedSlide) => outlinedSlide.sectionTrail), [outlinedSlides]);
   const describeSlideEnvironment = useSlideEnvironments(slideNumbering, sectionTrails, presentationSettings, stepCountsReference);
+  const rendersEverySlide = useEverySlideAfterFirstFrame();
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -238,7 +240,14 @@ export function Presentation({
       {pageTitle !== undefined && pageTitle !== "" && <title>{pageTitle}</title>}
       <style>{`@page { size: ${formatWidth}px ${formatHeight}px; }`}</style>
       <div data-canvas data-resizing={isCanvasResizing || undefined}>
-        {[...outlinedSlides.keys()].map((slideIndex) => renderSlide(slideIndex))}
+        {[...outlinedSlides.keys()].map((slideIndex) =>
+          rendersEverySlide || Math.abs(slideIndex - currentPosition.slideIndex) <= nearbySlideDistance ? (
+            renderSlide(slideIndex)
+          ) : (
+            // An empty slide keeps the place of the slide to come: transitions and steps find slides by their index.
+            <section key={outlinedSlides[slideIndex]!.slideKey} data-slide data-distant />
+          ),
+        )}
         {progress && shownSlideIndexes.length > 1 && (
           <div
             data-progress

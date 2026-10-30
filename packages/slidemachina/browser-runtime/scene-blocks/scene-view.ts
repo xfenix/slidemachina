@@ -2,7 +2,7 @@ import { advanceScene, aimScene, buildScene, releaseScene, type BuiltScene, type
 import type { ScenePart } from "./scene-outline.ts";
 import { poseScene } from "./scene-poses.ts";
 import type { FrameExtent } from "./scene-camera.ts";
-import { drawSceneFrame } from "./scene-renderer.ts";
+import { compileSceneShaders, drawSceneFrame } from "./scene-renderer.ts";
 import { stepChangeEventName } from "../slide-steps/step-visibility.ts";
 
 const largestPixelRatio = 2;
@@ -89,6 +89,8 @@ export function createSceneView(figureElement: HTMLElement, sceneParts: ScenePar
   let animationFrameRequest = 0;
   let lastFrameTime = 0;
   let needsDrawing = false;
+  let isCompilingShaders = false;
+  let isDisposed = false;
   const printedFrameColor = readPrintedFrameColor(canvasElement);
 
   const drawFrame = () => {
@@ -124,7 +126,18 @@ export function createSceneView(figureElement: HTMLElement, sceneParts: ScenePar
     if (reachedPartPositions === undefined || framePixels === undefined) return;
     const isLiveSlide = !viewSettings.isSlideCopy && slideElement.hasAttribute("data-current");
     const stateKey = `${[...reachedPartPositions].join(" ")}|${isLiveSlide}|${framePixels.join("x")}`;
-    if (stateKey === shownStateKey) return;
+    if (stateKey === shownStateKey || isCompilingShaders) return;
+    // A scene built ahead of its slide compiles first, so the build in the background never freezes a key press.
+    // A shown slide or a printed copy draws at once: the print dialog does not wait.
+    if (builtScene === undefined && !isLiveSlide && !viewSettings.isSlideCopy) {
+      builtScene = buildScene(figureElement, sceneParts, sceneSettings);
+      isCompilingShaders = true;
+      void compileSceneShaders(builtScene.threeScene, builtScene.cameraMotion.sceneCamera).finally(() => {
+        isCompilingShaders = false;
+        if (!isDisposed) showReachedState();
+      });
+      return;
+    }
     shownStateKey = stateKey;
     builtScene ??= buildScene(figureElement, sceneParts, sceneSettings);
     const [frameWidth, frameHeight] = framePixels;
@@ -151,6 +164,7 @@ export function createSceneView(figureElement: HTMLElement, sceneParts: ScenePar
 
   return {
     dispose() {
+      isDisposed = true;
       stopAnimation();
       sizeObserver.disconnect();
       window.removeEventListener("resize", showReachedState);

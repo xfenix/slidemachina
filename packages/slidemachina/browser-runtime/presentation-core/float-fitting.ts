@@ -10,8 +10,9 @@ function fitFloatsToHeight(contentElement: HTMLElement) {
   }
 }
 
-export function useFloatFitting(slideElementReference: RefObject<HTMLElement | null>, slideContent: unknown) {
+export function useFloatFitting(slideElementReference: RefObject<HTMLElement | null>, slideContent: unknown, isSlideDistant: boolean) {
   useLayoutEffect(() => {
+    if (isSlideDistant) return;
     const contentElement = slideElementReference.current?.querySelector<HTMLElement>(":scope > [data-content]");
     if (contentElement === null || contentElement === undefined || contentElement.querySelector("[data-media-float]") === null) return;
     let refitFrame = 0;
@@ -27,5 +28,5 @@ export function useFloatFitting(slideElementReference: RefObject<HTMLElement | n
       sizeObserver.disconnect();
       cancelAnimationFrame(refitFrame);
     };
-  }, [slideElementReference, slideContent]);
+  }, [slideElementReference, slideContent, isSlideDistant]);
 }

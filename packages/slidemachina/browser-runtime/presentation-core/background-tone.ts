@@ -7,10 +7,12 @@ const redLuminanceShare = 0.2126;
 const greenLuminanceShare = 0.7152;
 const blueLuminanceShare = 0.0722;
 const brightestLevel = 255;
+// Computed colours are mostly rgb(): they are read without a canvas, whose first use takes about 10 ms of the first frame.
+const rgbColorPattern = /^rgba?\(([\d.]+), ([\d.]+), ([\d.]+)(?:, ([\d.]+))?\)$/;
 // A local file ends in its extension; in a one-file build an imported video is a data: address.
 const videoAddressPattern = /(\.(mp4|webm|mov|m4v|ogv)([?#].*)?$)|^data:video\//i;
-// A picture is measured once; thumbnails and printed pages get its tone in the first frame.
-const pictureTones = new Map<string, SlideTone>();
+// A colour or picture is measured once; thumbnails and printed pages get its tone in the first frame.
+const measuredTones = new Map<string, SlideTone>();
 
 export type SlideTone = "dark" | "light";
 // A colour, a picture or GIF, a video file, or a web page under the slide: background={{ iframe: "https://…" }}.
@@ -57,13 +59,14 @@ export function useBackgroundTone(
     if (slideElement === null) return;
     const backgroundColor = getComputedStyle(slideElement).backgroundColor;
     const pictureToneKey = `${backgroundColor} ${backgroundAddress}`;
+    if (!measuredTones.has(backgroundColor)) measuredTones.set(backgroundColor, measureColorTone(backgroundColor));
     // oxlint-disable-next-line react/set-state-in-effect -- the tone is measured from the rendered slide
-    setDetectedTone(pictureTones.get(pictureToneKey) ?? measureTone(backgroundColor));
-    if ((backgroundKind !== "picture" && backgroundKind !== "video") || pictureTones.has(pictureToneKey)) return;
+    setDetectedTone(measuredTones.get(pictureToneKey) ?? measuredTones.get(backgroundColor)!);
+    if ((backgroundKind !== "picture" && backgroundKind !== "video") || measuredTones.has(pictureToneKey)) return;
     let isOutdated = false;
     const rememberTone = (sampledSource: CanvasImageSource) => {
-      pictureTones.set(pictureToneKey, measureTone(backgroundColor, sampledSource));
-      if (!isOutdated) setDetectedTone(pictureTones.get(pictureToneKey)!);
+      measuredTones.set(pictureToneKey, measureTone(backgroundColor, sampledSource));
+      if (!isOutdated) setDetectedTone(measuredTones.get(pictureToneKey)!);
     };
     // A video is measured by its first frame, once the background layer has loaded it near its slide.
     const backgroundVideo = slideElement.querySelector<HTMLVideoElement>(":scope > video[data-slide-background]");
@@ -72,9 +75,7 @@ export function useBackgroundTone(
       if (backgroundVideo !== null && backgroundVideo.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) measureVideoFrame();
       else backgroundVideo?.addEventListener("loadeddata", measureVideoFrame, { once: true });
     } else {
-      const backgroundImage = new Image();
-      backgroundImage.onload = () => rememberTone(backgroundImage);
-      backgroundImage.src = backgroundAddress!;
+      sampleBackgroundPicture(backgroundAddress!).then(rememberTone, () => undefined);
     }
     return () => {
       isOutdated = true;
@@ -82,6 +83,32 @@ export function useBackgroundTone(
     };
   }, [slideElementReference, backgroundAddress, backgroundKind, slideClassName, hotUpdateCount]);
   return detectedTone;
+}
+
+// A file is decoded and shrunk off the main thread; a picture from a site without CORS falls back to an <img> decoded on it.
+async function sampleBackgroundPicture(pictureAddress: string): Promise<CanvasImageSource> {
+  try {
+    const pictureResponse = await fetch(pictureAddress, { cache: "force-cache" });
+    return await createImageBitmap(await pictureResponse.blob(), { resizeWidth: samplingSize, resizeHeight: samplingSize });
+  } catch {
+    const backgroundImage = new Image();
+    backgroundImage.src = pictureAddress;
+    await backgroundImage.decode();
+    return backgroundImage;
+  }
+}
+
+function classifyLuminance(averageLevel: number): SlideTone {
+  return averageLevel / brightestLevel < darkLuminanceLimit ? "dark" : "light";
+}
+
+function measureColorTone(backgroundColor: string): SlideTone {
+  const rgbMatch = rgbColorPattern.exec(backgroundColor);
+  if (rgbMatch === null) return measureTone(backgroundColor);
+  // A fully transparent colour reads as black, as it does from the canvas.
+  const isTransparent = rgbMatch[4] !== undefined && Number(rgbMatch[4]) === 0;
+  const [redLevel, greenLevel, blueLevel] = rgbMatch.slice(1, 4).map((channelText) => (isTransparent ? 0 : Number(channelText)));
+  return classifyLuminance(redLuminanceShare * redLevel! + greenLuminanceShare * greenLevel! + blueLuminanceShare * blueLevel!);
 }
 
 function measureTone(backgroundColor: string, backgroundImage?: CanvasImageSource): SlideTone {
@@ -102,7 +129,7 @@ function measureTone(backgroundColor: string, backgroundImage?: CanvasImageSourc
         greenLuminanceShare * pixelBytes[byteOffset + 1]! +
         blueLuminanceShare * pixelBytes[byteOffset + 2]!;
     }
-    return luminanceTotal / (samplingSize * samplingSize) / brightestLevel < darkLuminanceLimit ? "dark" : "light";
+    return classifyLuminance(luminanceTotal / (samplingSize * samplingSize));
   } catch {
     // Images from other sites taint the canvas; keep the color-based guess.
     return backgroundImage === undefined ? "light" : measureTone(backgroundColor);

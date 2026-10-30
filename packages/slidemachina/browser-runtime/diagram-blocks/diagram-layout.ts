@@ -6,11 +6,14 @@ import { tidyLaidOutGraph } from "./layout-tidying.ts";
 
 const labelDistance = 12;
 
-// The navigator and hot reload mount the same diagram again; a known graph is drawn at once, without a flash.
-const finishedGeometries = new Map<string, DiagramGeometry>();
 // Enough for every diagram and step of a long talk; hot reload adds graphs, so the oldest go.
 const largestGeometryCount = 300;
+// Layouts outlive the page: a talk opened again draws its diagrams at once and never starts ELK.
+const storedGeometriesKey = "slidemachina-diagram-layouts";
+// The store is shared by every talk opened from the same site or from disk, so it keeps only the latest.
+const largestStoredGeometryCount = 50;
 const runningLayouts = new Map<string, Promise<DiagramGeometry>>();
+let finishedGeometries: Map<string, DiagramGeometry> | undefined;
 
 export type NodeFrame = LabelFrame;
 type ArrowRoute = { routePoints: ElkPoint[]; labelFrame?: NodeFrame };
@@ -47,8 +50,33 @@ function readGeometry(laidOutGraph: ElkNode, labelSizes: Map<string, MeasuredSiz
   return { diagramWidth: diagramSize.x, diagramHeight: diagramSize.y, nodeFrames, arrowRoutes };
 }
 
+// The navigator and hot reload mount the same diagram again; a known graph is drawn at once, without a flash.
+function readFinishedGeometries(): Map<string, DiagramGeometry> {
+  if (finishedGeometries !== undefined) return finishedGeometries;
+  finishedGeometries = new Map();
+  try {
+    for (const [graphKey, storedGeometry] of JSON.parse(localStorage.getItem(storedGeometriesKey) ?? "[]") as Array<[string, DiagramGeometry]>) {
+      finishedGeometries.set(graphKey, storedGeometry);
+    }
+  } catch {
+    // A broken or blocked store only means ELK lays the diagrams out again.
+  }
+  return finishedGeometries;
+}
+
+function rememberGeometry(graphKey: string, diagramGeometry: DiagramGeometry) {
+  const knownGeometries = readFinishedGeometries();
+  knownGeometries.set(graphKey, diagramGeometry);
+  if (knownGeometries.size > largestGeometryCount) knownGeometries.delete(knownGeometries.keys().next().value!);
+  try {
+    localStorage.setItem(storedGeometriesKey, JSON.stringify([...knownGeometries].slice(-largestStoredGeometryCount)));
+  } catch {
+    // A full or blocked store keeps the layouts for this page only.
+  }
+}
+
 export function findFinishedGeometry(graphKey: string): DiagramGeometry | undefined {
-  return finishedGeometries.get(graphKey);
+  return readFinishedGeometries().get(graphKey);
 }
 
 // Network simplex gives the straightest arrows, but ELK fails on some graphs with it; Brandes-Köpf always works.
@@ -71,8 +99,7 @@ export function layOutDiagram(
   const placedGraph = layOutWithElk(elkGraph).catch(() => layOutWithElk(switchToSimplerPlacement(elkGraph)));
   const startedLayout = placedGraph.then((laidOutGraph) => {
     const diagramGeometry = readGeometry(tidyLaidOutGraph(laidOutGraph), labelSizes, diagramDirection === "right");
-    finishedGeometries.set(graphKey, diagramGeometry);
-    if (finishedGeometries.size > largestGeometryCount) finishedGeometries.delete(finishedGeometries.keys().next().value!);
+    rememberGeometry(graphKey, diagramGeometry);
     return diagramGeometry;
   });
   // A failed layout is tried again next time instead of failing from the cache.

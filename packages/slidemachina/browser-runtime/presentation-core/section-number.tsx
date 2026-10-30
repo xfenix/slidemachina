@@ -1,4 +1,5 @@
 import { useId, useLayoutEffect, useRef, type CSSProperties, type RefObject } from "react";
+import { useSlideEnvironment } from "./slide-environment.ts";
 
 const printedColorBandCount = 40;
 // A band takes the colour of the gradient at its middle.
@@ -8,10 +9,11 @@ const leastNumberToTitleWidth = 1.2;
 
 // Left to right from the accent to the green, like the logo. An SVG gradient, unlike background-clip: text, prints into a PDF that macOS Preview draws correctly.
 // Chrome's own PDF viewer cannot fill text with any gradient, so print stacks solid copies, each cut to start a band further right.
-export function SectionNumber({ sectionNumber }: { sectionNumber: string }) {
+// The title is the text of the h1 next to the number: the fit is measured again only when it or the number changes.
+export function SectionNumber({ sectionNumber, sectionTitle }: { sectionNumber: string; sectionTitle?: string }) {
   const gradientIdentifier = useId();
   const figureReference = useRef<SVGSVGElement>(null);
-  useTitleNarrowerThanNumber(figureReference);
+  useTitleNarrowerThanNumber(figureReference, useSlideEnvironment().isSlideDistant, `${sectionNumber} ${sectionTitle}`);
   return (
     <svg ref={figureReference} data-section-number-figure aria-hidden>
       <linearGradient id={gradientIdentifier}>
@@ -46,11 +48,11 @@ function fitTitleToNumber(figureElement: SVGSVGElement, titleElement: HTMLElemen
   if (titleWidth * leastNumberToTitleWidth > numberWidth) titleElement.style.maxWidth = `${Math.ceil(titleWidth / canvasScale)}px`;
 }
 
-function useTitleNarrowerThanNumber(figureReference: RefObject<SVGSVGElement | null>) {
+function useTitleNarrowerThanNumber(figureReference: RefObject<SVGSVGElement | null>, isSlideDistant: boolean, fittedTexts: string) {
   useLayoutEffect(() => {
     const figureElement = figureReference.current;
     const titleElement = figureElement?.previousElementSibling;
-    if (figureElement === null || !(titleElement instanceof HTMLElement)) return;
+    if (figureElement === null || !(titleElement instanceof HTMLElement) || isSlideDistant) return;
     fitTitleToNumber(figureElement, titleElement);
     let isMounted = true;
     void document.fonts.ready.then(() => {
@@ -59,5 +61,5 @@ function useTitleNarrowerThanNumber(figureReference: RefObject<SVGSVGElement | n
     return () => {
       isMounted = false;
     };
-  });
+  }, [figureReference, isSlideDistant, fittedTexts]);
 }

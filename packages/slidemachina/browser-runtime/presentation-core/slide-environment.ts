@@ -31,6 +31,8 @@ type SlideEnvironment = {
   // Two slides or closer to the current one: videos start loading.
   isSlideNearby: boolean;
   isSlideCopy: boolean;
+  // Further than two slides and not a copy: not drawn, so blocks put off measuring it until it comes near.
+  isSlideDistant: boolean;
   revealedStep: number;
   reportStepCount: (stepCount: number) => void;
   presentationSettings: PresentationSettings;
@@ -72,6 +74,7 @@ export function useSlideEnvironments(
         isCurrentSlide,
         isSlideNearby,
         isSlideCopy,
+        isSlideDistant: !isSlideNearby && !isSlideCopy,
         revealedStep,
         reportStepCount: (stepCount) => {
           stepCountsReference.current[slideIndex] = stepCount;

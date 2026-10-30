@@ -49,6 +49,11 @@ export function readLargestAnisotropy(): number {
   return prepareSharedRenderer().webglRenderer.capabilities.getMaxAnisotropy();
 }
 
+// The browser links the shaders on its own threads; the first draw after it does not stall the page.
+export async function compileSceneShaders(threeScene: Scene, sceneCamera: Camera): Promise<void> {
+  await prepareSharedRenderer().webglRenderer.compileAsync(threeScene, sceneCamera);
+}
+
 // Chrome prints only a 2D canvas, and the PDF must show the scene. An opaque frame colour keeps the printed frame free of a soft mask.
 export function drawSceneFrame(
   threeScene: Scene,
