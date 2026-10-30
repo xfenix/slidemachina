@@ -36,10 +36,15 @@
 
 ## Why
 
-- Slides are React components. You write a slide in JSX and keep your own components right in `index.tsx`, next to the slides. TypeScript checks the markup, git keeps the history, and changes go through review like any code.
-- The HTML opens anywhere. The build is a single HTML file that opens from disk in any browser, with no network and nothing to install. The same build can go on a website.
-- PowerPoint is there when HTML is not allowed. `--pptx` produces an editable copy: text, code and diagrams are separate objects, and steps become click animations. The file opens in PowerPoint and Google Slides.
-- Agents can work with it. The whole presentation is one typed file, so Claude Code and other agents read and edit it easily. You can also leave a note for the agent by clicking on the slide.
+- **Slides are React components.** You write a slide in JSX and keep your own components right in `index.tsx`, next to the slides. TypeScript checks the markup, git keeps the history, and changes go through review like any code.
+- **The HTML opens anywhere.** The build is a single HTML file that opens from disk in any browser, with no network and nothing to install. The same build can go on a website. Quick Look on macOS shows the slides without opening the file.
+- **PowerPoint is there when HTML is not allowed.** `--pptx` produces an editable copy: text, code and diagrams are separate objects, and steps become click animations. The file opens in PowerPoint and Google Slides.
+- **Agents can work with it.** The whole presentation is one typed file, so Claude Code and other agents read and edit it easily. You can also leave a note for the agent by clicking on the slide.
+- **Morphing works without markup.** Common elements, words and pieces of code morph between slides automatically. No `data-id` attributes needed.
+- **Code highlighting costs 0 KB in the browser.** Shiki highlights at build time. The browser receives colored words, not a highlighting library.
+- **Diagrams are code.** Write `<Diagram>`, `<Box>`, `<Arrow>` tags. ELK lays them out. Boxes morph between slides.
+- **3D scenes on three.js.** `<Scene>`, `<Cube>`, `<Sphere>`, `<Light>`, `<Camera>` are all tags. three.js loads only when a scene exists.
+- **Typography for Russian and English.** Quotes, dashes, non-breaking spaces. Hanging punctuation keeps the text edge straight in any browser and PDF.
 
 ## Quick start
 
@@ -385,15 +390,19 @@ The second rule is minimal markup. A slide is plain tags: no wrappers, ids or co
 | Sections | `Section`: a numbered cover, breadcrumbs, groups in the slide overview | Nested `<section>` become vertical slides | — | — |
 | Steps | `data-steps` on a list, table or columns, or a step on part of a diagram or scene. One `stepEffect` for all steps | `class="fragment"` on every element | `v-click` on every element | `<Step>` around every element |
 | Morphing | On by default. Shared elements, words and pieces of code are matched automatically | `data-auto-animate` on both slides, pairs through `data-id` | Only code, through `magic-move` | `MorphElement` with the same `id` on both pages |
-| Code highlighting | Shiki at build time: 0 KB of highlighting code in the browser. Lines by steps | highlight.js in the browser | Shiki, live editing in Monaco | — |
-| Diagrams | Flowcharts and sequence diagrams from tags, laid out by ELK | Mermaid through a third-party plugin | Mermaid | — |
-| 3D | `Scene` on three.js | — | — | — |
+| Code highlighting | Shiki at build time: 0 KB of highlighting code in the browser. Lines by steps | highlight.js runs in the browser on every load | Shiki, live editing in Monaco | — |
+| Diagrams | Flowcharts and sequence diagrams from tags, laid out by ELK. Arrows morph between slides | Mermaid through a third-party plugin. Diagrams do not morph | Mermaid. Diagrams do not morph | — |
+| 3D | `Scene` on three.js. Shapes, light and camera are tags and move by steps | — | — | — |
 | Typography | A typographer for Russian and English, hanging punctuation | — | — | — |
 | Build | HTML file, folder, zip, a file behind a password, PDF, PowerPoint | You set up the bundler yourself | Website, PDF, PNG, PowerPoint | Website, PDF, PowerPoint |
 | Editing | In a code editor and on the slide, written back to `index.tsx` | In a code editor | In a code editor and a Markdown side panel | Comments on the slide, an agent applies them |
 | Presenter window | Notes, timer, next slide, next step, notes per step | Notes, timer, next slide | Notes, timer, next slide, drawing | Notes, timer, next slide |
-| For agents | `llms.txt`, a skill, CLI commands: `check` for the rules of a clear talk, `shot` for a picture of a slide. No MCP server | — | An MCP server in `slidev dev` | Skills for writing and editing, an agent panel in the browser |
+| For agents | `llms.txt`, a skill, CLI commands: `check` for the rules of a clear talk, `shot` for a picture of a slide. No MCP server | — | An MCP server in `slidev dev`: occupies agent context | Skills for writing and editing, an agent panel in the browser |
 | Many talks | A repository: a shared theme, a list with covers, one build for all | Each one on its own | Themes as npm packages | Decks in one workspace, shared themes |
+| Hidden slides | `<Slide hidden>`: skipped on stage, kept in print, PDF and PowerPoint, the copy people get after the talk | `data-visibility="hidden"` removes the slide everywhere, PDF too | `hide: true` removes the slide from the show and the export | — |
+| One HTML file | Fonts, pictures and scripts inside one file. Quick Look on macOS shows the slides | A folder of files | A folder of files | A folder of files |
+| Password protection | `--protected`: the file is encrypted, the password is asked for or taken from `SLIDEMACHINA_PASSWORD` | — | — | — |
+| Screenshot for agent | `slidemachina shot 12.2`: one slide at a given step, in a second | — | `slidev export --format png`: the whole deck | — |
 
 A dash means the tool has nothing built in for this.
 
