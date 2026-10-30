@@ -3,7 +3,7 @@ import path from "node:path";
 import MagicString from "magic-string";
 import { measureCanvasSize } from "../../shared-between-runtimes/canvas-size.ts";
 import { commandLineTexts } from "../command-line/command-line-texts.ts";
-import { highlightCodeOnce } from "./code-highlighting.ts";
+import { highlightCodeOnce, keepHighlightsIn } from "./code-highlighting.ts";
 import { readSettingsFor } from "./presentation-settings.ts";
 import { findPresentationFolder, isSlideSourceFile } from "../presentation-repository/presentation-repository.ts";
 import { importNamedMemes } from "./meme-names.ts";
@@ -65,6 +65,7 @@ export function createSlideSourcePlugin(siteLayout: SiteLayout): Plugin {
     // Marks and the edit endpoint serve the in-browser editor, so only slidemachina dev gets them.
     configResolved(resolvedConfiguration) {
       marksSourceLocations = resolvedConfiguration.command === "serve";
+      keepHighlightsIn(resolvedConfiguration.cacheDir);
     },
     configureServer(developmentServer) {
       installSourceEditing(developmentServer, siteLayout);

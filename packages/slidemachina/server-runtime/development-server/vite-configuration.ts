@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import { listAllowedFolders, engineResolution } from "./engine-resolution.ts";
 import { listModuleId } from "./entry-modules.ts";
+import { describeEnginePrebundling } from "./engine-prebundling.ts";
 import { createImageCompressionPlugin } from "../presentation-build/image-compression.ts";
 import { createPresentationPageHtml, pageFileName, createSlidemachinaPlugin } from "./page-serving.ts";
 import { renderListPage } from "../presentation-repository/presentation-list-page.ts";
@@ -22,6 +23,7 @@ const presentationFilePattern = new RegExp(`/${presentationFileName.replaceAll("
 const refreshedFilesExclusion = [/\/node_modules\//, presentationFilePattern];
 
 export function createViteConfiguration(siteLayout: SiteLayout, serverOptions: ServerOptions): InlineConfig {
+  const enginePrebundling = describeEnginePrebundling();
   return {
     configFile: false,
     root: siteLayout.rootFolder,
@@ -29,12 +31,14 @@ export function createViteConfiguration(siteLayout: SiteLayout, serverOptions: S
     resolve: engineResolution,
     // SLIDEMACHINA_AGENTATION=off turns the notes toolbar off, as the tests do.
     define: { "import.meta.env.SLIDEMACHINA_AGENTATION": JSON.stringify(process.env.SLIDEMACHINA_AGENTATION ?? "on") },
-    // The engine ships as TypeScript: Vite compiles it like project code and pre-bundles only CommonJS dependencies.
     optimizeDeps: {
-      // A repository may hold old reveal.js pages next to the presentations: dependencies are looked up from presentations only.
-      ...(siteLayout.isRepository ? { entries: ["*/index.tsx"] } : {}),
-      exclude: ["slidemachina"],
+      // There is no index.html to scan: the presentation files are the entries, so dependencies they import, even lazily,
+      // are bundled before the first page instead of reloading it mid-talk. A repository may hold old reveal.js pages
+      // next to the presentations: dependencies are looked up from presentations only.
+      entries: [siteLayout.isRepository ? `*/${presentationFileName}` : presentationFileName],
+      ...enginePrebundling,
       include: [
+        ...enginePrebundling.include,
         "react",
         "react/jsx-runtime",
         "react/jsx-dev-runtime",

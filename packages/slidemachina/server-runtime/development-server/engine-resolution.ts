@@ -7,8 +7,10 @@ import type { SiteLayout } from "../presentation-repository/presentation-reposit
 // The package root: browser-runtime/, server-runtime/ and shared-between-runtimes/ lie inside it.
 export const enginePackageFolder = fileURLToPath(new URL("../..", import.meta.url));
 
+// The entry module mounts the presentation through this name: pre-bundled, it shares one copy of the engine with "slidemachina".
+export const presentationMountingId = "slidemachina/presentation-mounting";
 // A folder run with npx has no node_modules: these packages come from the engine's install, with one copy of React.
-const sharedPackageNames = ["react", "react-dom", "three", "agentation", "tailwindcss"];
+const sharedPackageNames = ["react", "react-dom", "three", "agentation", "tailwindcss", "uqr"];
 const packageRequire = createRequire(path.join(enginePackageFolder, "package.json"));
 
 const sharedPackageFolders = sharedPackageNames.flatMap((packageName: string) => {
@@ -19,6 +21,7 @@ const sharedPackageFolders = sharedPackageNames.flatMap((packageName: string) =>
 export const engineResolution = {
   alias: [
     { find: /^slidemachina$/, replacement: path.join(enginePackageFolder, "browser-runtime", "slidemachina.ts") },
+    { find: presentationMountingId, replacement: path.join(enginePackageFolder, "browser-runtime", "presentation-core", "presentation-mounting.tsx") },
     ...sharedPackageFolders.map(({ packageName, packageLocation }) => ({ find: new RegExp(`^${packageName}(?=/|$)`), replacement: packageLocation })),
   ],
 };

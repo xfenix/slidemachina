@@ -1,6 +1,6 @@
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { enginePackageFolder } from "./engine-resolution.ts";
+import { enginePackageFolder, presentationMountingId } from "./engine-resolution.ts";
 import { presentationFileName, toSitePath } from "../presentation-repository/presentation-repository.ts";
 import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
 
@@ -57,7 +57,7 @@ export function createEntryModuleCode(siteLayout: SiteLayout, presentationFolder
   const listAddress = JSON.stringify(siteLayout.listAddress ?? (siteLayout.isRepository ? "../" : undefined));
   return `
 ${createStylesheetImports(stylesheetPaths)}
-import { mountPresentation } from ${JSON.stringify(path.join(enginePackageFolder, "browser-runtime", "presentation-core", "presentation-mounting.tsx"))};
+import { mountPresentation } from ${JSON.stringify(presentationMountingId)};
 import presentationElement from ${presentationModuleId};
 ${createStylesheetImports(ownStylesheet === undefined ? [] : [ownStylesheet])}
 

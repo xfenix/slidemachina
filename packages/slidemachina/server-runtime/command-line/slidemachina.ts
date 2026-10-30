@@ -6,6 +6,7 @@ import { createServer } from "vite";
 import { commandLineTexts } from "./command-line-texts.ts";
 import { describeSite } from "../presentation-repository/presentation-repository.ts";
 import { createViteConfiguration } from "../development-server/vite-configuration.ts";
+import { nameEntryModuleId } from "../development-server/entry-modules.ts";
 
 const largestPortNumber = 65536;
 
@@ -115,4 +116,6 @@ if (commandName === "build") {
   const developmentServer = await createServer(createViteConfiguration(siteLayout, { port: portNumber, open: process.stdout.isTTY }));
   await developmentServer.listen();
   developmentServer.printUrls();
+  // The page and its modules compile while the browser opens; a repository does not know which presentation comes first.
+  if (!siteLayout.isRepository) void developmentServer.warmupRequest(nameEntryModuleId(siteLayout, siteLayout.rootFolder));
 }

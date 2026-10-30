@@ -1,16 +1,53 @@
-import { getSingletonHighlighter } from "shiki";
-import { transformerNotationHighlight } from "@shikijs/transformers";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { BundledLanguage } from "shiki";
 import type { Element, Text } from "hast";
 
 type CodeToken = string | [string, string | undefined, string | undefined];
 type HighlightedLine = { tokens: CodeToken[], marked: boolean, number: number };
 type HighlightedCode = { lines: HighlightedLine[] };
+type SavedHighlights = { shikiVersion: string, highlights: [string, HighlightedCode][] };
 
 const codeThemes = { light: "github-light-high-contrast", dark: "github-dark-default" };
 const highlightedBlocks = new Map<string, Promise<HighlightedCode>>();
+const savedHighlightsFileName = "slidemachina-highlights.json";
+const savingDelayMilliseconds = 300;
+// Colours come from the themes of this Shiki: after an update the saved tokens are highlighted afresh.
+const shikiVersion = (JSON.parse(readFileSync(fileURLToPath(import.meta.resolve("shiki/package.json")), "utf8")) as { version: string }).version;
+const usedHighlights = new Map<string, HighlightedCode>();
+let savedHighlights = new Map<string, HighlightedCode>();
+let savedHighlightsPath: string | undefined;
+let savingTimer: NodeJS.Timeout | undefined;
+
+// The first block of a language costs Shiki a tenth of a second: a restart takes the tokens of the last run from the cache folder.
+export function keepHighlightsIn(cacheFolder: string): void {
+  savedHighlightsPath = path.join(cacheFolder, savedHighlightsFileName);
+  try {
+    const savedFile = JSON.parse(readFileSync(savedHighlightsPath, "utf8")) as SavedHighlights;
+    if (savedFile.shikiVersion === shikiVersion) savedHighlights = new Map(savedFile.highlights);
+  } catch {
+    // No file yet or a broken one: the code is highlighted afresh.
+  }
+}
+
+// Only the blocks of this run are saved, so the file does not grow with every edit.
+function rememberHighlight(highlightKey: string, highlightedCode: HighlightedCode): void {
+  usedHighlights.set(highlightKey, highlightedCode);
+  if (savedHighlightsPath === undefined) return;
+  const highlightsPath = savedHighlightsPath;
+  clearTimeout(savingTimer);
+  savingTimer = setTimeout(() => {
+    mkdirSync(path.dirname(highlightsPath), { recursive: true });
+    const savedFile: SavedHighlights = { shikiVersion, highlights: [...usedHighlights] };
+    writeFileSync(highlightsPath, JSON.stringify(savedFile));
+  }, savingDelayMilliseconds);
+  savingTimer.unref();
+}
 
 async function loadHighlighter(languageName: string) {
+  // Shiki loads only when a block is not in the saved highlights.
+  const { getSingletonHighlighter } = await import("shiki");
   const shikiHighlighter = await getSingletonHighlighter({ themes: Object.values(codeThemes), langs: [] });
   try {
     await shikiHighlighter.loadLanguage(languageName as BundledLanguage);
@@ -59,15 +96,17 @@ export function highlightCodeOnce(codeText: string, languageName: string, isWhol
   const highlightKey = JSON.stringify([languageName, isWholeFile, codeText]);
   let highlighting = highlightedBlocks.get(highlightKey);
   if (highlighting === undefined) {
-    highlighting = highlightCode(codeText, languageName, isWholeFile);
+    const savedHighlight = savedHighlights.get(highlightKey);
+    highlighting = savedHighlight === undefined ? highlightCode(codeText, languageName, isWholeFile) : Promise.resolve(savedHighlight);
     highlightedBlocks.set(highlightKey, highlighting);
+    highlighting.then((highlightedCode) => rememberHighlight(highlightKey, highlightedCode), () => undefined);
   }
   return highlighting;
 }
 
 // Shiki runs only here, at build time: the browser gets coloured tokens and never loads grammars.
 async function highlightCode(codeText: string, languageName: string, isWholeFile: boolean): Promise<HighlightedCode> {
-  const { shikiHighlighter, loadedLanguage } = await loadHighlighter(languageName);
+  const [{ shikiHighlighter, loadedLanguage }, { transformerNotationHighlight }] = await Promise.all([loadHighlighter(languageName), import("@shikijs/transformers")]);
   const codeTree = shikiHighlighter.codeToHast(dedentCode(codeText, isWholeFile), {
     lang: loadedLanguage,
     themes: codeThemes,
