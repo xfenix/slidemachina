@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import sharp from "sharp";
 import type { Plugin } from "vite";
 
 export type BuildReport = { savedPictureBytes: Map<string, number>, videoSizes: Map<string, number> };
@@ -28,6 +27,7 @@ async function compressPicture(picturePath: string): Promise<string | undefined>
   if (existsSync(keptOriginalMarker)) return undefined;
   // A GIF keeps all its frames as an animated WebP; EXIF rotation applies only to photos.
   const isAnimatable = /\.gif$/i.test(picturePath);
+  const { default: sharp } = await import("sharp");
   const picturePipeline = sharp(pictureBytes, { animated: isAnimatable });
   const compressedBytes = await (isAnimatable ? picturePipeline : picturePipeline.rotate())
     .resize({ width: largestPictureWidth, height: largestPictureHeight, fit: "inside", withoutEnlargement: true })

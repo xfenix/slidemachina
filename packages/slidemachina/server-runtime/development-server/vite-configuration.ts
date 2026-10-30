@@ -8,6 +8,7 @@ import { createImageCompressionPlugin } from "../presentation-build/image-compre
 import { createPresentationPageHtml, pageFileName, createSlidemachinaPlugin } from "./page-serving.ts";
 import { renderListPage } from "../presentation-repository/presentation-list-page.ts";
 import { createSlideSourcePlugin } from "../source-transforms/slide-source-plugin.ts";
+import { createElkWorkerStubPlugin } from "../presentation-build/elk-worker-stub.ts";
 import { presentationFileName } from "../presentation-repository/presentation-repository.ts";
 import type { InlineConfig, ServerOptions } from "vite";
 import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
@@ -68,6 +69,7 @@ export function createBuildConfiguration(siteLayout: SiteLayout, buildFolder: st
       createSlideSourcePlugin(siteLayout),
       react({ compiler: true }),
       tailwindcss(),
+      createElkWorkerStubPlugin(siteLayout.rootFolder),
       createSlidemachinaPlugin(siteLayout, builtPageHtml),
       createImageCompressionPlugin(buildReport),
       isSingleFile && viteSingleFile({ removeViteModuleLoader: true }),

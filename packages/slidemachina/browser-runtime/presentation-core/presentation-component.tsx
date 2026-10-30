@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { defaultAspectRatio, measureCanvasSize, type AspectRatio } from "../../shared-between-runtimes/canvas-size.js";
 import { useCanvasLayout, useCanvasResizing } from "./canvas-scaling.ts";
 import { DevelopmentFeedback } from "../presentation-interface/development-feedback.tsx";
@@ -31,9 +31,11 @@ import { runNavigatorTransition } from "../slide-transitions/navigator-transitio
 import { useTouchControls } from "../slide-navigation/touch-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
 import { usePresenterSync, type SlideCommand } from "../presenter-view/presenter-channel.ts";
-import { PresenterView } from "../presenter-view/presenter-view.tsx";
 import { useCustomFavicon } from "./custom-favicon.ts";
 import { isPresenterWindow, openPresenterWindow, PresenterWindowSwitch } from "../presenter-view/presenter-window.tsx";
+
+// Only the presenter window runs this code: the audience never loads it.
+const PresenterView = lazy(() => import("../presenter-view/presenter-view.tsx").then((presenterModule) => ({ default: presenterModule.PresenterView })));
 
 // The list of a repository shows /talk/?cover in a frame, and the build photographs it: the first slide alone, every step shown.
 const isCoverPreview = new URLSearchParams(location.search).has("cover");
@@ -202,22 +204,24 @@ export function Presentation({
 
   if (isPresenterWindow) {
     return (
-      <PresenterView
-        outlinedSlides={outlinedSlides}
-        slideNumbering={slideNumbering}
-        currentPosition={currentPosition}
-        countSteps={(slideIndex) => stepCountsReference.current[slideIndex] ?? 0}
-        renderSlide={renderSlide}
-        canvasStyle={canvasStyle}
-        formatWidth={formatWidth}
-        languageCode={lang}
-        pageTitle={pageTitle}
-        talkMinutes={duration}
-        typedDigits={typedSlideNumber.digits}
-        isAudienceConnected={isAudienceConnected}
-        isAudiencePaused={isAudienceConnected && isPaused}
-        steerSlides={steerSlides}
-      />
+      <Suspense fallback={null}>
+        <PresenterView
+          outlinedSlides={outlinedSlides}
+          slideNumbering={slideNumbering}
+          currentPosition={currentPosition}
+          countSteps={(slideIndex) => stepCountsReference.current[slideIndex] ?? 0}
+          renderSlide={renderSlide}
+          canvasStyle={canvasStyle}
+          formatWidth={formatWidth}
+          languageCode={lang}
+          pageTitle={pageTitle}
+          talkMinutes={duration}
+          typedDigits={typedSlideNumber.digits}
+          isAudienceConnected={isAudienceConnected}
+          isAudiencePaused={isAudienceConnected && isPaused}
+          steerSlides={steerSlides}
+        />
+      </Suspense>
     );
   }
 
@@ -260,7 +264,7 @@ export function Presentation({
           </div>
         )}
       </div>
-      {isMinimapShown && !isNavigatorOpen && (
+      {import.meta.env.DEV && isMinimapShown && !isNavigatorOpen && (
         <SlideMinimap
           slideNumbering={slideNumbering}
           currentSlideIndex={currentPosition.slideIndex}

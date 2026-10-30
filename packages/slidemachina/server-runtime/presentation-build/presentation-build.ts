@@ -6,10 +6,6 @@ import { log, spinner } from "@clack/prompts";
 import { build } from "vite";
 import { commandLineTexts, formatFileSize } from "../command-line/command-line-texts.ts";
 import { zipFolder } from "./folder-archive.ts";
-import { encryptPage } from "./page-encryption.ts";
-import { printPdf } from "./pdf-printing.ts";
-import { addScriptFreePreview, quickLookSizeLimit } from "./script-free-preview.ts";
-import { exportPptx } from "../pptx-export/pptx-export.ts";
 import { presentationFileName } from "../presentation-repository/presentation-repository.ts";
 import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
 import { createBuildConfiguration } from "../development-server/vite-configuration.ts";
@@ -95,6 +91,7 @@ export function reportBuild(chosenVariants: BuildVariant[], outputPaths: OutputP
 // The pictures never stop the build: a missing Chrome or a too big file only leaves a message.
 async function shootPreviewQuietly(builtPage: string, htmlPath: string, sharedChrome: SharedChrome): Promise<(() => void) | void> {
   try {
+    const { addScriptFreePreview, quickLookSizeLimit } = await import("./script-free-preview.ts");
     const hasPreview = await addScriptFreePreview(builtPage, htmlPath, sharedChrome);
     if (!hasPreview) return () => log.info(commandLineTexts.previewTooLarge(formatFileSize(quickLookSizeLimit)));
   } catch (previewError) {
@@ -109,9 +106,9 @@ function listChromeSteps(chosenVariants: BuildVariant[], builtPage: string, outp
     .filter((variantName) => chosenVariants.includes(variantName))
     .map((pdfVariant) => {
       const printsSteps = pdfVariant === "pdf-steps";
-      return { stepTitle: commandLineTexts.printingPdf(printsSteps), stepWork: () => printPdf(builtPage, outputPaths[pdfVariant], { printsSteps, printsHidden }, sharedChrome) };
+      return { stepTitle: commandLineTexts.printingPdf(printsSteps), stepWork: async () => (await import("./pdf-printing.ts")).printPdf(builtPage, outputPaths[pdfVariant], { printsSteps, printsHidden }, sharedChrome) };
     });
-  const pptxSteps = chosenVariants.includes("pptx") ? [{ stepTitle: commandLineTexts.exportingPptx, stepWork: () => exportPptx(builtPage, outputPaths.pptx, printsHidden, sharedChrome) }] : [];
+  const pptxSteps = chosenVariants.includes("pptx") ? [{ stepTitle: commandLineTexts.exportingPptx, stepWork: async () => (await import("../pptx-export/pptx-export.ts")).exportPptx(builtPage, outputPaths.pptx, printsHidden, sharedChrome) }] : [];
   return [...previewSteps, ...pdfSteps, ...pptxSteps];
 }
 
@@ -155,7 +152,7 @@ export async function buildPresentation(
         const presentationTitle = readPresentationFile(projectFolder).presentationTitle ?? path.basename(projectFolder);
         await runBuildStep(
           nameStepTitle(commandLineTexts.encryptingFile),
-          () => encryptPage(builtPage, outputPaths.protected, pageSecret, presentationTitle),
+          async () => (await import("./page-encryption.ts")).encryptPage(builtPage, outputPaths.protected, pageSecret, presentationTitle),
           isInteractive,
         );
       }
