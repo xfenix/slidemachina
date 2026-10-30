@@ -3,6 +3,12 @@ import logoOnDarkPicture from "../theme/logo-on-dark.svg";
 import logoPicture from "../theme/logo.svg";
 import "../theme/yellow-brand.css";
 
+Machina.css`
+  [data-slide] .machina-source {
+    font-style: italic;
+  }
+`;
+
 export default (
   <Machina.Presentation date="2026-10-16" lang="ru" aspectRatio="4:3" logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
     <Machina.Slide cover>

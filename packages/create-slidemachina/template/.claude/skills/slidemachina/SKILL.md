@@ -40,7 +40,7 @@ The tools are shell commands: `npm run check`, `npx slidemachina shot <number>`,
 
 ## Styling for a brand
 
-All styling lives in `style.css` next to `index.tsx`; do not touch the slide markup.
+All styling lives in `style.css` next to `index.tsx`, or in ``Machina.css`…` `` inside `index.tsx` if the user wants one file; do not touch the slide markup.
 
 1. Colors: `--accent-color`, `--second-accent-color`, `--text-color`, `--muted-color`, `--slide-background`, `--dark-background`, `--section-background`. Take them from the user's brand: a style guide, a website or the logo. If no colors are given, ask.
 2. Font: a file in `fonts/`, `@font-face`, then `--font-text`, `--font-heading`, `--heading-weight`.

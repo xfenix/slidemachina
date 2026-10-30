@@ -43,6 +43,7 @@ export {
 } from "./scene-blocks/scene-parts.tsx";
 export type { DiagramDirection } from "./diagram-blocks/diagram-graph.ts";
 export { SlidemachinaLogo } from "./presentation-core/slidemachina-logo.tsx";
+export { css } from "./visual-theme/embedded-styles.ts";
 export { useSlide, type PresentationLogo, type SlideAlign, type SlideState } from "./presentation-core/slide-environment.ts";
 export type { SlideTransition } from "./slide-transitions/slide-transition.ts";
 export type { TransitionSpeed } from "./slide-transitions/transition-speed.ts";

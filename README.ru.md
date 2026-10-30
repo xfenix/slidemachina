@@ -227,6 +227,17 @@ npx slidemachina shot 7         # slide-7.png
 </p>
 
 Тема лежит в `style.css` рядом с `index.tsx`.
+Хотите всё в одном файле? Тот же CSS можно написать прямо в `index.tsx` через `Machina.css`: Tailwind, `@import` и `url()` там тоже работают, правка видна сразу.
+Ещё можно импортировать любой CSS-файл. Берите один способ или смешивайте.
+
+```tsx
+Machina.css`
+  :root { --accent-color: #e8574c; }
+  [data-slide] h2 { text-transform: uppercase; }
+`;
+```
+
+Редакторы с поддержкой styled-components подсвечивают CSS внутри шаблона `css`: в VS Code это расширение vscode-styled-components.
 Так устроена фирменная тема с картинки, полная версия — [`examples/theme/yellow-brand.css`](examples/theme/yellow-brand.css).
 
 **1. Цвета и фон.** Почти весь вид задают переменные. Поменяли переменную — поменялись все слайды.
@@ -290,7 +301,27 @@ npx slidemachina shot 7         # slide-7.png
 }
 ```
 
-**5. Движение, логотип и формат.** Это свойства `Presentation`, их можно переопределить у `Slide`.
+**5. Светлые и тёмные слайды, логотип.** Слайд становится тёмным от `background`: цвета, картинки или видео. Движок сам меряет тон и переключает текст на цвета `-on-dark`; поправить можно через `tone`.
+Логотип подстраивается под тон тремя способами: один файл, который движок белит на тёмных слайдах, пара файлов или свой компонент. Компонент получает `dark` и рисует себя в любых цветах.
+
+```tsx
+// Один файл: на тёмных слайдах белеет через --logo-filter-on-dark.
+<Machina.Presentation logo={logoPicture}>
+
+// Два файла: движок берёт нужный по тону слайда.
+<Machina.Presentation logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
+
+// Свой логотип: SVG в цветах бренда, который подстраивается под слайд.
+const BrandLogo = ({ dark }: { dark: boolean }) => (
+  <svg viewBox="0 0 120 32" fill={dark ? "#fee600" : "#2b2d33"}>…</svg>
+);
+<Machina.Presentation logo={BrandLogo}>
+
+// Тёмный слайд: цвет или картинка; tone="dark", если движок ошибся.
+<Machina.Slide background="var(--dark-background)">
+```
+
+**6. Движение, место логотипа и формат.** Это свойства `Presentation`, их можно переопределить у `Slide`.
 
 ```tsx
 <Machina.Presentation
@@ -302,7 +333,7 @@ npx slidemachina shot 7         # slide-7.png
 >
 ```
 
-**6. Один слайд по-своему.** `className` у `Slide` и классы Tailwind прямо в разметке.
+**7. Один слайд по-своему.** `className` у `Slide` и классы Tailwind прямо в разметке.
 
 ```tsx
 <Machina.Slide className="[--hanging-punctuation:0]" background="var(--accent-soft-color)">
@@ -333,6 +364,7 @@ npx slidemachina shot 7         # slide-7.png
 - Тёмный слайд — `background` у `Slide`, цвет или картинка. Тон движок определяет сам, ошибку исправляет `tone`.
 - Общая тема нескольких докладов — `theme/style.css` в репозитории презентаций. Тема доклада сильнее общей.
 - Тема на часть докладов — CSS-файл, который подключают прямо в `index.tsx`: `import "../theme/brand.css"`.
+- CSS прямо в `index.tsx` — `Machina.css` с шаблоном, то же, что `style.css`. `${…}` в нём не работает: берите CSS-переменные.
 
 Все переменные с описанием — в разделе «Тема» в [docs/slidemachina.md](docs/slidemachina.md).
 

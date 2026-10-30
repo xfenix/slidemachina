@@ -36,6 +36,7 @@ const englishTexts = {
   missingPresentationFile: (projectFolder: string) =>
     `No index.tsx and no presentation folders in ${projectFolder}.\nRun the command in the presentation folder or pass the folder: slidemachina dev my-talk`,
   missingCodeFile: (codeFilePath: string) => `<Code src>: file ${codeFilePath} not found.`,
+  embeddedStylesWithExpressions: (slideFile: string) => `${slideFile}: css\`…\` is plain CSS, ${"${…}"} does not work in it. Use CSS variables instead.`,
   wrongAspectRatio: (aspectRatioText: string) =>
     `<Presentation aspectRatio="${aspectRatioText}">: write the width and height as two positive numbers, like "16:9", "4:3" or "9:16".`,
   unknownFlag: (flagText: string) => `There is no flag ${flagText}`,
@@ -152,6 +153,7 @@ const russianTexts: typeof englishTexts = {
   missingPresentationFile: (projectFolder) =>
     `В папке ${projectFolder} нет ни index.tsx, ни папок с презентациями.\nЗапустите команду в папке презентации или укажите папку: slidemachina dev my-talk`,
   missingCodeFile: (codeFilePath) => `<Code src>: нет файла ${codeFilePath}.`,
+  embeddedStylesWithExpressions: (slideFile) => `${slideFile}: в css\`…\` обычный CSS, ${"${…}"} в нём не работает. Используйте CSS-переменные.`,
   wrongAspectRatio: (aspectRatioText) =>
     `<Presentation aspectRatio="${aspectRatioText}">: нужны ширина и высота через двоеточие, оба числа больше нуля. Например, "16:9", "4:3" или "9:16".`,
   unknownFlag: (flagText) => `Нет флага ${flagText}`,

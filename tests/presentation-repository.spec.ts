@@ -104,6 +104,18 @@ test("репозиторий презентаций: список с облож�
       await writeFile(themeFile, themeBefore);
     });
 
+    await test.step("css`…` в index.tsx работает как style.css и тоже меняется без перезагрузки", async () => {
+      const sourceNote = page.locator("[data-canvas] .machina-source").first();
+      const readFontStyle = () => sourceNote.evaluate((noteElement) => getComputedStyle(noteElement).fontStyle);
+      expect(await readFontStyle()).toBe("italic");
+      const teamSyncFile = path.join(copyFolder, "team-sync", "index.tsx");
+      const teamSyncBefore = await readFile(teamSyncFile, "utf8");
+      await writeFile(teamSyncFile, teamSyncBefore.replace("font-style: italic;", "font-style: oblique;"));
+      await expect.poll(readFontStyle).toBe("oblique");
+      expect(await page.evaluate(() => performance.getEntriesByType("navigation").length)).toBe(1);
+      await writeFile(teamSyncFile, teamSyncBefore);
+    });
+
     await test.step("кривой адрес не роняет сервер", async () => {
       expect((await fetch(`${repositoryServerAddress}/%E0%A4%A/`)).status).toBe(404);
       expect((await fetch(repositoryServerAddress)).ok).toBe(true);

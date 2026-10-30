@@ -227,6 +227,17 @@ The slide markup did not change, only the CSS did.
 </p>
 
 The theme lives in `style.css` next to `index.tsx`.
+Want everything in one file? Put the same CSS right into `index.tsx` with `Machina.css`: Tailwind, `@import` and `url()` work there too, and an edit shows up at once.
+You can also import any CSS file. Use one way or mix them.
+
+```tsx
+Machina.css`
+  :root { --accent-color: #e8574c; }
+  [data-slide] h2 { text-transform: uppercase; }
+`;
+```
+
+Editors with styled-components support highlight the CSS inside `css` templates: in VS Code that is the vscode-styled-components extension.
 This is how the brand theme from the picture is built; its full version is [`examples/theme/yellow-brand.css`](examples/theme/yellow-brand.css).
 
 **1. Colors and backgrounds.** Variables set almost everything. Change a variable and every slide follows.
@@ -290,7 +301,27 @@ This is how the brand theme from the picture is built; its full version is [`exa
 }
 ```
 
-**5. Motion, logo and format.** These are props of `Presentation`, and a single `Slide` can override them.
+**5. Light and dark slides, and the logo.** A slide turns dark from its `background`: a color, a picture or a video. The engine measures the tone and switches the text to the `-on-dark` colors; `tone` corrects it.
+The logo follows the tone in three ways: one file the engine whitens on dark slides, a pair of files, or your own component. A component gets `dark` and draws itself in any color.
+
+```tsx
+// One file: on dark slides it turns white through --logo-filter-on-dark.
+<Machina.Presentation logo={logoPicture}>
+
+// Two files: the engine picks one by the tone of the slide.
+<Machina.Presentation logo={{ light: logoPicture, dark: logoOnDarkPicture }}>
+
+// Your own logo: an SVG in the brand colors that adapts to the slide.
+const BrandLogo = ({ dark }: { dark: boolean }) => (
+  <svg viewBox="0 0 120 32" fill={dark ? "#fee600" : "#2b2d33"}>…</svg>
+);
+<Machina.Presentation logo={BrandLogo}>
+
+// A dark slide: a color or a picture; tone="dark" if the engine guesses wrong.
+<Machina.Slide background="var(--dark-background)">
+```
+
+**6. Motion, logo place and format.** These are props of `Presentation`, and a single `Slide` can override them.
 
 ```tsx
 <Machina.Presentation
@@ -302,7 +333,7 @@ This is how the brand theme from the picture is built; its full version is [`exa
 >
 ```
 
-**6. One slide of its own.** `className` on `Slide` and Tailwind classes right in the markup.
+**7. One slide of its own.** `className` on `Slide` and Tailwind classes right in the markup.
 
 ```tsx
 <Machina.Slide className="[--hanging-punctuation:0]" background="var(--accent-soft-color)">
@@ -333,6 +364,7 @@ This is how the brand theme from the picture is built; its full version is [`exa
 - A dark slide is `background` on `Slide`, a color or a picture. The engine detects the tone; `tone` corrects it.
 - A shared theme for several talks is `theme/style.css` in a repository of presentations. A talk's own theme is stronger.
 - A theme for some of the talks is a CSS file imported in `index.tsx`: `import "../theme/brand.css"`.
+- CSS right in `index.tsx` is `Machina.css` with a template, the same as `style.css`. `${…}` does not work in it: use CSS variables.
 
 Every variable is described in the "Тема" section of [docs/slidemachina.md](docs/slidemachina.md) (in Russian).
 

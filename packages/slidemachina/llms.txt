@@ -152,6 +152,8 @@ Block components:
 
 ## Theme
 
+The theme is CSS in `style.css`, in any CSS file imported by `index.tsx`, or right in `index.tsx`: a top-level ``Machina.css`…` `` statement. All three are the same CSS with Tailwind, `@import` and `url()`; `${…}` does not work inside `Machina.css`.
+
 ```css
 @import "tailwindcss";
 

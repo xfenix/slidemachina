@@ -1,6 +1,12 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "unicorn", "oxc", "react", "jsx-a11y"],
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc",
+    "react",
+    "jsx-a11y"
+  ],
   "categories": {
     "correctness": "error"
   },
@@ -19,7 +25,13 @@
     "typescript/no-unnecessary-type-assertion": "error",
     "typescript/switch-exhaustiveness-check": "error",
     "typescript/prefer-promise-reject-errors": "error",
-    "typescript/no-unnecessary-condition": "error"
+    "typescript/no-unnecessary-condition": "error",
+    "no-unused-expressions": [
+      "error",
+      {
+        "allowTaggedTemplates": true
+      }
+    ]
   },
   "env": {
     "builtin": true

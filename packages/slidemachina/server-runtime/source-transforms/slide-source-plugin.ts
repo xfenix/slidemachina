@@ -10,6 +10,7 @@ import { installMemeSearch } from "../development-server/meme-search-server.ts";
 import { installSourceEditing } from "../development-server/source-edit-server.ts";
 import { memeFontStylesheet } from "../development-server/entry-modules.ts";
 import { embedRemoteMedia, findRemoteMedia } from "./remote-media-embedding.ts";
+import { findStylesSourceFile, loadEmbeddedStyles, moveEmbeddedStyles, nameEmbeddedStylesheet } from "./embedded-styles.ts";
 import { markSourceLocations } from "./source-marking.ts";
 import { typographSyntaxNode } from "./slide-typography.ts";
 import { findEngineNames, parseSlideSource, readElementName, readStringAttribute, walkSyntaxTree } from "./syntax-tree.ts";
@@ -68,6 +69,16 @@ export function createSlideSourcePlugin(siteLayout: SiteLayout): Plugin {
       installSourceEditing(developmentServer, siteLayout);
       installMemeSearch(developmentServer);
     },
+    // css`…` in a slide file becomes "<file>.css": a stylesheet Vite and Tailwind handle like style.css.
+    resolveId(importedId) {
+      return findStylesSourceFile(importedId, (filePath) => isSlideSourceFile(siteLayout, filePath)) === undefined ? undefined : importedId;
+    },
+    load(moduleId) {
+      const stylesSourceFile = findStylesSourceFile(moduleId, (filePath) => isSlideSourceFile(siteLayout, filePath));
+      if (stylesSourceFile === undefined) return undefined;
+      this.addWatchFile(stylesSourceFile);
+      return loadEmbeddedStyles(stylesSourceFile);
+    },
     async transform(sourceCode, moduleId) {
       const filePath = moduleId.replace(/\?.*$/, "");
       if (!isSlideSourceFile(siteLayout, filePath)) return undefined;
@@ -82,6 +93,7 @@ export function createSlideSourcePlugin(siteLayout: SiteLayout): Plugin {
         engineNames: findEngineNames(syntaxTree),
         presentationSettings,
       };
+      moveEmbeddedStyles(syntaxTree, filePath, transformContext.editedSource);
       const codeElements: SyntaxNode[] = [];
       const memeElements: SyntaxNode[] = [];
       const remoteMediaPlaces: ReturnType<typeof findRemoteMedia> = [];
@@ -115,13 +127,15 @@ export function createSlideSourcePlugin(siteLayout: SiteLayout): Plugin {
         map: transformContext.editedSource.generateMap({ hires: true, source: filePath }),
       };
     },
-    // An edited example file re-highlights the slides that show it without a page reload.
-    hotUpdate({ file: changedFile }) {
-      const slideFiles = slideFilesByCodeFile.get(changedFile);
-      if (slideFiles === undefined) return undefined;
-      const slideModules = [...slideFiles].flatMap((slideFile) => [...(this.environment.moduleGraph.getModulesByFile(slideFile) ?? [])]);
-      for (const slideModule of slideModules) this.environment.moduleGraph.invalidateModule(slideModule);
-      return slideModules;
+    // An edited example file re-highlights the slides that show it without a page reload; an edited slide file also refreshes its css`…`.
+    hotUpdate({ file: changedFile, modules: changedModules }) {
+      const stylesModule = this.environment.moduleGraph.getModuleById(nameEmbeddedStylesheet(changedFile));
+      const slideFiles = [...(slideFilesByCodeFile.get(changedFile) ?? [])];
+      const slideModules = slideFiles.flatMap((slideFile) => [...(this.environment.moduleGraph.getModulesByFile(slideFile) ?? [])]);
+      const refreshedModules = stylesModule === undefined ? slideModules : [...slideModules, stylesModule];
+      if (refreshedModules.length === 0) return undefined;
+      for (const refreshedModule of refreshedModules) this.environment.moduleGraph.invalidateModule(refreshedModule);
+      return [...changedModules, ...refreshedModules];
     },
   };
 }

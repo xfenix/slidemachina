@@ -17,6 +17,12 @@ import { AssemblingCube } from "./assembling-cube.tsx";
 import { DraggableSticker } from "./draggable-sticker.tsx";
 import { OrbitSunrise } from "./orbit-sunrise.tsx";
 
+Machina.css`
+  ::selection {
+    background: var(--accent-soft-color);
+  }
+`;
+
 // A component of the presentation lives right here, above the slides. It shows the step of its own slide via useSlide().
 function StepMeter() {
   const slide = Machina.useSlide();
@@ -117,7 +123,7 @@ export default (
         <h2>Вся презентация в одном файле</h2>
         <Machina.Code lang="bash">{`npx slidemachina dev my-talk`}</Machina.Code>
         <ul data-steps>
-          <li>Слайды в <code>index.tsx</code></li>
+          <li>Слайды в <code>index.tsx</code>, стили тоже можно сюда: <code>Machina.css</code></li>
           <li>Разделы становятся хлебными крошками и обзором слайдов</li>
           <li>Сохранили файл - слайд обновился на том же шаге</li>
         </ul>

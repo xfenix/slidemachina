@@ -27,7 +27,7 @@ These are plain shell commands, there is no MCP server to connect.
 4. Show complex things by steps: `data-steps` on a list, `step` on diagram parts, `lines` on code.
 5. After an edit, run `npm run check` and fix the remarks.
 6. After layout work, shoot the changed slides with `npx slidemachina shot` and look at the pictures. Code does not tell you whether text overlaps or a diagram is readable.
-7. Styling changes only `style.css`: theme variables first, then plain CSS. Take colors and fonts from the user's brand.
+7. Styling changes only CSS: `style.css`, or ``Machina.css`…` `` in `index.tsx` if the user keeps everything in one file; theme variables first, then plain CSS. Take colors and fonts from the user's brand.
 
 ## Rules of a clear talk
 
