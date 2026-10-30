@@ -25,7 +25,7 @@
   <a href="#features">Features</a> ·
   <a href="#your-own-theme">Your own theme</a> ·
   <a href="#for-agents">For agents</a> ·
-  <a href="#how-it-compares-to-revealjs">Compared with reveal.js</a> ·
+  <a href="#how-it-compares">Comparison</a> ·
   <a href="docs/slidemachina.md">Docs (Russian)</a>
 </p>
 
@@ -336,22 +336,33 @@ Every variable is described in the "Тема" section of [docs/slidemachina.md](
 
 </details>
 
-## How it compares to reveal.js
+## How it compares
 
-| | reveal.js | slidemachina |
-|---|---|---|
-| Markup | HTML: `<section>` in `index.html` | JSX in `index.tsx`, checked by TypeScript |
-| Sections | Nested `<section>` become vertical slides. No breadcrumbs and no section covers | `Section`: a numbered cover, breadcrumbs, groups in the slide overview |
-| Steps | `class="fragment"` on every element | `data-steps` on a list, table or columns, or a step on part of a diagram or scene. One `stepEffect` sets the effect for all steps |
-| Morphing | `data-auto-animate` on both slides, pairs through `data-id` | On by default. Shared elements, words and pieces of code are matched automatically |
-| Code highlighting | highlight.js in the browser | Shiki at build time: 0 KB of highlighting code in the browser |
-| Diagrams | Mermaid through a third-party plugin | Flowcharts and sequence diagrams from tags, laid out by ELK |
-| 3D | None | `Scene` on three.js |
-| Typography | None | A typographer for Russian and English, hanging punctuation |
-| Build | You set up the bundler yourself | HTML file, folder, zip, a file behind a password, PDF, PowerPoint |
-| Editing | In a code editor | Also on the slide, written back to `index.tsx` |
-| Presenter window | Notes, timer, next slide | Also the next step, notes per step and notes in PowerPoint |
-| Many talks | Each one on its own | A repository: a shared theme, a list, one build for all |
+Other tools help you make a beautiful slide.
+slidemachina helps you give a talk people follow: it keeps lists, text and diagrams within Miller's 7±2 and follows Richard Mayer's 12 principles of multimedia learning.
+
+| | slidemachina | reveal.js | Slidev | open-slide |
+|---|---|---|---|---|
+| A clear talk | `check` counts list items, words, diagram boxes, code lines and sections. The agent skill follows Mayer's principles | — | — | The skill asks how dense the text should be. Nothing checks it |
+| Markup | JSX in `index.tsx`, checked by TypeScript | HTML: `<section>` in `index.html` | Markdown with Vue components | React pages on a 1920×1080 canvas |
+| Sections | `Section`: a numbered cover, breadcrumbs, groups in the slide overview | Nested `<section>` become vertical slides | — | — |
+| Steps | `data-steps` on a list, table or columns, or a step on part of a diagram or scene. One `stepEffect` for all steps | `class="fragment"` on every element | `v-click` on every element | `<Step>` around every element |
+| Morphing | On by default. Shared elements, words and pieces of code are matched automatically | `data-auto-animate` on both slides, pairs through `data-id` | Only code, through `magic-move` | `MorphElement` with the same `id` on both pages |
+| Code highlighting | Shiki at build time: 0 KB of highlighting code in the browser. Lines by steps | highlight.js in the browser | Shiki, live editing in Monaco | — |
+| Diagrams | Flowcharts and sequence diagrams from tags, laid out by ELK | Mermaid through a third-party plugin | Mermaid | — |
+| 3D | `Scene` on three.js | — | — | — |
+| Typography | A typographer for Russian and English, hanging punctuation | — | — | — |
+| Build | HTML file, folder, zip, a file behind a password, PDF, PowerPoint | You set up the bundler yourself | Website, PDF, PNG, PowerPoint | Website, PDF, PowerPoint |
+| Editing | In a code editor and on the slide, written back to `index.tsx` | In a code editor | In a code editor and a Markdown side panel | Comments on the slide, an agent applies them |
+| Presenter window | Notes, timer, next slide, next step, notes per step | Notes, timer, next slide | Notes, timer, next slide, drawing | Notes, timer, next slide |
+| For agents | `llms.txt`, a skill, `check` for the rules of a clear talk, `shot` for a picture of a slide | — | An MCP server in `slidev dev` | Skills for writing and editing, an agent panel in the browser |
+| Many talks | A repository: a shared theme, a list with covers, one build for all | Each one on its own | Themes as npm packages | Decks in one workspace, shared themes |
+
+A dash means the tool has nothing built in for this.
+
+Pick reveal.js for the largest set of plugins and plain HTML.
+Pick Slidev if you write in Markdown and Vue, or need drawing on slides and formulas.
+Pick open-slide if an agent writes the slides and you only leave comments.
 
 ## Development
 
