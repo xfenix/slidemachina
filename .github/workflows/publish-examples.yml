@@ -1,0 +1,49 @@
+# Every push to main that touches the examples or the engine rebuilds examples/ and puts it on GitHub Pages.
+name: Publish the examples
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - examples/**
+      - packages/slidemachina/**
+      - package-lock.json
+      - .github/workflows/publish-examples.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish-examples
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 26
+
+      - name: Install
+        run: npm ci
+
+      # Paths in the build are relative, so the site works under /slidemachina/.
+      - name: Build the examples
+        run: npx slidemachina build examples --folder --out "$RUNNER_TEMP/examples-site"
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ runner.temp }}/examples-site
+
+      - id: deployment
+        uses: actions/deploy-pages@v5
