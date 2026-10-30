@@ -1,0 +1,47 @@
+{
+  "measuredDate": "30 October 2026",
+  "repeatCount": 5,
+  "slideCount": 21,
+  "toolMeasurements": [
+    {
+      "toolName": "slidemachina",
+      "toolVersion": "1.2.0",
+      "loadMilliseconds": 243.4853320000002,
+      "heapMegabytes": 4.689850807189941,
+      "javascriptKilobytes": 558.1259765625,
+      "developmentSeconds": 1.5818532610000002,
+      "buildSeconds": 1.000438935000002,
+      "installMegabytes": 196.9214324951172
+    },
+    {
+      "toolName": "reveal.js",
+      "toolVersion": "6.0.2",
+      "loadMilliseconds": 206.9447469999941,
+      "heapMegabytes": 7.660839080810547,
+      "javascriptKilobytes": 348.037109375,
+      "developmentSeconds": 0.6080927320000046,
+      "buildSeconds": 0.3773283570000058,
+      "installMegabytes": 39.71742248535156
+    },
+    {
+      "toolName": "Slidev",
+      "toolVersion": "53.0.0",
+      "loadMilliseconds": 266.51663800000097,
+      "heapMegabytes": 5.133449554443359,
+      "javascriptKilobytes": 221.1416015625,
+      "developmentSeconds": 3.7826316829999995,
+      "buildSeconds": 2.8461604839999928,
+      "installMegabytes": 466.60133361816406
+    },
+    {
+      "toolName": "open-slide",
+      "toolVersion": "2.3.1",
+      "loadMilliseconds": 300.7049299999926,
+      "heapMegabytes": 8.076642036437988,
+      "javascriptKilobytes": 462.3603515625,
+      "developmentSeconds": 2.9552002169999905,
+      "buildSeconds": 1.1672433359999996,
+      "installMegabytes": 207.96935939788818
+    }
+  ]
+}
