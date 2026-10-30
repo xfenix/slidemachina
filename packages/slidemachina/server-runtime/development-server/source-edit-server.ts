@@ -5,8 +5,8 @@ import { sourceEditEndpoint } from "../../shared-between-runtimes/engine-constan
 import { findPresentationFolder, isSlideSourceFile } from "../presentation-repository/presentation-repository.ts";
 import { describeOffset, findLineStarts, hashSourceCode } from "../source-transforms/source-marking.ts";
 import { isOwnPageRequest, largestPictureBytes, parseEditRequest, readRequestBody } from "./edit-request-checks.ts";
-import { chooseMediaPath, pictureExtensions, toImportPath } from "./media-files.ts";
-import { copyOrRemoveSlide, insertSlideAfter, moveDiagramBox, moveSlide, rewriteElementText, rewritePictureSource, SourceEditProblem } from "./source-rewriting.ts";
+import { chooseMediaPath, pictureExtensions, toImportPath, videoExtensions } from "./media-files.ts";
+import { changeListItem, copyOrRemoveSlide, insertSlideAfter, moveDiagramBox, moveSlide, readElementNameAt, rewriteElementText, rewritePictureSource, rewriteStringAttribute, SourceEditProblem } from "./source-rewriting.ts";
 import { nameMediaImport, prepareMeme } from "../meme-sources/meme-markup.ts";
 import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
 import { pickTextLanguage } from "../../shared-between-runtimes/text-language.ts";
@@ -23,6 +23,7 @@ const staleVersionStatus = 409;
 const rejectedEditStatus = 422;
 const failedEditStatus = 500;
 const newSlideTitles = { en: "New slide", ru: "Новый слайд" };
+const newItemTexts = { en: "New item", ru: "Новый пункт" };
 
 type EditAnswer = { slideLocation?: string };
 
@@ -57,6 +58,18 @@ async function applySourceEdit(siteLayout: SiteLayout, editRequest: EditRequest)
     await writeFile(filePath, moveDiagramBox(sourceCode, filePath, sourcePlace, boxPlacement));
     return {};
   }
+  if (editRequest.editKind === "attribute") {
+    const typedText = editRequest.typedText.trim();
+    if (typedText === "") throw new SourceEditProblem("emptyText");
+    await writeFile(filePath, rewriteStringAttribute(sourceCode, filePath, sourcePlace, editRequest.attributeName, typedText));
+    return {};
+  }
+  if (editRequest.editKind === "listItem") {
+    const presentationFolder = findPresentationFolder(siteLayout, filePath) ?? siteLayout.rootFolder;
+    const newItemText = newItemTexts[pickTextLanguage(readPresentationFile(presentationFolder).languageCode)];
+    await writeFile(filePath, changeListItem(sourceCode, filePath, sourcePlace, editRequest.listItemAction, newItemText));
+    return {};
+  }
   const presentationFolder = findPresentationFolder(siteLayout, filePath) ?? siteLayout.rootFolder;
   if (editRequest.editKind === "meme") {
     await insertMemeSlide(filePath, sourcePlace, presentationFolder, editRequest);
@@ -65,7 +78,10 @@ async function applySourceEdit(siteLayout: SiteLayout, editRequest: EditRequest)
   if (editRequest.editKind === "slide") return changeSlide(siteLayout, filePath, sourceCode, sourcePlace, presentationFolder, editRequest.slideAction);
   const pictureBytes = Buffer.from(editRequest.pictureContent, "base64");
   if (pictureBytes.length > largestPictureBytes) throw new SourceEditProblem("pictureTooLarge");
-  if (!pictureExtensions.has(path.extname(editRequest.pictureName).toLowerCase())) throw new SourceEditProblem("pictureType");
+  // A video takes video files: the element at the place names the kind.
+  const editedElementName = readElementNameAt(sourceCode, filePath, sourcePlace);
+  const mediaExtensions = editedElementName !== undefined && editedElementName.toLowerCase().endsWith("video") ? videoExtensions : pictureExtensions;
+  if (!mediaExtensions.has(path.extname(editRequest.pictureName).toLowerCase())) throw new SourceEditProblem("pictureType");
   const { mediaPath: picturePath, needsWriting } = await chooseMediaPath(path.join(presentationFolder, pictureFolderName), editRequest.pictureName, pictureBytes);
   const editedSource = rewritePictureSource(sourceCode, filePath, sourcePlace, toImportPath(path.dirname(filePath), picturePath));
   if (needsWriting) {

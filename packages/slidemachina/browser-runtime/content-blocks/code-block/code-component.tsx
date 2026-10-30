@@ -1,6 +1,7 @@
 import { useMemo, useRef, type CSSProperties } from "react";
 import { parseLineSteps, useCodeLineSteps } from "./code-line-steps.ts";
 import { createStepAttributes } from "../../slide-steps/step-attributes.ts";
+import { pickSourceMarks } from "../../presentation-core/source-marks.ts";
 import { useWidthFitting, type WidthFitting } from "../../presentation-core/width-fitting.ts";
 
 // Long lines get a smaller font down to 20 px, then wrap: code never sticks out of its block.
@@ -50,7 +51,7 @@ function renderCodeFragment(codeFragment: CodeFragment, fragmentIndex: number) {
   );
 }
 
-export function Code({ children, lang, src, lines, numbers, title, highlightedCode }: CodeProperties) {
+export function Code({ children, lang, src, lines, numbers, title, highlightedCode, ...otherProperties }: CodeProperties) {
   const codeElementReference = useRef<HTMLPreElement>(null);
   const shownCode = highlightedCode ?? listPlainLines(children ?? "");
   const codeLineCount = shownCode.lines.length;
@@ -71,7 +72,7 @@ export function Code({ children, lang, src, lines, numbers, title, highlightedCo
       data-numbered={numbers === true ? "" : undefined}
       style={numberStyle}
     >
-      {shownTitle !== undefined && <span data-code-title>{shownTitle}</span>}
+      {shownTitle !== undefined && <span data-code-title {...pickSourceMarks(otherProperties)}>{shownTitle}</span>}
       <div data-code-viewport>
         <code>
           {shownCode.lines.map((codeLine, lineIndex) => (

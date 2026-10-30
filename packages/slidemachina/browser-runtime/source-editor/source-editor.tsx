@@ -10,8 +10,24 @@ import { beginTextEditing } from "./text-editing.ts";
 
 const dragThreshold = 4;
 const statusDurations = { hint: 5000, saving: Infinity, saved: 2400, problem: 7000 };
+const listItemActionOrder = ["add", "earlier", "later", "remove"] as const;
+const listItemActionMarks: Record<(typeof listItemActionOrder)[number], string> = { add: "+", earlier: "↑", later: "↓", remove: "×" };
+const listItemLabelTexts: Record<(typeof listItemActionOrder)[number], "listItemAdd" | "listItemEarlier" | "listItemLater" | "listItemRemove"> = {
+  add: "listItemAdd",
+  earlier: "listItemEarlier",
+  later: "listItemLater",
+  remove: "listItemRemove",
+};
 
 type EditorStatus = { statusTone: "hint" | "saving" | "saved" | "problem"; statusText: string };
+
+// An attribute edit rewrites the string prop the edited span shows; a text edit rewrites the element's own text.
+function readTextEditRequest(textElement: HTMLElement, typedText: string): SourceEditRequest {
+  const sourceLocation = textElement.dataset.sourceLocation!;
+  return textElement.dataset.sourceEdit === "attribute"
+    ? { editKind: "attribute", sourceLocation, attributeName: textElement.dataset.sourceAttribute!, typedText }
+    : { editKind: "text", sourceLocation, typedText };
+}
 
 // The editor of slidemachina dev: texts, pictures and diagram boxes change on the slide and are written to the source.
 export default function SourceEditor({ languageCode }: { languageCode: string }) {
@@ -49,7 +65,7 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
     const startTyping = (textElement: HTMLElement) => {
       interactionState.activeElement = textElement;
       const { finishTyping } = beginTextEditing(textElement, {
-        saveText: (typedText) => runSourceEdit({ editKind: "text", sourceLocation: textElement.dataset.sourceLocation!, typedText }),
+        saveText: (typedText) => runSourceEdit(readTextEditRequest(textElement, typedText)),
         finishEditing: () => {
           if (interactionState.activeElement !== textElement) return;
           interactionState.activeElement = undefined;
@@ -61,11 +77,11 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
 
     const handlePointerDown = (pointerEvent: PointerEvent) => {
       if (pointerEvent.button !== 0 || isAgentationPicking()) return;
-      const targetElement = findLiveTarget(pointerEvent.target);
+      const targetElement = findLiveTarget(pointerEvent);
       if (targetElement === undefined || targetElement === interactionState.activeElement) return;
       const editKind = targetElement.dataset.sourceEdit;
       // The caret lands where the text was pressed: the element becomes editable before the browser handles the press.
-      if (editKind === "text") {
+      if (editKind === "text" || editKind === "attribute") {
         startTyping(targetElement);
         return;
       }
@@ -89,7 +105,9 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
         setDragGuides(interactionState.dragGuides);
         return;
       }
-      interactionState.hoveredElement = isAgentationPicking() ? undefined : findLiveTarget(pointerEvent.target);
+      // The pointer over the editor's own buttons keeps the outline they belong to.
+      const isOverEditorLayer = pointerEvent.target instanceof Element && pointerEvent.target.closest("[data-editor-overlay]") !== null;
+      if (!isOverEditorLayer) interactionState.hoveredElement = isAgentationPicking() ? undefined : findLiveTarget(pointerEvent);
     };
 
     const handlePointerUp = () => {
@@ -110,7 +128,7 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
     };
 
     const handleClick = (clickEvent: MouseEvent) => {
-      const pictureElement = findLiveTarget(clickEvent.target, "picture");
+      const pictureElement = findLiveTarget(clickEvent, "picture");
       if (pictureElement === undefined || isAgentationPicking()) return;
       clickEvent.preventDefault();
       choosePictureFile((pictureFile) => void replacePicture(pictureElement, pictureFile, runSourceEdit));
@@ -121,7 +139,7 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
       if (!dragEvent.dataTransfer?.types.includes("Files")) return;
       dragEvent.preventDefault();
       interactionState.isFileOver = true;
-      interactionState.dropElement = findLiveTarget(dragEvent.target, "picture");
+      interactionState.dropElement = findLiveTarget(dragEvent, "picture");
       dragEvent.dataTransfer.dropEffect = interactionState.dropElement === undefined ? "none" : "copy";
     };
     const handleDragLeave = (dragEvent: DragEvent) => {
@@ -131,7 +149,7 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
       if (!dragEvent.dataTransfer?.types.includes("Files")) return;
       dragEvent.preventDefault();
       interactionState.isFileOver = false;
-      const pictureElement = findLiveTarget(dragEvent.target, "picture");
+      const pictureElement = findLiveTarget(dragEvent, "picture");
       const pictureFile = dragEvent.dataTransfer.files[0];
       if (pictureElement === undefined || pictureFile === undefined) {
         setEditorStatus({ statusTone: "problem", statusText: editorTexts.dropOutsidePicture });
@@ -198,6 +216,21 @@ export default function SourceEditor({ languageCode }: { languageCode: string })
                 <span data-editor-chip>
                   {shownOutline.chipTitle}
                   {shownOutline.chipNote !== undefined && <span data-editor-chip-note>{shownOutline.chipNote}</span>}
+                </span>
+              )}
+              {shownOutline.listItemLocation !== undefined && (
+                <span data-editor-list-actions>
+                  {listItemActionOrder.map((listItemAction) => (
+                    <button
+                      key={listItemAction}
+                      type="button"
+                      data-editor-list-action={listItemAction}
+                      aria-label={editorTexts[listItemLabelTexts[listItemAction]]}
+                      onClick={() => void runSourceEdit({ editKind: "listItem", sourceLocation: shownOutline.listItemLocation!, listItemAction })}
+                    >
+                      {listItemActionMarks[listItemAction]}
+                    </button>
+                  ))}
                 </span>
               )}
             </div>

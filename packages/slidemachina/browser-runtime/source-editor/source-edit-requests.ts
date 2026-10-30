@@ -14,9 +14,12 @@ export type SourceEditRequest =
   | { editKind: "text"; sourceLocation: string; typedText: string }
   | { editKind: "picture"; sourceLocation: string; pictureName: string; pictureContent: string }
   | { editKind: "box"; sourceLocation: string; columnNumber?: number; anchorLocation?: string; anchorSide?: "before" | "after" }
+  | { editKind: "attribute"; sourceLocation: string; attributeName: string; typedText: string }
+  | { editKind: "listItem"; sourceLocation: string; listItemAction: ListItemAction }
   | { editKind: "meme"; sourceLocation: string; memeKind: MemeKind; memeValue: string; storesLocally: boolean }
   | { editKind: "slide"; sourceLocation: string; slideAction: SlideAction };
 export type SlideAction = "add" | "duplicate" | "earlier" | "later" | "remove";
+export type ListItemAction = "add" | "remove" | "earlier" | "later";
 // A moved slide comes back with its new place in the file.
 export type SourceEditAnswer = { slideLocation?: string };
 

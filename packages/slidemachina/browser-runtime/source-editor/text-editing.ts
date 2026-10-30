@@ -4,8 +4,14 @@ type TextEditingCallbacks = {
 };
 
 // \s covers the typographer's non-breaking spaces: the source gets plain ones, and no line breaks.
+// The typographer's marks go back to what the source is written with: it makes the same ones again on the slide.
 function normalizeTypedText(shownText: string) {
-  return shownText.replace(/\s+/g, " ").trim();
+  return shownText
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[«»“”„]/g, "\"")
+    .replace(/ — /g, " - ")
+    .replace(/…/g, "...");
 }
 
 // The same nodes go back after typing: React keeps references to them, hanging punctuation spans included.

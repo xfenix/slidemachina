@@ -8,7 +8,7 @@ import { prepareDiagramLayout, useDiagramGeometry } from "./diagram-measuring.ts
 import { outlineDiagramParts, type ArrowPart, type DiagramPart } from "./diagram-outline.ts";
 import { FocusMarker } from "./diagram-parts.tsx";
 import { useDiagramScaling } from "./diagram-scaling.ts";
-import { pickSourceMarks } from "../presentation-core/source-marks.ts";
+import { pickSourceLocation, pickSourceMarks } from "../presentation-core/source-marks.ts";
 import { createPartStepAttributes } from "../slide-steps/step-attributes.ts";
 
 const arrowCornerRadius = 16;
@@ -81,7 +81,7 @@ function DiagramArrow({ arrowPart, drawingContext }: { arrowPart: ArrowPart; dra
         </svg>
       )}
       {arrowProperties.label !== undefined && (
-        <span data-arrow-label style={labelFrame && arrowFrame && { left: labelFrame.x - arrowFrame.x, top: labelFrame.y - arrowFrame.y }}>
+        <span data-arrow-label {...pickSourceMarks(arrowProperties)} style={labelFrame && arrowFrame && { left: labelFrame.x - arrowFrame.x, top: labelFrame.y - arrowFrame.y }}>
           {arrowProperties.label}
         </span>
       )}
@@ -136,12 +136,12 @@ function drawDiagramParts(diagramParts: DiagramPart[], drawingContext: DrawingCo
         morph={`diagram-group:${nodeIdentifier}`}
         style={placeFrame(nodeFrame)}
         {...focusAttributes}
-        {...pickSourceMarks(groupProperties)}
+        {...pickSourceLocation(groupProperties)}
         {...createPartStepAttributes(groupProperties.step, groupProperties.effect, "fade")}
       >
         <div data-group-frame />
         {groupProperties.title !== undefined && (
-          <span data-group-title data-morph-text morph={`diagram-group-title:${nodeIdentifier}`}>
+          <span data-group-title data-morph-text morph={`diagram-group-title:${nodeIdentifier}`} {...pickSourceMarks(groupProperties)}>
             {groupProperties.title}
           </span>
         )}

@@ -3,10 +3,22 @@ import { findAttribute, isPlainTextElement, readElementName, walkSyntaxTree } fr
 import type { SyntaxNode } from "./syntax-tree.ts";
 import type MagicString from "magic-string";
 
-type EditKind = "text" | "picture" | "box";
+type EditKind = "text" | "picture" | "box" | "attribute";
 
 // Engine parts that pass the marks on to their own element; a group marks its place for moved boxes, a slide for slides added after it.
-const markedEngineParts: Record<string, EditKind | undefined> = { Image: "picture", Box: "box", Group: undefined, Slide: undefined };
+const markedEngineParts: Record<string, EditKind | undefined> = {
+  Image: "picture",
+  Video: "picture",
+  Box: "box",
+  Arrow: "attribute",
+  Code: "attribute",
+  Group: "attribute",
+  Message: "attribute",
+  Section: "attribute",
+  Slide: undefined,
+};
+// The string prop each part edits: the mark names it, so the server knows what to rewrite.
+const attributeEditNames: Record<string, string> = { Arrow: "label", Code: "title", Group: "title", Message: "label", Section: "title" };
 const unwritableTextTags = new Set(["pre", "script", "style", "textarea", "title"]);
 const sourceVersionLength = 12;
 
@@ -34,8 +46,15 @@ function hasReplaceablePicture(elementNode: SyntaxNode): boolean {
   return pictureValue?.type === "JSXExpressionContainer" && pictureValue.expression.type === "Identifier";
 }
 
+function hasStringAttribute(elementNode: SyntaxNode, attributeName: string): boolean {
+  const attributeValue = findAttribute(elementNode, attributeName)?.value;
+  if (attributeValue?.type === "Literal") return typeof attributeValue.value === "string";
+  return attributeValue?.type === "JSXExpressionContainer" && attributeValue.expression.type === "Literal" && typeof attributeValue.expression.value === "string";
+}
+
 function pickEditKind(elementNode: SyntaxNode, elementName: string, engineKind: EditKind | undefined): EditKind | undefined {
   if (engineKind === "box") return "box";
+  if (engineKind === "attribute") return "attribute";
   if (engineKind === "picture" || elementName === "img") return hasReplaceablePicture(elementNode) ? "picture" : undefined;
   const writesText = /^[a-z]/.test(elementName) && !unwritableTextTags.has(elementName);
   return writesText && isPlainTextElement(elementNode) ? "text" : undefined;
@@ -49,13 +68,23 @@ export function markSourceLocations(syntaxTree: SyntaxNode, editedSource: MagicS
       engineNames[engineName] === undefined ? [] : [[engineNames[engineName], engineKind] as const],
     ),
   );
+  const engineAttributeNames = new Map(
+    Object.entries(attributeEditNames).flatMap(([engineName, attributeName]) =>
+      engineNames[engineName] === undefined ? [] : [[engineNames[engineName], attributeName] as const],
+    ),
+  );
   walkSyntaxTree(syntaxTree, (syntaxNode) => {
     if (syntaxNode.type !== "JSXElement") return;
     const elementName = readElementName(syntaxNode);
     if (elementName === undefined || (!/^[a-z]/.test(elementName) && !engineKinds.has(elementName))) return;
     const editKind = pickEditKind(syntaxNode, elementName, engineKinds.get(elementName));
+    const attributeName = engineAttributeNames.get(elementName);
+    const marksAttribute = editKind === "attribute" && attributeName !== undefined && hasStringAttribute(syntaxNode, attributeName);
     const sourceLocation = `${relativeFile}:${describeOffset(lineStarts, syntaxNode.start)}`;
-    const editAttribute = editKind === undefined ? "" : ` data-source-edit="${editKind}"`;
+    const editAttribute =
+      editKind === undefined || (editKind === "attribute" && !marksAttribute)
+        ? ""
+        : ` data-source-edit="${editKind}"${editKind === "attribute" ? ` data-source-attribute="${attributeName}"` : ""}`;
     editedSource.appendLeft(syntaxNode.openingElement.name.end, ` data-source-location={${JSON.stringify(sourceLocation)}}${editAttribute}`);
   });
   const versionStatement = `(window.slidemachinaSourceVersions ??= {})[${JSON.stringify(relativeFile)}] = ${JSON.stringify(hashSourceCode(sourceCode))};`;

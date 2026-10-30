@@ -2,7 +2,15 @@ import type { BoxDrag, BoxDragGuides, ScreenFrame } from "./box-dragging.ts";
 import type { EditorTexts } from "./editor-texts.ts";
 
 type OutlineState = "hover" | "active" | "droppable" | "drop";
-export type ShownOutline = { outlineFrame: ScreenFrame; editKind: string; outlineState: OutlineState; chipTitle?: string; chipNote?: string };
+export type ShownOutline = {
+  outlineFrame: ScreenFrame;
+  editKind: string;
+  outlineState: OutlineState;
+  chipTitle?: string;
+  chipNote?: string;
+  // The enclosing list item: the outline carries the buttons that add, move and remove it.
+  listItemLocation?: string;
+};
 
 // What the editor is doing right now; read every frame, so it lives outside React state.
 export type InteractionState = {
@@ -18,14 +26,31 @@ export type InteractionState = {
   finishTyping?: (keepsText: boolean) => void;
 };
 
-export function findLiveTarget(eventTarget: EventTarget | null, wantedKind?: string): HTMLElement | undefined {
-  if (!(eventTarget instanceof Element)) return undefined;
+export function findLiveTarget(pointerEvent: PointerEvent | MouseEvent | DragEvent, wantedKind?: string): HTMLElement | undefined {
+  // A press on the editor's own buttons stays there: the stacked hit-test must not fall through to the slide beneath.
+  if (pointerEvent.target instanceof Element && pointerEvent.target.closest("[data-editor-overlay]") !== null) return undefined;
   // Text inside a diagram box (its <small> line) belongs to the box: the box is dragged, not typed into.
-  const targetElement = eventTarget.closest<HTMLElement>('[data-source-edit="box"]') ?? eventTarget.closest<HTMLElement>("[data-source-edit]");
+  // A list item with mixed content has no edit of its own: the item itself is the target carrying the buttons.
+  const targetElement =
+    pointerEvent.target instanceof Element
+      ? (pointerEvent.target.closest<HTMLElement>('[data-source-edit="box"]') ??
+        pointerEvent.target.closest<HTMLElement>("[data-source-edit]") ??
+        pointerEvent.target.closest<HTMLElement>("li[data-source-location]"))
+      : undefined;
+  const liveTarget = pickLiveTarget(targetElement ?? undefined, wantedKind);
+  if (liveTarget !== undefined) return liveTarget;
+  // A full media sits behind the content layer and never gets the click: hit-test through the covering elements.
+  const stackedElement = document
+    .elementsFromPoint(pointerEvent.clientX, pointerEvent.clientY)
+    .find((element) => element.matches("[data-source-edit], li[data-source-location]"));
+  return pickLiveTarget(stackedElement as HTMLElement | undefined, wantedKind);
+}
+
+function pickLiveTarget(targetElement: HTMLElement | undefined, wantedKind?: string): HTMLElement | undefined {
   const slideElement = targetElement?.closest("[data-slide]");
   const isLiveSlide = slideElement?.hasAttribute("data-current") && slideElement.parentElement?.hasAttribute("data-canvas");
   if (!isLiveSlide || (wantedKind !== undefined && targetElement!.dataset.sourceEdit !== wantedKind)) return undefined;
-  return targetElement!;
+  return targetElement;
 }
 
 // Agentation's picking mode puts its own cursor style on the page; the editor steps aside meanwhile.
@@ -45,15 +70,17 @@ function measureEditableFrame(targetElement: HTMLElement): ScreenFrame {
 }
 
 function describeOutlines(interactionState: InteractionState, editorTexts: EditorTexts): ShownOutline[] {
-  const kindTitles: Record<string, string> = { text: editorTexts.textKind, picture: editorTexts.pictureKind, box: editorTexts.boxKind };
+  const kindTitles: Record<string, string> = { text: editorTexts.textKind, picture: editorTexts.pictureKind, box: editorTexts.boxKind, attribute: editorTexts.attributeKind };
   const describeOutline = (targetElement: HTMLElement, outlineState: OutlineState): ShownOutline => {
     const editKind = targetElement.dataset.sourceEdit!;
     const sourceLocation = (targetElement.dataset.sourceLocation ?? "").replace(/:\d+$/, "");
     const shownOutline: ShownOutline = { outlineFrame: measureEditableFrame(targetElement), editKind, outlineState, chipTitle: kindTitles[editKind], chipNote: sourceLocation };
     if (outlineState === "drop") return { ...shownOutline, chipTitle: editorTexts.pictureDropHint, chipNote: undefined };
     if (outlineState === "droppable") return { ...shownOutline, chipTitle: undefined };
+    const listItemLocation = targetElement.closest("li")?.dataset.sourceLocation;
+    if (listItemLocation !== undefined) return { ...shownOutline, listItemLocation };
     if (editKind === "picture") return { ...shownOutline, chipNote: editorTexts.pictureHint };
-    if (outlineState === "active" && editKind === "text") return { ...shownOutline, chipNote: editorTexts.textEditingHint };
+    if (outlineState === "active" && (editKind === "text" || editKind === "attribute")) return { ...shownOutline, chipNote: editorTexts.textEditingHint };
     const { dragGuides } = interactionState;
     if (outlineState === "active" && dragGuides !== undefined) {
       return { ...shownOutline, chipNote: editorTexts.boxPlaceHint(dragGuides.columnNumber, dragGuides.placeNumber) };

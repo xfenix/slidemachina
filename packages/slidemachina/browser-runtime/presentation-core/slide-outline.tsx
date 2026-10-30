@@ -1,6 +1,7 @@
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from "react";
 import { findOpeningCover, outlineSlideMarkup, type SectionPlace, type SlideOutlineReader } from "../../shared-between-runtimes/slide-outline-rules.js";
 import { listMarkupElements } from "./markup-elements.ts";
+import { pickSourceMarks } from "./source-marks.ts";
 import { Section, type SectionProperties } from "./section-component.tsx";
 import { SectionNumber } from "./section-number.tsx";
 import { Slide, type SlideProperties } from "./slide-component.tsx";
@@ -72,9 +73,12 @@ export function buildSlideOutline(presentationChildren: ReactNode): OutlinedSlid
       return { slideKey: `${enclosingKey}/${outlinedMarkup.slideNode.key}`, slideElement: outlinedMarkup.slideNode, sectionTrail, slideNotes, isHidden };
     }
     const { sectionNumber } = outlinedMarkup.sectionPlaces.at(-1)!;
+    // The title of the section is edited on its cover: the marks of the <Section> tag name the attribute to rewrite.
     const sectionCover = (
       <Slide cover background="var(--section-background)">
-        <h1 data-section-number={sectionNumber}>{sectionTitles.at(-1)}</h1>
+        <h1 data-section-number={sectionNumber} {...pickSourceMarks(outlinedMarkup.sectionPlaces.at(-1)!.sectionNode.props as object)}>
+          {sectionTitles.at(-1)}
+        </h1>
         <SectionNumber sectionNumber={sectionNumber} />
       </Slide>
     );

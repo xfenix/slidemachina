@@ -2,6 +2,7 @@ import { useRef, type CSSProperties, type ReactNode } from "react";
 import { arrowHeadLength, arrowHeadWidth, drawArrow } from "./arrow-geometry.ts";
 import { useFocusSteps } from "./diagram-focus.ts";
 import { listMarkupElements } from "../presentation-core/markup-elements.ts";
+import { pickSourceMarks } from "../presentation-core/source-marks.ts";
 import { Focus, FocusMarker, type FocusProperties } from "./diagram-parts.tsx";
 import { createPartStepAttributes, type StepEffect } from "../slide-steps/step-attributes.ts";
 
@@ -127,7 +128,7 @@ export function Sequence({ children }: SequenceProperties) {
         style={messageStyle}
         {...createPartStepAttributes(messageProperties.step, messageProperties.effect, "fade")}
       >
-        {messageProperties.label !== undefined && <span data-message-label>{messageProperties.label}</span>}
+        {messageProperties.label !== undefined && <span data-message-label {...pickSourceMarks(messageProperties)}>{messageProperties.label}</span>}
         <MessageArrow messageDirection={messageDirection} />
       </div>
     );

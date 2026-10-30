@@ -20,7 +20,7 @@ export async function replacePicture(pictureElement: HTMLElement, pictureFile: F
 export function choosePictureFile(handleChosenPicture: (pictureFile: File) => void) {
   const pictureInput = document.createElement("input");
   pictureInput.type = "file";
-  pictureInput.accept = "image/*";
+  pictureInput.accept = "image/*,video/*";
   pictureInput.addEventListener("change", () => {
     const pictureFile = pictureInput.files?.[0];
     if (pictureFile !== undefined) handleChosenPicture(pictureFile);

@@ -261,6 +261,107 @@ test("редактор правит текст, двигает блок схем
       await expect(currentSlide(page).locator("h2")).toHaveText("Пробуем редактор {вживую}");
     });
 
+    await test.step("подпись стрелки: правка пишет атрибут label", async () => {
+      const arrowsSlideNumber = await findSlideNumber(page, "h2", "Пишете теги, получаете схему");
+      await page.goto(`${editorServerAddress}/#${arrowsSlideNumber}`);
+      const arrowLabel = currentSlide(page).locator("[data-arrow-label]", { hasText: "HTTP" });
+      await arrowLabel.click();
+      await page.keyboard.press("ControlOrMeta+a");
+      await page.keyboard.type("HTTPS");
+      await page.keyboard.press("Enter");
+      await expect.poll(readPresentation).toContain('<Machina.Arrow from="browser" to="server" label="HTTPS" />');
+      await expect(arrowLabel).toHaveText("HTTPS");
+    });
+
+    await test.step("заголовок группы и заголовок кода: правка пишет атрибут title", async () => {
+      const groupsSlideNumber = await findSlideNumber(page, "h2", "Фокус на части схемы");
+      await page.goto(`${editorServerAddress}/#${groupsSlideNumber}`);
+      const groupTitle = currentSlide(page).locator("[data-group-title]", { hasText: "Сборка" });
+      await groupTitle.click();
+      await page.keyboard.press("ControlOrMeta+a");
+      await page.keyboard.type("Сборка и выкладка");
+      await page.keyboard.press("Enter");
+      await expect.poll(readPresentation).toContain('<Machina.Group id="build" title="Сборка и выкладка">');
+      await expect(groupTitle).toHaveText("Сборка и выкладка");
+
+      const levelsSlideNumber = await findSlideNumber(page, "h2", "Три уровня текста");
+      await page.goto(`${editorServerAddress}/#${levelsSlideNumber}`);
+      const codeTitle = currentSlide(page).locator("[data-code-title]");
+      await codeTitle.click();
+      await page.keyboard.press("ControlOrMeta+a");
+      await page.keyboard.type("слайды.tsx");
+      await page.keyboard.press("Enter");
+      await expect.poll(readPresentation).toContain('title="слайды.tsx"');
+      await expect(codeTitle).toHaveText("слайды.tsx");
+    });
+
+    await test.step("название раздела: правка на обложке раздела пишет title", async () => {
+      const sectionCoverNumber = await findSlideNumber(page, "[data-section-number]", "Блоки");
+      await page.goto(`${editorServerAddress}/#${sectionCoverNumber}`);
+      const sectionTitle = currentSlide(page).locator("h1[data-section-number]");
+      await sectionTitle.click();
+      await page.keyboard.press("ControlOrMeta+a");
+      await page.keyboard.type("Блоки движка");
+      await page.keyboard.press("Enter");
+      await expect.poll(readPresentation).toContain('<Machina.Section title="Блоки движка">');
+      await expect(sectionTitle).toHaveText("Блоки движка");
+    });
+
+    await test.step("пункты списка: добавить, передвинуть и удалить кнопками у пункта", async () => {
+      const pinsSlideNumber = await findSlideNumber(page, "h2", "Блок поверх вёрстки");
+      await page.goto(`${editorServerAddress}/#${pinsSlideNumber}`);
+      const listItems = currentSlide(page).locator("ul > li");
+      const hoverListItem = async (itemNumber: number) => {
+        // hover waits for the slide transition to settle: a raw mouse.move would aim mid-animation.
+        await listItems.nth(itemNumber).hover();
+        await expect(page.locator('[data-editor-list-action="add"]')).toBeVisible();
+      };
+      await hoverListItem(0);
+      await page.locator('[data-editor-list-action="add"]').click();
+      await expect.poll(readPresentation).toMatch(/<li><code>machina-pin<\/code> вынимает блок из потока<\/li>\s*<li>Новый пункт<\/li>/);
+      // The hot update redraws the editor: hover only once the slide shows the new item.
+      await expect(listItems.nth(1)).toHaveText("Новый пункт");
+      await hoverListItem(1);
+      await page.locator('[data-editor-list-action="remove"]').click();
+      await expect.poll(readPresentation).not.toContain("<li>Новый пункт</li>");
+      await expect(listItems.filter({ hasText: "Новый пункт" })).toHaveCount(0);
+      await hoverListItem(1);
+      await page.locator('[data-editor-list-action="earlier"]').click();
+      await expect.poll(async () => {
+        const presentation = await readPresentation();
+        return presentation.indexOf("<code>machina-pin-bottom</code>") < presentation.indexOf("<code>machina-pin</code>");
+      }).toBe(true);
+    });
+
+    await test.step("видео: выбранный файл ложится в images/, импорт меняется", async () => {
+      const videoSlideNumber = await findSlideNumber(page, "h2", "Видео на весь слайд");
+      await page.goto(`${editorServerAddress}/#${videoSlideNumber}`);
+      const slideVideo = currentSlide(page).locator("video[data-media]");
+      const fileChooser = page.waitForEvent("filechooser");
+      // The full video sits behind the content layer: a real click lands on the content, and the editor finds the video beneath it.
+      const videoFrame = (await slideVideo.boundingBox())!;
+      const [clickLeft, clickTop] = [videoFrame.x + videoFrame.width / 2, videoFrame.y + videoFrame.height / 2];
+      // During the slide transition the page is covered by its snapshot: click once the video is under the point again.
+      await expect.poll(() => page.evaluate(({ pointLeft, pointTop }) => document.elementsFromPoint(pointLeft, pointTop).some((pointElement) => pointElement.tagName === "VIDEO"), { pointLeft: clickLeft, pointTop: clickTop })).toBe(true);
+      await page.mouse.click(clickLeft, clickTop);
+      await (await fileChooser).setFiles({ name: "My Clip.webm", mimeType: "video/webm", buffer: tinyPicture });
+      await expect.poll(readPresentation).toContain('from "./images/my-clip.webm"');
+      expect(await readFile(path.join(copyFolder, "images", "my-clip.webm"))).toEqual(tinyPicture);
+      await expect(slideVideo).toHaveAttribute("src", /my-clip\.webm/);
+    });
+
+    await test.step("типограф не попадает в исходник: ёлочки и тире пишутся как в коде", async () => {
+      await page.goto(`${editorServerAddress}/#1`);
+      const probeParagraph = currentSlide(page).locator("[data-typography-probe]");
+      await probeParagraph.click();
+      await page.keyboard.press("ControlOrMeta+a");
+      await page.keyboard.type('Пишите align="center" и «кавычки» — проверено');
+      await page.keyboard.press("Enter");
+      await expect.poll(readPresentation).toContain('<p data-typography-probe>Пишите align="center" и "кавычки" - проверено</p>');
+      await expect(probeParagraph).toHaveText(/^Пишите align="center"\sи\s«кавычки»\s—\sпроверено$/);
+      await page.goto(`${editorServerAddress}/#${playgroundSlideNumber}`);
+    });
+
     await test.step("E выключает редактор: текст больше не правится", async () => {
       await page.keyboard.press("e");
       await expect(page.locator("html")).not.toHaveAttribute("data-source-editor");

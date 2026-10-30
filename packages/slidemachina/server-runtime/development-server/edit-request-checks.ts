@@ -1,12 +1,14 @@
 import type { IncomingMessage } from "node:http";
 import { SourceEditProblem } from "./source-rewriting.ts";
 import type { MemeKind } from "../../shared-between-runtimes/meme-template.ts";
-import type { SlideAction } from "./source-rewriting.ts";
+import type { ListItemAction, SlideAction } from "./source-rewriting.ts";
 
 export type EditRequest = { sourceLocation: string, sourceVersion?: string } & (
   | { editKind: "text", typedText: string }
   | { editKind: "picture", pictureName: string, pictureContent: string }
   | { editKind: "box", columnNumber?: number, anchorLocation?: string, anchorSide?: "before" | "after" }
+  | { editKind: "attribute", attributeName: string, typedText: string }
+  | { editKind: "listItem", listItemAction: ListItemAction }
   | { editKind: "meme", memeKind: MemeKind, memeValue: string, storesLocally: boolean }
   | { editKind: "slide", slideAction: SlideAction }
 );
@@ -15,6 +17,8 @@ export const largestPictureBytes = 80 * 1024 * 1024;
 // base64 makes a file a third larger; the rest is room for the other fields of the JSON.
 const largestRequestBytes = Math.ceil((largestPictureBytes * 4) / 3) + 1024 * 1024;
 const anchorSides = new Set<unknown>(["before", "after"]);
+const attributeNames = new Set<unknown>(["label", "title"]);
+const listItemActions = new Set<unknown>(["add", "remove", "earlier", "later"]);
 const memeKinds = new Set<unknown>(["template", "clip", "link"]);
 const slideActions = new Set<unknown>(["add", "duplicate", "earlier", "later", "remove"]);
 
@@ -60,6 +64,8 @@ function checkEditRequest(parsedBody: unknown): EditRequest {
         isMissingOr(editRequest.columnNumber, isColumnNumber) &&
         isMissingOr(editRequest.anchorLocation, isString) &&
         isMissingOr(editRequest.anchorSide, (candidateField) => anchorSides.has(candidateField))) ||
+      (editKind === "attribute" && attributeNames.has(editRequest.attributeName) && isString(editRequest.typedText)) ||
+      (editKind === "listItem" && listItemActions.has(editRequest.listItemAction)) ||
       (editKind === "meme" && memeKinds.has(editRequest.memeKind) && isString(editRequest.memeValue) && typeof editRequest.storesLocally === "boolean") ||
       (editKind === "slide" && slideActions.has(editRequest.slideAction)));
   if (!isWellFormed) throw new SourceEditProblem("wrongRequest");

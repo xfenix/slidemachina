@@ -1,6 +1,6 @@
 import MagicString from "magic-string";
 import { findLineStarts } from "../source-transforms/source-marking.ts";
-import { findAttribute, findEngineNames, isPlainTextElement, isStringContainer, parseSlideSource, walkSyntaxTree } from "../source-transforms/syntax-tree.ts";
+import { findAttribute, findEngineNames, isPlainTextElement, isStringContainer, parseSlideSource, readElementName, walkSyntaxTree } from "../source-transforms/syntax-tree.ts";
 import type { SyntaxNode } from "../source-transforms/syntax-tree.ts";
 
 export type SourcePlace = { lineNumber: number, columnNumber: number };
@@ -59,6 +59,27 @@ export function rewriteElementText(sourceCode: string, filePath: string, sourceP
   const writtenText = writesLiteral ? `{${JSON.stringify(typedText)}}` : escapeJsxText(typedText);
   const editedSource = new MagicString(sourceCode);
   editedSource.overwrite(firstChild.start + leadingSpace.length, lastChild.end - trailingSpace.length, writtenText);
+  return editedSource.toString();
+}
+
+// The name of the element at the place: a video takes video files, a picture takes pictures.
+export function readElementNameAt(sourceCode: string, filePath: string, sourcePlace: SourcePlace): string | undefined {
+  return readElementName(locateElements(sourceCode, filePath, [sourcePlace]).foundElements[0]!.elementNode);
+}
+
+// The attribute keeps its place in the tag; the value is rewritten as a double-quoted string, whatever quotes it had.
+export function rewriteStringAttribute(sourceCode: string, filePath: string, sourcePlace: SourcePlace, attributeName: string, typedText: string): string {
+  const { elementNode } = locateElements(sourceCode, filePath, [sourcePlace]).foundElements[0]!;
+  const attributeValue = findAttribute(elementNode, attributeName)?.value;
+  const literalValue =
+    attributeValue?.type === "Literal"
+      ? attributeValue
+      : attributeValue?.type === "JSXExpressionContainer" && attributeValue.expression.type === "Literal"
+        ? attributeValue.expression
+        : undefined;
+  if (literalValue === undefined || typeof literalValue.value !== "string") throw new SourceEditProblem("attributeExpression");
+  const editedSource = new MagicString(sourceCode);
+  editedSource.overwrite(literalValue.start, literalValue.end, JSON.stringify(typedText));
   return editedSource.toString();
 }
 
@@ -207,5 +228,37 @@ export function copyOrRemoveSlide(sourceCode: string, filePath: string, slidePla
   }
   const followingBlank = /^[ \t]*\n/.exec(sourceCode.slice(rangeEnd))?.[0] ?? "";
   editedSource.remove(rangeStart, rangeEnd + followingBlank.length);
+  return editedSource.toString();
+}
+
+export type ListItemAction = "add" | "remove" | "earlier" | "later";
+const listContainerNames = new Set(["ul", "ol"]);
+
+// The new item follows the shown one; a moved item trades places with its neighbour in the list.
+export function changeListItem(sourceCode: string, filePath: string, sourcePlace: SourcePlace, listItemAction: ListItemAction, newItemText: string): string {
+  const { elementNode: itemNode, parentNode } = locateElements(sourceCode, filePath, [sourcePlace]).foundElements[0]!;
+  const parentName = parentNode === undefined ? undefined : readElementName(parentNode);
+  if (parentName === undefined || !listContainerNames.has(parentName)) throw new SourceEditProblem("listOutsideList");
+  const itemElements = findSiblingElements(parentNode).filter((siblingNode) => readElementName(siblingNode) === "li");
+  if (listItemAction === "add") {
+    const itemIndent = readIndent(sourceCode, itemNode.start);
+    const editedSource = new MagicString(sourceCode);
+    editedSource.appendLeft(itemNode.end, `\n${itemIndent}<li>${newItemText}</li>`);
+    return editedSource.toString();
+  }
+  if (listItemAction === "remove") {
+    const { rangeStart, rangeEnd } = findMovedRange(sourceCode, itemNode);
+    const followingBlank = /^[ \t]*\n/.exec(sourceCode.slice(rangeEnd))?.[0] ?? "";
+    const editedSource = new MagicString(sourceCode);
+    editedSource.remove(rangeStart, rangeEnd + followingBlank.length);
+    return editedSource.toString();
+  }
+  const itemPosition = itemElements.indexOf(itemNode);
+  const neighbourNode = itemElements[itemPosition + (listItemAction === "earlier" ? -1 : 1)];
+  if (itemPosition === -1 || neighbourNode === undefined) throw new SourceEditProblem("listItemAtEdge");
+  const [firstNode, secondNode] = listItemAction === "earlier" ? [neighbourNode, itemNode] : [itemNode, neighbourNode];
+  const editedSource = new MagicString(sourceCode);
+  editedSource.overwrite(firstNode.start, firstNode.end, sourceCode.slice(secondNode.start, secondNode.end));
+  editedSource.overwrite(secondNode.start, secondNode.end, sourceCode.slice(firstNode.start, firstNode.end));
   return editedSource.toString();
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { useSlideEnvironment } from "../presentation-core/slide-environment.ts";
+import { pickSourceMarks } from "../presentation-core/source-marks.ts";
 import { MediaFrame, rememberProportions, type MediaPlacement } from "./media-frame.tsx";
 
 export type VideoProperties = MediaPlacement & {
@@ -12,7 +13,7 @@ export type VideoProperties = MediaPlacement & {
 };
 
 // Plays muted only while its slide is on screen and loads only near its slide.
-export function Video({ src, poster, loop = true, controls = false, stretch, full, fit, children }: VideoProperties) {
+export function Video({ src, poster, loop = true, controls = false, stretch, full, fit, children, ...otherProperties }: VideoProperties) {
   const videoElementReference = useRef<HTMLVideoElement>(null);
   const { isCurrentSlide, isSlideNearby, isSlideCopy } = useSlideEnvironment();
   const loadsVideo = isSlideNearby || (isSlideCopy && poster === undefined);
@@ -29,6 +30,7 @@ export function Video({ src, poster, loop = true, controls = false, stretch, ful
       <video
         ref={videoElementReference}
         data-media
+        {...pickSourceMarks(otherProperties)}
         src={src}
         poster={poster}
         loop={loop}
