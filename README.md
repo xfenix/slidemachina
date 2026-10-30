@@ -384,6 +384,7 @@ The second rule is minimal markup. A slide is plain tags: no wrappers, ids or co
 | | slidemachina | reveal.js | Slidev | open-slide |
 |---|---|---|---|---|
 | A clear talk | `check` counts list items, words, diagram boxes, code lines and sections. The agent skill follows Mayer's principles | — | — | The skill asks how dense the text should be. Nothing checks it |
+| Speed, the same 20-slide talk | First slide 0.15 s after load, 4.8 MB of JS memory, dev server ready in 1 s | 0.15 s, 7.8 MB, 0.7 s | 0.35 s, 5.3 MB, 2.5 s | 0.22 s, 9.1 MB, 2.0 s |
 | Markup | JSX in `index.tsx`, checked by TypeScript | HTML: `<section>` in `index.html` | Markdown with Vue components | React pages on a 1920×1080 canvas |
 | Styling | Plain CSS and Tailwind CSS in `style.css`: theme variables, any selector, classes right in the markup. No theme package | CSS or Sass theme files | A theme is an npm package with Vue layouts. To change a layout you write your own theme. UnoCSS classes | Inline styles in every page. A theme is a Markdown file the agent copies into the slides |
 | Markup per slide | `<Slide>`, an `h2` and plain tags. One `data-steps` for a whole list, no ids for morphing | `<section>`, `class="fragment"` on every element, `data-id` on morphing pairs | Markdown with frontmatter, `v-click` on every element, the layout named in frontmatter | React pages with inline styles and pixel coordinates, `<Step>` and `MorphElement` wrappers |
@@ -405,6 +406,8 @@ The second rule is minimal markup. A slide is plain tags: no wrappers, ids or co
 | Screenshot for agent | `slidemachina shot 12.2`: one slide at a given step, in a second | — | `slidev export --format png`: the whole deck | — |
 | QR codes | `<QR value="https://…">`: a vector code with your logo, built in. No QR website, no picture to regenerate when the link changes | A picture you make elsewhere | A picture you make elsewhere or a community add-on | A picture you make elsewhere |
 | Memes | `slidemachina meme "this is fine"` finds memegen templates and GIPHY GIFs. Captions are text you edit on the slide. `src="fine"` takes a picture from `images/memes/` by name | A picture with the text baked in | A picture with the text baked in | A picture with the text baked in |
+
+Speed was measured on October 30, 2026: method, versions and every number are in [docs/benchmark.md](docs/benchmark.md).
 
 A dash means the tool has nothing built in for this.
 
