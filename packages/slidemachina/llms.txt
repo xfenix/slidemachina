@@ -1,119 +1,119 @@
 # slidemachina
 
-> Движок HTML-презентаций на React. Вся презентация — один файл `index.tsx` с JSX, тема — `style.css` рядом, картинки — `images/`. Сборка — HTML-файл, сайт, PDF или PowerPoint.
+> An HTML presentation engine on React. A presentation is one file, `index.tsx`, written in JSX; the theme is `style.css` next to it, pictures are in `images/`. The build is an HTML file, a website, a PDF or PowerPoint.
 
-Справочник для агентов: всё, что нужно, чтобы написать, оформить и проверить презентацию. Полная документация движка — `docs/slidemachina.md` в репозитории https://github.com/xfenix/slidemachina.
+A reference for agents: everything needed to write, style and check a presentation. The full engine documentation (in Russian) is `docs/slidemachina.md` in https://github.com/xfenix/slidemachina.
 
-## Команды
+## Commands
 
 ```bash
-npx slidemachina dev [папка]                # слайды в браузере, правка .tsx видна сразу на том же шаге
-npx slidemachina build [папка] --html --pdf # без флагов спросит, что собрать
-npx slidemachina check [папка] [--json]     # правила подачи, см. ниже; код выхода 1, если есть замечания
-npx slidemachina shot 12 [папка]            # снимок слайда 12 в PNG; 12.2 — после двух шагов, 12+1 — первый скрытый после 12
-npx slidemachina meme "this is fine"        # поиск мемов; каждая находка печатается с командой, которая её вставит
+npx slidemachina dev [folder]                # slides in the browser; a .tsx change shows up at once, on the same step
+npx slidemachina build [folder] --html --pdf # without flags it asks what to build
+npx slidemachina check [folder] [--json]     # the rules of a clear talk, see below; exit code 1 when there are remarks
+npx slidemachina shot 12 [folder]            # slide 12 as a PNG; 12.2 is after two steps, 12+1 is the first hidden slide after 12
+npx slidemachina meme "this is fine"         # meme search; every result is printed with the command that inserts it
 ```
 
-- Флаги `build`: `--html` (один файл), `--protected` (под паролем из `SLIDEMACHINA_PASSWORD`), `--folder`, `--zip`, `--pdf`, `--steps` (PDF по шагам), `--pptx`, `--hidden` (добавить скрытые слайды), `--out <папка>`.
-- `shot` пишет `slide-12.png` в текущую папку, `--out файл.png` — в другое место. Снимок нужен, чтобы проверить вёрстку глазами, а не по коду. PDF, обложки и `shot` требуют установленного Chrome.
-- Адрес в браузере: `#7` — слайд 7, `#7.2` — после двух шагов, `?print` — печатная версия, `?overview` — обзор.
+- `build` flags: `--html` (one file), `--protected` (password from `SLIDEMACHINA_PASSWORD`), `--folder`, `--zip`, `--pdf`, `--steps` (PDF by steps), `--pptx`, `--hidden` (keep hidden slides), `--out <folder>`.
+- `shot` writes `slide-12.png` to the current folder; `--out file.png` writes elsewhere. Use it to check the layout by eye, not by reading code. PDF, covers and `shot` need an installed Chrome.
+- Browser address: `#7` is slide 7, `#7.2` is after two steps, `?print` is the print view, `?overview` is the slide overview.
 
-## Файлы
+## Files
 
 ```text
 my-talk/
-  index.tsx    презентация
-  style.css    тема: @import "tailwindcss" и CSS-переменные
-  images/      картинки, импортируются в index.tsx
+  index.tsx    the presentation
+  style.css    the theme: @import "tailwindcss" and CSS variables
+  images/      pictures, imported in index.tsx
 ```
 
-Репозиторий докладов — папка с презентациями в подпапках и общей темой `theme/style.css`. Тема доклада сильнее общей.
+A repository of talks is a folder with presentations in subfolders and a shared theme `theme/style.css`. A talk's own theme is stronger than the shared one.
 
-## Каркас
+## Skeleton
 
 ```tsx
 import * as Machina from "slidemachina";
 import logoPicture from "./images/logo.svg";
 
 export default (
-  <Machina.Presentation lang="ru" logo={logoPicture}>
+  <Machina.Presentation lang="en" logo={logoPicture}>
     <Machina.Slide cover>
-      <h1>Доклад</h1>
-      <p className="machina-lead">Подзаголовок</p>
+      <h1>My talk</h1>
+      <p className="machina-lead">A subtitle</p>
     </Machina.Slide>
-    <Machina.Section title="Раздел">
+    <Machina.Section title="A section">
       <Machina.Slide>
-        <h2>Заголовок слайда</h2>
+        <h2>The thought of the slide</h2>
         <ul data-steps>
-          <li>Пункт появляется по нажатию</li>
-          <li>Второй пункт</li>
+          <li>An item appears on a key press</li>
+          <li>The second item</li>
         </ul>
-        <Machina.Notes>Что сказать на этом слайде</Machina.Notes>
+        <Machina.Notes>What to say on this slide</Machina.Notes>
       </Machina.Slide>
     </Machina.Section>
   </Machina.Presentation>
 );
 ```
 
-- `index.tsx` экспортирует готовый элемент. Свой компонент объявляется прямо в файле, над слайдами.
-- `Presentation`: `title`, `lang` (`ru`, `en`), `align` (`left`, `center`, `right`), `logo` (файл, `{ light, dark }` или компонент), `transition`, `speed`, `stepEffect`, `aspectRatio` (`"16:9"` по умолчанию, `"4:3"`, `"9:16"`…), `progress={false}`, `breadcrumbsSeparator`, `typography={false}`, `date` (`"2026-10-30"`), `duration` (минуты доклада), `favicon`, `onChange`.
-- `Section`: `title`; вложенный `Section` — подраздел. Раздел сам даёт обложку с номером «02». Свою обложку ставит первый `<Slide cover>` раздела, `cover={false}` убирает её.
-- `Slide`: `cover`, `align`, `valign` (`top`, `center`, `bottom`), `background` (цвет, картинка, видео, GIF, `{ iframe: "https://…" }`), `tone` (`dark`, `light`), `transition`, `speed`, `stepEffect`, `plain` (без логотипа, крошек и номера), `logo` (`"top-right"`, `"top-left"`, `"top"`, `"center"`, `"bottom"`, `false`), `breadcrumbs`, `number={false}`, `hidden` (запасной слайд), `className`, `onEnter`, `onLeave`.
-- `h1` — у обложки, `h2` — у обычного слайда.
-- `<Machina.Notes>` — заметки докладчика, `<Machina.Notes step={2}>` — к шагу 2. На слайде их нет, окно докладчика открывает клавиша P.
-- `useSlide()` в своём компоненте: `{ number, step, isCurrent, isCopy }`.
+- `index.tsx` exports a ready element. Your own component is declared right in the file, above the slides.
+- `Presentation`: `title`, `lang` (`ru`, `en`), `align` (`left`, `center`, `right`), `logo` (a file, `{ light, dark }` or a component), `transition`, `speed`, `stepEffect`, `aspectRatio` (`"16:9"` by default, `"4:3"`, `"9:16"`…), `progress={false}`, `breadcrumbsSeparator`, `typography={false}`, `date` (`"2026-10-30"`), `duration` (minutes of the talk), `favicon`, `onChange`.
+- `Section`: `title`; a nested `Section` is a subsection. A section adds its own numbered cover "02". The first `<Slide cover>` of a section replaces that cover; `cover={false}` removes it.
+- `Slide`: `cover`, `align`, `valign` (`top`, `center`, `bottom`), `background` (a color, picture, video, GIF or `{ iframe: "https://…" }`), `tone` (`dark`, `light`), `transition`, `speed`, `stepEffect`, `plain` (no logo, breadcrumbs or number), `logo` (`"top-right"`, `"top-left"`, `"top"`, `"center"`, `"bottom"`, `false`), `breadcrumbs`, `number={false}`, `hidden` (a backup slide), `className`, `onEnter`, `onLeave`.
+- A cover has `h1`, a regular slide has `h2`.
+- `<Machina.Notes>` are speaker notes, `<Machina.Notes step={2}>` belong to step 2. They are not on the slide; the P key opens the presenter window.
+- `useSlide()` in your own component: `{ number, step, isCurrent, isCopy }`.
 
-## Шаги
+## Steps
 
-- `data-steps` на `ul`, `ol`, `table` или `machina-columns` — каждый пункт, строка или колонка появляется по нажатию. `data-steps={3}` — начиная с шага 3.
-- `data-step` — шагом становится любой тег, в том числе `<span>` внутри строки. `data-step={2}` — на шаге 2.
-- Эффекты: `rise` (по умолчанию), `fade`, `scale`, `glitch`, `highlight` (загорается цветом акцента), `dim` (гаснет). Элемент: `data-step-effect="fade"`. Все шаги презентации или слайда: `stepEffect="fade"`.
-- Шаги есть и у блоков схем (`step`), строк кода (`lines`), объектов сцены (`step`).
+- `data-steps` on `ul`, `ol`, `table` or `machina-columns`: every item, row or column appears on a key press. `data-steps={3}` starts at step 3.
+- `data-step` turns any tag into a step, a `<span>` inside a line too. `data-step={2}` puts it on step 2.
+- Effects: `rise` (default), `fade`, `scale`, `glitch`, `highlight` (lights up in the accent color), `dim` (fades out). On an element: `data-step-effect="fade"`. For all steps of a presentation or a slide: `stepEffect="fade"`.
+- Diagram parts (`step`), code lines (`lines`) and scene objects (`step`) have steps too.
 
-## Блоки
+## Blocks
 
-| Разметка | Что это |
+| Markup | What it is |
 |---|---|
-| `<p className="machina-lead">` | Подзаголовок или вводная фраза |
-| `<p>` | Основной текст |
-| `<p className="machina-note">` | Примечание мелким шрифтом |
-| `<p className="machina-source">` | Источник данных под блоками |
-| `<div className="machina-columns">` | Колонки: каждый прямой потомок — колонка. Доли: `style={{ gridTemplateColumns: "3fr 2fr" }}` |
-| `<figure className="machina-big-number"><p>42</p><figcaption>…</figcaption></figure>` | Большое число с подписью |
-| `<div className="machina-card">` | Карточка, `machina-card-stretch` — на всё место |
-| `<ul className="machina-bars"><li style={{ height: "30%" }} /></ul>` | Столбики графика |
-| `<table>` с `thead` и `tbody` | Таблица |
-| `<table className="machina-compare">`, `<td className="machina-yes" />`, `<td className="machina-no" />` | Сравнение решений с галочками |
-| `<figure><blockquote>…</blockquote><figcaption>Автор</figcaption></figure>` | Цитата |
-| `<p className="machina-thesis">` на `<Slide background="var(--accent-soft-color)">` | Тезис: одна фраза крупно, без заголовка. Длинная фраза — `machina-thesis-small` |
-| `<div className="machina-pin machina-pin-bottom machina-pin-right">` | Блок поверх слайда, у края |
-| `<div className="machina-freeform">` | Свободная вёрстка под заголовком, дети — `absolute` |
-| `<figcaption>` после блока | Подпись к схеме, коду, таблице, сцене |
+| `<p className="machina-lead">` | A subtitle or an opening phrase |
+| `<p>` | Body text |
+| `<p className="machina-note">` | A small note |
+| `<p className="machina-source">` | The source of the data, under the blocks |
+| `<div className="machina-columns">` | Columns: every direct child is a column. Shares: `style={{ gridTemplateColumns: "3fr 2fr" }}` |
+| `<figure className="machina-big-number"><p>42</p><figcaption>…</figcaption></figure>` | A big number with a caption |
+| `<div className="machina-card">` | A card; `machina-card-stretch` takes all the free space |
+| `<ul className="machina-bars"><li style={{ height: "30%" }} /></ul>` | A bar chart |
+| `<table>` with `thead` and `tbody` | A table |
+| `<table className="machina-compare">`, `<td className="machina-yes" />`, `<td className="machina-no" />` | A comparison of options with check marks |
+| `<figure><blockquote>…</blockquote><figcaption>Author</figcaption></figure>` | A quote |
+| `<p className="machina-thesis">` on `<Slide background="var(--accent-soft-color)">` | A thesis: one phrase, large, no heading. A longer phrase is `machina-thesis-small` |
+| `<div className="machina-pin machina-pin-bottom machina-pin-right">` | A block on top of the slide, at its edge |
+| `<div className="machina-freeform">` | Free layout under the heading, children are `absolute` |
+| `<figcaption>` after a block | A caption for a diagram, code, table or scene |
 
-Компоненты блоков:
-- `Image`: `src`, `alt`, `stretch` (на свободное место), `full` (на весь слайд), `fit` (`contain`, `cover`), `float` (`left`, `right` — текст обтекает); внутри `<figcaption>`.
+Block components:
+- `Image`: `src`, `alt`, `stretch` (fills the free space), `full` (the whole slide), `fit` (`contain`, `cover`), `float` (`left`, `right`: text flows around it); `<figcaption>` inside.
 - `Video`: `src`, `poster`, `stretch`, `full`, `fit`, `loop`, `controls`.
-- `QR`: `value`, `logo`, `color`, `correction`; внутри `<figcaption>`.
-- `Meme`: `src`, `alt`, `float`; внутри подписи — по `<p>` на строку, `data-place` (`top`, `bottom`, `center`), `<figcaption>` с источником.
+- `QR`: `value`, `logo`, `color`, `correction`; `<figcaption>` inside.
+- `Meme`: `src`, `alt`, `float`; captions inside, one `<p>` per line, `data-place` (`top`, `bottom`, `center`), and `<figcaption>` with the source.
 
-## Код
+## Code
 
 ```tsx
 <Machina.Code lang="ts" title="app.ts">{`const answer = 42;`}</Machina.Code>
 <Machina.Code src="./agent.py" lines="10-13 | 27-30" numbers />
 ```
 
-- `lines="1 | 3-4 | 6"` — первая часть видна сразу, каждая следующая — шаг, остальные строки приглушены.
-- `// [!code highlight]` в комментарии подсвечивает строку.
-- Подсветку делает сборка: код пишется строкой, а не переменной.
-- Однострочный код без `title` показывается крупно, без фона: так ставят команду.
+- `lines="1 | 3-4 | 6"`: the first part shows at once, every next part is a step, the other lines are dimmed.
+- `// [!code highlight]` in a comment highlights a line.
+- The build does the highlighting, so write code as a string, not a variable.
+- One line of code without `title` is shown large and without a background, which suits a command.
 
-## Схемы
+## Diagrams
 
 ```tsx
 <Machina.Diagram direction="right">
-  <Machina.Box id="slides">index.tsx<small>слайды</small></Machina.Box>
-  <Machina.Group id="build" title="Сборка" step>
+  <Machina.Box id="slides">index.tsx<small>slides</small></Machina.Box>
+  <Machina.Group id="build" title="Build" step>
     <Machina.Box id="vite">Vite</Machina.Box>
     <Machina.Box id="shiki">Shiki</Machina.Box>
     <Machina.Arrow from="vite" to="shiki" />
@@ -123,10 +123,10 @@ export default (
 </Machina.Diagram>
 ```
 
-- Блоки расставляет ELK, координаты не нужны. `column={n}`, `first`, `last` — колонка блока.
-- `Focus on={[…]}` приглушает остальное, `<Focus step />` без `on` снимает фокус.
-- Sequence-диаграмма: `<Machina.Sequence>`, `<Machina.Actor id>`, `<Machina.Message from to label reply step>`, `Focus`.
-- Блок схемы перетекает в блок с тем же `id` на соседнем слайде.
+- ELK lays out the boxes, no coordinates needed. `column={n}`, `first` and `last` set a box's column.
+- `Focus on={[…]}` dims everything else; `<Focus step />` without `on` removes the focus.
+- A sequence diagram: `<Machina.Sequence>`, `<Machina.Actor id>`, `<Machina.Message from to label reply step>`, `Focus`.
+- A diagram box flows into the box with the same `id` on the next slide.
 
 ## 3D
 
@@ -135,20 +135,20 @@ export default (
   <Machina.Cube id="cube" size={1.3} material="glossy" />
   <Machina.Sphere size={1} position={[1.5, 0.5, 0]} color="var(--accent-color)" step />
   <Machina.Move on="cube" position={[-1.5, 0.65, 0]} step />
-  <Machina.Text position={[0, 2.2, 0]} step>Готово</Machina.Text>
+  <Machina.Text position={[0, 2.2, 0]} step>Done</Machina.Text>
 </Machina.Scene>
 ```
 
-- Объекты: `id`, `position`, `rotation` (градусы), `scale`, `color`, `material` (`matte`, `glossy`, `metal`), `spin`, `step`.
-- `Light`, `Camera` (`position`, `target`, `fov`), `Move` (`on`, `position`, `rotation`, `scale`, `color`). Без `Camera` кадр подбирается сам. `full` — сцена на весь слайд под текстом.
+- Objects: `id`, `position`, `rotation` (degrees), `scale`, `color`, `material` (`matte`, `glossy`, `metal`), `spin`, `step`.
+- `Light`, `Camera` (`position`, `target`, `fov`), `Move` (`on`, `position`, `rotation`, `scale`, `color`). Without `Camera` the frame is chosen automatically. `full` puts the scene under the text on the whole slide.
 
-## Переходы и морфинг
+## Transitions and morphing
 
-- `transition`: `auto` (по умолчанию), `morph`, `slide`, `fade`, `zoom`, `cube`, `flip`, `wipe`, `iris`, `blinds`, `mosaic`, `glitch`, `none`. `speed`: `fast`, `slow` или число.
-- Морфинг находит пары сам: одинаковые заголовки и тексты (по словам), картинки с тем же `src`, карточки, числа, столбики по порядку, блоки схем с тем же `id`, код по строкам. Свою пару задаёт `morph="имя"` на обоих слайдах.
-- Чтобы показать изменение, повторите слайд с тем же заголовком и поменяйте одну часть.
+- `transition`: `auto` (default), `morph`, `slide`, `fade`, `zoom`, `cube`, `flip`, `wipe`, `iris`, `blinds`, `mosaic`, `glitch`, `none`. `speed`: `fast`, `slow` or a number.
+- Morphing finds pairs by itself: equal headings and texts (word by word), pictures with the same `src`, cards, numbers and bars in order, diagram boxes with the same `id`, code line by line. Name your own pair with `morph="name"` on both slides.
+- To show a change, repeat the slide with the same heading and change one part.
 
-## Тема
+## Theme
 
 ```css
 @import "tailwindcss";
@@ -163,7 +163,7 @@ export default (
   --font-text: "Brand Sans", system-ui, sans-serif;
   --font-heading: var(--font-text);
   --heading-weight: 800;
-  --accent-color: #e8574c;         /* маркеры, числа, выделение */
+  --accent-color: #e8574c;         /* bullets, numbers, highlights */
   --second-accent-color: #2f7d6d;
   --text-color: #1d1f24;
   --muted-color: #6e6f73;
@@ -172,29 +172,29 @@ export default (
   --section-background: #1d2233;
 }
 
-/* Всё, чего нет в переменных, меняет обычный CSS: он сильнее стилей движка. */
+/* Plain CSS changes anything the variables do not cover: it is stronger than the engine's styles. */
 [data-slide] :is(h1, h2) { text-transform: uppercase; }
 [data-slide] ul > li:before { clip-path: none; border-radius: 2px; background: var(--accent-color); }
 ```
 
-- Размеры шрифта: `--secondary-text-size` 28, `--text-size` 40, `--heading-size` 56, `--display-size` 112. Поля: `--frame-padding`, `--frame-top`, `--heading-gap`, `--block-gap`, `--columns-gap`.
-- Обложки разделов: `--section-background`, `--section-number-start-color`, `--section-number-end-color`, `--section-texture: none`, `--section-glow-strength: 0%`.
-- Полоса прогресса: `--progress-color`, `--progress-color-on-dark`. Мягкие фоны тезисов: `--accent-soft-color`, `--second-accent-soft-color`.
-- Цвета текста для тёмных слайдов: `--text-color-on-dark`, `--muted-color-on-dark`, `--accent-color-on-dark`.
-- Один слайд по-своему: `className` у `Slide`, классы Tailwind в разметке: `className="text-(--accent-color)"`, `className="[--hanging-punctuation:0]"`.
-- Тёмный слайд: `background="var(--dark-background)"`, цвет текста движок подберёт сам.
+- Font sizes: `--secondary-text-size` 28, `--text-size` 40, `--heading-size` 56, `--display-size` 112. Margins: `--frame-padding`, `--frame-top`, `--heading-gap`, `--block-gap`, `--columns-gap`.
+- Section covers: `--section-background`, `--section-number-start-color`, `--section-number-end-color`, `--section-texture: none`, `--section-glow-strength: 0%`.
+- Progress bar: `--progress-color`, `--progress-color-on-dark`. Soft thesis backgrounds: `--accent-soft-color`, `--second-accent-soft-color`.
+- Text colors for dark slides: `--text-color-on-dark`, `--muted-color-on-dark`, `--accent-color-on-dark`.
+- One slide of its own: `className` on `Slide` and Tailwind classes in the markup: `className="text-(--accent-color)"`, `className="[--hanging-punctuation:0]"`.
+- A dark slide: `background="var(--dark-background)"`; the engine picks the text color.
 
-## Правила подачи
+## Rules of a clear talk
 
-Их проверяет `slidemachina check`. Основа — принципы мультимедийного обучения Ричарда Майера и предел рабочей памяти Миллера 7±2.
+`slidemachina check` checks them. They come from Richard Mayer's principles of multimedia learning and Miller's 7±2 limit of working memory.
 
-| Правило | Предел в `check` |
+| Rule | Limit in `check` |
 |---|---|
-| Список короткий, лучше 3–5 пунктов | не больше 7 пунктов |
-| Мало текста на слайде, остальное — в `Notes` | не больше 40 слов на слайде без кода и заметок |
-| Схема читается за шаг | не больше 9 блоков и сообщений без `Focus` |
-| Длинный код идёт по шагам | больше 12 строк — только с `lines` |
-| Не больше трёх колонок, чисел или карточек в ряд | не больше 3 колонок |
-| Доклад делится на обозримые разделы | не больше 7 разделов верхнего уровня |
-| У каждого слайда есть заголовок, кроме обложки, тезиса, цитаты и мема | заголовок `h1` или `h2` |
-| У картинок есть описание | `alt` у `Image`, `Meme` и `<img>` |
+| A list is short, better 3 to 5 items | at most 7 items |
+| Little text on the slide, the rest goes to `Notes` | at most 40 words on a slide, code and notes excluded |
+| A diagram is readable in one step | at most 9 boxes and messages without `Focus` |
+| Long code goes by steps | over 12 lines only with `lines` |
+| At most three columns, numbers or cards in a row | at most 3 columns |
+| A talk splits into a few sections | at most 7 top-level sections |
+| Every slide has a heading, except a cover, a thesis, a quote and a meme | an `h1` or `h2` |
+| Pictures have a description | `alt` on `Image`, `Meme` and `<img>` |

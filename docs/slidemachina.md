@@ -681,7 +681,8 @@ README показывает слайды демо из `docs/readme/` и сни�
    - компилирует `server-runtime`, `shared-between-runtimes` и `create-project.ts` в `.js` рядом с `.ts`: `tsc --ignoreConfig --noCheck --rewriteRelativeImportExtensions`, импорты `./x.ts` становятся `./x.js`;
    - переключает `bin` обоих пакетов на `.js`, `files` создателя проекта — на `create-project.js`;
    - ставит версию обоим пакетам и `slidemachina@^<версия>` в шаблон;
-   - кладёт в пакеты `README.md` и `LICENSE` из корня. Ссылки README на файлы репозитория становятся абсолютными на тег релиза: на странице npm относительные пути не открываются.
+   - кладёт в пакеты `README.md` и `LICENSE` из корня. Ссылки README на файлы репозитория становятся абсолютными на тег релиза: на странице npm относительные пути не открываются. Ссылки ведут на GitHub, картинки — на jsDelivr: raw.githubusercontent отдаёт SVG как текст, и npm его не показывает. Логотип для тёмной темы GitHub вырезается: у npm тёмной темы нет.
+   - README в корне английский, русский — `README.ru.md`; в пакеты уходит английский. `llms.txt`, `AGENTS.md` и скилл шаблона тоже английские: их читают агенты, а не зрители. Слайды и README шаблона — русские.
 4. Пробная установка: упакованный `create-slidemachina` создаёт проект, в него ставится упакованный `slidemachina`, затем `slidemachina check` и `slidemachina build --html`. Так ловится пакет, который не запустится у пользователя.
 5. `npm publish --provenance` обоих пакетов, сначала движок.
 

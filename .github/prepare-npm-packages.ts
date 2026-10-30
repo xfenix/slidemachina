@@ -64,10 +64,14 @@ updateManifest("packages/create-slidemachina/template/package.json", (packageMan
 
 // The npm page shows the README of the package folder. Paths in the repository README point into the repository,
 // so on npm they lead to the files of this very release on GitHub.
+// Pictures go through jsDelivr: raw.githubusercontent serves SVG as text, and npm does not show it.
+// npm has no dark mode, so the logo for the dark GitHub theme is dropped.
 const releaseTag = process.argv[2]!;
-const pictureBase = `https://raw.githubusercontent.com/${repositoryName}/${releaseTag}/`;
+const pictureBase = `https://cdn.jsdelivr.net/gh/${repositoryName}@${releaseTag}/`;
 const pageBase = `https://github.com/${repositoryName}/blob/${releaseTag}/`;
 const packageReadme = readFileSync(path.join(workspaceFolder, "README.md"), "utf8")
+  .replace(/^.*#gh-dark-mode-only.*\n/m, "")
+  .replace("#gh-light-mode-only", "")
   .replace(/src="(?!https?:|#)([^"]+)"/g, (_, picturePath: string) => `src="${pictureBase}${picturePath}"`)
   .replace(/href="(?!https?:|#)([^"]+)"/g, (_, linkedPath: string) => `href="${pageBase}${linkedPath}"`)
   .replace(/\]\((?!https?:|#)([^)]+)\)/g, (_, linkedPath: string) => `](${pageBase}${linkedPath})`);

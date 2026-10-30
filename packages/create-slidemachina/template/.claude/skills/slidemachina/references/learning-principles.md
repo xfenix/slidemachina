@@ -1,73 +1,73 @@
-# Правила понятного доклада
+# Rules of a clear talk
 
-Два источника:
-- 12 принципов мультимедийного обучения Ричарда Майера (Richard E. Mayer, «Multimedia Learning»): как слова и картинки вместе помогают понять, а не мешают.
-- Магическое число Миллера 7±2: столько единиц человек удерживает в рабочей памяти. По более поздним данным (Cowan) — около четырёх. Поэтому цель — 3–5, а 7 — предел.
+Two sources:
+- Richard E. Mayer's 12 principles of multimedia learning ("Multimedia Learning"): how words and pictures together help understanding instead of getting in the way.
+- Miller's magic number 7±2: how many items a person holds in working memory. Later work (Cowan) puts it nearer four, so aim for 3 to 5 and treat 7 as the limit.
 
-Измеримые правила проверяет `npx slidemachina check`. Остальные держатся на вкусе: следуй им и объясняй пользователю, если отступаешь.
+`npx slidemachina check` checks the measurable rules. The others are a matter of judgment: follow them, and tell the user when you depart from one.
 
-## Принципы Майера в разметке slidemachina
+## Mayer's principles in slidemachina markup
 
-| Принцип | Что делать | В разметке |
+| Principle | What to do | In the markup |
 |---|---|---|
-| 1. Связность | Убирать всё, что не помогает понять: украшения, лишние слова, фоновую музыку | Без декоративных картинок; одна мысль на слайд |
-| 2. Сигнализация | Выделять главное и структуру | `data-step-effect="highlight"`, `Focus` на схеме, `machina-lead` с выводом, разделы |
-| 3. Избыточность | Не дублировать речь текстом на слайде | Речь — в `<Notes>`, на слайде схема, картинка или число |
-| 4. Пространственная смежность | Слова рядом с тем, что объясняют | `figcaption` под картинкой, `label` у стрелки, текст и картинка в соседних колонках |
-| 5. Временная смежность | Показывать в тот момент, когда говоришь | `data-steps`, `step` у блоков схемы, `<Notes step={n}>` |
-| 6. Сегментация | Делить сложное на части в темпе слушателя | Шаги, короткие разделы, слайд на каждую часть схемы |
-| 7. Предварительное обучение | Сначала назвать термины, потом объяснять механизм | Слайд с терминами в начале раздела; `machina-lead` на обложке раздела |
-| 8. Модальность | Картинка плюс голос лучше, чем картинка плюс абзац текста | Схема на слайде, пояснение — в заметках |
-| 9. Мультимедиа | Слова вместе с картинкой понятнее, чем одни слова | `Diagram`, `Image`, `machina-big-number` вместо абзаца с цифрами |
-| 10. Персонализация | Разговорный тон, а не канцелярит | Обращение на «вы», короткие фразы, глаголы вместо отглагольных существительных |
-| 11. Голос | Живой человеческий голос | Доклад читает человек; движок на это не влияет |
-| 12. Изображение докладчика | Лицо докладчика на слайде не помогает понять | Не ставить своё фото на каждый слайд |
+| 1. Coherence | Remove whatever does not help understanding: decoration, extra words, background music | No decorative pictures; one thought per slide |
+| 2. Signaling | Point out the main thing and the structure | `data-step-effect="highlight"`, `Focus` on a diagram, `machina-lead` with the conclusion, sections |
+| 3. Redundancy | Do not repeat the speech as text on the slide | Speech goes to `<Notes>`; the slide has a diagram, a picture or a number |
+| 4. Spatial contiguity | Put words next to what they explain | `figcaption` under a picture, `label` on an arrow, text and picture in neighboring columns |
+| 5. Temporal contiguity | Show a thing when you talk about it | `data-steps`, `step` on diagram parts, `<Notes step={n}>` |
+| 6. Segmenting | Split complex material into parts at the listener's pace | Steps, short sections, a slide for each part of a diagram |
+| 7. Pre-training | Name the terms before explaining the mechanism | A slide with the terms at the start of a section; `machina-lead` on the section cover |
+| 8. Modality | A picture with speech beats a picture with a paragraph | A diagram on the slide, the explanation in the notes |
+| 9. Multimedia | Words with a picture are clearer than words alone | `Diagram`, `Image`, `machina-big-number` instead of a paragraph with figures |
+| 10. Personalization | A conversational tone, not bureaucratic language | Address the audience as "you", short phrases, verbs instead of nouns made from verbs |
+| 11. Voice | A live human voice | A person gives the talk; the engine has no say here |
+| 12. Image | The speaker's face on the slide does not help understanding | No photo of yourself on every slide |
 
-## Пределы Миллера
+## Miller's limits
 
-| Что | Цель | Предел в `check` |
+| What | Aim | Limit in `check` |
 |---|---|---|
-| Пунктов в списке | 3–5 | 7 |
-| Слов на слайде, без кода и заметок | до 25 | 40 |
-| Блоков схемы за один шаг | до 7 | 9 без `Focus` |
-| Строк кода за один шаг | до 8 | 12 без `lines` |
-| Колонок, чисел, карточек в ряд | 2–3 | 3 |
-| Разделов в докладе | 3–5 | 7 |
+| Items in a list | 3 to 5 | 7 |
+| Words on a slide, code and notes excluded | up to 25 | 40 |
+| Diagram boxes per step | up to 7 | 9 without `Focus` |
+| Code lines per step | up to 8 | 12 without `lines` |
+| Columns, numbers, cards in a row | 2 to 3 | 3 |
+| Sections in a talk | 3 to 5 | 7 |
 
-## Примеры
+## Examples
 
-Плохо: слайд-конспект, речь продублирована текстом.
+Bad: a slide that is a transcript, the speech repeated as text.
 
 ```tsx
 <Machina.Slide>
-  <h2>Результаты</h2>
-  <p>В третьем квартале мы ускорили обработку запросов: раньше p95 составлял 3,4 секунды, а после релиза
-  нового шлюза он снизился до 0,5 секунды, что позволило выдержать рост трафика на 36%.</p>
+  <h2>Results</h2>
+  <p>In the third quarter we sped up request handling: p95 used to be 3.4 seconds, and after the release
+  of the new gateway it dropped to 0.5 seconds, which let us handle a 36% growth in traffic.</p>
 </Machina.Slide>
 ```
 
-Хорошо: два числа на слайде, объяснение — голосом.
+Good: two numbers on the slide, the explanation spoken.
 
 ```tsx
 <Machina.Slide>
-  <h2>Шлюз стал быстрее в 7 раз</h2>
+  <h2>The gateway got 7 times faster</h2>
   <div className="machina-columns" data-steps>
-    <figure className="machina-big-number"><p>3,4 с</p><figcaption>p95 до релиза</figcaption></figure>
-    <figure className="machina-big-number"><p>0,5 с</p><figcaption>p95 после</figcaption></figure>
+    <figure className="machina-big-number"><p>3.4 s</p><figcaption>p95 before the release</figcaption></figure>
+    <figure className="machina-big-number"><p>0.5 s</p><figcaption>p95 after</figcaption></figure>
   </div>
-  <Machina.Notes>Ускорились в третьем квартале, и это выдержало рост трафика на 36%.</Machina.Notes>
+  <Machina.Notes>We sped up in the third quarter, and it carried a 36% growth in traffic.</Machina.Notes>
 </Machina.Slide>
 ```
 
-Плохо: схема из 12 блоков сразу. Хорошо: блоки сгруппированы, группы появляются по шагам, `Focus` ведёт взгляд.
+Bad: a diagram with 12 boxes at once. Good: boxes in groups, groups appearing by steps, `Focus` leading the eye.
 
 ```tsx
 <Machina.Diagram>
-  <Machina.Group id="input" title="Вход" step>…</Machina.Group>
-  <Machina.Group id="core" title="Обработка" step>…</Machina.Group>
+  <Machina.Group id="input" title="Input" step>…</Machina.Group>
+  <Machina.Group id="core" title="Processing" step>…</Machina.Group>
   <Machina.Arrow from="input" to="core" step />
   <Machina.Focus on={["core"]} step />
 </Machina.Diagram>
 ```
 
-Плохо: заголовок-тема «Архитектура». Хорошо: заголовок-мысль «Запрос проходит три сервиса». Заголовок — это вывод слайда, который слушатель унесёт с собой.
+Bad: a topic heading, "Architecture". Good: a thought heading, "A request passes three services". The heading is the conclusion of the slide that the listener takes away.

@@ -1,43 +1,44 @@
-# Презентация на slidemachina
+# A slidemachina presentation
 
-Слайды — `index.tsx`, тема — `style.css`, картинки — `images/`.
-В репозитории докладов у каждой презентации своя папка, общая тема — `theme/style.css`.
+Slides are in `index.tsx`, the theme is in `style.css`, pictures are in `images/`.
+In a repository of talks every presentation has its own folder, and the shared theme is `theme/style.css`.
 
-Перед первой правкой прочитайте справочник: `node_modules/slidemachina/llms.txt`.
-В нём все компоненты, классы, шаги, переходы и переменные темы.
+Read the reference before the first edit: `node_modules/slidemachina/llms.txt`.
+It lists every component, class, step, transition and theme variable.
 
-## Команды
+## Commands
 
 ```bash
-npm run dev                       # слайды в браузере, правка видна сразу на том же шаге
-npm run check                     # правила подачи; код выхода 1, если есть замечания
-npx slidemachina shot 5           # снимок слайда 5 в slide-5.png; 5.2 — после двух шагов
-npx slidemachina check --json     # те же замечания с местом в файле и номером слайда
-npm run build                     # HTML-файл, сайт, PDF или PowerPoint
+npm run dev                       # slides in the browser, a change shows up at once on the same step
+npm run check                     # the rules of a clear talk; exit code 1 when there are remarks
+npx slidemachina shot 5           # slide 5 as slide-5.png; 5.2 is after two steps
+npx slidemachina check --json     # the same remarks with the place in the file and the slide number
+npm run build                     # an HTML file, a website, PDF or PowerPoint
 ```
 
-В репозитории докладов команды принимают папку: `npx slidemachina shot 5 my-talk`.
+In a repository of talks the commands take the folder: `npx slidemachina shot 5 my-talk`.
 
-## Как работать
+## How to work
 
-1. Сначала тезисы, потом слайды. Одна мысль — один слайд, заголовок `h2` называет эту мысль.
-2. Текст, который докладчик скажет вслух, идёт в `<Machina.Notes>`, а не на слайд.
-3. Сложное показывается по шагам: `data-steps` у списка, `step` у блоков схемы, `lines` у кода.
-4. После правки запустите `npm run check` и исправьте замечания.
-5. После вёрстки снимите изменённые слайды через `npx slidemachina shot` и посмотрите на снимки. Код не показывает, налезает ли текст и читается ли схема.
-6. Оформление меняется только в `style.css`: сначала переменные темы, потом обычный CSS. Цвета и шрифт берите из бренда пользователя.
+1. Theses first, slides second. One thought is one slide, and its `h2` states that thought.
+2. Write slide text in the language of the presentation, the `lang` of `Presentation`.
+3. What the speaker says aloud goes to `<Machina.Notes>`, not on the slide.
+4. Show complex things by steps: `data-steps` on a list, `step` on diagram parts, `lines` on code.
+5. After an edit, run `npm run check` and fix the remarks.
+6. After layout work, shoot the changed slides with `npx slidemachina shot` and look at the pictures. Code does not tell you whether text overlaps or a diagram is readable.
+7. Styling changes only `style.css`: theme variables first, then plain CSS. Take colors and fonts from the user's brand.
 
-## Правила подачи
+## Rules of a clear talk
 
-Основа — принципы мультимедийного обучения Ричарда Майера и предел рабочей памяти Миллера 7±2.
-Подробно, с примерами разметки: `.claude/skills/slidemachina/references/learning-principles.md`.
+They come from Richard Mayer's principles of multimedia learning and Miller's 7±2 limit of working memory.
+Details with markup examples: `.claude/skills/slidemachina/references/learning-principles.md`.
 
-- Список — 3–5 пунктов, не больше 7.
-- На слайде не больше 40 слов, остальное — в заметках.
-- Схема — не больше 9 блоков за шаг, иначе группы, шаги или `Focus`.
-- Код длиннее 12 строк — только по шагам через `lines`.
-- Не больше трёх колонок, чисел или карточек в ряд.
-- Не больше 7 разделов в докладе.
-- Слова стоят рядом с тем, что объясняют: подпись под картинкой, `label` у стрелки.
-- Выделение — `highlight` и `Focus`, а не жирный текст и восклицательные знаки.
-- Картинка нужна, только если объясняет. Украшение отвлекает.
+- A list has 3 to 5 items, at most 7.
+- At most 40 words on a slide; the rest goes to the notes.
+- A diagram shows at most 9 boxes per step; use groups, steps or `Focus` otherwise.
+- Code longer than 12 lines goes by steps with `lines`.
+- At most three columns, numbers or cards in a row.
+- At most 7 sections in a talk.
+- Words stand next to what they explain: a caption under a picture, a `label` on an arrow.
+- Emphasis is `highlight` and `Focus`, not bold text and exclamation marks.
+- A picture belongs on a slide only when it explains something. Decoration distracts.
