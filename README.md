@@ -21,6 +21,7 @@
 
 <p align="center">
   <a href="#why">Why</a> ·
+  <a href="https://xfenix.github.io/slidemachina/">Live demo</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#features">Features</a> ·
   <a href="#your-own-theme">Your own theme</a> ·
