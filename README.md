@@ -195,6 +195,7 @@ You can hand a presentation to an agent: it writes the slides, styles them for a
 - `llms.txt` is a one-page reference to every component, class, step, transition and theme variable: `node_modules/slidemachina/llms.txt`.
 - The rules of a clear talk come from Richard Mayer's 12 principles of multimedia learning and Miller's 7±2 limit of working memory. `slidemachina check` catches what can be measured: long lists, too much text, crowded diagrams, long code without steps, slides without a heading and pictures without `alt`. With `--json` it reports the place in the file and the slide number.
 - `slidemachina shot 12.2` saves slide 12 after two steps as a PNG, so the agent sees the layout and not only the code.
+- These are plain commands, not an MCP server. An agent already runs shell commands. An MCP server has to run next to it and adds its tool descriptions to the agent context; a command costs nothing until the agent calls it.
 - In `slidemachina dev` a note on a slide goes to Claude Code through Agentation together with its place in the file.
 
 ```bash
@@ -356,7 +357,7 @@ slidemachina helps you give a talk people follow: it keeps lists, text and diagr
 | Build | HTML file, folder, zip, a file behind a password, PDF, PowerPoint | You set up the bundler yourself | Website, PDF, PNG, PowerPoint | Website, PDF, PowerPoint |
 | Editing | In a code editor and on the slide, written back to `index.tsx` | In a code editor | In a code editor and a Markdown side panel | Comments on the slide, an agent applies them |
 | Presenter window | Notes, timer, next slide, next step, notes per step | Notes, timer, next slide | Notes, timer, next slide, drawing | Notes, timer, next slide |
-| For agents | `llms.txt`, a skill, `check` for the rules of a clear talk, `shot` for a picture of a slide | — | An MCP server in `slidev dev` | Skills for writing and editing, an agent panel in the browser |
+| For agents | `llms.txt`, a skill, CLI commands: `check` for the rules of a clear talk, `shot` for a picture of a slide. No MCP server | — | An MCP server in `slidev dev` | Skills for writing and editing, an agent panel in the browser |
 | Many talks | A repository: a shared theme, a list with covers, one build for all | Each one on its own | Themes as npm packages | Decks in one workspace, shared themes |
 
 A dash means the tool has nothing built in for this.

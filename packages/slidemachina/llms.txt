@@ -6,6 +6,8 @@ A reference for agents: everything needed to write, style and check a presentati
 
 ## Commands
 
+Everything is a shell command; there is no MCP server. Run them and read the output.
+
 ```bash
 npx slidemachina dev [folder]                # slides in the browser; a .tsx change shows up at once, on the same step
 npx slidemachina build [folder] --html --pdf # without flags it asks what to build

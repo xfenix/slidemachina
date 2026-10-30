@@ -17,6 +17,7 @@ npm run build                     # an HTML file, a website, PDF or PowerPoint
 ```
 
 In a repository of talks the commands take the folder: `npx slidemachina shot 5 my-talk`.
+These are plain shell commands, there is no MCP server to connect.
 
 ## How to work
 

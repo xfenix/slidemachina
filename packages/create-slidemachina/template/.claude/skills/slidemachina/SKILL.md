@@ -8,6 +8,7 @@ description: Writes, edits and styles a slidemachina presentation by the rules o
 API reference: `node_modules/slidemachina/llms.txt`. Read it before the first edit.
 Rules of a clear talk with examples: `references/learning-principles.md`.
 Write slide text in the language of the presentation, the `lang` of `Presentation`.
+The tools are shell commands: `npm run check`, `npx slidemachina shot <number>`, `npm run build`. There is no MCP server.
 
 ## A new talk
 
