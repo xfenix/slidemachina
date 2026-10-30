@@ -4,6 +4,7 @@ import {
   printedHiddenStorageKey,
   printedStepsStorageKey,
   printViewHiddenParameter,
+  printViewNoHiddenValue,
   printViewParameter,
   printViewStepsValue,
 } from "../../shared-between-runtimes/engine-constants.js";
@@ -16,21 +17,21 @@ function readPrintViewRequest(): { isPrintView: boolean; printChoice?: PrintChoi
   const searchParameters = new URLSearchParams(location.search);
   const requestedValue = searchParameters.get(printViewParameter);
   if (requestedValue === null) return { isPrintView: false };
-  return { isPrintView: true, printChoice: { printsSteps: requestedValue === printViewStepsValue, printsHidden: searchParameters.has(printViewHiddenParameter) } };
+  return { isPrintView: true, printChoice: { printsSteps: requestedValue === printViewStepsValue, printsHidden: searchParameters.get(printViewHiddenParameter) !== printViewNoHiddenValue } };
 }
 
 function readRememberedChoice(): PrintChoice {
   return {
     printsSteps: localStorage.getItem(printedStepsStorageKey) === "true",
-    printsHidden: localStorage.getItem(printedHiddenStorageKey) === "true",
+    printsHidden: localStorage.getItem(printedHiddenStorageKey) !== "false",
   };
 }
 
-// "?print", "?print=steps" or "?print=steps&hidden"; the slide position in the hash stays.
+// "?print", "?print=steps" or "?print=steps&hidden=no"; the slide position in the hash stays.
 function describePrintViewAddress(isPrintView: boolean, { printsSteps, printsHidden }: PrintChoice): string {
   const printViewValue = printsSteps ? printViewStepsValue : "";
   const printViewAddress = describeAddressWithParameter(printViewParameter, isPrintView ? printViewValue : undefined);
-  return describeAddressWithParameter(printViewHiddenParameter, isPrintView && printsHidden ? "" : undefined, printViewAddress);
+  return describeAddressWithParameter(printViewHiddenParameter, isPrintView && !printsHidden ? printViewNoHiddenValue : undefined, printViewAddress);
 }
 
 // Pages appear synchronously on beforeprint. Chrome may lay them out again until its dialog closes, so they go on the next press on the page.

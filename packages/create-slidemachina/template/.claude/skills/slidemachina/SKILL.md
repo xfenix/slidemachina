@@ -30,6 +30,7 @@ Write slide text in the language of the presentation, the `lang` of `Presentatio
 | A real-life example, an emotion | `Machina.Image full` or `Machina.Meme` |
 
 6. Everything the speaker says aloud goes to `<Machina.Notes>`. Notes for a step are `<Machina.Notes step={2}>`.
+7. Details and theses the audience should read later go to `<Machina.Slide hidden>` after the last slide. It is skipped on stage and kept in print, PDF and PowerPoint, the copy people get after the talk.
 
 ## Editing a slide
 

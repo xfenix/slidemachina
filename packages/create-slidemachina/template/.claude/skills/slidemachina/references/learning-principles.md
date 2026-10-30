@@ -12,7 +12,7 @@ Two sources:
 |---|---|---|
 | 1. Coherence | Remove whatever does not help understanding: decoration, extra words, background music | No decorative pictures; one thought per slide |
 | 2. Signaling | Point out the main thing and the structure | `data-step-effect="highlight"`, `Focus` on a diagram, `machina-lead` with the conclusion, sections |
-| 3. Redundancy | Do not repeat the speech as text on the slide | Speech goes to `<Notes>`; the slide has a diagram, a picture or a number |
+| 3. Redundancy | Do not repeat the speech as text on the slide | Speech goes to `<Notes>`, details for the sent copy to `<Slide hidden>`; the slide has a diagram, a picture or a number |
 | 4. Spatial contiguity | Put words next to what they explain | `figcaption` under a picture, `label` on an arrow, text and picture in neighboring columns |
 | 5. Temporal contiguity | Show a thing when you talk about it | `data-steps`, `step` on diagram parts, `<Notes step={n}>` |
 | 6. Segmenting | Split complex material into parts at the listener's pace | Steps, short sections, a slide for each part of a diagram |

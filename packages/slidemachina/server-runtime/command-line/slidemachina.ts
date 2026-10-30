@@ -18,6 +18,8 @@ function readCommandLine() {
   try {
     return parseArgs({
       allowPositionals: true,
+      // --no-hidden drops the hidden slides that PDF and PowerPoint keep by default.
+      allowNegative: true,
       options: {
         port: { type: "string" },
         html: { type: "boolean" },

@@ -175,7 +175,8 @@ export function listExportedPages(): ExportedPage[] {
     const nextPage = printedPages[pageIndex + 1];
     const isLastSlidePage = nextPage?.dataset.printSlide !== printedPage.dataset.printSlide;
     const isStepFrame = printedPage.querySelector("[data-code-step]") !== null;
-    if (isStepFrame || isLastSlidePage) exportedPages.push({ pageIndex, isStepFrame });
+    const isHidden = printedPage.querySelector("[data-slide][data-hidden]") !== null;
+    if (isStepFrame || isLastSlidePage) exportedPages.push({ pageIndex, isStepFrame, isHidden });
   });
   return exportedPages;
 }

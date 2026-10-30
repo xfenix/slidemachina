@@ -125,10 +125,13 @@ export function checkPresentationSource(sourceCode: string, presentationFile: st
   if (topLevelSections.length > ruleLimits.manySections) reportFinding("manySections", topLevelSections[ruleLimits.manySections]!, undefined, topLevelSections.length);
 
   const outlinedSlides = outlineSlideMarkup(outlineReader.listMarkupChildren(presentationNode), outlineReader);
-  const { slideAddresses } = numberSlides(outlinedSlides.map(({ slideNode, isGeneratedCover }) => !isGeneratedCover && isSwitchedOn(findAttribute(slideNode, "hidden"))));
+  const hiddenFlags = outlinedSlides.map(({ slideNode, isGeneratedCover }) => !isGeneratedCover && isSwitchedOn(findAttribute(slideNode, "hidden")));
+  const { slideAddresses } = numberSlides(hiddenFlags);
   outlinedSlides.forEach(({ slideNode, isGeneratedCover }, slideIndex) => {
     if (isGeneratedCover) return;
     const slideAddress = slideAddresses[slideIndex];
+    // A hidden slide is read later, not on stage: it may hold the long text a shown slide may not.
+    const isReadLater = hiddenFlags[slideIndex] === true;
     const readElements: SyntaxNode[] = [];
     walkReadElements(slideNode, (elementNode) => readElements.push(elementNode));
     const hasHeading = readElements.some((elementNode) => headingElementNames.has(readShortName(elementNode)));
@@ -139,7 +142,7 @@ export function checkPresentationSource(sourceCode: string, presentationFile: st
       const elementName = readShortName(elementNode);
       if (listElementNames.has(elementName)) {
         const itemCount = listElementChildren(elementNode).filter((childNode) => readElementName(childNode) === "li").length;
-        if (itemCount > ruleLimits.longList) reportFinding("longList", elementNode, slideAddress, itemCount);
+        if (itemCount > ruleLimits.longList && !isReadLater) reportFinding("longList", elementNode, slideAddress, itemCount);
       }
       if (readClassNames(elementNode).includes("machina-columns")) {
         const columnCount = listElementChildren(elementNode).length;
@@ -162,7 +165,7 @@ export function checkPresentationSource(sourceCode: string, presentationFile: st
     });
     if (!hasHeading && !carriesWithoutHeading) reportFinding("missingHeading", slideNode, slideAddress, 0);
     const wordCount = countReadWords(slideNode);
-    if (wordCount > ruleLimits.wordySlide) reportFinding("wordySlide", slideNode, slideAddress, wordCount);
+    if (wordCount > ruleLimits.wordySlide && !isReadLater) reportFinding("wordySlide", slideNode, slideAddress, wordCount);
   });
   return findings.sort((firstFinding, secondFinding) => firstFinding.lineNumber - secondFinding.lineNumber || firstFinding.columnNumber - secondFinding.columnNumber);
 }

@@ -1,5 +1,5 @@
 import { pathToFileURL } from "node:url";
-import { printViewHiddenParameter, printViewParameter, printViewStepsValue } from "../../shared-between-runtimes/engine-constants.ts";
+import { printViewHiddenParameter, printViewNoHiddenValue, printViewParameter, printViewStepsValue } from "../../shared-between-runtimes/engine-constants.ts";
 import type { SharedChrome } from "./chrome-sharing.ts";
 
 const printedViewport = { width: 1920, height: 1080 };
@@ -7,10 +7,10 @@ export const printWaitLimit = 60000;
 
 type PrintChoice = { printsSteps: boolean; printsHidden: boolean };
 
-// "?print=steps&hidden": the print view of the built file with the pages the build asked for.
+// "?print=steps&hidden=no": the print view of the built file with the pages the build asked for.
 export function addressPrintView(pagePath: string, { printsSteps, printsHidden }: PrintChoice): string {
   const printViewAddress = new URL(pathToFileURL(pagePath));
-  printViewAddress.search = [printsSteps ? `${printViewParameter}=${printViewStepsValue}` : printViewParameter, ...(printsHidden ? [printViewHiddenParameter] : [])].join("&");
+  printViewAddress.search = [printsSteps ? `${printViewParameter}=${printViewStepsValue}` : printViewParameter, ...(printsHidden ? [] : [`${printViewHiddenParameter}=${printViewNoHiddenValue}`])].join("&");
   return printViewAddress.href;
 }
 

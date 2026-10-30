@@ -34,7 +34,7 @@ They come from Richard Mayer's principles of multimedia learning and Miller's 7Â
 Details with markup examples: `.claude/skills/slidemachina/references/learning-principles.md`.
 
 - A list has 3 to 5 items, at most 7.
-- At most 40 words on a slide; the rest goes to the notes.
+- At most 40 words on a slide. What you say goes to the notes. Details and theses for the copy you send go to a hidden slide, `<Machina.Slide hidden>`: it is skipped on stage and kept in print, PDF and PowerPoint.
 - A diagram shows at most 9 boxes per step; use groups, steps or `Focus` otherwise.
 - Code longer than 12 lines goes by steps with `lines`.
 - At most three columns, numbers or cards in a row.

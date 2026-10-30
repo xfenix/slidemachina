@@ -56,7 +56,7 @@ test("сборка: один HTML-файл листается без серве�
   test.setTimeout(180_000);
   const outputFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-build-"));
   try {
-    await runCommand(process.execPath, [commandLineScript, "build", path.join(examplesFolder, demoFolderName), "--html", "--folder", "--steps", "--pptx", "--hidden", "--out", outputFolder]);
+    await runCommand(process.execPath, [commandLineScript, "build", path.join(examplesFolder, demoFolderName), "--html", "--folder", "--steps", "--pptx", "--out", outputFolder]);
     const singleFile = path.join(outputFolder, "demo-presentation.html");
     const assetFolder = path.join(outputFolder, "demo-presentation", "assets");
 
@@ -107,10 +107,10 @@ test("сборка: один HTML-файл листается без серве�
       await presenterPage.close();
     });
 
-    await test.step("печать из браузера: страница на слайд без скрытых, без панели управления", async () => {
-      const shownSlideCount = await page.locator("[data-canvas] > [data-slide]:not([data-hidden])").count();
+    await test.step("печать из браузера: страница на слайд, скрытые тоже, без панели управления", async () => {
+      const allSlideCount = await page.locator("[data-canvas] > [data-slide]").count();
       const demoSceneCount = await page.locator("[data-canvas] > [data-slide] [data-scene]").count();
-      expect(await countPrintedPages(page)).toBe(shownSlideCount);
+      expect(await countPrintedPages(page)).toBe(allSlideCount);
       await page.emulateMedia({ media: "print" });
       await expect(page.locator("[data-toolbar]")).toBeHidden();
       await expect(page.locator("[data-print-page]").first()).toBeVisible();
@@ -134,9 +134,11 @@ test("сборка: один HTML-файл листается без серве�
       );
       const findPptxSlideNumber = (slideNumber: number) => pptxSlidesPerSlide.slice(0, slideNumber).reduce((slideTotal, slideCount) => slideTotal + slideCount, 0);
       expect(pptxSlidesPerSlide.filter((slideCount) => slideCount > 1).length, "шаги строк кода — отдельные слайды").toBeGreaterThan(0);
-      // The build ran with --hidden: the backup slide after the last one is the last PowerPoint slide.
+      // Hidden slides are in by default: the backup slide after the last one is the last PowerPoint slide, and PowerPoint skips it in the slide show.
       expect(pptxSlideCount).toBe(findPptxSlideNumber(pptxSlidesPerSlide.length));
-      expect(readSlideXml(pptxSlideCount), "скрытый слайд с --hidden").toContain("Запасной слайд");
+      expect(readSlideXml(pptxSlideCount), "скрытый слайд в PowerPoint").toContain("Запасной слайд");
+      expect(readSlideXml(pptxSlideCount), "скрытый слайд пропускается при показе").toMatch(/<p:sld[^>]* show="0"/);
+      expect(readSlideXml(1), "показанный слайд не скрыт").not.toMatch(/<p:sld[^>]* show="0"/);
       const allSlidesXml = Array.from({ length: pptxSlideCount }, (_slideXml, slideIndex) => readSlideXml(slideIndex + 1)).join("");
       expect(allSlidesXml, "слово, перенесённое браузером, заканчивает строку дефисом: PowerPoint сам не переносит").toMatch(/\p{L}-<\/a:t><\/a:r><a:br\/>/u);
       expect(readSlideXml(1), "заголовок обложки — текстовое поле").toMatch(/<p:sp>(?:(?!<\/p:sp>).)*<a:t>Слайды из.кода<\/a:t>/s);
@@ -194,7 +196,7 @@ test("сборка: один HTML-файл листается без серве�
       // Blurred shadows, masks and gradient text become soft masks, and macOS Preview draws them as grey and blue patches.
       expect(pdfBytes.toString("latin1").match(/\/S\s*\/(Luminosity|Alpha)/g), "мягкие маски в PDF").toBeNull();
       await page.emulateMedia({ media: "screen" });
-      await page.goto(`${pathToFileURL(singleFile).href}?print=steps&hidden`);
+      await page.goto(`${pathToFileURL(singleFile).href}?print=steps`);
       await expect(page.locator("[data-print-pages][data-print-view]")).toHaveAttribute("data-print-ready");
       // The cover cube paints its picture after three.js loads; every canvas prints as a picture of itself.
       const coverCubePicture = page.locator("[data-print-page]", { hasText: "Живая обложка" }).first().locator("img").first();
@@ -208,10 +210,10 @@ test("сборка: один HTML-файл листается без серве�
       expect(pdfPageCount).toBeGreaterThan(slideCount);
       await page.getByRole("switch", { name: "По шагам" }).click();
       await expect(page.locator("[data-print-page]")).toHaveCount(slideCount);
-      await expect(page).toHaveURL(/\?print&hidden(#|$)/);
+      await expect(page).toHaveURL(/\?print(#|$)/);
       await page.getByRole("switch", { name: "Скрытые слайды" }).click();
       await expect(page.locator("[data-print-page]")).toHaveCount(slideCount - 1);
-      await expect(page).toHaveURL(/\?print(#|$)/);
+      await expect(page).toHaveURL(/\?print&hidden=no(#|$)/);
       await page.keyboard.press("Escape");
       await expect(page.locator("[data-canvas]")).toBeVisible();
       await expect(page.locator("[data-print-page]")).toHaveCount(0);

@@ -109,8 +109,10 @@ export async function exportPptx(pagePath: string, pptxPath: string, printsHidde
     const pptxPresentation = new PptxGenJS();
     pptxPresentation.defineLayout({ name: layoutName, width: pageWidth * inchesPerCanvasPixel, height: pageHeight * inchesPerCanvasPixel });
     pptxPresentation.layout = layoutName;
-    const slideAnimations: SlideAnimation[] = readPages.map(({ slideLayout, capturedPictures, notesText }) => {
+    const slideAnimations: SlideAnimation[] = readPages.map(({ slideLayout, capturedPictures, notesText }, readPageIndex) => {
       const pptxSlide = pptxPresentation.addSlide();
+      // A hidden slide stays in the file and PowerPoint skips it in the slide show, as on stage in the browser.
+      pptxSlide.hidden = exportedPages[readPageIndex]!.isHidden;
       const animatedObjects = drawSlideParts(pptxSlide, slideLayout, capturedPictures);
       if (notesText != null) pptxSlide.addNotes(notesText);
       return { stepDuration: slideLayout.stepDuration, animatedObjects };

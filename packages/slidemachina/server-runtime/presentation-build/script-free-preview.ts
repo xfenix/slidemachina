@@ -25,7 +25,7 @@ async function openPrintedTab(chromeBrowser: Browser, pagePath: string): Promise
   const printedTab = await chromeBrowser.newPage({ viewport: printedViewport });
   // Print media lays every page out at the canvas size, as in the PDF.
   await printedTab.emulateMedia({ media: "print" });
-  await printedTab.goto(addressPrintView(pagePath, { printsSteps: false, printsHidden: false }));
+  await printedTab.goto(addressPrintView(pagePath, { printsSteps: false, printsHidden: true }));
   await printedTab.waitForSelector("[data-print-pages][data-print-ready]", { state: "attached", timeout: printWaitLimit });
   return printedTab;
 }

@@ -5,7 +5,7 @@
 
 <p align="center">
   <b>Presentations in React.</b><br>
-  You write the slides in one <code>index.tsx</code>.<br>
+  You write slides in one <code>index.tsx</code>.<br>
   One command builds them into an HTML file, a website, a PDF or PowerPoint.
 </p>
 
@@ -31,7 +31,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/readme/morph-transition.webp" alt="Morphing: a card grows into a chart, the chart into a number, the words of a heading flow to the next slide" width="860">
+  <img src="docs/readme/morph-transition.webp" alt="Morphing: a card grows into a chart, the chart into a number, heading words flow to the next slide" width="860">
 </p>
 
 ## Why
@@ -88,7 +88,7 @@ export default (
 ```
 
 A section adds a numbered cover slide, breadcrumbs and a group in the slide overview.
-Styling is plain tags and `machina-…` classes; the theme is CSS variables in `style.css` next to the slides.
+Styling uses plain tags and `machina-…` classes; the theme is CSS variables in `style.css` next to the slides.
 Pictures go to `images/`, and TypeScript suggests components and their props.
 
 ## Features
@@ -100,14 +100,14 @@ Pictures go to `images/`, and TypeScript suggests components and their props.
   </tr>
   <tr>
     <td>Diagrams from tags: flowcharts with <code>Diagram</code> and sequence diagrams with <code>Sequence</code>. ELK lays out the boxes, they appear by steps and flow between slides.</td>
-    <td>3D scenes with <code>Scene</code> on three.js. Shapes, light and camera are tags and follow the steps. three.js loads only when a scene is there.</td>
+    <td>3D scenes with <code>Scene</code> on three.js. Shapes, light and camera are tags and follow the steps. three.js loads only when a scene exists.</td>
   </tr>
   <tr>
     <td><img src="docs/readme/slide-code.webp" alt="A slide with code from a file"></td>
     <td><img src="docs/readme/slide-typography.webp" alt="Hanging punctuation: a quote mark, a bullet, a number and $ sit outside the text edge"></td>
   </tr>
   <tr>
-    <td>Code highlighted by Shiki at build time, so the browser gets none of its code. Code from a file, lines by steps, code morphing piece by piece.</td>
+    <td>Code highlighted by Shiki at build time, so the browser runs none of its code. Code from a file, lines by steps, code morphing piece by piece.</td>
     <td>A typographer for Russian and English: quotes, dashes and non-breaking spaces. Hanging punctuation in text and code, in any browser and in PDF.</td>
   </tr>
   <tr>
@@ -115,7 +115,7 @@ Pictures go to `images/`, and TypeScript suggests components and their props.
     <td><img src="docs/readme/slide-qr.webp" alt="A slide with a QR code"></td>
   </tr>
   <tr>
-    <td>Pictures and video fill the free space, the whole slide or float beside the text. On a dark background the text and the logo turn light by themselves.</td>
+    <td>Pictures and video fill the free space, the whole slide or float beside the text. On a dark background the text and the logo turn light automatically.</td>
     <td>QR codes with a logo, drawn as vectors. Memes and GIFs are one command away: <code>slidemachina meme</code>.</td>
   </tr>
 </table>
@@ -124,7 +124,7 @@ Pictures go to `images/`, and TypeScript suggests components and their props.
 
 - Sections and subsections with numbered covers "02" and "02.1", breadcrumbs and groups in the overview. A section's own cover is the first `<Slide cover>` inside it.
 - Covers aligned horizontally and vertically, with a picture on the left or on the right.
-- A slide background can be a color, a picture, a video, a GIF or a web page. The engine works out whether the background is dark or light.
+- A slide background can be a color, a picture, a video, a GIF or a web page. The engine detects whether the background is dark or light.
 - Formats 16:9, 4:3, 16:10, 21:9 and 9:16. On screen the canvas grows with the window by up to a third, and the font size stays the same.
 - The logo goes in one of five places: top right, top left, top center, above the heading or at the bottom. `plain` hides the logo, the breadcrumbs and the number.
 - Free layout with `machina-freeform`, a block on top of the slide with `machina-pin`, and your own React components with the hooks `useSlide()`, `onEnter`, `onLeave` and `onChange`.
@@ -142,19 +142,19 @@ Pictures go to `images/`, and TypeScript suggests components and their props.
 - Steps work on lists, tables, columns, part of a line, diagram boxes, code lines and scene objects. `data-steps` on a list makes every item a step.
 - Six step effects: `rise`, `fade`, `scale`, `glitch`, `highlight` and `dim`. One effect for the whole presentation or a slide is `stepEffect`.
 - 13 transitions: `morph`, `slide`, `fade`, `zoom`, `cube`, `flip`, `wipe`, `iris`, `blinds`, `mosaic`, `glitch`, plus `auto` and `none`. Speed is set for the whole presentation or for a slide.
-- Morphing is on by default and finds pairs by itself: headings, pictures, cards, numbers, bars, diagram boxes, words in text and pieces of code.
+- Morphing is on by default and finds pairs automatically: headings, pictures, cards, numbers, bars, diagram boxes, words in text and pieces of code.
 - With reduced motion turned on in the system, there are no transitions.
 
 ### For the speaker
 
 - The presenter window opens with <kbd>P</kbd>: the current slide, the next step, notes for each step in large type, a timer, a clock and how far ahead or behind you are. Either window can turn the slides, and it also works in an HTML file opened from disk.
 - The slide overview opens with <kbd>Esc</kbd>. There is also a jump by number, a pause with a black screen, full screen and a progress bar.
-- Hidden backup slides for questions from the audience are skipped in the show and stay in the overview.
+- Hidden slides are skipped on stage and kept in print, PDF and PowerPoint. Put the details and theses for the copy you send after the talk there, and answers to audience questions.
 - Keys work in the Russian layout too, and on a phone a swipe or a tap turns the slide.
 
 ### Build
 
-- One HTML file with fonts and pictures inside. Quick Look on macOS shows its slides.
+- One HTML file with fonts and pictures inside. Quick Look on macOS shows the slides.
 - A file behind a password, a folder for a website, a zip archive.
 - PDF with a page per slide or per step, and a print view at `?print`.
 - PowerPoint with editable text and diagrams and animated steps.
@@ -214,7 +214,7 @@ In CI the flags add up: `slidemachina build --html --folder --pdf --pptx`.
 | `--folder`, `--zip` | A folder for a website, or the same folder zipped |
 | `--pdf`, `--steps` | PDF with a page per slide or per step |
 | `--pptx` | PowerPoint. Text, tables, code, pictures, diagram boxes and arrows are separate editable objects. Steps are click animations |
-| `--hidden` | Keep the hidden slides in PDF and PowerPoint |
+| `--no-hidden` | PDF and PowerPoint without hidden slides. By default they are in |
 
 ## Your own theme
 

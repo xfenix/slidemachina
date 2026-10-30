@@ -35,7 +35,7 @@ export async function runBuildCommand(siteLayout: SiteLayout, commandOptions: Bu
   const pageSecret = chosenVariants.includes("protected") ? await choosePageSecret(isInteractive) : undefined;
   if (pageSecret !== undefined && pageSecret.length < shortestSafeSecretLength) log.warn(commandLineTexts.shortSecret);
   const sharedChrome = shareChrome();
-  const buildContext = { isInteractive, pageSecret, printsHidden: commandOptions.hidden === true, sharedChrome };
+  const buildContext = { isInteractive, pageSecret, printsHidden: commandOptions.hidden !== false, sharedChrome };
 
   try {
     if (siteLayout.isRepository) {

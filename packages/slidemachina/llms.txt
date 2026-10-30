@@ -14,8 +14,8 @@ npx slidemachina shot 12 [folder]            # slide 12 as a PNG; 12.2 is after 
 npx slidemachina meme "this is fine"         # meme search; every result is printed with the command that inserts it
 ```
 
-- `build` flags: `--html` (one file), `--protected` (password from `SLIDEMACHINA_PASSWORD`), `--folder`, `--zip`, `--pdf`, `--steps` (PDF by steps), `--pptx`, `--hidden` (keep hidden slides), `--out <folder>`.
-- `shot` writes `slide-12.png` to the current folder; `--out file.png` writes elsewhere. Use it to check the layout by eye, not by reading code. PDF, covers and `shot` need an installed Chrome.
+- `build` flags: `--html` (one file), `--protected` (password from `SLIDEMACHINA_PASSWORD`), `--folder`, `--zip`, `--pdf`, `--steps` (PDF by steps), `--pptx`, `--no-hidden` (PDF and PowerPoint without hidden slides; by default they are in), `--out <folder>`.
+- `shot` writes `slide-12.png` to the current folder; `--out file.png` writes elsewhere. Use it to check the layout by eye, not by reading code. PDF, covers and `shot` need Chrome installed.
 - Browser address: `#7` is slide 7, `#7.2` is after two steps, `?print` is the print view, `?overview` is the slide overview.
 
 ## Files
@@ -55,10 +55,10 @@ export default (
 );
 ```
 
-- `index.tsx` exports a ready element. Your own component is declared right in the file, above the slides.
+- `index.tsx` exports a default element. Your own component is declared right in the file, above the slides.
 - `Presentation`: `title`, `lang` (`ru`, `en`), `align` (`left`, `center`, `right`), `logo` (a file, `{ light, dark }` or a component), `transition`, `speed`, `stepEffect`, `aspectRatio` (`"16:9"` by default, `"4:3"`, `"9:16"`…), `progress={false}`, `breadcrumbsSeparator`, `typography={false}`, `date` (`"2026-10-30"`), `duration` (minutes of the talk), `favicon`, `onChange`.
 - `Section`: `title`; a nested `Section` is a subsection. A section adds its own numbered cover "02". The first `<Slide cover>` of a section replaces that cover; `cover={false}` removes it.
-- `Slide`: `cover`, `align`, `valign` (`top`, `center`, `bottom`), `background` (a color, picture, video, GIF or `{ iframe: "https://…" }`), `tone` (`dark`, `light`), `transition`, `speed`, `stepEffect`, `plain` (no logo, breadcrumbs or number), `logo` (`"top-right"`, `"top-left"`, `"top"`, `"center"`, `"bottom"`, `false`), `breadcrumbs`, `number={false}`, `hidden` (a backup slide), `className`, `onEnter`, `onLeave`.
+- `Slide`: `cover`, `align`, `valign` (`top`, `center`, `bottom`), `background` (a color, picture, video, GIF or `{ iframe: "https://…" }`), `tone` (`dark`, `light`), `transition`, `speed`, `stepEffect`, `plain` (no logo, breadcrumbs or number), `logo` (`"top-right"`, `"top-left"`, `"top"`, `"center"`, `"bottom"`, `false`), `breadcrumbs`, `number={false}`, `hidden` (skipped on stage, kept in print, PDF and PowerPoint: details for the sent copy, answers to questions), `className`, `onEnter`, `onLeave`.
 - A cover has `h1`, a regular slide has `h2`.
 - `<Machina.Notes>` are speaker notes, `<Machina.Notes step={2}>` belong to step 2. They are not on the slide; the P key opens the presenter window.
 - `useSlide()` in your own component: `{ number, step, isCurrent, isCopy }`.
@@ -66,7 +66,7 @@ export default (
 ## Steps
 
 - `data-steps` on `ul`, `ol`, `table` or `machina-columns`: every item, row or column appears on a key press. `data-steps={3}` starts at step 3.
-- `data-step` turns any tag into a step, a `<span>` inside a line too. `data-step={2}` puts it on step 2.
+- `data-step` turns any tag into a step, even a `<span>` inside a line. `data-step={2}` puts it on step 2.
 - Effects: `rise` (default), `fade`, `scale`, `glitch`, `highlight` (lights up in the accent color), `dim` (fades out). On an element: `data-step-effect="fade"`. For all steps of a presentation or a slide: `stepEffect="fade"`.
 - Diagram parts (`step`), code lines (`lines`) and scene objects (`step`) have steps too.
 
@@ -145,7 +145,7 @@ Block components:
 ## Transitions and morphing
 
 - `transition`: `auto` (default), `morph`, `slide`, `fade`, `zoom`, `cube`, `flip`, `wipe`, `iris`, `blinds`, `mosaic`, `glitch`, `none`. `speed`: `fast`, `slow` or a number.
-- Morphing finds pairs by itself: equal headings and texts (word by word), pictures with the same `src`, cards, numbers and bars in order, diagram boxes with the same `id`, code line by line. Name your own pair with `morph="name"` on both slides.
+- Morphing finds pairs automatically: equal headings and texts (word by word), pictures with the same `src`, cards, numbers and bars in order, diagram boxes with the same `id`, code line by line. Name your own pair with `morph="name"` on both slides.
 - To show a change, repeat the slide with the same heading and change one part.
 
 ## Theme
@@ -191,7 +191,7 @@ Block components:
 | Rule | Limit in `check` |
 |---|---|
 | A list is short, better 3 to 5 items | at most 7 items |
-| Little text on the slide, the rest goes to `Notes` | at most 40 words on a slide, code and notes excluded |
+| Little text on the slide: speech goes to `Notes`, details for the sent copy to `<Slide hidden>` | at most 40 words on a slide, code and notes excluded |
 | A diagram is readable in one step | at most 9 boxes and messages without `Focus` |
 | Long code goes by steps | over 12 lines only with `lines` |
 | At most three columns, numbers or cards in a row | at most 3 columns |

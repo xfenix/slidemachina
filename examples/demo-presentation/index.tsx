@@ -34,8 +34,8 @@ export default (
       <h1>Слайды из кода</h1>
       <p className="machina-lead">Шаги, схемы, 3D и морфинг в одном файле</p>
       <Machina.Notes>
-        <p>Поздоровайтесь и назовите тему.</p>
-        <p>Нажмите <kbd>P</kbd>: откроется окно докладчика с этими заметками.</p>
+        <p>Поздоровайтесь, назовите тему.</p>
+        <p>Нажмите <kbd>P</kbd> - откроется окно докладчика с заметками.</p>
       </Machina.Notes>
     </Machina.Slide>
 
@@ -57,9 +57,9 @@ export default (
           </figure>
         </div>
         <p className="machina-source">Замеры сборки этого демо, октябрь 2026</p>
-        <Machina.Notes>Три цифры, по одной на шаг. Не читайте подписи вслух.</Machina.Notes>
-        <Machina.Notes step={1}>Один файл: слайды, схемы и код лежат в <code>index.tsx</code>.</Machina.Notes>
-        <Machina.Notes step={2}>Тринадцать переходов, морфинг среди них самый заметный.</Machina.Notes>
+        <Machina.Notes>Три цифры, по одной на шаг. Подписи не читайте.</Machina.Notes>
+        <Machina.Notes step={1}>Один файл: слайды, схемы и код в <code>index.tsx</code>.</Machina.Notes>
+        <Machina.Notes step={2}>Тринадцать переходов, морфинг - самый заметный.</Machina.Notes>
         <Machina.Notes step={3}>
           Подсветку делает сборка: <strong>в браузер не уходит ни строчки Shiki</strong>.
         </Machina.Notes>
@@ -117,8 +117,8 @@ export default (
         <h2>Вся презентация в одном файле</h2>
         <Machina.Code lang="bash">{`npx slidemachina dev my-talk`}</Machina.Code>
         <ul data-steps>
-          <li>Слайды лежат в <code>index.tsx</code></li>
-          <li>Из разделов получаются хлебные крошки и обзор слайдов</li>
+          <li>Слайды в <code>index.tsx</code></li>
+          <li>Разделы становятся хлебными крошками и обзором слайдов</li>
           <li>Сохранили файл - слайд обновился на том же шаге</li>
         </ul>
       </Machina.Slide>
@@ -159,8 +159,8 @@ export default (
           </p>
           <Machina.Notes>
             <ul>
-              <li>Покажите, что пункт появляется по нажатию</li>
-              <li>Подсветка стоит на части строки: это <em>отдельный шаг</em></li>
+              <li>Покажите: пункт появляется по нажатию</li>
+              <li>Подсветка на части строки - это <em>отдельный шаг</em></li>
             </ul>
           </Machina.Notes>
         </Machina.Slide>
@@ -212,7 +212,7 @@ export default (
         `}</Machina.Code>
         <ul>
           <li>На тёмном фоне текст, код и логотип светлеют</li>
-          <li>Тёмный фон или светлый, движок понимает сам: по цвету или картинке</li>
+          <li>Тёмный фон или светлый - движок понимает сам: по цвету или картинке</li>
           <li>Если движок ошибся, задайте <code>tone</code>, как во второй строке кода</li>
         </ul>
       </Machina.Slide>
@@ -224,7 +224,7 @@ export default (
           <Slide background={gif}>
           <Slide background={{ iframe: "https://…" }}>
         `}</Machina.Code>
-        <p className="machina-note">Видео играет без звука, пока слайд на экране. Страница в <code>iframe</code> в печать не попадает</p>
+        <p className="machina-note">Видео играет без звука, пока слайд на экране. Страница в <code>iframe</code> в печать не попадёт</p>
       </Machina.Slide>
 
       <Machina.Slide background={duskPicture} plain align="center" transition="zoom">
@@ -236,7 +236,7 @@ export default (
         <h2>Логотип там, где нужен</h2>
         <Machina.Code lang="tsx">{`<Slide logo="center" number={false}>`}</Machina.Code>
         <p>Логотип встал над заголовком, номер слайда спрятан</p>
-        <p>Другие места логотипа: <code>top-left</code>, <code>top</code> и <code>bottom</code></p>
+        <p>Другие места логотипа: <code>top-left</code>, <code>top</code>, <code>bottom</code></p>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -256,7 +256,7 @@ export default (
             `}</Machina.Code>
           </div>
           <ul>
-            <li>Формат: экран, PDF и PowerPoint</li>
+            <li>Формат: экран, PDF, PowerPoint</li>
             <li>Текст по центру на всех слайдах</li>
             <li>Переход и его скорость</li>
             <li>Знак между разделами в крошках</li>
@@ -274,7 +274,7 @@ export default (
           </svg>
           <DraggableSticker startLeft={40} startTop={60} tiltDegrees={-5} stickerColor="#ffe066">Любая вёрстка</DraggableSticker>
           <DraggableSticker startLeft={470} startTop={300} tiltDegrees={3} stickerColor="#ffb3c7">Свой React и JS</DraggableSticker>
-          <DraggableSticker startLeft={880} startTop={70} tiltDegrees={-2} stickerColor="#a9e5bb">Тащите мышью</DraggableSticker>
+          <DraggableSticker startLeft={880} startTop={70} tiltDegrees={-2} stickerColor="#a9e5bb">Перетаскивайте мышью</DraggableSticker>
           <div className="absolute right-0 bottom-0 w-[600px]">
             <Machina.Code lang="tsx">{`
               <Slide>
@@ -294,7 +294,7 @@ export default (
         </div>
         <h1>Слайд без правил</h1>
         <p className="machina-lead">Земля, рассвет и блик нарисованы шейдером: ни одной картинки</p>
-        <p className="machina-note" data-step>Ведите мышью: камера сдвинется, солнце выглянет из-за края</p>
+        <p className="machina-note" data-step>Ведите мышью - камера сдвинется, солнце выглянет из-за края</p>
       </Machina.Slide>
 
       <Machina.Slide cover plain align="left" valign="bottom">
@@ -303,7 +303,7 @@ export default (
         </div>
         <h1>Живая обложка</h1>
         <p className="machina-lead max-w-[760px]">Куб разбирается на части и собирается снова. Это код на three.js, а не видео</p>
-        <p className="machina-note">Ведите мышью и щёлкните по кубу</p>
+        <p className="machina-note">Ведите мышью, щёлкните по кубу</p>
       </Machina.Slide>
     </Machina.Section>
 
@@ -318,7 +318,7 @@ export default (
           <p>Основной текст</p>
           <p className="machina-note">Примечание</p>
         `}</Machina.Code>
-        <p className="machina-note">Примечание мелким шрифтом идёт после блоков</p>
+        <p className="machina-note">Примечание мелким шрифтом - после блоков</p>
       </Machina.Slide>
 
       <Machina.Slide transition="fade" align="center" number={false}>
@@ -340,7 +340,7 @@ export default (
         <h2>Блок поверх вёрстки</h2>
         <ul>
           <li><code>machina-pin</code> вынимает блок из потока</li>
-          <li><code>machina-pin-bottom</code> и <code>machina-pin-right</code> прижимают его к краям слайда</li>
+          <li><code>machina-pin-bottom</code> и <code>machina-pin-right</code> прижимают к краям слайда</li>
           <li>Сдвиг из Tailwind выносит блок за край экрана</li>
         </ul>
         <div className="machina-pin-bottom machina-pin-right w-[560px] translate-x-[14%] translate-y-[12%] -rotate-6">
@@ -380,7 +380,7 @@ export default (
         <h2>Текст обтекает картинку</h2>
         <Machina.Image src={presentationListPicture} float="left" alt="Список презентаций" />
         <p>
-          <code>float="left"</code> ставит картинку слева, текст идёт справа от неё
+          <code>float="left"</code> ставит картинку слева, текст идёт справа
         </p>
         <ul>
           <li>Верх картинки на линии заглавных букв</li>
@@ -494,7 +494,7 @@ export default (
         <h2>Зачем нужна висячая пунктуация</h2>
         <ul data-steps>
           <li>Глаз находит начало строки по левому краю</li>
-          <li>Знак в начале строки делает выемку в левом крае, и строка кажется сдвинутой</li>
+          <li>Знак в начале строки делает выемку, строка кажется сдвинутой</li>
           <li>Свойство CSS <code>hanging-punctuation</code> знает только Safari</li>
           <li>slidemachina вешает знаки сама: в любом браузере и в PDF</li>
         </ul>
@@ -748,6 +748,22 @@ export default (
       <Machina.Slide cover background={duskPicture}>
         <h1>Ночной релиз</h1>
         <p className="machina-lead">Посередине, на фото. Цвет текста движок подбирает по яркости картинки</p>
+      </Machina.Slide>
+
+      <Machina.Slide cover align="left" valign="top">
+        <h1>Планы на 2027</h1>
+        <p className="machina-lead">Над полосой слева сверху: <code>align="left"</code>, <code>valign="top"</code></p>
+        <div className="machina-pin-bottom machina-pin-left machina-pin-right h-[50cqh]">
+          <img src={glassCardsPicture} alt="" className="size-full object-cover" />
+        </div>
+      </Machina.Slide>
+
+      <Machina.Slide cover align="center" valign="center">
+        <h1>Планы на 2027</h1>
+        <p className="machina-lead">Над полосой в центре: <code>align="center"</code>, <code>valign="center"</code></p>
+        <div className="machina-pin-bottom machina-pin-left machina-pin-right h-[50cqh]">
+          <img src={glassCardsPicture} alt="" className="size-full object-cover" />
+        </div>
       </Machina.Slide>
 
       <Machina.Slide cover align="right" valign="bottom">
@@ -1124,9 +1140,9 @@ export default (
             `}</Machina.Code>
           </div>
           <ul data-steps>
-            <li>При показе его нет: стрелки, номер и прогресс идут мимо</li>
-            <li>В обзоре он бледный, адрес <code>#12+1</code></li>
-            <li>В PDF его нет, вернуть - <code>--hidden</code> у сборки</li>
+            <li>На сцене его нет: стрелки, номер и прогресс идут мимо</li>
+            <li>В печати, PDF и PowerPoint есть: это копия для рассылки</li>
+            <li>Много текста и тезисов? Кладите их сюда, а не на основные слайды</li>
             <li>Запасной слайд демо - после «Спасибо»: нажмите <kbd>Esc</kbd></li>
           </ul>
         </div>
@@ -1196,8 +1212,9 @@ export default (
 
     <Machina.Slide hidden>
       <h2>Запасной слайд</h2>
-      <p>Он скрыт: при показе, в PDF и PowerPoint его нет.</p>
-      <p>Он ждёт вопросов из зала. Открыть его можно из обзора слайдов или по адресу.</p>
+      <p>На сцене его нет. В печати, PDF и PowerPoint он есть.</p>
+      <p>Сюда - подробности и тезисы, которым тесно на основных слайдах. Их прочтут в копии, которую вы разошлёте после доклада.</p>
+      <p>На показе его можно открыть из обзора слайдов или по адресу: например, если спросят из зала.</p>
     </Machina.Slide>
   </Machina.Presentation>
 );
