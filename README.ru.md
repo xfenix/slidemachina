@@ -12,7 +12,7 @@
 <p align="center"><a href="README.md">English</a> · <b>Русский</b></p>
 
 <p align="center">
-  <img alt="Версия 1.0" src="https://img.shields.io/badge/version-1.0-1e3064">
+  <a href="https://www.npmjs.com/package/slidemachina"><img alt="slidemachina в npm" src="https://img.shields.io/npm/v/slidemachina?logo=npm&color=1e3064"></a>
   <img alt="React 19" src="https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white">
   <img alt="Vite 8" src="https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white">
