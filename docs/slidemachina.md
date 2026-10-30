@@ -714,6 +714,14 @@ README показывает слайды демо из `docs/readme/` и сни�
 
 `.github/workflows/publish-examples.yml` собирает `examples/` командой `slidemachina build examples --folder` и выкладывает на https://xfenix.github.io/slidemachina/. Запускается при каждом push в `main`, который меняет примеры, движок или `package-lock.json`, и вручную. Пути в сборке относительные, поэтому сайт работает в подпапке `/slidemachina/`. Обложки снимает Chrome, который уже стоит на `ubuntu-latest`.
 
+### Бенчмарк
+
+`node benchmark/run-benchmark.ts <папка>` ставит в отдельные проекты свежие slidemachina, reveal.js, Slidev и open-slide из npm и собирает в каждом один и тот же доклад из 21 слайда. Меряет: первый слайд на экране после загрузки, JS в сборке (gzip), память JS после загрузки, dev-сервер до первого слайда, сборку и размер `node_modules`. Медиана пяти прогонов.
+
+- Результат — `benchmark.svg`, `benchmark.json` и `README.md` в папке. Цвет нашей полосы: зелёный — лучше всех, жёлтый — в пределах 5% от лучшего, красный — отстаём.
+- `.github/workflows/benchmark.yml` запускает его после публикации в npm, по понедельникам и при правке `benchmark/`, и кладёт результат в ветку `benchmark`. README показывает картинку через jsDelivr, кэш которого workflow сбрасывает.
+- Локально Chrome не запускается, если задан `SLIDEMACHINA_BENCHMARK_CHROME_ENDPOINT`: бенчмарк подключится к уже запущенному.
+
 ### Раскладка движка
 
 Верхний уровень — где выполняется код, внутри — возможности:

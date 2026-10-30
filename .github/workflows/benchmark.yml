@@ -1,0 +1,57 @@
+# Measures the same talk in the latest slidemachina, reveal.js, Slidev and open-slide from npm.
+# The picture goes to the benchmark branch, so main gets no bot commits; the README shows it through jsDelivr.
+name: Benchmark
+
+on:
+  # A new slidemachina on npm: right after the publish workflow.
+  workflow_run:
+    workflows: [Publish to npm]
+    types: [completed]
+  # New versions of the others: once a week.
+  schedule:
+    - cron: "0 6 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - benchmark/**
+      - .github/workflows/benchmark.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: benchmark
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 26
+
+      - name: Install
+        run: npm ci
+
+      - name: Measure
+        run: node benchmark/run-benchmark.ts "$RUNNER_TEMP/benchmark-results"
+
+      - name: Publish to the benchmark branch
+        run: |
+          cd "$RUNNER_TEMP/benchmark-results"
+          git init --quiet --initial-branch benchmark
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          git commit --quiet --message "Benchmark of $(date -u +%Y-%m-%d)"
+          git push --force --quiet "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" benchmark
+
+      # jsDelivr keeps a branch file for hours; the README should show the new picture now.
+      - name: Refresh the jsDelivr copy
+        run: curl --fail --silent --show-error "https://purge.jsdelivr.net/gh/${{ github.repository }}@benchmark/benchmark.svg" > /dev/null

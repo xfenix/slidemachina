@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2023",
-    "lib": ["es2023", "dom", "dom.iterable"],
+    "lib": [
+      "es2023",
+      "dom",
+      "dom.iterable"
+    ],
     "module": "preserve",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
@@ -14,11 +18,27 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,
-    "types": ["vite/client", "node"],
+    "types": [
+      "vite/client",
+      "node"
+    ],
     "paths": {
-      "slidemachina": ["./packages/slidemachina/browser-runtime/slidemachina.ts"]
+      "slidemachina": [
+        "./packages/slidemachina/browser-runtime/slidemachina.ts"
+      ]
     }
   },
-  "include": ["packages/slidemachina", "packages/create-slidemachina/*.ts", "examples", "tests", "playwright.config.ts", ".github/*.ts"],
-  "exclude": ["**/dist", "**/node_modules"]
+  "include": [
+    "packages/slidemachina",
+    "packages/create-slidemachina/*.ts",
+    "examples",
+    "tests",
+    "playwright.config.ts",
+    ".github/*.ts",
+    "benchmark/*.ts"
+  ],
+  "exclude": [
+    "**/dist",
+    "**/node_modules"
+  ]
 }
