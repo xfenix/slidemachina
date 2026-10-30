@@ -342,12 +342,14 @@ Every variable is described in the "Тема" section of [docs/slidemachina.md](
 
 Other tools help you make a beautiful slide.
 slidemachina helps you give a talk people follow: it keeps lists, text and diagrams within Miller's 7±2 and follows Richard Mayer's 12 principles of multimedia learning.
+The second rule is minimal markup. A slide is plain tags: no wrappers, ids or coordinates. Steps, layout and morphing come from the engine.
 
 | | slidemachina | reveal.js | Slidev | open-slide |
 |---|---|---|---|---|
 | A clear talk | `check` counts list items, words, diagram boxes, code lines and sections. The agent skill follows Mayer's principles | — | — | The skill asks how dense the text should be. Nothing checks it |
 | Markup | JSX in `index.tsx`, checked by TypeScript | HTML: `<section>` in `index.html` | Markdown with Vue components | React pages on a 1920×1080 canvas |
 | Styling | Plain CSS and Tailwind CSS in `style.css`: theme variables, any selector, classes right in the markup. No theme package | CSS or Sass theme files | A theme is an npm package with Vue layouts. To change a layout you write your own theme. UnoCSS classes | Inline styles in every page. A theme is a Markdown file the agent copies into the slides |
+| Markup per slide | `<Slide>`, an `h2` and plain tags. One `data-steps` for a whole list, no ids for morphing | `<section>`, `class="fragment"` on every element, `data-id` on morphing pairs | Markdown with frontmatter, `v-click` on every element, the layout named in frontmatter | React pages with inline styles and pixel coordinates, `<Step>` and `MorphElement` wrappers |
 | Sections | `Section`: a numbered cover, breadcrumbs, groups in the slide overview | Nested `<section>` become vertical slides | — | — |
 | Steps | `data-steps` on a list, table or columns, or a step on part of a diagram or scene. One `stepEffect` for all steps | `class="fragment"` on every element | `v-click` on every element | `<Step>` around every element |
 | Morphing | On by default. Shared elements, words and pieces of code are matched automatically | `data-auto-animate` on both slides, pairs through `data-id` | Only code, through `magic-move` | `MorphElement` with the same `id` on both pages |
