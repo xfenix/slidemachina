@@ -5,7 +5,6 @@ import editorPicture from "./images/source-editor.webp";
 import glassCardsPicture from "./images/glass-cards.webp";
 import glassCardsSquarePicture from "./images/glass-cards-square.webp";
 import jdMemePicture from "./images/memes/jd.jpg";
-import orbitMemePicture from "./images/memes/orbit.gif";
 import navigatorPicture from "./images/navigator.webp";
 import navigatorSectionsPicture from "./images/navigator-sections.webp";
 import presentationListPicture from "./images/presentation-list.webp";
@@ -868,10 +867,10 @@ export default (
             <Machina.Code lang="bash">{`slidemachina meme "this is fine"`}</Machina.Code>
           </div>
           <div>
-            <Machina.Meme src={orbitMemePicture} alt="Облёт 3D-сцены">
+            <Machina.Meme src="orbit" alt="Облёт 3D-сцены">
               <p>Схема, код, 3D</p>
               <p>и мем в одном файле</p>
-              <figcaption>Свой мем из GIF: подписи пишутся прямо в теге</figcaption>
+              <figcaption>Свой GIF из <code>images/memes</code>, без импорта: <code>src="orbit"</code></figcaption>
             </Machina.Meme>
           </div>
         </div>

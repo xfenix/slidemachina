@@ -224,7 +224,7 @@ export default (
 | `Image` | `src`, `alt`, `stretch`, `full`, `fit` (`contain` или `cover`), `float` (`left` или `right`); внутри — `<figcaption>` |
 | `Video` | `src`, `poster`, `stretch`, `full`, `fit`, `loop` (по умолчанию `true`), `controls`; внутри — `<figcaption>` |
 | `QR` | `value` — ссылка или текст; `logo` — картинка в середине; `correction` (`L`, `M`, `Q`, `H`, по умолчанию `M`); `color`; внутри — `<figcaption>` |
-| `Meme` | `src`, `alt`, `stretch` (по умолчанию, если нет `float`), `float` (`left` или `right`); внутри — подписи, каждая своим тегом (`<p>`), и `<figcaption>` |
+| `Meme` | `src` — импорт, адрес или имя без расширения: `src="fine"` берёт `images/memes/fine.jpg` презентации без импорта; `alt`, `stretch` (по умолчанию, если нет `float`), `float` (`left` или `right`); внутри — подписи, каждая своим тегом (`<p>`), и `<figcaption>` |
 
 | Разметка | Что это |
 |---|---|

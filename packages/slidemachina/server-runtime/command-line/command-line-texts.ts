@@ -36,6 +36,7 @@ const englishTexts = {
   missingPresentationFile: (projectFolder: string) =>
     `No index.tsx and no presentation folders in ${projectFolder}.\nRun the command in the presentation folder or pass the folder: slidemachina dev my-talk`,
   missingCodeFile: (codeFilePath: string) => `<Code src>: file ${codeFilePath} not found.`,
+  missingMeme: (memeName: string, memeNames: string[]) => `<Meme src="${memeName}">: no ${memeName} picture in images/memes/. ${memeNames.length === 0 ? "The folder is empty or missing." : `There are: ${memeNames.join(", ")}.`}`,
   embeddedStylesWithExpressions: (slideFile: string) => `${slideFile}: css\`…\` is plain CSS, ${"${…}"} does not work in it. Use CSS variables instead.`,
   wrongAspectRatio: (aspectRatioText: string) =>
     `<Presentation aspectRatio="${aspectRatioText}">: write the width and height as two positive numbers, like "16:9", "4:3" or "9:16".`,
@@ -153,6 +154,7 @@ const russianTexts: typeof englishTexts = {
   missingPresentationFile: (projectFolder) =>
     `В папке ${projectFolder} нет ни index.tsx, ни папок с презентациями.\nЗапустите команду в папке презентации или укажите папку: slidemachina dev my-talk`,
   missingCodeFile: (codeFilePath) => `<Code src>: нет файла ${codeFilePath}.`,
+  missingMeme: (memeName, memeNames) => `<Meme src="${memeName}">: в images/memes/ нет картинки ${memeName}. ${memeNames.length === 0 ? "Папки нет или она пуста." : `Есть: ${memeNames.join(", ")}.`}`,
   embeddedStylesWithExpressions: (slideFile) => `${slideFile}: в css\`…\` обычный CSS, ${"${…}"} в нём не работает. Используйте CSS-переменные.`,
   wrongAspectRatio: (aspectRatioText) =>
     `<Presentation aspectRatio="${aspectRatioText}">: нужны ширина и высота через двоеточие, оба числа больше нуля. Например, "16:9", "4:3" или "9:16".`,

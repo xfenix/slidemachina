@@ -5,7 +5,8 @@ import { measureCanvasSize } from "../../shared-between-runtimes/canvas-size.ts"
 import { commandLineTexts } from "../command-line/command-line-texts.ts";
 import { highlightCodeOnce } from "./code-highlighting.ts";
 import { readSettingsFor } from "./presentation-settings.ts";
-import { isSlideSourceFile } from "../presentation-repository/presentation-repository.ts";
+import { findPresentationFolder, isSlideSourceFile } from "../presentation-repository/presentation-repository.ts";
+import { importNamedMemes } from "./meme-names.ts";
 import { installMemeSearch } from "../development-server/meme-search-server.ts";
 import { installSourceEditing } from "../development-server/source-edit-server.ts";
 import { memeFontStylesheet } from "../development-server/entry-modules.ts";
@@ -121,6 +122,8 @@ export function createSlideSourcePlugin(siteLayout: SiteLayout): Plugin {
       // Only the build embeds web addresses: slidemachina dev shows them straight from the web.
       await embedRemoteMedia(remoteMediaPlaces, transformContext.editedSource, this);
       // The caption font is loaded only by presentations with memes: a one-file build of any other carries no extra font.
+      const presentationFolder = findPresentationFolder(siteLayout, filePath);
+      if (presentationFolder !== undefined) importNamedMemes(memeElements, presentationFolder, transformContext.editedSource, (problemText) => this.error(problemText));
       if (memeElements.length > 0) transformContext.editedSource.prepend(`import ${JSON.stringify(memeFontStylesheet)};`);
       return {
         code: transformContext.editedSource.toString(),

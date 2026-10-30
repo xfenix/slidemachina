@@ -121,7 +121,7 @@ Pictures go to `images/`, and TypeScript suggests components and their props.
   </tr>
   <tr>
     <td>Pictures and video fill the free space, the whole slide or float beside the text. On a dark background the text and the logo turn light automatically.</td>
-    <td>QR codes with a logo, drawn as vectors. Memes and GIFs are one command away: <code>slidemachina meme</code>.</td>
+    <td>QR codes with a logo, drawn as vectors. Memes and GIFs are one command away: <code>slidemachina meme</code>. A picture in <code>images/memes/</code> works by name, without an import: <code>&lt;Meme src="fine"&gt;</code>.</td>
   </tr>
 </table>
 
@@ -403,6 +403,8 @@ The second rule is minimal markup. A slide is plain tags: no wrappers, ids or co
 | One HTML file | Fonts, pictures and scripts inside one file. Quick Look on macOS shows the slides | A folder of files | A folder of files | A folder of files |
 | Password protection | `--protected`: the file is encrypted, the password is asked for or taken from `SLIDEMACHINA_PASSWORD` | — | — | — |
 | Screenshot for agent | `slidemachina shot 12.2`: one slide at a given step, in a second | — | `slidev export --format png`: the whole deck | — |
+| QR codes | `<QR value="https://…">`: a vector code with your logo, built in. No QR website, no picture to regenerate when the link changes | A picture you make elsewhere | A picture you make elsewhere or a community add-on | A picture you make elsewhere |
+| Memes | `slidemachina meme "this is fine"` finds memegen templates and GIPHY GIFs. Captions are text you edit on the slide. `src="fine"` takes a picture from `images/memes/` by name | A picture with the text baked in | A picture with the text baked in | A picture with the text baked in |
 
 A dash means the tool has nothing built in for this.
 

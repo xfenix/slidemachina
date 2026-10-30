@@ -96,7 +96,7 @@ Block components:
 - `Image`: `src`, `alt`, `stretch` (fills the free space), `full` (the whole slide), `fit` (`contain`, `cover`), `float` (`left`, `right`: text flows around it); `<figcaption>` inside.
 - `Video`: `src`, `poster`, `stretch`, `full`, `fit`, `loop`, `controls`.
 - `QR`: `value`, `logo`, `color`, `correction`; `<figcaption>` inside.
-- `Meme`: `src`, `alt`, `float`; captions inside, one `<p>` per line, `data-place` (`top`, `bottom`, `center`), and `<figcaption>` with the source.
+- `Meme`: `src` (an import, a web address, or a bare name like `"fine"` for `images/memes/fine.jpg` without an import), `alt`, `float`; captions inside, one `<p>` per line, `data-place` (`top`, `bottom`, `center`), and `<figcaption>` with the source.
 
 ## Code
 

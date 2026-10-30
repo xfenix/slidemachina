@@ -352,6 +352,12 @@ test("демо листается, показывает шаги и навига
     const floatedMemeBox = (await currentSlide(page).locator("[data-meme]").boundingBox())!;
     const contentBox = (await currentSlide(page).locator("[data-content]").boundingBox())!;
     expect(floatedMemeBox.y + floatedMemeBox.height).toBeLessThanOrEqual(contentBox.y + contentBox.height + 1);
+
+    // src="orbit" without an import: the picture comes from images/memes/ by its name.
+    await jumpToHeading(page, "Мем за минуту");
+    const namedMemePicture = currentSlide(page).locator("[data-meme] img");
+    await expect(namedMemePicture).toHaveAttribute("src", /orbit/);
+    await expect.poll(() => namedMemePicture.evaluate((pictureElement: HTMLImageElement) => pictureElement.naturalWidth)).toBeGreaterThan(0);
   });
 
   await test.step("код: подсветка при сборке, шрифт, строки по шагам с прокруткой", async () => {
