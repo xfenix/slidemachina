@@ -22,14 +22,27 @@ export type RewordedPair = MorphPair & {
   // Every word stays: the text only moves or changes size, so its words travel the whole transition.
   keepsEveryWord: boolean;
 };
+export type SlideMorphCandidates = {
+  morphCandidates: HTMLElement[];
+  codeBlocks: HTMLElement[];
+};
 
-function listVisibleCandidates(slideElement: HTMLElement, selector: string): HTMLElement[] {
+const walkedCandidateSelector = `${candidateSelector}, ${orderedBlockSelector}, [data-code]`;
+const morphCandidateSelector = `${candidateSelector}, ${orderedBlockSelector}`;
+
+// One walk of the slide collects every element a transition can pair: morphing parts and code blocks.
+export function collectSlideCandidates(slideElement: HTMLElement): SlideMorphCandidates {
   const contentElement = slideElement.querySelector<HTMLElement>("[data-content]");
-  const candidateElements = [...(contentElement?.querySelectorAll<HTMLElement>(selector) ?? [])];
-  // <Code> blocks morph piece by piece in code-morphing.ts.
-  return candidateElements.filter(
-    (candidateElement) => !candidateElement.closest("[data-step]:not([data-step-reached]), [data-code]"),
-  );
+  const walkedElements = [...(contentElement?.querySelectorAll<HTMLElement>(walkedCandidateSelector) ?? [])];
+  const morphCandidates: HTMLElement[] = [];
+  const codeBlocks: HTMLElement[] = [];
+  for (const walkedElement of walkedElements) {
+    if (walkedElement.closest("[data-step]:not([data-step-reached])") !== null) continue;
+    // <Code> blocks morph piece by piece in code-morphing.ts, so their parts are not morph candidates.
+    if (walkedElement.matches("[data-code]")) codeBlocks.push(walkedElement);
+    else if (walkedElement.closest("[data-code]") === null && walkedElement.matches(morphCandidateSelector)) morphCandidates.push(walkedElement);
+  }
+  return { morphCandidates, codeBlocks };
 }
 
 // data-morph-text marks text inside other blocks, such as a diagram box label, so it does not stretch with its box.
@@ -61,14 +74,15 @@ function describeRoleKey(candidateElement: HTMLElement): string | undefined {
 
 // Repeated keys pair up in document order: the second "Итоги" matches the second "Итоги".
 function collectKeyedElements(
-  slideElement: HTMLElement,
+  candidateElements: HTMLElement[],
   selector: string,
   describeKey: (candidateElement: HTMLElement) => string | undefined,
   pairedElements: Set<HTMLElement>,
 ): Map<string, HTMLElement> {
   const keyedElements = new Map<string, HTMLElement>();
   const occurrenceCounts = new Map<string, number>();
-  for (const candidateElement of listVisibleCandidates(slideElement, selector)) {
+  for (const candidateElement of candidateElements) {
+    if (!candidateElement.matches(selector)) continue;
     const morphKey = pairedElements.has(candidateElement) ? undefined : describeKey(candidateElement);
     if (morphKey === undefined) continue;
     const occurrenceNumber = (occurrenceCounts.get(morphKey) ?? 0) + 1;
@@ -79,15 +93,15 @@ function collectKeyedElements(
 }
 
 function pairKeyedElements(
-  outgoingSlide: HTMLElement,
-  incomingSlide: HTMLElement,
+  outgoingCandidates: HTMLElement[],
+  incomingCandidates: HTMLElement[],
   selector: string,
   describeKey: (candidateElement: HTMLElement) => string | undefined,
   pairedElements: Set<HTMLElement>,
 ): MorphPair[] {
-  const incomingElements = collectKeyedElements(incomingSlide, selector, describeKey, pairedElements);
+  const incomingElements = collectKeyedElements(incomingCandidates, selector, describeKey, pairedElements);
   const morphPairs: MorphPair[] = [];
-  for (const [morphKey, outgoingElement] of collectKeyedElements(outgoingSlide, selector, describeKey, pairedElements)) {
+  for (const [morphKey, outgoingElement] of collectKeyedElements(outgoingCandidates, selector, describeKey, pairedElements)) {
     const incomingElement = incomingElements.get(morphKey);
     if (incomingElement !== undefined) morphPairs.push({ outgoingElement, incomingElement });
   }
@@ -95,16 +109,17 @@ function pairKeyedElements(
 }
 
 // Exact pairs first, then engine blocks by order among the rest: a changed number still glides into its place.
-export function findMorphPairs(outgoingSlide: HTMLElement, incomingSlide: HTMLElement): MorphPair[] {
-  const exactPairs = pairKeyedElements(outgoingSlide, incomingSlide, candidateSelector, describeMorphKey, new Set());
+export function findMorphPairs(outgoingCandidates: HTMLElement[], incomingCandidates: HTMLElement[]): MorphPair[] {
+  const exactPairs = pairKeyedElements(outgoingCandidates, incomingCandidates, candidateSelector, describeMorphKey, new Set());
   const exactlyPairedElements = new Set(exactPairs.flatMap((morphPair) => [morphPair.outgoingElement, morphPair.incomingElement]));
-  return [...exactPairs, ...pairKeyedElements(outgoingSlide, incomingSlide, orderedBlockSelector, describeRoleKey, exactlyPairedElements)];
+  return [...exactPairs, ...pairKeyedElements(outgoingCandidates, incomingCandidates, orderedBlockSelector, describeRoleKey, exactlyPairedElements)];
 }
 
 // Innermost text only: a <li> with a <p> inside is reworded through the <p>.
-function listRewordableElements(slideElement: HTMLElement, pairedElements: Set<HTMLElement>): HTMLElement[] {
-  return listVisibleCandidates(slideElement, textSelector).filter(
-    (textElement) => !pairedElements.has(textElement) && !textElement.hasAttribute("morph") && !textElement.querySelector(textSelector),
+function listRewordableElements(candidateElements: HTMLElement[], pairedElements: Set<HTMLElement>): HTMLElement[] {
+  return candidateElements.filter(
+    (textElement) =>
+      textElement.matches(textSelector) && !pairedElements.has(textElement) && !textElement.hasAttribute("morph") && !textElement.querySelector(textSelector),
   );
 }
 
@@ -113,17 +128,17 @@ function countRealWords(textWords: string[]): number {
 }
 
 // "Python 3.14" → "Python 3.15": same tag and at least half the words shared, punctuation aside.
-export function findRewordedPairs(outgoingSlide: HTMLElement, incomingSlide: HTMLElement, morphPairs: MorphPair[]): RewordedPair[] {
+export function findRewordedPairs(outgoingCandidates: HTMLElement[], incomingCandidates: HTMLElement[], morphPairs: MorphPair[]): RewordedPair[] {
   const pairedElements = new Set(morphPairs.flatMap((morphPair) => [morphPair.outgoingElement, morphPair.incomingElement]));
-  const incomingCandidates = listRewordableElements(incomingSlide, pairedElements).map((incomingElement) => ({
+  const incomingRewordables = listRewordableElements(incomingCandidates, pairedElements).map((incomingElement) => ({
     incomingElement,
     incomingWords: listTextWords(incomingElement),
   }));
   const rewordedPairs: RewordedPair[] = [];
-  for (const outgoingElement of listRewordableElements(outgoingSlide, pairedElements)) {
+  for (const outgoingElement of listRewordableElements(outgoingCandidates, pairedElements)) {
     const outgoingWords = listTextWords(outgoingElement);
     let bestPair: RewordedPair | undefined;
-    for (const { incomingElement, incomingWords } of incomingCandidates) {
+    for (const { incomingElement, incomingWords } of incomingRewordables) {
       if (incomingElement.tagName !== outgoingElement.tagName || pairedElements.has(incomingElement)) continue;
       const wordMatches = matchWords(outgoingWords, incomingWords);
       const sharedWordCount = countRealWords(wordMatches.map((wordMatch) => outgoingWords[wordMatch.outgoingWordPosition]!));

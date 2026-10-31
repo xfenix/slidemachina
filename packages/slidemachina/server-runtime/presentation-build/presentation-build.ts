@@ -125,14 +125,27 @@ export async function buildPresentation(
   const nameStepTitle: StepTitler = (shownTitle) => (stepPrefix === undefined ? shownTitle : `${stepPrefix} · ${shownTitle}`);
   const temporaryFolder = mkdtempSync(path.join(os.tmpdir(), "slidemachina-build-"));
   const builtPages: string[] = [];
+  const buildsFolder = chosenVariants.includes("folder") || chosenVariants.includes("zip");
+  const buildsSingleFile = chosenVariants.some((variantName) => singleFileVariants.has(variantName));
+  const folderBuild = path.join(temporaryFolder, "folder");
+  const singleFileFolder = path.join(temporaryFolder, "single-file");
   try {
-    if (chosenVariants.includes("folder") || chosenVariants.includes("zip")) {
-      const folderBuild = path.join(temporaryFolder, "folder");
+    // The two builds share nothing but the compressed-picture cache, so they run at the same time.
+    const bundleTitles = [buildsFolder && commandLineTexts.buildingFiles(false), buildsSingleFile && commandLineTexts.buildingFiles(true)].filter(
+      (bundleTitle): bundleTitle is string => bundleTitle !== false,
+    );
+    if (bundleTitles.length > 0) {
       await runBuildStep(
-        nameStepTitle(commandLineTexts.buildingFiles(false)),
-        () => build(createBuildConfiguration(presentationLayout, folderBuild, false, buildReport)),
+        nameStepTitle(bundleTitles.join(" · ")),
+        () =>
+          Promise.all([
+            buildsFolder ? build(createBuildConfiguration(presentationLayout, folderBuild, false, buildReport)) : undefined,
+            buildsSingleFile ? build(createBuildConfiguration(presentationLayout, singleFileFolder, true, buildReport)) : undefined,
+          ]),
         isInteractive,
       );
+    }
+    if (buildsFolder) {
       if (chosenVariants.includes("folder")) {
         removeOldOutput(outputPaths.folder);
         cpSync(folderBuild, outputPaths.folder, { recursive: true });
@@ -140,13 +153,7 @@ export async function buildPresentation(
       if (chosenVariants.includes("zip")) zipFolder(folderBuild, outputPaths.zip);
       builtPages.push(folderBuild);
     }
-    if (chosenVariants.some((variantName) => singleFileVariants.has(variantName))) {
-      const singleFileFolder = path.join(temporaryFolder, "single-file");
-      await runBuildStep(
-        nameStepTitle(commandLineTexts.buildingFiles(true)),
-        () => build(createBuildConfiguration(presentationLayout, singleFileFolder, true, buildReport)),
-        isInteractive,
-      );
+    if (buildsSingleFile) {
       const builtPage = path.join(singleFileFolder, "index.html");
       if (pageSecret !== undefined) {
         const presentationTitle = readPresentationFile(projectFolder).presentationTitle ?? path.basename(projectFolder);

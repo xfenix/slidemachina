@@ -8,11 +8,6 @@ export type CodePair = MorphPair & {
   pieceMatches: PieceMatch[];
 };
 
-function listVisibleCodeBlocks(slideElement: HTMLElement): HTMLElement[] {
-  const codeElements = [...slideElement.querySelectorAll<HTMLElement>("[data-content] [data-code]")];
-  return codeElements.filter((codeElement) => !codeElement.closest("[data-step]:not([data-step-reached])"));
-}
-
 // Lines without pieces are blank; they take no part in matching.
 function listCodeLines(codeElement: HTMLElement): HTMLElement[][] {
   return [...codeElement.querySelectorAll<HTMLElement>("[data-code-line]")]
@@ -79,9 +74,8 @@ function matchCodeLines(outgoingLines: HTMLElement[][], incomingLines: HTMLEleme
 }
 
 // Code blocks pair up in order, like Keynote's magic move; under half shared means unrelated snippets.
-export function findCodePairs(outgoingSlide: HTMLElement, incomingSlide: HTMLElement): CodePair[] {
-  const incomingBlocks = listVisibleCodeBlocks(incomingSlide);
-  return listVisibleCodeBlocks(outgoingSlide).flatMap((outgoingElement, blockPosition): CodePair[] => {
+export function findCodePairs(outgoingBlocks: HTMLElement[], incomingBlocks: HTMLElement[]): CodePair[] {
+  return outgoingBlocks.flatMap((outgoingElement, blockPosition): CodePair[] => {
     const incomingElement = incomingBlocks[blockPosition];
     if (incomingElement === undefined) return [];
     const outgoingLines = listCodeLines(outgoingElement);

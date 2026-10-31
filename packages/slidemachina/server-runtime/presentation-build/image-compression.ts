@@ -1,10 +1,13 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { Plugin } from "vite";
 
 export type BuildReport = { savedPictureBytes: Map<string, number>, videoSizes: Map<string, number> };
+
+// The parallel folder and single-file builds compress the same pictures: one sharp run serves both.
+const runningCompressions = new Map<string, Promise<string | undefined>>();
 
 const compressedPicturePattern = /\.(png|jpe?g|gif)$/i;
 const videoPattern = /\.(mp4|webm|mov|m4v|ogv)$/i;
@@ -15,6 +18,13 @@ const pictureQuality = 82;
 const compressionSettings = `${largestPictureWidth}x${largestPictureHeight}-q${pictureQuality}`;
 // In the home folder, not a shared /tmp where another user could plant pictures; entries are named by contents.
 const cacheFolder = path.join(os.homedir(), ".cache", "slidemachina", "pictures");
+
+// A build in another process may write the same entry: a rename never leaves half a file.
+function writeCacheFile(cachePath: string, fileBytes: Buffer | string): void {
+  const temporaryPath = `${cachePath}.${process.pid}.partial`;
+  writeFileSync(temporaryPath, fileBytes);
+  renameSync(temporaryPath, cachePath);
+}
 
 // The next build reuses the result; "original" marks a picture WebP did not shrink.
 async function compressPicture(picturePath: string): Promise<string | undefined> {
@@ -35,11 +45,19 @@ async function compressPicture(picturePath: string): Promise<string | undefined>
     .toBuffer();
   mkdirSync(cachedFolder, { recursive: true });
   if (compressedBytes.length >= pictureBytes.length) {
-    writeFileSync(keptOriginalMarker, "");
+    writeCacheFile(keptOriginalMarker, "");
     return undefined;
   }
-  writeFileSync(compressedPath, compressedBytes);
+  writeCacheFile(compressedPath, compressedBytes);
   return compressedPath;
+}
+
+async function compressPictureOnce(picturePath: string): Promise<string | undefined> {
+  const runningCompression = runningCompressions.get(picturePath);
+  if (runningCompression !== undefined) return runningCompression;
+  const compression = compressPicture(picturePath).finally(() => runningCompressions.delete(picturePath));
+  runningCompressions.set(picturePath, compression);
+  return compression;
 }
 
 // Imported PNG, JPEG and GIF pictures are swapped for WebP before Vite sees them; videos are only reported.
@@ -57,7 +75,7 @@ export function createImageCompressionPlugin(buildReport: BuildReport): Plugin {
         buildReport.videoSizes.set(mediaPath, statSync(mediaPath).size);
         return resolvedMedia;
       }
-      const compressedPath = await compressPicture(mediaPath);
+      const compressedPath = await compressPictureOnce(mediaPath);
       if (compressedPath === undefined) return resolvedMedia;
       buildReport.savedPictureBytes.set(mediaPath, statSync(mediaPath).size - statSync(compressedPath).size);
       return compressedPath;

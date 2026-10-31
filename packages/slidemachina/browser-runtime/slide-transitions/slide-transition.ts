@@ -1,5 +1,5 @@
 import { findCodePairs } from "../element-morphing/code-morphing.ts";
-import { findMorphPairs, findRewordedPairs, rewordPairedTexts } from "../element-morphing/morph-matching.ts";
+import { collectSlideCandidates, findMorphPairs, findRewordedPairs, rewordPairedTexts, type SlideMorphCandidates } from "../element-morphing/morph-matching.ts";
 import { carryLeavingWords, measureWordLayers, type WordBoxes } from "../element-morphing/word-carrying.ts";
 import { bendCrossingPaths, type MovingLayer } from "../element-morphing/morph-arcs.ts";
 import { markReachedSteps } from "../slide-steps/step-visibility.ts";
@@ -33,6 +33,7 @@ export type SlideTransition =
   | "none";
 
 const wholeSlideTransitions = new Set(["slide", "zoom", "cube", "flip", "wipe", "iris", "blinds", "mosaic"]);
+const emptyMorphCandidates: SlideMorphCandidates = { morphCandidates: [], codeBlocks: [] };
 
 let activeNamedLayers: NamedLayer[] = [];
 // Word wrappers and code piece names are taken back by these functions when a transition ends.
@@ -60,10 +61,12 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
   const usesMorph = requestedTransition === "auto" || requestedTransition === "morph";
   // Pairs are looked up before the update: the hidden incoming slide shows now the step it will arrive at.
   if (usesMorph) markReachedSteps(incomingSlide, incomingStepIndex);
-  const pairedElements = usesMorph ? findMorphPairs(outgoingSlide, incomingSlide) : [];
+  const outgoingCandidates = usesMorph ? collectSlideCandidates(outgoingSlide) : emptyMorphCandidates;
+  const incomingCandidates = usesMorph ? collectSlideCandidates(incomingSlide) : emptyMorphCandidates;
+  const pairedElements = findMorphPairs(outgoingCandidates.morphCandidates, incomingCandidates.morphCandidates);
   const { shapePairs: morphPairs, textPairs } = rewordPairedTexts(pairedElements);
-  const rewordedPairs = usesMorph ? [...textPairs, ...findRewordedPairs(outgoingSlide, incomingSlide, pairedElements)] : [];
-  const codePairs = usesMorph ? findCodePairs(outgoingSlide, incomingSlide) : [];
+  const rewordedPairs = [...textPairs, ...findRewordedPairs(outgoingCandidates.morphCandidates, incomingCandidates.morphCandidates, pairedElements)];
+  const codePairs = findCodePairs(outgoingCandidates.codeBlocks, incomingCandidates.codeBlocks);
   const chosenTransition = chooseTransition(requestedTransition, morphPairs.length + rewordedPairs.length + codePairs.length);
   const movesWholeSlides = wholeSlideTransitions.has(chosenTransition);
   const documentElement = document.documentElement;
