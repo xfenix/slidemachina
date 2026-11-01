@@ -6,6 +6,11 @@ import { PresentationListAddressContext } from "../presentation-interface/presen
 
 let presentationRoot: Root | undefined;
 
+// The built file opens on a cover painted at build time; two frames after the live first frame it leaves the page.
+function dismissStaticCover() {
+  requestAnimationFrame(() => requestAnimationFrame(() => document.querySelector("[data-static-cover]")?.remove()));
+}
+
 // One root keeps the slide and step across edits; a synchronous first render gives the list transition its canvas.
 // A hot update renders synchronously too: the editor takes an edit as done once the new module runs, and finds the slides it moved in the DOM.
 export function mountPresentation(presentationElement: ReactNode, presentationListAddress?: string) {
@@ -16,9 +21,11 @@ export function mountPresentation(presentationElement: ReactNode, presentationLi
   );
   if (presentationRoot !== undefined) {
     flushSync(() => presentationRoot!.render(presentationTree));
+    dismissStaticCover();
     return;
   }
   presentationRoot = createRoot(document.getElementById("slidemachina")!);
   if (presentationListAddress !== undefined) connectCanvasToList(presentationListAddress);
   flushSync(() => presentationRoot!.render(presentationTree));
+  dismissStaticCover();
 }

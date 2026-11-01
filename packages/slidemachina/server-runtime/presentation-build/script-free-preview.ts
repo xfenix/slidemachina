@@ -128,7 +128,8 @@ showPresentationFrame(0);
 // The built page is a React app: without scripts, as in macOS Quick Look, it is empty, so the file carries pictures of its slides.
 // Returns false when the file would be too big for Quick Look anyway: then the pictures only add weight.
 export async function addScriptFreePreview(builtPagePath: string, previewedPagePath: string, sharedChrome: SharedChrome): Promise<boolean> {
-  const pageHtml = readFileSync(builtPagePath, "utf8");
+  const { staticCoverPattern } = await import("./static-cover.ts");
+  const pageHtml = readFileSync(builtPagePath, "utf8").replace(staticCoverPattern, "");
   if (Buffer.byteLength(pageHtml) > quickLookSizeLimit) return false;
   const slidePictures = await shootSlidePictures(builtPagePath, sharedChrome);
   const pictureTags = slidePictures.map(

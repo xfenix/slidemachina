@@ -109,7 +109,7 @@ export default <Presentation aspectRatio="4:3"><Slide><h1>First &amp; frame</h1>
   }
 });
 
-test("сборка: один HTML-файл листается без сервера, папка держит ELK и three.js отдельно, печатная версия, PDF по шагам и PowerPoint", async ({ page }) => {
+test("сборка: один HTML-файл листается без сервера, папка держит ELK и three.js отдельно, печатная версия, PDF по шагам и PowerPoint", async ({ page, browser }) => {
   // Vite, the PDF and the PowerPoint export each drive Chrome through the whole demo.
   test.setTimeout(180_000);
   const outputFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-build-"));
@@ -127,6 +127,7 @@ test("сборка: один HTML-файл листается без серве�
       expect(singleFileText.includes("data:image/webp;base64"), "картинка WebP внутри").toBe(true);
       expect(singleFileText.match(/data:font\/woff2;base64/g)?.length, "внутри только латиница и кириллица Onest, JetBrains Mono и Oswald").toBe(6);
       expect(singleFileText.includes('<link rel="icon" href="data:image/svg+xml,'), "знак slidemachina во вкладке").toBe(true);
+      expect(singleFileText.match(/<div data-static-cover/g)?.length, "нарисованная обложка в файле одна").toBe(1);
       const quickLookPreview = /<noscript>[\s\S]*?<div data-script-free-preview>([\s\S]*?)<\/div>/.exec(singleFileText)?.[1] ?? "";
       const previewPictureCount = quickLookPreview.match(/<img src="data:image\/webp;base64,/g)?.length ?? 0;
       expect(previewPictureCount, "снимки слайдов для Quick Look").toBeGreaterThan(smallestDemoSlideCount);
@@ -137,6 +138,7 @@ test("сборка: один HTML-файл листается без серве�
       await page.setViewportSize({ width: 1280, height: 720 });
       await page.goto(pathToFileURL(singleFile).href);
       await expect(page).toHaveURL(/#1$/);
+      await expect(page.locator("[data-static-cover]"), "живое приложение убирает нарисованную обложку").toHaveCount(0);
       await page.keyboard.press("PageDown");
       await expect(page).toHaveURL(/#2$/);
       await page.goto(`${pathToFileURL(singleFile).href}#${await findSlideNumber(page, "[data-diagram]")}`);
@@ -147,6 +149,18 @@ test("сборка: один HTML-файл листается без серве�
       await page.goto(`${pathToFileURL(singleFile).href}#${firstSceneSlideNumber}`);
       const sceneCanvas = page.locator("[data-canvas] > [data-current] [data-scene-canvas]");
       await expect.poll(async () => (await sampleSceneCanvas(sceneCanvas)).paintedPixels, { message: "сцена рисуется из файла" }).toBeGreaterThan(250);
+    });
+
+    await test.step("обложка нарисована до скриптов: без JavaScript файл показывает первый слайд", async () => {
+      const scriptlessContext = await browser.newContext({ javaScriptEnabled: false });
+      const scriptlessPage = await scriptlessContext.newPage();
+      try {
+        await scriptlessPage.setViewportSize({ width: 1280, height: 720 });
+        await scriptlessPage.goto(pathToFileURL(singleFile).href);
+        await expect(scriptlessPage.locator("[data-static-cover] h1"), "заголовок обложки без скриптов").toHaveText("Слайды из кода");
+      } finally {
+        await scriptlessContext.close();
+      }
     });
 
     await test.step("окно докладчика из файла: заметки только в нём, листать можно из любого окна", async () => {

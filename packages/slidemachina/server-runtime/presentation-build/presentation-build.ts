@@ -155,7 +155,23 @@ export async function buildPresentation(
     }
     if (buildsSingleFile) {
       const builtPage = path.join(singleFileFolder, "index.html");
+      let staticCoverMarkup: string | undefined;
+      if (chosenVariants.includes("html") || pageSecret !== undefined) {
+        try {
+          await runBuildStep(
+            nameStepTitle(commandLineTexts.staticCoverStep),
+            async () => {
+              staticCoverMarkup = (await (await import("./static-cover.ts")).captureStaticCover(builtPage, sharedChrome)) ?? undefined;
+            },
+            isInteractive,
+          );
+        } catch (coverError) {
+          const coverProblem = coverError instanceof Error ? coverError.message : String(coverError);
+          log.warn(commandLineTexts.staticCoverFailed(coverProblem));
+        }
+      }
       if (pageSecret !== undefined) {
+        if (staticCoverMarkup !== undefined) (await import("./static-cover.ts")).injectStaticCover(builtPage, staticCoverMarkup);
         const presentationTitle = readPresentationFile(projectFolder).presentationTitle ?? path.basename(projectFolder);
         await runBuildStep(
           nameStepTitle(commandLineTexts.encryptingFile),
@@ -183,6 +199,10 @@ export async function buildPresentation(
           isInteractive,
         );
         for (const stepReport of stepReports) stepReport?.();
+      }
+      if (staticCoverMarkup !== undefined && chosenVariants.includes("html")) {
+        const { injectStaticCover } = await import("./static-cover.ts");
+        injectStaticCover(outputPaths.html, staticCoverMarkup);
       }
       builtPages.push(singleFileFolder);
     }
