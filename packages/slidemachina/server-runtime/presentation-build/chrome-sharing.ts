@@ -14,11 +14,17 @@ const screenshotSessions = new WeakMap<Page, Promise<CDPSession>>();
 
 async function launchChrome(): Promise<Browser> {
   const { chromium } = await import("playwright-core");
+  // Without a GPU, as on most CI machines, Chrome needs this flag to draw 3D scenes in software.
+  const launchArguments = ["--enable-unsafe-swiftshader"];
   try {
-    // Without a GPU, as on most CI machines, Chrome needs this flag to draw 3D scenes in software.
-    return await chromium.launch({ channel: "chrome", args: ["--enable-unsafe-swiftshader"] });
+    return await chromium.launch({ channel: "chrome", args: launchArguments });
   } catch {
-    throw new Error(commandLineTexts.missingChrome);
+    try {
+      // Machines without Google Chrome run the Chromium that playwright-core brought, if its install downloaded one.
+      return await chromium.launch({ args: launchArguments });
+    } catch {
+      throw new Error(commandLineTexts.missingChrome);
+    }
   }
 }
 

@@ -8,6 +8,7 @@ export type BenchmarkTool = {
   versionPackage: string;
   buildOutputFolder: string;
   developmentPath: string;
+  exportScript?: string;
   writeProject: (projectFolder: string, picturePath: string) => void;
 };
 
@@ -41,7 +42,7 @@ function writeSlidemachinaSlide(talkSlide: TalkSlide): string[] {
 function writeSlidemachinaProject(projectFolder: string, picturePath: string): void {
   const templateManifest = JSON.parse(readFileSync(templateManifestPath, "utf8")) as { devDependencies?: Record<string, string> };
   const engineVersion = process.env.SLIDEMACHINA_BENCHMARK_PACKAGE ?? "latest";
-  writeManifest(projectFolder, "slidemachina-benchmark", { dev: "slidemachina dev", build: "slidemachina build --folder --out site" }, { slidemachina: engineVersion }, templateManifest.devDependencies);
+  writeManifest(projectFolder, "slidemachina-benchmark", { dev: "slidemachina dev", build: "slidemachina build --folder --out site", "export-pdf": "slidemachina build --pdf" }, { slidemachina: engineVersion }, templateManifest.devDependencies);
   mkdirSync(path.join(projectFolder, "images"), { recursive: true });
   copyFileSync(picturePath, path.join(projectFolder, "images", pictureFileName));
   writeFileSync(path.join(projectFolder, "style.css"), '@import "tailwindcss";\n');
@@ -85,9 +86,9 @@ function writeRevealSlide(talkSlide: TalkSlide): string[] {
   return ["<section>", `  <h2>${talkSlide.slideHeading}</h2>`, ...slideBody, ...slideNotes, "</section>"];
 }
 
-// reveal.js with its highlight and notes plugins, bundled by Vite as its docs suggest for npm installs.
+// reveal.js with its highlight and notes plugins, bundled by Vite as its docs suggest for npm installs. PDF goes through decktape, the export the reveal.js docs point to.
 function writeRevealProject(projectFolder: string, picturePath: string): void {
-  writeManifest(projectFolder, "reveal-benchmark", { dev: "vite", build: "vite build" }, { "reveal.js": "latest" }, { vite: "latest" });
+  writeManifest(projectFolder, "reveal-benchmark", { dev: "vite", build: "vite build", "export-pdf": "node export-pdf.mjs" }, { "reveal.js": "latest" }, { vite: "latest", decktape: "latest" });
   mkdirSync(path.join(projectFolder, "public"), { recursive: true });
   copyFileSync(picturePath, path.join(projectFolder, "public", pictureFileName));
   const sectionLines = talkSections.flatMap((talkSection) => [`<section><h2>${talkSection.sectionTitle}</h2></section>`, ...talkSection.sectionSlides.flatMap(writeRevealSlide)]);
@@ -116,7 +117,37 @@ function writeRevealProject(projectFolder: string, picturePath: string): void {
       'import "reveal.js/reveal.css";',
       'import "reveal.js/theme/white.css";',
       "",
+      "// decktape, the PDF export of the reveal.js docs, drives the deck through this global.",
+      "window.Reveal = Reveal;",
       "Reveal.initialize({ plugins: [Highlight, Notes] });",
+      "",
+    ].join("\n"),
+  );
+  // ES modules do not load from file://, so the export serves the build over http before calling decktape.
+  writeFileSync(
+    path.join(projectFolder, "export-pdf.mjs"),
+    [
+      'import { spawn } from "node:child_process";',
+      'import { createReadStream, statSync } from "node:fs";',
+      'import http from "node:http";',
+      'import path from "node:path";',
+      "",
+      'const siteFolder = path.resolve("dist");',
+      'const contentTypes = { ".js": "text/javascript", ".css": "text/css", ".html": "text/html", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".png": "image/png" };',
+      "const siteServer = http.createServer((siteRequest, siteResponse) => {",
+      '  const requestPath = decodeURIComponent((siteRequest.url ?? "/").split("?")[0]);',
+      "  const candidatePath = path.join(siteFolder, requestPath);",
+      '  const filePath = statSync(candidatePath, { throwIfNoEntry: false })?.isFile() === true ? candidatePath : path.join(siteFolder, "index.html");',
+      '  siteResponse.setHeader("content-type", contentTypes[path.extname(filePath)] ?? "application/octet-stream");',
+      "  createReadStream(filePath).pipe(siteResponse);",
+      "});",
+      "await new Promise((resolveListen) => siteServer.listen(0, \"127.0.0.1\", resolveListen));",
+      "const { port } = siteServer.address();",
+      'const decktapeRun = spawn("decktape", ["reveal", `http://127.0.0.1:${port}/`, "talk.pdf"], { stdio: "inherit" });',
+      'decktapeRun.on("exit", (exitCode) => {',
+      "  siteServer.close();",
+      "  process.exit(exitCode ?? 1);",
+      "});",
       "",
     ].join("\n"),
   );
@@ -132,9 +163,9 @@ function writeSlidevSlide(talkSlide: TalkSlide): string {
   return `---\n\n## ${talkSlide.slideHeading}\n\n${slideBody}${slideNotes}\n`;
 }
 
-// Slidev with its default theme, as npm init slidev sets it up.
+// Slidev with its default theme, as npm init slidev sets it up. Export wants playwright-chromium, as its docs say.
 function writeSlidevProject(projectFolder: string, picturePath: string): void {
-  writeManifest(projectFolder, "slidev-benchmark", { dev: "slidev --open false", build: "slidev build" }, { "@slidev/cli": "latest", "@slidev/theme-default": "latest", vue: "latest" });
+  writeManifest(projectFolder, "slidev-benchmark", { dev: "slidev --open false", build: "slidev build", "export-pdf": "slidev export --output talk.pdf" }, { "@slidev/cli": "latest", "@slidev/theme-default": "latest", vue: "latest" }, { "playwright-chromium": "latest" });
   mkdirSync(path.join(projectFolder, "public"), { recursive: true });
   copyFileSync(picturePath, path.join(projectFolder, "public", pictureFileName));
   const sectionParts = talkSections.flatMap((talkSection) => [`---\nlayout: section\n---\n\n# ${talkSection.sectionTitle}\n`, ...talkSection.sectionSlides.map(writeSlidevSlide)]);
@@ -195,8 +226,8 @@ function writeOpenSlideProject(projectFolder: string, picturePath: string): void
 }
 
 export const benchmarkTools: BenchmarkTool[] = [
-  { toolName: "slidemachina", versionPackage: "slidemachina", buildOutputFolder: "site/slidemachina", developmentPath: "/", writeProject: writeSlidemachinaProject },
-  { toolName: "reveal.js", versionPackage: "reveal.js", buildOutputFolder: "dist", developmentPath: "/", writeProject: writeRevealProject },
-  { toolName: "Slidev", versionPackage: "@slidev/cli", buildOutputFolder: "dist", developmentPath: "/", writeProject: writeSlidevProject },
+  { toolName: "slidemachina", versionPackage: "slidemachina", buildOutputFolder: "site/slidemachina", developmentPath: "/", exportScript: "export-pdf", writeProject: writeSlidemachinaProject },
+  { toolName: "reveal.js", versionPackage: "reveal.js", buildOutputFolder: "dist", developmentPath: "/", exportScript: "export-pdf", writeProject: writeRevealProject },
+  { toolName: "Slidev", versionPackage: "@slidev/cli", buildOutputFolder: "dist", developmentPath: "/", exportScript: "export-pdf", writeProject: writeSlidevProject },
   { toolName: "open-slide", versionPackage: "@open-slide/core", buildOutputFolder: "dist", developmentPath: "/s/benchmark", writeProject: writeOpenSlideProject },
 ];

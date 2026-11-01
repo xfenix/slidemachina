@@ -1,5 +1,5 @@
 // node benchmark/run-benchmark.ts <output folder>
-// The same talk in the latest slidemachina, reveal.js, Slidev and open-slide from npm: install, dev server, build, page weight, load.
+// The same talk in the latest slidemachina, reveal.js, Slidev and open-slide from npm: build, output size, load, slide turns, PDF export, dev server.
 // SLIDEMACHINA_BENCHMARK_CHROME_ENDPOINT connects to a running Chrome instead of starting one.
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
@@ -21,7 +21,8 @@ const workFolder = mkdtempSync(path.join(os.tmpdir(), "slidemachina-benchmark-")
 const picturePath = path.join(workFolder, "talk-picture.png");
 await writeTalkPicture(picturePath);
 const chromeEndpoint = process.env.SLIDEMACHINA_BENCHMARK_CHROME_ENDPOINT;
-const chromeBrowser = chromeEndpoint === undefined ? await chromium.launch({ channel: "chrome", args: ["--enable-precise-memory-info"] }) : await chromium.connectOverCDP(chromeEndpoint);
+// CI images ship Google Chrome; local machines without it run the bundled Chromium.
+const chromeBrowser = chromeEndpoint !== undefined ? await chromium.connectOverCDP(chromeEndpoint) : await chromium.launch({ channel: "chrome" }).catch(() => chromium.launch({}));
 
 const toolMeasurements: ToolMeasurements[] = [];
 try {
