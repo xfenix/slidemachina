@@ -138,9 +138,7 @@
   letter-spacing: 0.02em;
 }
 
-/* Без обрезки бокса: связка text-box-trim + background-clip: text срезала бы крышки цифр. */
 [data-slide] .machina-big-number p {
-  text-box: normal;
   background: linear-gradient(120deg, var(--accent-color), var(--second-accent-color));
   -webkit-background-clip: text;
   background-clip: text;

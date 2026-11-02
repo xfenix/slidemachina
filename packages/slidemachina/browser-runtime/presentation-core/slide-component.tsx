@@ -8,6 +8,7 @@ import { useBigNumberFitting } from "./width-fitting.ts";
 import { useFloatFitting } from "./float-fitting.ts";
 import { useSourceWidthFitting } from "./source-width-fitting.ts";
 import { useBottomBandRoom } from "./bottom-band-room.ts";
+import { useTextPaintGuard } from "./text-paint-guard.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { useStepVisibility } from "../slide-steps/step-visibility.ts";
@@ -70,6 +71,7 @@ export function Slide({
   useFloatFitting(slideElementReference, children, isSlideDistant);
   useSourceWidthFitting(slideElementReference, children, isSlideDistant);
   useBottomBandRoom(slideElementReference, children, isSlideDistant);
+  useTextPaintGuard(slideElementReference, children, isSlideDistant);
   useSlideCallbacks(slideEnvironment.isCurrentSlide, onEnter, onLeave);
 
   const slideTone = tone ?? detectedTone;

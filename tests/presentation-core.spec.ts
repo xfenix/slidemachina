@@ -862,6 +862,27 @@ test("демо листается, показывает шаги и навига
     await expect(typographedParagraph).toHaveText(/^«Кавычки»/);
   });
 
+  // Chromium срезает краску background-clip: text по обрезанному боксу строки: движок сам снимает обрезку там, где заливка клипится к тексту.
+  await test.step("градиентный текст снимает обрезку бокса строки", async () => {
+    const demoStyleFile = path.join(demoCopyFolder, "style.css");
+    await editFileWhile(
+      demoStyleFile,
+      (originalStyles) =>
+        `${originalStyles}\n[data-slide] :is(h1, h2) { background: linear-gradient(90deg, rgb(255 0 0), rgb(0 0 255)); -webkit-background-clip: text; background-clip: text; color: transparent; }\n`,
+      async () => {
+        // Hash-only goto would not re-request the stylesheet: a real reload brings the edited styles in.
+        await page.reload();
+        const gradientHeadingSlide = await findSlideNumber(page, "h2", "Вся презентация в одном файле");
+        await page.evaluate((shownSlide) => (location.hash = shownSlide), String(gradientHeadingSlide));
+        const gradientHeading = currentSlide(page).locator("h2");
+        await expect.poll(() => gradientHeading.evaluate((headingNode) => getComputedStyle(headingNode).textBox)).toBe("normal");
+        const plainList = currentSlide(page).locator("[data-content] > ul");
+        await expect.poll(() => plainList.evaluate((listNode) => getComputedStyle(listNode).getPropertyValue("text-box-trim"))).toBe("trim-both");
+      },
+    );
+    await page.reload();
+  });
+
   const setAspectRatio = (aspectRatio: string) => (originalPresentation: string) =>
     originalPresentation.replace('<Machina.Presentation ', `<Machina.Presentation aspectRatio="${aspectRatio}" `);
 
