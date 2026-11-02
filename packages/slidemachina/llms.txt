@@ -84,7 +84,7 @@ export default (
 | `<div className="machina-columns">` | Columns: every direct child is a column. Shares: `style={{ gridTemplateColumns: "3fr 2fr" }}` |
 | `<figure className="machina-big-number"><p>42</p><figcaption>…</figcaption></figure>` | A big number with a caption |
 | `<div className="machina-card">` | A card; `machina-card-stretch` takes all the free space |
-| `<ul className="machina-bars"><li style={{ height: "30%" }} /></ul>` | A bar chart |
+| `<ul className="machina-bars"><li style={{ height: "30%" }} /></ul>` | A few simple bars, height in percent; a real chart is a recharts chart in `Chart` |
 | `<table>` with `thead` and `tbody` | A table |
 | `<table className="machina-compare">`, `<td className="machina-yes" />`, `<td className="machina-no" />` | A comparison of options with check marks |
 | `<figure><blockquote>…</blockquote><figcaption>Author</figcaption></figure>` | A quote |

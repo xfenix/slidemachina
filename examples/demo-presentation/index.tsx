@@ -1,4 +1,5 @@
 import * as Machina from "slidemachina";
+import { Bar, BarChart, CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 import duskPicture from "./images/dusk.webp";
 import developmentToolbarPicture from "./images/development-toolbar.webp";
 import editorPicture from "./images/source-editor.webp";
@@ -32,6 +33,19 @@ function StepMeter() {
     </figure>
   );
 }
+
+// Chart data of the two themed chart slides: the engine start speed by release, and the plan of this very talk.
+const startSpeedRows = [
+  { release: "0.9", seconds: 1.35 },
+  { release: "1.0", seconds: 0.92 },
+  { release: "1.0.1", seconds: 0.71 },
+];
+
+const talkMinutesRows = [
+  { part: "Рассказ", minutes: 14 },
+  { part: "Демо", minutes: 4 },
+  { part: "Вопросы", minutes: 2 },
+];
 
 export default (
   <Machina.Presentation date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo} duration={20}>
@@ -222,6 +236,20 @@ export default (
         </ul>
       </Machina.Slide>
 
+      <Machina.Slide background="var(--dark-background)">
+        <h2>График следует за тоном</h2>
+        <Machina.Chart height={520}>
+          <BarChart data={talkMinutesRows}>
+            <CartesianGrid />
+            <XAxis dataKey="part" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="minutes" name="минут" />
+          </BarChart>
+        </Machina.Chart>
+        <p className="machina-note">Серии, оси и подсказка графика взяли светлые цвета тёмного слайда</p>
+      </Machina.Slide>
+
       <Machina.Slide background={sceneOrbitVideo}>
         <h2>Видео вместо фона</h2>
         <Machina.Code lang="tsx">{`
@@ -354,6 +382,20 @@ export default (
             <p>выглянуть из-за края</p>
           </Machina.Meme>
         </div>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>График из темы</h2>
+        <Machina.Chart height={520}>
+          <LineChart data={startSpeedRows}>
+            <CartesianGrid />
+            <XAxis dataKey="release" />
+            <YAxis />
+            <Tooltip />
+            <Line dataKey="seconds" name="старт dev, с" />
+          </LineChart>
+        </Machina.Chart>
+        <p className="machina-source">Старт dev до первого слайда, замеры этого демо на одном Mac</p>
       </Machina.Slide>
     </Machina.Section>
 

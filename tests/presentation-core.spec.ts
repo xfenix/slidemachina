@@ -111,6 +111,8 @@ test("демо листается, показывает шаги и навига
     const componentNames = [...publicInterfaceSource.matchAll(/^export \{([^}]+)\}/gm)].flatMap((exportMatch) =>
       exportMatch[1]!.split(",").map((exportedName) => exportedName.trim()).filter((exportedName) => exportedName !== "" && !exportedName.startsWith("type ")),
     );
+    // Chart, QR and css are exported as consts; the regex above reads only export lists.
+    componentNames.push(...[...publicInterfaceSource.matchAll(/^export const (\w+)/gm)].map((exportMatch) => exportMatch[1]!));
     const demoSource = await readFile(demoPresentationFile, "utf8");
     expect(componentNames.filter((componentName) => !demoSource.includes(`Machina.${componentName}`)), "компоненты, которых нет в демо").toEqual([]);
   });
@@ -934,12 +936,15 @@ test("демо листается, показывает шаги и навига
 test("график recharts в Chart берёт цвета темы и следует за тоном слайда", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
+  // The demo itself imports recharts for its chart slides: the import is added only when it is not there yet.
   const appendChartSlides = (originalPresentation: string) =>
-    originalPresentation
-      .replace(
-        'import * as Machina from "slidemachina";',
-        'import * as Machina from "slidemachina";\nimport { Bar, BarChart, CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";',
-      )
+    (originalPresentation.includes("from \"recharts\"")
+      ? originalPresentation
+      : originalPresentation.replace(
+          'import * as Machina from "slidemachina";',
+          'import * as Machina from "slidemachina";\nimport { Bar, BarChart, CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";',
+        )
+    )
       .replace(
         "    <Machina.Slide hidden>",
         `    <Machina.Slide>
