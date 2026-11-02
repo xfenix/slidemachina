@@ -29,9 +29,9 @@
   --dark-background: #0d0d26;
   --section-background: #1c1c4a;
   --text-color: #f2efff;
-  --muted-color: #a49ad6;
+  --muted-color: #c3bce8;
   --text-color-on-dark: #f2efff;
-  --muted-color-on-dark: #a49ad6;
+  --muted-color-on-dark: #c3bce8;
 
   --accent-color: #ffd23f;
   --second-accent-color: #3ee6ff;
@@ -54,6 +54,7 @@
 
   --section-number-start-color: #ffd23f;
   --section-number-end-color: #ff8a3d;
+  --section-number-strength: 30%;
   --section-glow-strength: 0%;
   --section-texture: none;
 
@@ -79,8 +80,14 @@
   z-index: 5;
   pointer-events: none;
   background:
-    repeating-linear-gradient(0deg, rgb(6 6 20 / 0.22) 0 2px, transparent 2px 6px),
+    repeating-linear-gradient(0deg, rgb(6 6 20 / 0.14) 0 2px, transparent 2px 6px),
     radial-gradient(120cqw 120cqh at 50% 50%, transparent 62%, rgb(6 6 20 / 0.4));
+}
+
+/* Обложка раздела: название читается поверх номера — белое и с тёмной подложкой-тенью. */
+[data-slide]:has(> [data-content] > h1[data-section-number]) :is(h1, h2) {
+  color: var(--text-color);
+  text-shadow: 6px 6px 0 rgb(6 6 20 / 0.95);
 }
 
 /* Заголовки: жёлтый пиксельный текст с жёсткой тенью-копией. */
@@ -112,7 +119,7 @@
 [data-slide] [data-breadcrumbs],
 [data-slide] [data-slide-number] {
   font-family: var(--font-heading);
-  font-size: 0.42em;
+  font-size: 0.5em;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -147,8 +154,13 @@
   box-shadow: 10px 10px 0 rgb(6 6 20 / 0.85);
 }
 
-/* Код — экран терминала с жёсткой рамкой. */
+/* Код — экран терминала с жёсткой рамкой, по центру и крупно. */
+:root {
+  --code-size: 32px;
+}
+
 [data-slide] [data-code] {
+  margin-inline: auto;
   border: 4px solid var(--text-color);
   box-shadow: 10px 10px 0 rgb(6 6 20 / 0.85);
 }
@@ -186,12 +198,13 @@
   }
 }
 
-/* Пиксельное сердце из box-shadow: один прозрачный пиксель и тень-спрайт. */
+/* Пиксельное сердце из box-shadow: прозрачный блок шириной спрайта и тень-спрайт. */
 .pixel-heart {
-  width: 16px;
+  width: 112px;
   height: 16px;
-  margin: 0 auto 84px;
+  margin: 0 auto 120px;
   background: transparent;
+  transform: translateX(-51px);
   box-shadow:
     16px 0 #ff4d6d, 64px 0 #ff4d6d, 80px 0 #ff4d6d,
     0 16px #ff4d6d, 16px 16px #ffffff, 32px 16px #ff4d6d, 48px 16px #ff4d6d, 64px 16px #ff4d6d, 80px 16px #ff4d6d, 96px 16px #ff4d6d,

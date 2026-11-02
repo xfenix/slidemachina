@@ -14,14 +14,14 @@ export default (
       <Machina.Slide>
         <h2>Орбитальная сцена</h2>
         <Machina.Scene orbit={6} floor={false}>
-          <Machina.Sphere id="planet" size={1.9} color="#2a4a9e" material="glossy" spin />
-          <Machina.Sphere id="cyan-moon" size={0.24} color="#6ee7ff" position={[2.7, 0.35, -0.4]} material="glossy" />
-          <Machina.Sphere id="violet-moon" size={0.17} color="#b49bff" position={[-2.3, 0.75, 1.1]} />
-          <Machina.Move on="cyan-moon" position={[-1.4, 0.6, 2.5]} step />
-          <Machina.Move on="violet-moon" position={[-0.9, -0.5, -2.5]} step />
-            <Machina.Text position={[0, 1.75, 0]} size={0.4} step>
-              орбита
-            </Machina.Text>
+          <Machina.Sphere id="planet" size={2.5} color="#2a4a9e" material="glossy" spin />
+          <Machina.Sphere id="cyan-moon" size={0.3} color="#6ee7ff" position={[2.6, 0.4, -0.4]} material="glossy" />
+          <Machina.Sphere id="violet-moon" size={0.22} color="#b49bff" position={[-2.2, 0.7, 1]} />
+          <Machina.Move on="cyan-moon" position={[-1.2, 0.6, 2.2]} step />
+          <Machina.Move on="violet-moon" position={[-0.8, -0.5, -2.2]} step />
+          <Machina.Text position={[0, 1.9, 0]} size={0.45} step>
+            орбита
+          </Machina.Text>
         </Machina.Scene>
         <Machina.Notes>
           <p>Сцена на three.js: планета и два спутника. Шаги двигают спутники, камера сама ловит кадр.</p>
@@ -80,7 +80,7 @@ export default (
         </Machina.Notes>
       </Machina.Slide>
 
-      <Machina.Slide>
+      <Machina.Slide className="[--diagram-max-scale:1.6]">
         <h2>Кто рисует сцену</h2>
         <Machina.Diagram>
           <Machina.Box id="scene-tags">Теги сцены</Machina.Box>
@@ -92,7 +92,7 @@ export default (
           <Machina.Arrow from="scene-tags" to="webgl" label="рендер" step />
           <Machina.Focus on={["webgl"]} step />
         </Machina.Diagram>
-        <figcaption>three.js грузится отдельным файлом и только если сцена есть</figcaption>
+        <figcaption>three.js грузится, только если сцена есть</figcaption>
         <Machina.Notes>
           <p>Схема из тегов, раскладку считает ELK. Фокус приглушает лишнее.</p>
         </Machina.Notes>
@@ -146,7 +146,7 @@ export default (
 
     <Machina.Slide plain>
       <h1>Спасибо</h1>
-      <div className="machina-columns" style={{ gridTemplateColumns: "2fr 5fr" }}>
+      <div className="machina-columns" style={{ gridTemplateColumns: "1fr 1fr" }}>
         <div>
           <Machina.QR value="https://github.com/xfenix/slidemachina">
             <figcaption>репозиторий движка</figcaption>

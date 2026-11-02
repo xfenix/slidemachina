@@ -26,6 +26,7 @@
   --heading-letter-spacing: -0.015em;
   --display-size: 124px;
   --cover-heading-size: 148px;
+  --caption-size: 30px;
 
   --hairline-color: rgb(150 160 200 / 0.22);
   --hairline-color-on-dark: rgb(150 160 200 / 0.3);
@@ -57,7 +58,7 @@
   --transition-stage-background: radial-gradient(circle at 50% 45%, #0b1230, #03040a 78%);
 }
 
-/* Звёздное небо: три слоя точек разной крупности на черепичных плитках, плюс цветная пыль.
+/* Звёздное небо: две плитки разного размера и сдвига, чтобы точки не складывались в решётку.
    Отрицательный z-index: рисуется поверх фона слайда и под контентом. */
 [data-slide]::before {
   content: "";
@@ -71,8 +72,12 @@
     radial-gradient(1px 1px at 168px 24px, rgb(255 255 255 / 0.5) 50%, transparent 52%),
     radial-gradient(1.3px 1.3px at 216px 96px, rgb(150 225 255 / 0.8) 50%, transparent 52%),
     radial-gradient(1px 1px at 56px 128px, rgb(255 255 255 / 0.4) 50%, transparent 52%),
-    radial-gradient(2px 2px at 244px 140px, rgb(255 255 255 / 0.9) 50%, transparent 52%);
-  background-size: 280px 170px;
+    radial-gradient(2px 2px at 244px 140px, rgb(255 255 255 / 0.9) 50%, transparent 52%),
+    radial-gradient(1.2px 1.2px at 130px 200px, rgb(255 255 255 / 0.7) 50%, transparent 52%),
+    radial-gradient(1.6px 1.6px at 320px 60px, rgb(190 215 255 / 0.85) 50%, transparent 52%),
+    radial-gradient(1px 1px at 30px 90px, rgb(255 255 255 / 0.55) 50%, transparent 52%);
+  background-size: 280px 170px, 280px 170px, 280px 170px, 280px 170px, 280px 170px, 280px 170px, 370px 290px, 370px 290px, 370px 290px;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 90px 40px, 90px 40px, 90px 40px;
 }
 
 /* Туманности: мягкие свечения в углах, как в фотографиях глубокого космоса. */
@@ -83,9 +88,14 @@
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(38cqw 30cqw at 88% -8%, rgb(110 231 255 / 0.13), transparent 70%),
-    radial-gradient(34cqw 30cqw at -6% 100%, rgb(180 155 255 / 0.12), transparent 70%),
-    radial-gradient(50cqw 40cqw at 50% 118%, rgb(70 90 220 / 0.1), transparent 75%);
+    radial-gradient(38cqw 30cqw at 88% -8%, rgb(110 231 255 / 0.22), transparent 70%),
+    radial-gradient(34cqw 30cqw at -6% 100%, rgb(180 155 255 / 0.2), transparent 70%),
+    radial-gradient(50cqw 40cqw at 50% 118%, rgb(70 90 220 / 0.16), transparent 75%);
+}
+
+/* Контент стоит в середине слайда, а не прижимается к верху. */
+[data-slide] [data-content] {
+  justify-content: center;
 }
 
 /* Заголовки: градиент от ледяного белого к неону, без тени — она проступает сквозь вырезанный текст. */
