@@ -89,6 +89,8 @@ async function measureSlideChangeTurns(chromeBrowser: Browser, pageAddress: stri
   const measuredPage = await browserContext.newPage();
   await measuredPage.goto(pageAddress, { waitUntil: "commit" });
   await measuredPage.getByText(talkTitle).first().waitFor({ state: "visible", timeout: headingWaitLimit });
+  // A painted first slide (slidemachina) is visible before scripts run; it leaves once the app is up and owns the keys.
+  await measuredPage.locator("[data-static-cover]").waitFor({ state: "detached", timeout: changedFrameWaitLimit }).catch(() => undefined);
   const nodeClockAtSync = performance.now();
   const pageClockAtSync = await measuredPage.evaluate(() => performance.now());
   const pageClockOffset = pageClockAtSync - nodeClockAtSync;
