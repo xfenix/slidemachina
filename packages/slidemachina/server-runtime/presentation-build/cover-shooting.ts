@@ -17,6 +17,8 @@ export async function waitForStillSlide(slidePage: Page, slideSelector: string):
       document.fonts.status === "loaded" &&
       document.querySelector(`${waitedSlide} [data-diagram]:not([data-laid-out]):not([data-layout-failed])`) === null &&
       document.querySelector(`${waitedSlide} [data-scene]:not([data-drawn])`) === null &&
+      // A lazily loaded block, such as a chart or a QR code, holds a placeholder until its chunk arrives.
+      document.querySelector(`${waitedSlide} [data-print-pending]`) === null &&
       [...document.images].every((pictureElement) => pictureElement.complete) &&
       // Steps fade in and out after the page opens; endless animations, such as an orbiting scene, are not waited for.
       document.getAnimations().every((runningAnimation) => runningAnimation.playState !== "running" || runningAnimation.effect?.getTiming().iterations === Infinity),

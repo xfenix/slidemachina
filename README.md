@@ -138,7 +138,7 @@ Pictures go to `images/`, and TypeScript suggests components and their props.
 ### Blocks
 
 - A subtitle, a note, a source line.
-- Columns, a big number with a caption, cards, bar charts.
+- Columns, a big number with a caption, cards, bar charts, and any recharts data chart themed by `<Machina.Chart>`.
 - Tables and comparison tables with check marks and dashes.
 - A quote with its author, and a one-phrase thesis on a colored slide.
 - Pictures and video on the free space, on the whole slide or floating beside the text, with `fit="contain"` or `cover`.

@@ -119,6 +119,16 @@
     --diagram-line-color: var(--diagram-line-color-on-dark);
     --diagram-lifeline-color: var(--diagram-lifeline-color-on-dark);
     --scene-shadow-opacity: var(--scene-shadow-opacity-on-dark);
+    /* Chart variables hold var() references, which are resolved where they are declared: on :root they would freeze the
+       light accents. Redeclared here, they follow the swapped accents and hairlines of the dark tone. */
+    --chart-grid-color: var(--hairline-color-on-dark);
+    --chart-axis-color: var(--hairline-color-on-dark);
+    --chart-series-1-color: var(--accent-color-on-dark);
+    --chart-series-2-color: var(--second-accent-color-on-dark);
+    --chart-series-3-color: oklch(from var(--accent-color-on-dark) 0.5 0.2 h);
+    --chart-series-4-color: oklch(from var(--second-accent-color-on-dark) 0.55 0.17 h);
+    --chart-series-5-color: var(--muted-color-on-dark);
+    --chart-series-6-color: var(--diagram-line-color-on-dark);
   }
 
   /* One colour family on a coloured slide: on a light one the text is a deep shade of the slide hue, and muted text,

@@ -1,0 +1,13 @@
+@layer slidemachina {
+  /* A themed recharts chart fills the width of its block; --chart-height sets the height, stretch takes the free space. */
+  [data-slide] .machina-chart {
+    width: 100%;
+    height: var(--chart-height);
+  }
+
+  [data-slide] .machina-chart-stretch {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+  }
+}
