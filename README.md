@@ -450,7 +450,7 @@ The second rule is minimal markup. A slide is plain tags: no wrappers, ids or co
 | Presenter window | ✅ notes, timer, next slide, next step, notes per step | Notes, timer, next slide | Notes, timer, next slide, drawing | Notes, timer, next slide |
 | For agents | ✅ `llms.txt`, a skill, CLI commands: `check` for the rules of a clear talk, `shot` for a picture of a slide. No MCP server | ❌ | 🟡 an MCP server in `slidev dev` occupies agent context | 🟡 skills for writing and editing, an agent panel in the browser |
 | Many talks | ✅ a repository: a shared theme, a list with covers, one build for all | ❌ each one on its own | 🟡 themes as npm packages | 🟡 decks in one workspace, shared Markdown themes |
-| Hidden slides | ✅ `<Slide hidden>`: skipped on stage, kept in print, PDF and PowerPoint — the copy people get after the talk | 🟡 `data-visibility="hidden"` removes the slide everywhere, PDF too | 🟡 `hide: true` drops the slide from the deck and the export | ❌ |
+| Hidden slides | ✅ **`<Slide hidden>`: the stage keeps a clean talk, the details wait for readers of the static copy. One attribute; print, PDF and PowerPoint keep them, one flag (`--no-hidden`, `?print&hidden=no`) drops them** | 🟡 `data-visibility="hidden"` removes the slide everywhere, PDF too | 🟡 `hide: true` drops the slide from the deck and the export | ❌ |
 | Screenshot for agent | ✅ `slidemachina shot 12.2`: one slide at a given step, in a second | ❌ | 🟡 `slidev export --format png`: the whole deck | ❌ |
 
 Speed is in the [benchmark](#benchmark) below: it is measured again every week.
@@ -463,7 +463,7 @@ Speed is in the [benchmark](#benchmark) below: it is measured again every week.
 - ✅ **Export to one HTML file** — even password-protected; the others give a folder
 - ✅ **The widest export range** — PDF per slide and per step, editable PowerPoint with step click animations, HyperFrames for video
 - ✅ **Floating images** — text wraps around pictures and memes
-- ✅ **Hidden slides** — skipped on stage, kept in the handout
+- ✅ **Hidden slides** — the stage keeps the talk clean by Mayer's rules, the details wait in the handout for readers; printing keeps them or drops them by one flag
 - ✅ **Agent commands** — `check` for the rules of a clear talk, `shot` for a slide picture
 
 ### 🔴 What we don't have
