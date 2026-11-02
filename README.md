@@ -138,10 +138,18 @@ Pictures go to `images/`, and TypeScript suggests components and their props.
 ### Blocks
 
 - A subtitle, a note, a source line.
-- Columns, a big number with a caption, cards, bar charts, and any recharts data chart themed by `<Machina.Chart>`.
+- Columns, a big number with a caption, cards, and bars for simple comparisons.
 - Tables and comparison tables with check marks and dashes.
 - A quote with its author, and a one-phrase thesis on a colored slide.
 - Pictures and video on the free space, on the whole slide or floating beside the text, with `fit="contain"` or `cover`.
+
+### Diagrams
+
+Flowcharts and sequence diagrams show connections and the order of actions. Write `<Machina.Diagram>`, `<Machina.Box>`, `<Machina.Arrow>` or `<Machina.Sequence>`: the engine lays out the boxes and arrows. Diagram parts appear by steps and move between slides.
+
+### Charts
+
+Line, bar, pie and other Recharts charts show numeric data. Wrap a chart in `<Machina.Chart>` to use the presentation theme for series, axes, labels and tooltips, including on dark slides. Set chart props to use your own colours. Recharts is included in the engine.
 
 ### Steps and transitions
 

@@ -9,6 +9,9 @@ const demoCopyFolder = process.env.SLIDEMACHINA_TEST_DEMO_COPY!;
 const demoPresentationFile = path.join(demoCopyFolder, "index.tsx");
 const demoCodeFile = path.join(demoCopyFolder, "agent.py");
 const publicInterfaceFile = path.join(workspaceFolder, "packages", "slidemachina", "browser-runtime", "slidemachina.ts");
+const chartTestTimeout = 60_000;
+const chartPreviewHeight = 240;
+const chartAnimationDuration = 60_000;
 
 async function editFileWhile(filePath: string, editText: (originalText: string) => string, checkEditedPage: () => Promise<void>) {
   const originalText = await readFile(filePath, "utf8");
@@ -933,8 +936,8 @@ test("демо листается, показывает шаги и навига
   });
 });
 
-test("график recharts в Chart берёт цвета темы и следует за тоном слайда", async ({ page }) => {
-  test.setTimeout(60_000);
+test("графики Recharts используют тему слайда, сохраняют цвета автора и готовы к печати", async ({ page }) => {
+  test.setTimeout(chartTestTimeout);
   await page.goto("/");
   const appendChartSlides = (originalPresentation: string) =>
     originalPresentation
@@ -944,13 +947,13 @@ test("график recharts в Chart берёт цвета темы и след�
         `    <Machina.Slide>
       <h2>График в светлой теме</h2>
       <Machina.Chart>
-        <LineChart data={[{ run: "первый", один: 1, два: 2 }, { run: "второй", один: 2, два: 1 }]}>
+        <LineChart data={[{ runLabel: "первый", firstSeriesValue: 1, secondSeriesValue: 2 }, { runLabel: "второй", firstSeriesValue: 2, secondSeriesValue: 1 }]}>
           <CartesianGrid />
-          <XAxis dataKey="run" />
+          <XAxis dataKey="runLabel" />
           <YAxis />
           <Tooltip />
-          <Line dataKey="один" />
-          <Line dataKey="два" />
+          <Line dataKey="firstSeriesValue" />
+          <Line dataKey="secondSeriesValue" />
         </LineChart>
       </Machina.Chart>
     </Machina.Slide>
@@ -958,12 +961,12 @@ test("график recharts в Chart берёт цвета темы и след�
     <Machina.Slide background="var(--dark-background)">
       <h2>График на тёмном слайде</h2>
       <Machina.Chart>
-        <BarChart data={[{ run: "первый", один: 1 }, { run: "второй", один: 2 }]}>
+        <BarChart data={[{ runLabel: "первый", firstSeriesValue: 1 }, { runLabel: "второй", firstSeriesValue: 2 }]}>
           <CartesianGrid />
-          <XAxis dataKey="run" />
+          <XAxis dataKey="runLabel" />
           <YAxis />
           <Tooltip />
-          <Bar dataKey="один" />
+          <Bar dataKey="firstSeriesValue" />
         </BarChart>
       </Machina.Chart>
     </Machina.Slide>
@@ -971,27 +974,27 @@ test("график recharts в Chart берёт цвета темы и след�
     <Machina.Slide>
       <h2>Статичные графики</h2>
       <div className="machina-columns">
-        <Machina.Chart height={240} className="scatter-chart">
+        <Machina.Chart height={${chartPreviewHeight}} className="scatter-chart">
           <ScatterChart>
             <XAxis type="number" dataKey="horizontalValue" />
             <YAxis type="number" dataKey="verticalValue" />
-            <Scatter data={[{ horizontalValue: 1, verticalValue: 2 }, { horizontalValue: 2, verticalValue: 3 }]} animationDuration={60_000}>
+            <Scatter data={[{ horizontalValue: 1, verticalValue: 2 }, { horizontalValue: 2, verticalValue: 3 }]} animationDuration={${chartAnimationDuration}}>
               <LabelList dataKey="verticalValue" />
             </Scatter>
           </ScatterChart>
         </Machina.Chart>
-        <Machina.Chart height={240} className="radar-chart">
+        <Machina.Chart height={${chartPreviewHeight}} className="radar-chart">
           <RadarChart data={[{ categoryName: "Первый", verticalValue: 2 }, { categoryName: "Второй", verticalValue: 3 }, { categoryName: "Третий", verticalValue: 1 }]}>
             <PolarAngleAxis dataKey="categoryName" />
-            <Radar dataKey="verticalValue" animationDuration={60_000} label />
+            <Radar dataKey="verticalValue" animationDuration={${chartAnimationDuration}} label />
           </RadarChart>
         </Machina.Chart>
-        <Machina.Chart height={240} className="radial-chart">
+        <Machina.Chart height={${chartPreviewHeight}} className="radial-chart">
           <RadialBarChart data={[{ categoryName: "Первый", verticalValue: 2 }, { categoryName: "Второй", verticalValue: 3 }]}>
-            <RadialBar dataKey="verticalValue" animationDuration={60_000} label />
+            <RadialBar dataKey="verticalValue" animationDuration={${chartAnimationDuration}} label />
           </RadialBarChart>
         </Machina.Chart>
-        <Machina.Chart height={240} className="palette-chart">
+        <Machina.Chart height={${chartPreviewHeight}} className="palette-chart">
           <PieChart>
             <Pie data={[{ verticalValue: 2 }, { verticalValue: 3 }]} dataKey="verticalValue" fill="#ff0000">
               <Cell />

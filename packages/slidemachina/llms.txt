@@ -114,7 +114,7 @@ Block components:
 
 ## Charts
 
-Any recharts chart works in a slide: the engine resolves `recharts` from its own install, no `npm i` is needed. `<Machina.Chart>` themes it — series colours from the theme, hairline axes and grid, a dark tooltip — and recolours with the slide tone.
+Charts show numeric data; use `Diagram` and `Sequence` for connections and the order of actions. Recharts charts work in a slide: the engine resolves `recharts` from its own install, no `npm i` is needed. `<Machina.Chart>` themes it — series colours from the theme, hairline axes and grid, a dark tooltip — and recolours with the slide tone.
 
 ```tsx
 import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";

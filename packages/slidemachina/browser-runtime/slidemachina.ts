@@ -4,8 +4,12 @@ import type { QRProperties } from "./content-blocks/qr-block/qr-component.tsx";
 import type { ChartProperties } from "./chart-blocks/chart-component.tsx";
 
 const QRComponent = lazy(() => import("./content-blocks/qr-block/qr-component.tsx").then((qrModule) => ({ default: qrModule.QR })));
-const ChartComponent = /* @__PURE__ */ lazy(() => import("./chart-blocks/chart-component.tsx").then((chartModule) => ({ default: chartModule.Chart })));
+const ChartComponent = /* @__PURE__ */ lazy(() => import("./chart-blocks/chart-component.tsx").then((chartModule) => ({ default: chartModule.RenderChartBlock })));
+const pendingLazyBlock = createElement("div", { "data-print-pending": "" });
+export const QR: ComponentType<QRProperties> = (qrProperties) => createElement(Suspense, { fallback: pendingLazyBlock }, createElement(QRComponent, qrProperties));
+export const Chart: ComponentType<ChartProperties> = (chartProperties) => createElement(Suspense, { fallback: pendingLazyBlock }, createElement(ChartComponent, chartProperties));
 
+export type { ChartProperties } from "./chart-blocks/chart-component.tsx";
 export { Presentation, type PresentationPosition, type PresentationProperties } from "./presentation-core/presentation-component.tsx";
 export type { AspectRatio } from "../shared-between-runtimes/canvas-size.js";
 export { Section, type SectionProperties } from "./presentation-core/section-component.tsx";
@@ -19,10 +23,6 @@ export type { QRProperties } from "./content-blocks/qr-block/qr-component.tsx";
 export type { QRCorrection } from "./content-blocks/qr-block/qr-module-shapes.ts";
 export { Meme, type MemeProperties } from "./content-blocks/meme-block/meme-component.tsx";
 export { Diagram, type DiagramProperties } from "./diagram-blocks/diagram-component.tsx";
-const pendingContent = createElement("div", { "data-print-pending": "" });
-export const QR: ComponentType<QRProperties> = (qrProperties) => createElement(Suspense, { fallback: pendingContent }, createElement(QRComponent, qrProperties));
-export type { ChartProperties } from "./chart-blocks/chart-component.tsx";
-export const Chart: ComponentType<ChartProperties> = (chartProperties) => createElement(Suspense, { fallback: pendingContent }, createElement(ChartComponent, chartProperties));
 export {
   Arrow,
   Box,

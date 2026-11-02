@@ -1,5 +1,5 @@
 import * as Machina from "slidemachina";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 import duskPicture from "./images/dusk.webp";
 import developmentToolbarPicture from "./images/development-toolbar.webp";
 import editorPicture from "./images/source-editor.webp";
@@ -17,15 +17,17 @@ import { AssemblingCube } from "./assembling-cube.tsx";
 import { DraggableSticker } from "./draggable-sticker.tsx";
 import { OrbitSunrise } from "./orbit-sunrise.tsx";
 
-const startSpeedRows = [
-  { release: "0.9", seconds: 1.35 },
-  { release: "1.0", seconds: 0.92 },
-  { release: "1.0.1", seconds: 0.71 },
+const weeklyRequestRows = [
+  { weekdayLabel: "Пн", currentWeekCount: 24, previousWeekCount: 18 },
+  { weekdayLabel: "Вт", currentWeekCount: 31, previousWeekCount: 25 },
+  { weekdayLabel: "Ср", currentWeekCount: 28, previousWeekCount: 22 },
+  { weekdayLabel: "Чт", currentWeekCount: 42, previousWeekCount: 30 },
+  { weekdayLabel: "Пт", currentWeekCount: 38, previousWeekCount: 27 },
 ];
-const talkMinutesRows = [
-  { part: "Рассказ", minutes: 14 },
-  { part: "Демо", minutes: 4 },
-  { part: "Вопросы", minutes: 2 },
+const talkDurationRows = [
+  { talkPartLabel: "Рассказ", durationMinutes: 14 },
+  { talkPartLabel: "Демо", durationMinutes: 4 },
+  { talkPartLabel: "Вопросы", durationMinutes: 2 },
 ];
 
 Machina.css`
@@ -234,20 +236,6 @@ export default (
         </ul>
       </Machina.Slide>
 
-      <Machina.Slide background="var(--dark-background)">
-        <h2>График следует за тоном</h2>
-        <Machina.Chart height={520}>
-          <BarChart data={talkMinutesRows}>
-            <CartesianGrid />
-            <XAxis dataKey="part" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="minutes" name="минут" />
-          </BarChart>
-        </Machina.Chart>
-        <p className="machina-note">Серии, оси и подсказка графика взяли светлые цвета тёмного слайда</p>
-      </Machina.Slide>
-
       <Machina.Slide background={sceneOrbitVideo}>
         <h2>Видео вместо фона</h2>
         <Machina.Code lang="tsx">{`
@@ -382,19 +370,6 @@ export default (
         </div>
       </Machina.Slide>
 
-      <Machina.Slide>
-        <h2>График из темы</h2>
-        <Machina.Chart height={520}>
-          <LineChart data={startSpeedRows}>
-            <CartesianGrid />
-            <XAxis dataKey="release" />
-            <YAxis />
-            <Tooltip />
-            <Line dataKey="seconds" name="старт dev, с" />
-          </LineChart>
-        </Machina.Chart>
-        <p className="machina-source">Старт dev до первого слайда, замеры этого демо на одном Mac</p>
-      </Machina.Slide>
     </Machina.Section>
 
     <Machina.Section title="Картинки">
@@ -676,6 +651,38 @@ export default (
           <Machina.Message from="react" to="react" label="слайд и шаг на месте" step />
           <Machina.Focus on={["request", "response"]} step />
         </Machina.Sequence>
+      </Machina.Slide>
+    </Machina.Section>
+
+    <Machina.Section title="Графики">
+      <Machina.Slide>
+        <h2>Сравните две недели</h2>
+        <Machina.Chart stretch>
+          <LineChart data={weeklyRequestRows}>
+            <CartesianGrid />
+            <XAxis dataKey="weekdayLabel" />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Legend />
+            <Line dataKey="currentWeekCount" name="Эта неделя" />
+            <Line dataKey="previousWeekCount" name="Прошлая неделя" />
+          </LineChart>
+        </Machina.Chart>
+        <p className="machina-source">Учебные данные: заявки по дням недели. Цвета линий и подписей задаёт тема презентации</p>
+      </Machina.Slide>
+
+      <Machina.Slide background="var(--dark-background)">
+        <h2>Распределите 20 минут доклада</h2>
+        <Machina.Chart stretch>
+          <BarChart data={talkDurationRows}>
+            <CartesianGrid />
+            <XAxis dataKey="talkPartLabel" />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Bar dataKey="durationMinutes" name="Время, мин" />
+          </BarChart>
+        </Machina.Chart>
+        <p className="machina-note">На тёмном слайде подписи и оси светлеют автоматически</p>
       </Machina.Slide>
     </Machina.Section>
 

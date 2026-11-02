@@ -1,13 +1,20 @@
 @layer slidemachina {
-  /* A themed recharts chart fills the width of its block; --chart-height sets the height, stretch takes the free space. */
   [data-slide] .machina-chart {
     width: 100%;
     height: var(--chart-height);
   }
 
-  [data-slide] .machina-chart-stretch {
+  [data-slide] .machina-chart-stretch,
+  [data-slide] .machina-card-stretch > .machina-chart {
     flex: 1;
     min-height: 0;
     height: auto;
+  }
+  [data-slide] .machina-chart .recharts-legend-item {
+    padding-left: 0;
+  }
+
+  [data-slide] .machina-chart .recharts-legend-item:before {
+    content: none;
   }
 }
