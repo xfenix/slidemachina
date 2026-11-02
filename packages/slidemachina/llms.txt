@@ -97,6 +97,7 @@ Block components:
 - `Image`: `src`, `alt`, `stretch` (fills the free space), `full` (the whole slide), `fit` (`contain`, `cover`), `float` (`left`, `right`: text flows around it); `<figcaption>` inside.
 - `Video`: `src`, `poster`, `stretch`, `full`, `fit`, `loop`, `controls`.
 - `QR`: `value`, `logo`, `color`, `correction`; `<figcaption>` inside.
+- `Chart`: themes a recharts chart from the theme; `height`, `stretch`; see Charts below.
 - `Meme`: `src` (an import, a web address, or a bare name like `"fine"` for `images/memes/fine.jpg` without an import), `alt`, `float`; captions inside, one `<p>` per line, `data-place` (`top`, `bottom`, `center`), and `<figcaption>` with the source.
 
 ## Code
@@ -110,6 +111,31 @@ Block components:
 - `// [!code highlight]` in a comment highlights a line.
 - The build does the highlighting, so write code as a string, not a variable.
 - One line of code without `title` is shown large and without a background, which suits a command.
+
+## Charts
+
+Any recharts chart works in a slide: the engine resolves `recharts` from its own install, no `npm i` is needed. `<Machina.Chart>` themes it — series colours from the theme, hairline axes and grid, a dark tooltip — and recolours with the slide tone.
+
+```tsx
+import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+
+<Machina.Chart>
+  <LineChart data={speedRows}>
+    <CartesianGrid />
+    <XAxis dataKey="run" />
+    <YAxis />
+    <Tooltip />
+    <Line dataKey="slidemachina" name="slidemachina" />
+    <Line dataKey="reveal" name="reveal.js" />
+  </LineChart>
+</Machina.Chart>
+```
+
+- The chart element and its parts come from `recharts`: `LineChart`, `BarChart`, `AreaChart`, `PieChart`, `ComposedChart`, `ScatterChart`, `RadarChart`, `RadialBarChart`, the axes, `CartesianGrid`, `Tooltip`, `Legend`, `Cell` and the rest.
+- Series take the theme colours in order; a `stroke` or `fill` you set wins. Pie slices take colours from `<Cell>` children in order.
+- `height` sets the block height; unset, the chart is `--chart-height` tall. `stretch` grows it into the free space, also inside `machina-card-stretch`.
+- Chart text, tooltip and series palette are theme variables: `--chart-text-size`, `--chart-tooltip-*`, `--chart-series-1-color` and so on.
+- Chart animations are off, so a printed PDF shows the finished chart; `isAnimationActive` on a series turns them on.
 
 ## Diagrams
 

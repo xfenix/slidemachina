@@ -210,6 +210,23 @@
     --diagram-dim-opacity: 0.38;
     --sequence-row-gap: 40px;
 
+    /* Machina.Chart reads these to theme a recharts chart, see chart-blocks/. The series follow the logo gradient:
+       the accent, the green, then their deep shades; on a dark slide the swapped accents keep them readable. */
+    --chart-height: 420px;
+    --chart-text-size: 24px;
+    --chart-grid-color: var(--hairline-color);
+    --chart-axis-color: var(--hairline-color);
+    --chart-tooltip-background: var(--dark-background);
+    --chart-tooltip-text-color: var(--text-color-on-dark);
+    --chart-tooltip-muted-color: var(--muted-color-on-dark);
+    --chart-tooltip-radius: var(--block-radius);
+    --chart-series-1-color: var(--accent-color);
+    --chart-series-2-color: var(--second-accent-color);
+    --chart-series-3-color: oklch(from var(--accent-color) 0.5 0.2 h);
+    --chart-series-4-color: oklch(from var(--second-accent-color) 0.55 0.17 h);
+    --chart-series-5-color: var(--muted-color);
+    --chart-series-6-color: var(--diagram-line-color);
+
     /* QR modules take --qr-color; unset, they follow the text of the slide tone. */
 
     /* Objects take --scene-color, text takes --scene-text-color; unset, they follow the accent and the text of the slide tone. */

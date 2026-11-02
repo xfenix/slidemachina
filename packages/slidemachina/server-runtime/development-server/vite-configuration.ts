@@ -51,6 +51,8 @@ export function createViteConfiguration(siteLayout: SiteLayout, serverOptions: S
         "three",
         "three/examples/jsm/environments/RoomEnvironment.js",
         "three/examples/jsm/geometries/RoundedBoxGeometry.js",
+        // Imported from index.tsx; listed here, so Vite does not reload the page to bundle it mid-talk.
+        "recharts",
       ],
     },
     server: {

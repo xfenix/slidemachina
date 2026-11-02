@@ -24,4 +24,10 @@
     align-self: stretch;
     min-height: 0;
   }
+
+  [data-slide] .machina-card-stretch > .machina-chart {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+  }
 }

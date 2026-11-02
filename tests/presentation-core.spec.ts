@@ -930,3 +930,84 @@ test("демо листается, показывает шаги и навига
     expect(pageErrors).toEqual([]);
   });
 });
+
+test("график recharts в Chart берёт цвета темы и следует за тоном слайда", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  const appendChartSlides = (originalPresentation: string) =>
+    originalPresentation
+      .replace(
+        'import * as Machina from "slidemachina";',
+        'import * as Machina from "slidemachina";\nimport { Bar, BarChart, CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";',
+      )
+      .replace(
+        "    <Machina.Slide hidden>",
+        `    <Machina.Slide>
+      <h2>График в светлой теме</h2>
+      <Machina.Chart>
+        <LineChart data={[{ run: "первый", один: 1, два: 2 }, { run: "второй", один: 2, два: 1 }]}>
+          <CartesianGrid />
+          <XAxis dataKey="run" />
+          <YAxis />
+          <Tooltip />
+          <Line dataKey="один" />
+          <Line dataKey="два" />
+        </LineChart>
+      </Machina.Chart>
+    </Machina.Slide>
+
+    <Machina.Slide background="var(--dark-background)">
+      <h2>График на тёмном слайде</h2>
+      <Machina.Chart>
+        <BarChart data={[{ run: "первый", один: 1 }, { run: "второй", один: 2 }]}>
+          <CartesianGrid />
+          <XAxis dataKey="run" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="один" />
+        </BarChart>
+      </Machina.Chart>
+    </Machina.Slide>
+
+    <Machina.Slide hidden>`,
+      );
+  await editFileWhile(demoPresentationFile, appendChartSlides, async () => {
+    // A chart theme is sampled the same way the engine reads it: a probe element resolves the variables in the slide tone.
+    const sampleChartColors = () =>
+      currentSlide(page).evaluate((slideElement) => {
+        const resolveThemeVariable = (variableExpression: string) => {
+          const probeElement = document.createElement("div");
+          probeElement.style.color = variableExpression;
+          slideElement.append(probeElement);
+          const resolvedColor = getComputedStyle(probeElement).color;
+          probeElement.remove();
+          return resolvedColor;
+        };
+        const computedColorOf = (elementSelector: string, propertyName: string) => {
+          const chartElement = slideElement.querySelector(elementSelector);
+          return chartElement === null ? null : getComputedStyle(chartElement).getPropertyValue(propertyName);
+        };
+        const lineCurveElements = [...slideElement.querySelectorAll(".recharts-line .recharts-line-curve")];
+        return {
+          lineStrokes: lineCurveElements.map((lineCurve) => getComputedStyle(lineCurve).getPropertyValue("stroke")),
+          barFill: computedColorOf(".recharts-bar-rectangle path", "fill"),
+          tickFill: computedColorOf(".recharts-cartesian-axis-tick-value", "fill"),
+          accentColor: resolveThemeVariable("var(--accent-color)"),
+          secondAccentColor: resolveThemeVariable("var(--second-accent-color)"),
+          mutedColor: resolveThemeVariable("var(--muted-color)"),
+        };
+      });
+
+    await jumpToSlide(page, await findSlideNumber(page, "h2", "График в светлой теме"));
+    await expect(currentSlide(page).locator(".machina-chart svg")).toBeAttached();
+    const lightColors = await sampleChartColors();
+    expect(lightColors.lineStrokes, "серии идут по палитре темы: акцент, второй акцент").toEqual([lightColors.accentColor, lightColors.secondAccentColor]);
+    expect(lightColors.tickFill, "подписи осей приглушены").toBe(lightColors.mutedColor);
+
+    await jumpToSlide(page, await findSlideNumber(page, "h2", "График на тёмном слайде"));
+    await expect(currentSlide(page).locator(".machina-chart svg")).toBeAttached();
+    const darkColors = await sampleChartColors();
+    expect(darkColors.barFill, "на тёмном слайде колонка берёт акцент для тёмных").toBe(darkColors.accentColor);
+    expect(darkColors.tickFill, "подписи осей на тёмном слайде приглушены по тону").toBe(darkColors.mutedColor);
+  });
+});

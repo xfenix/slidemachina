@@ -10,7 +10,7 @@ export const enginePackageFolder = fileURLToPath(new URL("../..", import.meta.ur
 // The entry module mounts the presentation through this name: pre-bundled, it shares one copy of the engine with "slidemachina".
 export const presentationMountingId = "slidemachina/presentation-mounting";
 // A folder run with npx has no node_modules: these packages come from the engine's install, with one copy of React.
-const sharedPackageNames = ["react", "react-dom", "three", "agentation", "tailwindcss", "uqr"];
+const sharedPackageNames = ["react", "react-dom", "three", "agentation", "tailwindcss", "uqr", "recharts"];
 const packageRequire = createRequire(path.join(enginePackageFolder, "package.json"));
 
 const sharedPackageFolders = sharedPackageNames.flatMap((packageName: string) => {
