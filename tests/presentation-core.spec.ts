@@ -12,6 +12,8 @@ const publicInterfaceFile = path.join(workspaceFolder, "packages", "slidemachina
 const chartTestTimeout = 60_000;
 const chartPreviewHeight = 240;
 const chartAnimationDuration = 60_000;
+const chartAlignmentTolerance = 2;
+const chartAuthorAxisWidth = 88;
 
 async function editFileWhile(filePath: string, editText: (originalText: string) => string, checkEditedPage: () => Promise<void>) {
   const originalText = await readFile(filePath, "utf8");
@@ -941,7 +943,7 @@ test("графики Recharts используют тему слайда, сох
   await page.goto("/");
   const appendChartSlides = (originalPresentation: string) =>
     originalPresentation
-      .replace('import * as Machina from "slidemachina";', 'import * as Machina from "slidemachina";\nimport { Cell, LabelList, Pie, PieChart, PolarAngleAxis, Radar, RadarChart, RadialBar, RadialBarChart, Scatter, ScatterChart } from "recharts";')
+      .replace('import * as Machina from "slidemachina";', 'import * as Machina from "slidemachina";\nimport { LabelList, PolarAngleAxis, Radar, RadarChart, RadialBar, RadialBarChart } from "recharts";')
       .replace(
         "    <Machina.Slide hidden>",
         `    <Machina.Slide>
@@ -964,7 +966,7 @@ test("графики Recharts используют тему слайда, сох
         <BarChart data={[{ runLabel: "первый", firstSeriesValue: 1 }, { runLabel: "второй", firstSeriesValue: 2 }]}>
           <CartesianGrid />
           <XAxis dataKey="runLabel" />
-          <YAxis />
+          <YAxis width={${chartAuthorAxisWidth}} />
           <Tooltip />
           <Bar dataKey="firstSeriesValue" />
         </BarChart>
@@ -1036,12 +1038,20 @@ test("графики Recharts используют тему слайда, сох
 
     await jumpToSlide(page, await findSlideNumber(page, "h2", "График в светлой теме"));
     await expect(currentSlide(page).locator(".machina-chart svg")).toBeAttached();
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
+    await expect.poll(() => currentSlide(page).evaluate((slideElement) => {
+      const chartBounds = slideElement.querySelector(".machina-chart")!.getBoundingClientRect();
+      const tickBounds = [...slideElement.querySelectorAll(".recharts-yAxis-tick-labels text")].map((tickElement) => tickElement.getBoundingClientRect());
+      return Math.abs(Math.min(...tickBounds.map((tickRectangle) => tickRectangle.left)) - chartBounds.left);
+    }), { message: "подписи левой оси начинаются у левого края блока" }).toBeLessThanOrEqual(chartAlignmentTolerance);
     const lightColors = await sampleChartColors();
     expect(lightColors.lineStrokes, "серии идут по палитре темы: акцент, второй акцент").toEqual([lightColors.accentColor, lightColors.secondAccentColor]);
     expect(lightColors.tickFill, "подписи осей приглушены").toBe(lightColors.mutedColor);
 
     await jumpToSlide(page, await findSlideNumber(page, "h2", "График на тёмном слайде"));
     await expect(currentSlide(page).locator(".machina-chart svg")).toBeAttached();
+    const authoredAxisOffset = await currentSlide(page).locator(".recharts-yAxis .recharts-cartesian-axis-line").getAttribute("x1");
+    expect(Number(authoredAxisOffset), "ширина оси, заданная автором, сохраняется").toBe(chartAuthorAxisWidth);
     const darkColors = await sampleChartColors();
     expect(darkColors.barFill, "на тёмном слайде колонка берёт акцент для тёмных").toBe(darkColors.accentColor);
     expect(darkColors.tickFill, "подписи осей на тёмном слайде приглушены по тону").toBe(darkColors.mutedColor);

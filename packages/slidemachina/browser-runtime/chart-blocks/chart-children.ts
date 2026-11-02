@@ -2,6 +2,9 @@ import { Children, cloneElement, isValidElement, type ReactElement, type ReactNo
 import { Area, Bar, CartesianGrid, Cell, LabelList, Legend, Line, Pie, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadialBar, Scatter, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 import type { ChartThemeValues } from "./chart-theme.ts";
 
+const chartMargins = { top: 5, right: 5, bottom: 5, left: 0 };
+const axisTickMargin = 2;
+const axisTickLength = 6;
 const firstPaletteIndex = 0;
 const paletteIndexIncrement = 1;
 const seriesStrokeWidth = 3;
@@ -19,23 +22,27 @@ const tooltipShadowOffset = 10;
 const tooltipShadowBlur = 30;
 const axisElementTypes: unknown[] = [XAxis, YAxis, ZAxis, PolarAngleAxis, PolarRadiusAxis];
 const seriesElementTypes: unknown[] = [Line, Area, Bar, Scatter, Radar, RadialBar, Pie];
-type PaletteState = { nextSeriesIndex: number };
+type ChartThemingState = { nextSeriesIndex: number; axisLabelWidth?: number };
 
-export function themeChartChildren(chartChildren: ReactNode, chartTheme: ChartThemeValues): ReactNode {
-  return themeChildList(chartChildren, chartTheme, { nextSeriesIndex: firstPaletteIndex });
+export function themeChartChildren(chartElement: ReactElement, chartTheme: ChartThemeValues, axisLabelWidth?: number): ReactNode {
+  const themedChart = applyDefaultProps(chartElement, { margin: chartMargins });
+  return themeChildList(themedChart, chartTheme, { nextSeriesIndex: firstPaletteIndex, axisLabelWidth });
 }
 
-function themeChildList(chartChildren: ReactNode, chartTheme: ChartThemeValues, paletteState: PaletteState): ReactNode {
-  return Children.map(chartChildren, (chartChild) => (isValidElement(chartChild) ? themeSingleChild(chartChild, chartTheme, paletteState) : chartChild));
+function themeChildList(chartChildren: ReactNode, chartTheme: ChartThemeValues, themingState: ChartThemingState): ReactNode {
+  return Children.map(chartChildren, (chartChild) => (isValidElement(chartChild) ? themeSingleChild(chartChild, chartTheme, themingState) : chartChild));
 }
 
-function themeSingleChild(chartChild: ReactElement, chartTheme: ChartThemeValues, paletteState: PaletteState): ReactElement {
+function themeSingleChild(chartChild: ReactElement, chartTheme: ChartThemeValues, themingState: ChartThemingState): ReactElement {
   const childType = chartChild.type;
   if (childType === CartesianGrid || childType === PolarGrid) {
     return applyDefaultProps(chartChild, { stroke: chartTheme.gridColor, vertical: false });
   }
   if (axisElementTypes.includes(childType)) {
+    const axisProperties = chartChild.props as { tickMargin?: number; tickSize?: number };
+    const axisWidth = themingState.axisLabelWidth === undefined ? undefined : themingState.axisLabelWidth + (axisProperties.tickMargin ?? axisTickMargin) + (axisProperties.tickSize ?? axisTickLength);
     return applyDefaultProps(chartChild, {
+      ...(childType === YAxis ? { width: axisWidth, tickMargin: axisTickMargin, tickSize: axisTickLength } : {}),
       stroke: chartTheme.axisColor,
       tickLine: false,
       axisLine: { stroke: chartTheme.axisColor },
@@ -55,14 +62,14 @@ function themeSingleChild(chartChild: ReactElement, chartTheme: ChartThemeValues
     return chartChild;
   }
   if (seriesElementTypes.includes(childType)) {
-    return themeSeriesElement(chartChild, chartTheme, paletteState);
+    return themeSeriesElement(chartChild, chartTheme, themingState);
   }
-  return cloneElement(chartChild as ReactElement<{ children?: ReactNode }>, {}, themeChildList((chartChild.props as { children?: ReactNode }).children, chartTheme, paletteState));
+  return cloneElement(chartChild as ReactElement<{ children?: ReactNode }>, {}, themeChildList((chartChild.props as { children?: ReactNode }).children, chartTheme, themingState));
 }
 
-function themeSeriesElement(seriesElement: ReactElement, chartTheme: ChartThemeValues, paletteState: PaletteState): ReactElement {
-  const seriesColor = chartTheme.seriesPalette[paletteState.nextSeriesIndex % chartTheme.seriesPalette.length]!;
-  paletteState.nextSeriesIndex += paletteIndexIncrement;
+function themeSeriesElement(seriesElement: ReactElement, chartTheme: ChartThemeValues, themingState: ChartThemingState): ReactElement {
+  const seriesColor = chartTheme.seriesPalette[themingState.nextSeriesIndex % chartTheme.seriesPalette.length]!;
+  themingState.nextSeriesIndex += paletteIndexIncrement;
   const childType = seriesElement.type;
   let seriesDefaults: Record<string, unknown> = {};
   if (childType === Line) {

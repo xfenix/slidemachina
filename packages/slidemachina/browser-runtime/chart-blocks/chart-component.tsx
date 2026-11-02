@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactElemen
 import { ResponsiveContainer } from "recharts";
 import { readChartTheme, compareChartThemes, type ChartThemeValues } from "./chart-theme.ts";
 import { themeChartChildren } from "./chart-children.ts";
+import { useChartAxisWidth } from "./chart-axis-width.ts";
 
 export type ChartProperties = {
   children: ReactElement;
@@ -12,6 +13,7 @@ export type ChartProperties = {
 
 export function RenderChartBlock({ children: chartChildren, height: chartHeight, stretch: stretchesChart = false, className }: ChartProperties): ReactElement {
   const containerReference = useRef<HTMLDivElement | null>(null);
+  const axisLabelWidth = useChartAxisWidth(containerReference);
   const [chartTheme, setChartTheme] = useState<ChartThemeValues | null>(null);
   // Stable slide children can skip rerenders; observe the tone on the slide itself.
   useLayoutEffect(() => {
@@ -31,7 +33,7 @@ export function RenderChartBlock({ children: chartChildren, height: chartHeight,
   const containerClassName = ["machina-chart", stretchesChart ? "machina-chart-stretch" : undefined, className].filter(Boolean).join(" ");
   return (
     <div ref={containerReference} className={containerClassName} style={chartHeight === undefined ? undefined : { height: chartHeight }}>
-      {chartTheme === null ? null : <ResponsiveContainer>{themeChartChildren(chartChildren, chartTheme)}</ResponsiveContainer>}
+      {chartTheme === null ? null : <ResponsiveContainer>{themeChartChildren(chartChildren, chartTheme, axisLabelWidth)}</ResponsiveContainer>}
     </div>
   );
 }

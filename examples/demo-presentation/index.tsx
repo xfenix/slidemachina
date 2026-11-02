@@ -1,5 +1,5 @@
 import * as Machina from "slidemachina";
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 import duskPicture from "./images/dusk.webp";
 import developmentToolbarPicture from "./images/development-toolbar.webp";
 import editorPicture from "./images/source-editor.webp";
@@ -29,6 +29,25 @@ const talkDurationRows = [
   { talkPartLabel: "Демо", durationMinutes: 4 },
   { talkPartLabel: "Вопросы", durationMinutes: 2 },
 ];
+const cumulativeRegistrationRows = [
+  { weekdayLabel: "Пн", registrationCount: 24 },
+  { weekdayLabel: "Вт", registrationCount: 55 },
+  { weekdayLabel: "Ср", registrationCount: 83 },
+  { weekdayLabel: "Чт", registrationCount: 125 },
+  { weekdayLabel: "Пт", registrationCount: 163 },
+];
+const responseTimeRows = [
+  { requestRate: 80, responseMilliseconds: 68 },
+  { requestRate: 120, responseMilliseconds: 76 },
+  { requestRate: 180, responseMilliseconds: 88 },
+  { requestRate: 240, responseMilliseconds: 104 },
+  { requestRate: 300, responseMilliseconds: 136 },
+  { requestRate: 380, responseMilliseconds: 168 },
+  { requestRate: 460, responseMilliseconds: 205 },
+  { requestRate: 540, responseMilliseconds: 248 },
+];
+const doughnutInnerRadius = "55%";
+const scatterMarkerArea = 180;
 
 Machina.css`
   ::selection {
@@ -668,7 +687,7 @@ export default (
             <Line dataKey="previousWeekCount" name="Прошлая неделя" />
           </LineChart>
         </Machina.Chart>
-        <p className="machina-source">Учебные данные: заявки по дням недели. Цвета линий и подписей задаёт тема презентации</p>
+        <p className="machina-note max-w-none">Учебные данные: заявки по дням недели. Цвета линий и подписей задаёт тема презентации</p>
       </Machina.Slide>
 
       <Machina.Slide background="var(--dark-background)">
@@ -682,7 +701,50 @@ export default (
             <Bar dataKey="durationMinutes" name="Время, мин" />
           </BarChart>
         </Machina.Chart>
-        <p className="machina-note">На тёмном слайде подписи и оси светлеют автоматически</p>
+        <p className="machina-note max-w-none">На тёмном слайде подписи и оси светлеют автоматически</p>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Покажите накопленный итог</h2>
+        <Machina.Chart stretch>
+          <AreaChart data={cumulativeRegistrationRows}>
+            <CartesianGrid />
+            <XAxis dataKey="weekdayLabel" />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Area dataKey="registrationCount" name="Всего регистраций" />
+          </AreaChart>
+        </Machina.Chart>
+        <p className="machina-note max-w-none">График с областями: за пять дней накопилось 163 регистрации. Учебные данные</p>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Покажите доли целого</h2>
+        <Machina.Chart stretch>
+          <PieChart>
+            <Tooltip />
+            <Legend />
+            <Pie data={talkDurationRows} dataKey="durationMinutes" nameKey="talkPartLabel" innerRadius={doughnutInnerRadius}>
+              {talkDurationRows.map((talkDuration) => <Cell key={talkDuration.talkPartLabel} />)}
+            </Pie>
+          </PieChart>
+        </Machina.Chart>
+        <p className="machina-note max-w-none">Кольцевой график: 14 минут на рассказ, 4 на демо и 2 на вопросы</p>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Сопоставьте нагрузку и время ответа</h2>
+        <Machina.Chart stretch>
+          <ScatterChart>
+            <CartesianGrid />
+            <XAxis type="number" dataKey="requestRate" name="Нагрузка, запросов/с" />
+            <YAxis type="number" dataKey="responseMilliseconds" name="Время ответа, мс" />
+            <ZAxis range={[scatterMarkerArea, scatterMarkerArea]} />
+            <Tooltip />
+            <Scatter data={responseTimeRows} name="Замеры" />
+          </ScatterChart>
+        </Machina.Chart>
+        <p className="machina-note max-w-none">Точечный график: с ростом нагрузки время ответа увеличивается. Учебные данные: запросы/с и мс</p>
       </Machina.Slide>
     </Machina.Section>
 
