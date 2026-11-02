@@ -466,11 +466,19 @@ Speed is in the [benchmark](#benchmark) below: it is measured again every week.
 - ✅ **Hidden slides** — skipped on stage, kept in the handout
 - ✅ **Agent commands** — `check` for the rules of a clear talk, `shot` for a slide picture
 
-### 🔵 What the others do best
+### 🔴 What we don't have
 
-- **Slidev** — live code editing in Monaco, elements you drag with the mouse (`v-drag`), drawing on slides, LaTeX formulas
-- **reveal.js** — the largest plugin ecosystem, an audience-follows-the-speaker mode (multiplex), vertical slides
-- **open-slide** — an in-browser inspector with comments, an assets manager with svgl logo search, an agent panel in the browser
+Honest gaps, and the way we close them:
+
+- **Live code editing on the slide** — Slidev runs Monaco in the browser · we edit the code in the source and the slide hot-reloads
+- **Draggable elements** — Slidev's `v-drag` · we place pictures and memes with `float` and columns
+- **Drawing and a pointer over slides** — Slidev, Quarto · not yet
+- **Formulas** — LaTeX in Slidev and Quarto · not yet
+- **Phone remote, audience view, scroll reading, image lightbox** — reveal.js and Slidev · not yet
+- **A visual editor in the browser** — open-slide: comment pins, an assets manager, an agent panel · we edit right on the slide, changes write back to `index.tsx`
+- **Free-form wow pages** — open-slide pages are hand-positioned pixel React · the engine lays our slides out by rules, and that is why they stay readable
+- **Markdown syntax** — none, on purpose: components and plain tags customize deeper than Markdown with frontmatter and layouts
+- **An MCP server** — Slidev and open-slide ship one · we ship a skill and CLI that stay out of the agent's context
 
 Pick reveal.js for the largest set of plugins and plain HTML.
 Pick Slidev if you write in Markdown and Vue, or need drawing on slides and formulas.
