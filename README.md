@@ -422,34 +422,63 @@ Other tools help you make a beautiful slide.
 slidemachina helps you give a talk people follow: it keeps lists, text and diagrams within Miller's 7±2 and follows Richard Mayer's 12 principles of multimedia learning.
 The second rule is minimal markup. A slide is plain tags: no wrappers, ids or coordinates. Steps, layout and morphing come from the engine.
 
+**✅ built in · 🟡 partial, plugin or DIY · ❌ nothing**
+
 | | slidemachina | reveal.js | Slidev | open-slide |
 |---|---|---|---|---|
-| A clear talk | `check` counts list items, words, diagram boxes, code lines and sections. The agent skill follows Mayer's principles | — | — | The skill asks how dense the text should be. Nothing checks it |
-| Markup | JSX in `index.tsx`, checked by TypeScript | HTML: `<section>` in `index.html` | Markdown with Vue components | React pages on a 1920×1080 canvas |
-| Styling | Plain CSS and Tailwind CSS in `style.css`: theme variables, any selector, classes right in the markup. No theme package | CSS or Sass theme files | A theme is an npm package with Vue layouts. To change a layout you write your own theme. UnoCSS classes | Inline styles in every page. A theme is a Markdown file the agent copies into the slides |
-| Markup per slide | `<Slide>`, an `h2` and plain tags. One `data-steps` for a whole list, no ids for morphing | `<section>`, `class="fragment"` on every element, `data-id` on morphing pairs | Markdown with frontmatter, `v-click` on every element, the layout named in frontmatter | React pages with inline styles and pixel coordinates, `<Step>` and `MorphElement` wrappers |
-| Sections | `Section`: a numbered cover, breadcrumbs, groups in the slide overview | Nested `<section>` become vertical slides | — | — |
-| Steps | `data-steps` on a list, table or columns, or a step on part of a diagram or scene. One `stepEffect` for all steps | `class="fragment"` on every element | `v-click` on every element | `<Step>` around every element |
-| Morphing | On by default. Shared elements, words and pieces of code are matched automatically | `data-auto-animate` on both slides, pairs through `data-id` | Only code, through `magic-move` | `MorphElement` with the same `id` on both pages |
-| Code highlighting | Shiki at build time: 0 KB of highlighting code in the browser. Lines by steps | highlight.js runs in the browser on every load | Shiki, live editing in Monaco | — |
-| Diagrams | Flowcharts and sequence diagrams from tags, laid out by ELK. Arrows morph between slides | Mermaid through a third-party plugin. Diagrams do not morph | Mermaid. Diagrams do not morph | — |
-| 3D | `Scene` on three.js. Shapes, light and camera are tags and move by steps | — | — | — |
-| Typography | A typographer for Russian and English, hanging punctuation | — | — | — |
-| Build | HTML file, folder, zip, a file behind a password, PDF, PowerPoint | You set up the bundler yourself | Website, PDF, PNG, PowerPoint | Website, PDF, PowerPoint |
-| Editing | In a code editor and on the slide, written back to `index.tsx` | In a code editor | In a code editor and a Markdown side panel | Comments on the slide, an agent applies them |
-| Presenter window | Notes, timer, next slide, next step, notes per step | Notes, timer, next slide | Notes, timer, next slide, drawing | Notes, timer, next slide |
-| For agents | `llms.txt`, a skill, CLI commands: `check` for the rules of a clear talk, `shot` for a picture of a slide. No MCP server | — | An MCP server in `slidev dev`: occupies agent context | Skills for writing and editing, an agent panel in the browser |
-| Many talks | A repository: a shared theme, a list with covers, one build for all | Each one on its own | Themes as npm packages | Decks in one workspace, shared themes |
-| Hidden slides | `<Slide hidden>`: skipped on stage, kept in print, PDF and PowerPoint, the copy people get after the talk | `data-visibility="hidden"` removes the slide everywhere, PDF too | `hide: true` removes the slide from the show and the export | — |
-| One HTML file | Fonts, pictures and scripts inside one file. Quick Look on macOS shows the slides | A folder of files | A folder of files | A folder of files |
-| Password protection | `--protected`: the file is encrypted, the password is asked for or taken from `SLIDEMACHINA_PASSWORD` | — | — | — |
-| Screenshot for agent | `slidemachina shot 12.2`: one slide at a given step, in a second | — | `slidev export --format png`: the whole deck | — |
-| QR codes | `<QR value="https://…">`: a vector code with your logo, built in. No QR website, no picture to regenerate when the link changes | A picture you make elsewhere | A picture you make elsewhere or a community add-on | A picture you make elsewhere |
-| Memes | `slidemachina meme "this is fine"` finds memegen templates and GIPHY GIFs. Captions are text you edit on the slide. `src="fine"` takes a picture from `images/memes/` by name | A picture with the text baked in | A picture with the text baked in | A picture with the text baked in |
+| A clear talk | ✅ `check` counts list items, words, diagram boxes, code lines and sections. The agent skill follows Mayer's principles | ❌ | ❌ | 🟡 the skill asks how dense the text should be — nothing checks it |
+| Markup | ✅ **TSX — plain React components, TypeScript checks the markup.** Know React — know slidemachina | HTML: a `<section>` per slide | Markdown with Vue components | React, but a fixed 1920×1080 canvas: absolute pixels, inline styles |
+| Styling | ✅ **one `style.css`: theme variables, any selector, plain CSS or Tailwind. No theme packages** | CSS or Sass theme files | 🟡 a theme is an npm package with Vue layouts — restyling means writing your own theme — plus UnoCSS classes | Inline styles in every page. A theme is a Markdown file the agent copies into the slides |
+| Markup per slide | ✅ `<Slide>`, an `h2` and plain tags. One `data-steps` for a whole list, no ids for morphing | `<section>`, `class="fragment"` on every element, `data-id` on morphing pairs | Markdown and frontmatter, `v-click` on every element, the layout named in frontmatter | Tags with inline styles and pixel coordinates, `<Step>` and `<MorphElement>` wrappers |
+| Sections | ✅ `Section`: a numbered cover, groups in the slide overview | 🟡 nested `<section>` become vertical slides | ❌ | ❌ |
+| Breadcrumbs | ✅ **on every slide, built from the sections by themselves: the hierarchy of the talk is always visible and leads the story** | ❌ | ❌ | ❌ |
+| Steps | ✅ **the basic move of every good talk: one `data-steps` on a list, table or columns; one `stepEffect` styles all steps** | `class="fragment"` on every element | `v-click` on every element | `<Step>` around every element |
+| Morphing | ✅ on by default: shared elements, words and pieces of code are matched automatically | 🟡 `data-auto-animate` on both slides, pairs through `data-id` | 🟡 code only, through `magic-move` | 🟡 `MorphElement` with the same `id` on both pages |
+| Code highlighting | ✅ Shiki at build time: 0 KB of highlighting code in the browser, lines by steps | 🟡 highlight.js runs in the browser on every load | Shiki, live editing in Monaco | ❌ |
+| Diagrams | ✅ flowcharts and sequence diagrams from tags, laid out by ELK; arrows morph between slides | 🟡 Mermaid through a third-party plugin, no morphing | 🟡 Mermaid, no morphing | ❌ |
+| 3D scenes | ✅ `Scene` on three.js: shapes, light and camera are tags and move by steps | ❌ | ❌ | ❌ |
+| Hanging punctuation | ✅ **quotes and brackets hang off the edge of the text, like in a book; bullets, code and line numbers hang too** | ❌ | ❌ | ❌ |
+| Typographer | ✅ Russian and English: dashes, quotes, non-breaking spaces | ❌ | ❌ | ❌ |
+| Floating images | ✅ **`float="left"` / `"right"`: text wraps around a picture or a meme** | ❌ | ❌ | ❌ |
+| QR codes | ✅ **`<QR value="…">`: a vector code, your logo in the middle, its own color and caption. No generator site, no picture to redo when the link changes** | ❌ a picture from a generator site | 🟡 a community add-on or a picture from a generator site | ❌ a picture from a generator site |
+| Memes | ✅ `slidemachina meme "this is fine"`: memegen templates and GIPHY GIFs; captions are editable text; `src="fine"` takes a local picture | ❌ a picture with the text baked in | ❌ a picture with the text baked in | ❌ a picture with the text baked in |
+| Export | ✅ **one HTML file · password-protected HTML · website folder · zip · PDF per slide · PDF per step · PowerPoint with editable objects and step click animations · HyperFrames for video — the widest range of all** | 🟡 PDF through the browser's print dialog, nothing else | 🟡 website, PDF (per click with a flag), PNG, PPTX as screenshots — the text is not selectable | 🟡 website, PDF, PPTX with native objects |
+| One HTML file | ✅ **an export, not a trick: fonts, pictures and scripts inside one file; opens from disk, Quick Look on macOS shows the slides** | ❌ a folder of files | ❌ a folder of files | ❌ a folder of files |
+| Print to PDF from the deck | ✅ **press ⌘P / Ctrl+P in any presentation: the built-in print version gives a clean PDF, hidden slides included** | 🟡 a print stylesheet behind the `?print-pdf` parameter | 🟡 PDF only through the CLI export | ❌ |
+| Password protection | ✅ `--protected`: the file is encrypted, the password is asked for or taken from `SLIDEMACHINA_PASSWORD` | ❌ | ❌ | ❌ |
+| Editing | ✅ in a code editor and on the slide, written back to `index.tsx` | In a code editor | In a code editor and a Markdown panel | Comments on the slide, an agent applies them |
+| Presenter window | ✅ notes, timer, next slide, next step, notes per step | Notes, timer, next slide | Notes, timer, next slide, drawing | Notes, timer, next slide |
+| For agents | ✅ `llms.txt`, a skill, CLI commands: `check` for the rules of a clear talk, `shot` for a picture of a slide. No MCP server | ❌ | 🟡 an MCP server in `slidev dev` occupies agent context | 🟡 skills for writing and editing, an agent panel in the browser |
+| Many talks | ✅ a repository: a shared theme, a list with covers, one build for all | ❌ each one on its own | 🟡 themes as npm packages | 🟡 decks in one workspace, shared Markdown themes |
+| Hidden slides | ✅ **`<Slide hidden>`: the stage keeps a clean talk, the details wait for readers of the static copy. One attribute; print, PDF and PowerPoint keep them, one flag (`--no-hidden`, `?print&hidden=no`) drops them** | 🟡 `data-visibility="hidden"` removes the slide everywhere, PDF too | 🟡 `hide: true` drops the slide from the deck and the export | ❌ |
+| Screenshot for agent | ✅ `slidemachina shot 12.2`: one slide at a given step, in a second | ❌ | 🟡 `slidev export --format png`: the whole deck | ❌ |
 
 Speed is in the [benchmark](#benchmark) below: it is measured again every week.
 
-A dash means the tool has nothing built in for this.
+### 🟢 Only in slidemachina
+
+- ✅ **QR codes and memes** — components with editable captions, not pictures from generator sites
+- ✅ **Hanging punctuation** — book-quality typography nobody else does
+- ✅ **Breadcrumbs** — the structure of the talk on every slide
+- ✅ **Export to one HTML file** — even password-protected; the others give a folder
+- ✅ **The widest export range** — PDF per slide and per step, editable PowerPoint with step click animations, HyperFrames for video
+- ✅ **Floating images** — text wraps around pictures and memes
+- ✅ **Hidden slides** — the stage keeps the talk clean by Mayer's rules, the details wait in the handout for readers; printing keeps them or drops them by one flag
+- ✅ **Agent commands** — `check` for the rules of a clear talk, `shot` for a slide picture
+
+### 🔴 What we don't have
+
+Honest gaps, and the way we close them:
+
+- **Live code editing on the slide** — Slidev runs Monaco in the browser · we edit the code in the source and the slide hot-reloads
+- **Draggable elements** — Slidev's `v-drag` · we place pictures and memes with `float` and columns
+- **Drawing and a pointer over slides** — Slidev, Quarto · not yet
+- **Formulas** — LaTeX in Slidev and Quarto · not yet
+- **Phone remote, audience view, scroll reading, image lightbox** — reveal.js and Slidev · not yet
+- **A visual editor in the browser** — open-slide: comment pins, an assets manager, an agent panel · we edit right on the slide, changes write back to `index.tsx`
+- **Free-form wow pages** — open-slide pages are hand-positioned pixel React · the engine lays our slides out by rules, and that is why they stay readable
+- **Markdown syntax** — none, on purpose: components and plain tags customize deeper than Markdown with frontmatter and layouts
+- **An MCP server** — Slidev and open-slide ship one · we ship a skill and CLI that stay out of the agent's context
 
 Pick reveal.js for the largest set of plugins and plain HTML.
 Pick Slidev if you write in Markdown and Vue, or need drawing on slides and formulas.
