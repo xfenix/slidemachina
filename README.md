@@ -444,6 +444,7 @@ The second rule is minimal markup. A slide is plain tags: no wrappers, ids or co
 | Memes | ✅ `slidemachina meme "this is fine"`: memegen templates and GIPHY GIFs; captions are editable text; `src="fine"` takes a local picture | ❌ a picture with the text baked in | ❌ a picture with the text baked in | ❌ a picture with the text baked in |
 | Export | ✅ **one HTML file · password-protected HTML · website folder · zip · PDF per slide · PDF per step · PowerPoint with editable objects and step click animations · HyperFrames for video — the widest range of all** | 🟡 PDF through the browser's print dialog, nothing else | 🟡 website, PDF (per click with a flag), PNG, PPTX as screenshots — the text is not selectable | 🟡 website, PDF, PPTX with native objects |
 | One HTML file | ✅ **an export, not a trick: fonts, pictures and scripts inside one file; opens from disk, Quick Look on macOS shows the slides** | ❌ a folder of files | ❌ a folder of files | ❌ a folder of files |
+| Print to PDF from the deck | ✅ **press ⌘P / Ctrl+P in any presentation: the built-in print version gives a clean PDF, hidden slides included** | 🟡 a print stylesheet behind the `?print-pdf` parameter | 🟡 PDF only through the CLI export | ❌ |
 | Password protection | ✅ `--protected`: the file is encrypted, the password is asked for or taken from `SLIDEMACHINA_PASSWORD` | ❌ | ❌ | ❌ |
 | Editing | ✅ in a code editor and on the slide, written back to `index.tsx` | In a code editor | In a code editor and a Markdown panel | Comments on the slide, an agent applies them |
 | Presenter window | ✅ notes, timer, next slide, next step, notes per step | Notes, timer, next slide | Notes, timer, next slide, drawing | Notes, timer, next slide |
@@ -464,6 +465,12 @@ Speed is in the [benchmark](#benchmark) below: it is measured again every week.
 - ✅ **Floating images** — text wraps around pictures and memes
 - ✅ **Hidden slides** — skipped on stage, kept in the handout
 - ✅ **Agent commands** — `check` for the rules of a clear talk, `shot` for a slide picture
+
+### 🔵 What the others do best
+
+- **Slidev** — live code editing in Monaco, elements you drag with the mouse (`v-drag`), drawing on slides, LaTeX formulas
+- **reveal.js** — the largest plugin ecosystem, an audience-follows-the-speaker mode (multiplex), vertical slides
+- **open-slide** — an in-browser inspector with comments, an assets manager with svgl logo search, an agent panel in the browser
 
 Pick reveal.js for the largest set of plugins and plain HTML.
 Pick Slidev if you write in Markdown and Vue, or need drawing on slides and formulas.
