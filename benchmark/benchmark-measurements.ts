@@ -91,6 +91,8 @@ async function measureSlideChangeTurns(chromeBrowser: Browser, pageAddress: stri
   await measuredPage.getByText(talkTitle).first().waitFor({ state: "visible", timeout: headingWaitLimit });
   // A painted first slide (slidemachina) is visible before scripts run; it leaves once the app is up and owns the keys.
   await measuredPage.locator("[data-static-cover]").waitFor({ state: "detached", timeout: changedFrameWaitLimit }).catch(() => undefined);
+  // Static HTML can show the title before the app hydrates: quiet network means the app has its scripts and answers the keys.
+  await measuredPage.waitForLoadState("networkidle", { timeout: changedFrameWaitLimit }).catch(() => undefined);
   const nodeClockAtSync = performance.now();
   const pageClockAtSync = await measuredPage.evaluate(() => performance.now());
   const pageClockOffset = pageClockAtSync - nodeClockAtSync;
@@ -104,7 +106,7 @@ async function measureSlideChangeTurns(chromeBrowser: Browser, pageAddress: stri
   const measuredTurns: number[] = [];
   try {
     await waitUntil(() => screencastFrames.length > 0, stableFrameWaitLimit, "the first screencast frame");
-    for (let repeatIndex = 0; repeatIndex < repeatCount; repeatIndex += 1) {
+    const pressTurnAndMeasure = async (): Promise<number> => {
       await waitForScreencastQuiet(screencastFrames, quietPeriodMilliseconds);
       const stableFrameData = screencastFrames.at(-1)!.frameData;
       await measuredPage.evaluate(() => {
@@ -128,7 +130,15 @@ async function measureSlideChangeTurns(chromeBrowser: Browser, pageAddress: stri
         "a screencast frame different from the stable one",
       );
       const changedFrame = screencastFrames.slice(framesAtPress).find((castFrame) => castFrame.frameData !== stableFrameData)!;
-      measuredTurns.push(changedFrame.arrivedAtNodeClock + pageClockOffset - pressedKeyDownAtPageClock);
+      return changedFrame.arrivedAtNodeClock + pageClockOffset - pressedKeyDownAtPageClock;
+    };
+    for (let repeatIndex = 0; repeatIndex < repeatCount; repeatIndex += 1) {
+      // An app still waking up can swallow a press; one settle and a repeated press keep a slow tool from failing the run.
+      measuredTurns.push(await pressTurnAndMeasure().catch(async (pressError: unknown) => {
+        if (!(pressError instanceof Error && pressError.message.includes("Timed out"))) throw pressError;
+        await new Promise((resolveSettle) => setTimeout(resolveSettle, quietPeriodMilliseconds * 2));
+        return pressTurnAndMeasure();
+      }));
     }
   } finally {
     await chromeSession.send("Page.stopScreencast").catch(() => undefined);
