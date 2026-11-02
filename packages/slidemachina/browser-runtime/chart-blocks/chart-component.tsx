@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactElement } from "react";
 import { ResponsiveContainer } from "recharts";
-import { readChartTheme, sameChartTheme, themeChartChildren, type ChartThemeValues } from "./chart-theme.ts";
+import { readChartTheme, compareChartThemes, themeChartChildren, type ChartThemeValues } from "./chart-theme.ts";
 
 export type ChartProperties = {
   // One recharts chart element: LineChart, BarChart, AreaChart, PieChart, ComposedChart, ScatterChart, RadarChart or RadialBarChart.
@@ -23,7 +23,7 @@ export function Chart({ children, height, stretch = false, className }: ChartPro
     const slideElement = containerElement.closest("[data-slide]");
     const refreshChartTheme = () => {
       const nextTheme = readChartTheme(containerElement);
-      setChartTheme((currentTheme) => (sameChartTheme(currentTheme, nextTheme) ? currentTheme : nextTheme));
+      setChartTheme((currentTheme) => (compareChartThemes(currentTheme, nextTheme) ? currentTheme : nextTheme));
     };
     refreshChartTheme();
     if (slideElement === null) return;

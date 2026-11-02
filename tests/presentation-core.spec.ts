@@ -936,15 +936,9 @@ test("демо листается, показывает шаги и навига
 test("график recharts в Chart берёт цвета темы и следует за тоном слайда", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/");
-  // The demo itself imports recharts for its chart slides: the import is added only when it is not there yet.
   const appendChartSlides = (originalPresentation: string) =>
-    (originalPresentation.includes("from \"recharts\"")
-      ? originalPresentation
-      : originalPresentation.replace(
-          'import * as Machina from "slidemachina";',
-          'import * as Machina from "slidemachina";\nimport { Bar, BarChart, CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";',
-        )
-    )
+    originalPresentation
+      .replace('import * as Machina from "slidemachina";', 'import * as Machina from "slidemachina";\nimport { Cell, LabelList, Pie, PieChart, PolarAngleAxis, Radar, RadarChart, RadialBar, RadialBarChart, Scatter, ScatterChart } from "recharts";')
       .replace(
         "    <Machina.Slide hidden>",
         `    <Machina.Slide>
@@ -972,6 +966,40 @@ test("график recharts в Chart берёт цвета темы и след�
           <Bar dataKey="один" />
         </BarChart>
       </Machina.Chart>
+    </Machina.Slide>
+
+    <Machina.Slide>
+      <h2>Статичные графики</h2>
+      <div className="machina-columns">
+        <Machina.Chart height={240} className="scatter-chart">
+          <ScatterChart>
+            <XAxis type="number" dataKey="horizontalValue" />
+            <YAxis type="number" dataKey="verticalValue" />
+            <Scatter data={[{ horizontalValue: 1, verticalValue: 2 }, { horizontalValue: 2, verticalValue: 3 }]} animationDuration={60_000}>
+              <LabelList dataKey="verticalValue" />
+            </Scatter>
+          </ScatterChart>
+        </Machina.Chart>
+        <Machina.Chart height={240} className="radar-chart">
+          <RadarChart data={[{ categoryName: "Первый", verticalValue: 2 }, { categoryName: "Второй", verticalValue: 3 }, { categoryName: "Третий", verticalValue: 1 }]}>
+            <PolarAngleAxis dataKey="categoryName" />
+            <Radar dataKey="verticalValue" animationDuration={60_000} label />
+          </RadarChart>
+        </Machina.Chart>
+        <Machina.Chart height={240} className="radial-chart">
+          <RadialBarChart data={[{ categoryName: "Первый", verticalValue: 2 }, { categoryName: "Второй", verticalValue: 3 }]}>
+            <RadialBar dataKey="verticalValue" animationDuration={60_000} label />
+          </RadialBarChart>
+        </Machina.Chart>
+        <Machina.Chart height={240} className="palette-chart">
+          <PieChart>
+            <Pie data={[{ verticalValue: 2 }, { verticalValue: 3 }]} dataKey="verticalValue" fill="#ff0000">
+              <Cell />
+              <Cell fill="#0000ff" />
+            </Pie>
+          </PieChart>
+        </Machina.Chart>
+      </div>
     </Machina.Slide>
 
     <Machina.Slide hidden>`,
@@ -1014,5 +1042,14 @@ test("график recharts в Chart берёт цвета темы и след�
     const darkColors = await sampleChartColors();
     expect(darkColors.barFill, "на тёмном слайде колонка берёт акцент для тёмных").toBe(darkColors.accentColor);
     expect(darkColors.tickFill, "подписи осей на тёмном слайде приглушены по тону").toBe(darkColors.mutedColor);
+
+    await jumpToSlide(page, await findSlideNumber(page, "h2", "Статичные графики"));
+    for (const chartSelector of [".scatter-chart", ".radar-chart", ".radial-chart"]) {
+      await expect(currentSlide(page).locator(`${chartSelector} .recharts-label`).first(), "подписи видны сразу, без ожидания анимации").toBeAttached();
+    }
+    const sliceColors = await currentSlide(page).locator(".palette-chart .recharts-pie-sector path").evaluateAll((sliceElements) =>
+      sliceElements.map((sliceElement) => getComputedStyle(sliceElement).fill),
+    );
+    expect(sliceColors, "цвет серии действует на ячейки без своего цвета").toEqual(["rgb(255, 0, 0)", "rgb(0, 0, 255)"]);
   });
 });

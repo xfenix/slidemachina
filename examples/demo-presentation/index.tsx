@@ -17,6 +17,17 @@ import { AssemblingCube } from "./assembling-cube.tsx";
 import { DraggableSticker } from "./draggable-sticker.tsx";
 import { OrbitSunrise } from "./orbit-sunrise.tsx";
 
+const startSpeedRows = [
+  { release: "0.9", seconds: 1.35 },
+  { release: "1.0", seconds: 0.92 },
+  { release: "1.0.1", seconds: 0.71 },
+];
+const talkMinutesRows = [
+  { part: "Рассказ", minutes: 14 },
+  { part: "Демо", minutes: 4 },
+  { part: "Вопросы", minutes: 2 },
+];
+
 Machina.css`
   ::selection {
     background: var(--accent-soft-color);
@@ -33,19 +44,6 @@ function StepMeter() {
     </figure>
   );
 }
-
-// Chart data of the two themed chart slides: the engine start speed by release, and the plan of this very talk.
-const startSpeedRows = [
-  { release: "0.9", seconds: 1.35 },
-  { release: "1.0", seconds: 0.92 },
-  { release: "1.0.1", seconds: 0.71 },
-];
-
-const talkMinutesRows = [
-  { part: "Рассказ", minutes: 14 },
-  { part: "Демо", minutes: 4 },
-  { part: "Вопросы", minutes: 2 },
-];
 
 export default (
   <Machina.Presentation date="2026-10-23" lang="ru" logo={Machina.SlidemachinaLogo} duration={20}>

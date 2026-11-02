@@ -32,7 +32,8 @@ const tooltipHorizontalPadding = 16;
 const tooltipVerticalPadding = 12;
 const tooltipLabelGap = 8;
 const tooltipShadowOpacity = 0.25;
-
+const tooltipShadowOffset = 10;
+const tooltipShadowBlur = 30;
 const axisElementTypes: unknown[] = [XAxis, YAxis, ZAxis, PolarAngleAxis, PolarRadiusAxis];
 const seriesElementTypes: unknown[] = [Line, Area, Bar, Scatter, Radar, RadialBar, Pie];
 
@@ -101,7 +102,7 @@ export function readChartTheme(probeElement: HTMLElement): ChartThemeValues {
   };
 }
 
-export function sameChartTheme(firstTheme: ChartThemeValues | null, secondTheme: ChartThemeValues): boolean {
+export function compareChartThemes(firstTheme: ChartThemeValues | null, secondTheme: ChartThemeValues): boolean {
   if (firstTheme === null) return false;
   return (
     firstTheme.textFontFamily === secondTheme.textFontFamily &&
@@ -129,10 +130,10 @@ function themeChildList(chartChildren: ReactNode, chartTheme: ChartThemeValues, 
 function themeSingleChild(chartChild: ReactElement, chartTheme: ChartThemeValues, paletteState: PaletteState): ReactElement {
   const childType = chartChild.type;
   if (childType === CartesianGrid || childType === PolarGrid) {
-    return withDefaultProps(chartChild, { stroke: chartTheme.gridColor, vertical: false });
+    return applyDefaultProps(chartChild, { stroke: chartTheme.gridColor, vertical: false });
   }
   if (axisElementTypes.includes(childType)) {
-    return withDefaultProps(chartChild, {
+    return applyDefaultProps(chartChild, {
       stroke: chartTheme.axisColor,
       tickLine: false,
       axisLine: { stroke: chartTheme.axisColor },
@@ -140,13 +141,13 @@ function themeSingleChild(chartChild: ReactElement, chartTheme: ChartThemeValues
     });
   }
   if (childType === Tooltip) {
-    return withDefaultProps(chartChild, tooltipDefaultProps(chartTheme));
+    return applyDefaultProps(chartChild, buildTooltipDefaults(chartTheme));
   }
   if (childType === Legend) {
-    return withDefaultProps(chartChild, { wrapperStyle: { color: chartTheme.mutedColor, fontSize: chartTheme.textSize, fontFamily: chartTheme.textFontFamily } });
+    return applyDefaultProps(chartChild, { wrapperStyle: { color: chartTheme.mutedColor, fontSize: chartTheme.textSize, fontFamily: chartTheme.textFontFamily } });
   }
   if (childType === LabelList) {
-    return withDefaultProps(chartChild, { fill: chartTheme.mutedColor, fontSize: chartTheme.textSize });
+    return applyDefaultProps(chartChild, { fill: chartTheme.mutedColor, fontSize: chartTheme.textSize });
   }
   if (childType === Cell) {
     return chartChild;
@@ -169,16 +170,16 @@ function themeSeriesElement(seriesElement: ReactElement, chartTheme: ChartThemeV
   } else if (childType === Bar) {
     seriesDefaults = { fill: seriesColor, radius: [barCornerRadius, barCornerRadius, 0, 0], isAnimationActive: animationsPlayOnMount };
   } else if (childType === Scatter) {
-    seriesDefaults = { fill: seriesColor };
+    seriesDefaults = { fill: seriesColor, isAnimationActive: animationsPlayOnMount };
   } else if (childType === Radar) {
-    seriesDefaults = { stroke: seriesColor, fill: seriesColor, fillOpacity: areaFillShare };
+    seriesDefaults = { stroke: seriesColor, fill: seriesColor, fillOpacity: areaFillShare, isAnimationActive: animationsPlayOnMount };
   } else if (childType === RadialBar) {
-    seriesDefaults = { fill: seriesColor };
+    seriesDefaults = { fill: seriesColor, isAnimationActive: animationsPlayOnMount };
   } else if (childType === Pie) {
     seriesDefaults = { isAnimationActive: animationsPlayOnMount };
   }
-  const themedElement = withDefaultProps(seriesElement, seriesDefaults);
-  if (childType === Pie) {
+  const themedElement = applyDefaultProps(seriesElement, seriesDefaults);
+  if (childType === Pie && (themedElement.props as { fill?: string }).fill === undefined) {
     return cloneElement(themedElement as ReactElement<{ children?: ReactNode }>, {}, themePieCells((themedElement.props as { children?: ReactNode }).children, chartTheme));
   }
   return themedElement;
@@ -193,17 +194,17 @@ function themePieCells(pieCells: ReactNode, chartTheme: ChartThemeValues): React
     }
     const cellColor = chartTheme.seriesPalette[pieCellIndex % chartTheme.seriesPalette.length]!;
     pieCellIndex += 1;
-    return withDefaultProps(pieCell, { fill: cellColor });
+    return applyDefaultProps(pieCell, { fill: cellColor });
   });
 }
 
-function tooltipDefaultProps(chartTheme: ChartThemeValues): Record<string, unknown> {
+function buildTooltipDefaults(chartTheme: ChartThemeValues): Record<string, unknown> {
   return {
     contentStyle: {
       backgroundColor: chartTheme.tooltipBackgroundColor,
       border: "none",
       borderRadius: chartTheme.tooltipCornerRadius,
-      boxShadow: `0 10px 30px rgb(0 0 0 / ${tooltipShadowOpacity})`,
+      boxShadow: `0 ${tooltipShadowOffset}px ${tooltipShadowBlur}px rgb(0 0 0 / ${tooltipShadowOpacity})`,
       color: chartTheme.tooltipTextColor,
       fontFamily: chartTheme.textFontFamily,
       fontSize: chartTheme.textSize,
@@ -215,7 +216,7 @@ function tooltipDefaultProps(chartTheme: ChartThemeValues): Record<string, unkno
 }
 
 // A prop the author set wins over the theme; defaults fill only the unset ones.
-function withDefaultProps(chartElement: ReactElement, defaultProps: Record<string, unknown>): ReactElement {
+function applyDefaultProps(chartElement: ReactElement, defaultProps: Record<string, unknown>): ReactElement {
   const elementProps = chartElement.props as Record<string, unknown>;
   const missingProps = Object.fromEntries(Object.entries(defaultProps).filter(([propName]) => elementProps[propName] === undefined));
   return Object.keys(missingProps).length > 0 ? cloneElement(chartElement as ReactElement<Record<string, unknown>>, missingProps) : chartElement;
