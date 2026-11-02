@@ -6,7 +6,7 @@ function PixelHeart() {
   return (
     <svg className="pixel-heart" viewBox="0 0 7 6" shapeRendering="crispEdges" aria-hidden>
       {heartRows.flatMap((heartRow, rowIndex) =>
-        [...heartRow].map((heartCell, columnIndex) =>
+        heartRow.split("").map((heartCell, columnIndex) =>
           heartCell === "1" ? (
             <rect
               key={`${rowIndex}-${columnIndex}`}
