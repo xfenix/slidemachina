@@ -4,7 +4,7 @@ import type { QRProperties } from "./content-blocks/qr-block/qr-component.tsx";
 import type { ChartProperties } from "./chart-blocks/chart-component.tsx";
 
 const QRComponent = lazy(() => import("./content-blocks/qr-block/qr-component.tsx").then((qrModule) => ({ default: qrModule.QR })));
-const ChartComponent = lazy(() => import("./chart-blocks/chart-component.tsx").then((chartModule) => ({ default: chartModule.Chart })));
+const ChartComponent = /* @__PURE__ */ lazy(() => import("./chart-blocks/chart-component.tsx").then((chartModule) => ({ default: chartModule.Chart })));
 
 export { Presentation, type PresentationPosition, type PresentationProperties } from "./presentation-core/presentation-component.tsx";
 export type { AspectRatio } from "../shared-between-runtimes/canvas-size.js";

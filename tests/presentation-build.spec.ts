@@ -114,6 +114,19 @@ test("сборка: один HTML-файл листается без серве�
   test.setTimeout(180_000);
   const outputFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-build-"));
   try {
+    await test.step("сборка без графиков не содержит Recharts", async () => {
+      const plainSourceFolder = path.join(outputFolder, "plain-source");
+      const plainOutputFolder = path.join(outputFolder, "plain-output");
+      await mkdir(plainSourceFolder);
+      await writeFile(path.join(plainSourceFolder, "index.tsx"), 'import * as Machina from "slidemachina"; export default <Machina.Presentation><Machina.Slide><h1>Без графиков</h1></Machina.Slide></Machina.Presentation>;');
+      await runCommand(process.execPath, [commandLineScript, "build", plainSourceFolder, "--folder", "--out", plainOutputFolder]);
+      const plainAssetFolder = path.join(plainOutputFolder, "plain-source", "assets");
+      const plainAssetNames = await readdir(plainAssetFolder);
+      const plainScriptTexts = await Promise.all(plainAssetNames.filter((assetName) => assetName.endsWith(".js")).map((assetName) => readFile(path.join(plainAssetFolder, assetName), "utf8")));
+      expect(plainScriptTexts.some((scriptText) => scriptText.includes("recharts-responsive-container")), "Recharts не попадает в доклад без графиков").toBe(false);
+      await page.goto(pathToFileURL(path.join(plainOutputFolder, "plain-source", "index.html")).href);
+      await expect(page.locator("[data-canvas] > [data-current] h1")).toHaveText("Без графиков");
+    });
     await runCommand(process.execPath, [commandLineScript, "build", path.join(examplesFolder, demoFolderName), "--html", "--folder", "--steps", "--pptx", "--out", outputFolder]);
     const singleFile = path.join(outputFolder, "demo-presentation.html");
     const assetFolder = path.join(outputFolder, "demo-presentation", "assets");
