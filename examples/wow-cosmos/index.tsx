@@ -36,8 +36,8 @@ export default (
             <figcaption>спутника на орбите</figcaption>
           </figure>
           <figure className="machina-big-number">
-            <p>6°</p>
-            <figcaption>в секунду облёт камеры</figcaption>
+            <p>6</p>
+            <figcaption>градусов в секунду облёт камеры</figcaption>
           </figure>
           <figure className="machina-big-number">
             <p>0</p>
@@ -146,7 +146,7 @@ export default (
 
     <Machina.Slide plain>
       <h1>Спасибо</h1>
-      <div className="machina-columns" style={{ gridTemplateColumns: "1fr 1fr" }}>
+      <div className="machina-columns" style={{ gridTemplateColumns: "1fr 1fr", height: "56cqh", flex: "0 0 auto" }}>
         <div>
           <Machina.QR value="https://github.com/xfenix/slidemachina">
             <figcaption>репозиторий движка</figcaption>

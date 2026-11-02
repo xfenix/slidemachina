@@ -1,11 +1,34 @@
 import * as Machina from "slidemachina";
 
+const heartRows = ["0110110", "1111111", "1111111", "0111110", "0011100", "0001000"];
+
+function PixelHeart() {
+  return (
+    <svg className="pixel-heart" viewBox="0 0 7 6" shapeRendering="crispEdges" aria-hidden>
+      {heartRows.flatMap((heartRow, rowIndex) =>
+        [...heartRow].map((heartCell, columnIndex) =>
+          heartCell === "1" ? (
+            <rect
+              key={`${rowIndex}-${columnIndex}`}
+              x={columnIndex}
+              y={rowIndex}
+              width={1}
+              height={1}
+              fill={rowIndex === 1 && columnIndex === 2 ? "#ffffff" : "#ff4d6d"}
+            />
+          ) : null,
+        ),
+      )}
+    </svg>
+  );
+}
+
 export default (
   <Machina.Presentation title="8 бит" lang="ru" date="2026-11-02">
     <Machina.Slide cover>
       <h1>8 бит</h1>
       <p className="machina-lead">Тема в стиле ретро-игры</p>
-      <div className="pixel-heart" aria-hidden />
+      <PixelHeart />
       <p className="pixel-blink machina-note">Нажми старт</p>
       <Machina.Notes>
         <p>Поприветствуйте зал, назовите тему доклада.</p>
@@ -143,7 +166,7 @@ if (player.hp > 0) {
 
     <Machina.Slide cover>
       <h1>Спасибо за игру</h1>
-      <div className="pixel-heart" aria-hidden />
+      <PixelHeart />
       <p className="pixel-blink machina-note">Нажми старт ещё раз</p>
       <Machina.Notes>
         <p>Поблагодарите зал. Сердечко из box-shadow — тоже тема.</p>

@@ -198,20 +198,13 @@
   }
 }
 
-/* Пиксельное сердце из box-shadow: прозрачный блок шириной спрайта и тень-спрайт. */
+/* Пиксельное сердце-спрайт: SVG с жёсткой жёлтой тенью-копией. */
 .pixel-heart {
-  width: 112px;
-  height: 16px;
-  margin: 0 auto 120px;
-  background: transparent;
-  transform: translateX(-51px);
-  box-shadow:
-    16px 0 #ff4d6d, 64px 0 #ff4d6d, 80px 0 #ff4d6d,
-    0 16px #ff4d6d, 16px 16px #ffffff, 32px 16px #ff4d6d, 48px 16px #ff4d6d, 64px 16px #ff4d6d, 80px 16px #ff4d6d, 96px 16px #ff4d6d,
-    0 32px #ff4d6d, 16px 32px #ff4d6d, 32px 32px #ff4d6d, 48px 32px #ff4d6d, 64px 32px #ff4d6d, 80px 32px #ff4d6d, 96px 32px #ff4d6d,
-    16px 48px #ff4d6d, 32px 48px #ff4d6d, 48px 48px #ff4d6d, 64px 48px #ff4d6d, 80px 48px #ff4d6d,
-    32px 64px #ff4d6d, 48px 64px #ff4d6d, 64px 64px #ff4d6d,
-    48px 80px #ff4d6d;
+  display: block;
+  width: 190px;
+  height: auto;
+  margin: 12px auto 56px;
+  filter: drop-shadow(8px 8px 0 rgb(6 6 20 / 0.9));
 }
 
 /* Столбики графика — полосы здоровья. */
