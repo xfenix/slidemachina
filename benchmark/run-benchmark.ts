@@ -1,5 +1,6 @@
 // node benchmark/run-benchmark.ts <output folder>
-// The same talk in the latest slidemachina, reveal.js, Slidev and open-slide from npm: build, output size, load, slide turns, PDF export, dev server.
+// The same talk in the slidemachina of this repository, reveal.js, Slidev and open-slide from npm: build, output size, load, slide turns, PDF export, dev server.
+// SLIDEMACHINA_BENCHMARK_PACKAGE=latest measures a published slidemachina instead of the repository one.
 // SLIDEMACHINA_BENCHMARK_CHROME_ENDPOINT connects to a running Chrome instead of starting one.
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
@@ -8,6 +9,7 @@ import { chromium } from "playwright-core";
 import { drawBenchmarkChart, writeResultsTable } from "./benchmark-chart.ts";
 import { measureTool } from "./benchmark-measurements.ts";
 import { talkSections, writeTalkPicture } from "./benchmark-talk.ts";
+import { packRepositoryPackage } from "./prepare-repository-package.ts";
 import { benchmarkTools } from "./tool-projects.ts";
 import type { ToolMeasurements } from "./benchmark-measurements.ts";
 
@@ -16,6 +18,9 @@ const repeatCount = 5;
 const framingSlideCount = 2;
 const outputFolder = process.argv[2];
 if (outputFolder === undefined) throw new Error("Usage: node benchmark/run-benchmark.ts <output folder>");
+
+// The cover, the build and the version the benchmark shows all come from this repository by default.
+process.env.SLIDEMACHINA_BENCHMARK_PACKAGE ??= packRepositoryPackage(mkdtempSync(path.join(os.tmpdir(), "slidemachina-benchmark-package-")));
 
 const workFolder = mkdtempSync(path.join(os.tmpdir(), "slidemachina-benchmark-"));
 const picturePath = path.join(workFolder, "talk-picture.png");
@@ -46,6 +51,6 @@ writeFileSync(path.join(outputFolder, "benchmark.json"), `${JSON.stringify({ mea
 const resultsTable = writeResultsTable(toolMeasurements);
 writeFileSync(
   path.join(outputFolder, "README.md"),
-  `# slidemachina benchmark\n\n${measuredDate}. The same talk of ${slideCount} slides in the latest versions from npm, median of ${repeatCount} runs.\nThe method is in [benchmark/](https://github.com/xfenix/slidemachina/tree/main/benchmark) of the main branch.\n\n![The benchmark](benchmark.svg)\n\n${resultsTable}\n`,
+  `# slidemachina benchmark\n\n${measuredDate}. The same talk of ${slideCount} slides in the slidemachina of this commit and the latest reveal.js, Slidev and open-slide from npm, median of ${repeatCount} runs.\nThe method is in [benchmark/](https://github.com/xfenix/slidemachina/tree/main/benchmark) of the main branch.\n\n![The benchmark](benchmark.svg)\n\n${resultsTable}\n`,
 );
 console.log(resultsTable);

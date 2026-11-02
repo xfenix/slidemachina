@@ -162,6 +162,8 @@ test("репозиторий презентаций: список с облож�
       expect(teamSyncPdf.match(/\/MediaBox\s*\[\s*0 0 ([\d.]+) ([\d.]+)/)?.slice(1)).toEqual(["1080", "810"]);
       await page.locator("[data-list-link]").nth(2).click();
       await expect(page).toHaveURL(/python-news\/index\.html#1$/);
+      // The painted build-time copy of the first slide leaves the page once the live app is up.
+      await expect(page.locator("[data-static-cover]")).toHaveCount(0);
       await expect(page.locator("[data-canvas] > [data-current] h1")).toHaveText("Python 3.15");
       await expectThemeCascade(page, "#3c91cd");
       await page.getByRole("link", { name: "Все презентации" }).click();

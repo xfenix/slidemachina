@@ -38,10 +38,10 @@ function writeSlidemachinaSlide(talkSlide: TalkSlide): string[] {
   return ["    <Machina.Slide>", `      <h2>${talkSlide.slideHeading}</h2>`, ...slideBody, ...slideNotes, "    </Machina.Slide>"];
 }
 
-// The project npm create slidemachina makes: its manifest comes from the template, slidemachina is the latest release unless a local package is requested.
+// The project npm create slidemachina makes: its manifest comes from the template, slidemachina is the repository package unless SLIDEMACHINA_BENCHMARK_PACKAGE requests a published version.
 function writeSlidemachinaProject(projectFolder: string, picturePath: string): void {
   const templateManifest = JSON.parse(readFileSync(templateManifestPath, "utf8")) as { devDependencies?: Record<string, string> };
-  const engineVersion = process.env.SLIDEMACHINA_BENCHMARK_PACKAGE ?? "latest";
+  const engineVersion = process.env.SLIDEMACHINA_BENCHMARK_PACKAGE!;
   writeManifest(projectFolder, "slidemachina-benchmark", { dev: "slidemachina dev", build: "slidemachina build --folder --out site", "export-pdf": "slidemachina build --pdf" }, { slidemachina: engineVersion }, templateManifest.devDependencies);
   mkdirSync(path.join(projectFolder, "images"), { recursive: true });
   copyFileSync(picturePath, path.join(projectFolder, "images", pictureFileName));

@@ -146,6 +146,19 @@ export async function buildPresentation(
       );
     }
     if (buildsFolder) {
+      // The folder index opens on a painted first slide, like the single-file builds; a missing Chrome leaves it without one.
+      if (!presentationLayout.isRepository) {
+        try {
+          await runBuildStep(
+            nameStepTitle(commandLineTexts.staticCoverStep),
+            async () => (await import("./folder-cover.ts")).addFolderCover(folderBuild, sharedChrome),
+            isInteractive,
+          );
+        } catch (coverError) {
+          const coverProblem = coverError instanceof Error ? coverError.message : String(coverError);
+          log.warn(commandLineTexts.staticCoverFailed(coverProblem));
+        }
+      }
       if (chosenVariants.includes("folder")) {
         removeOldOutput(outputPaths.folder);
         cpSync(folderBuild, outputPaths.folder, { recursive: true });

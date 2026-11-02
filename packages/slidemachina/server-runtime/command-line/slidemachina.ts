@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import "./compile-cache.ts";
 import { existsSync, realpathSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";

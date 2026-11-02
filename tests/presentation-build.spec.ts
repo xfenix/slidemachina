@@ -237,6 +237,8 @@ test("сборка: один HTML-файл листается без серве�
     });
 
     await test.step("папка: ELK и three.js отдельными файлами, в основном модуле нет ни ELK, ни three.js, ни agentation, редактора нет нигде", async () => {
+      const folderIndexText = await readFile(path.join(outputFolder, "demo-presentation", "index.html"), "utf8");
+      expect(folderIndexText.match(/<div data-static-cover/g)?.length, "нарисованная обложка в папке одна").toBe(1);
       const assetNames = await readdir(assetFolder);
       expect(assetNames.filter((assetName) => assetName.endsWith(".woff2") && !keptFontFile.test(assetName))).toEqual([]);
       // A GIF becomes an animated WebP, all frames kept: the RIFF file carries an ANIM chunk.

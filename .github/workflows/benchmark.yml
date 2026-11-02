@@ -1,4 +1,4 @@
-# Measures the same talk in the latest slidemachina, reveal.js, Slidev and open-slide from npm.
+# Measures the same talk in the slidemachina of this commit, reveal.js, Slidev and open-slide from npm.
 # The picture goes to the benchmark branch, so main gets no bot commits; the README shows it through jsDelivr.
 name: Benchmark
 
@@ -10,11 +10,9 @@ on:
   # New versions of the others: once a week.
   schedule:
     - cron: "0 6 * * 1"
+  # The measured engine is this repository: every change to main is a new measurement.
   push:
     branches: [main]
-    paths:
-      - benchmark/**
-      - .github/workflows/benchmark.yml
   workflow_dispatch:
 
 permissions:
