@@ -64,7 +64,8 @@ export function useCodeLineSteps(codeElementReference: RefObject<HTMLElement | n
       const stepChanged = reachedStepIndex !== shownStep.stepIndex;
       // A step on the open slide scrolls smoothly; a slide that is just arriving jumps, so its snapshot is already in place.
       let lineScroll: LineScroll = "instant";
-      if (!stepChanged && isOnCurrentSlide === shownStep.wasOnCurrentSlide) lineScroll = "keep";
+      if (!stepChanged && !isOnCurrentSlide) lineScroll = "keep";
+      else if (!stepChanged && isOnCurrentSlide === shownStep.wasOnCurrentSlide) lineScroll = "keep";
       else if (stepChanged && isOnCurrentSlide && shownStep.wasOnCurrentSlide) lineScroll = "smooth";
       // A distant slide is scrolled once it comes near: the step stays unshown, so that move scrolls.
       if (isSlideDistant) lineScroll = "keep";

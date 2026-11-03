@@ -36,3 +36,14 @@ export function runInIdleBackgroundTurn(backgroundTask: () => void): () => void 
     isTaskCancelled = true;
   };
 }
+
+// The lane the next key press waits on: it never queues behind heavy parts, so a press after a pause finds its work ready.
+export function runInPriorityIdleTurn(backgroundTask: () => void): () => void {
+  let isTaskCancelled = false;
+  void waitForIdleMoment().then(() => {
+    if (!isTaskCancelled) backgroundTask();
+  });
+  return () => {
+    isTaskCancelled = true;
+  };
+}

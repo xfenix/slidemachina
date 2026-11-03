@@ -8,6 +8,12 @@ const writtenStepMark = "data-written-step";
 // The step just revealed, one forward from the step before: only it plays an animation such as glitch.
 const arrivingStepMark = "data-step-arriving";
 const lastRevealedSteps = new WeakMap<HTMLElement, number>();
+// Hot reload replaces step elements without a step change: a new update count re-marks every rendered slide.
+let hotUpdateCounter = 0;
+import.meta.hot?.on("vite:afterUpdate", () => {
+  hotUpdateCounter += 1;
+});
+const markedStepStates = new WeakMap<HTMLElement, { revealedStep: number; hotUpdateCounter: number }>();
 
 export function useStepVisibility(
   slideElementReference: RefObject<HTMLElement | null>,
@@ -18,7 +24,10 @@ export function useStepVisibility(
   useLayoutEffect(() => {
     const slideElement = slideElementReference.current;
     if (slideElement === null) return;
-    reportStepCount(markReachedSteps(slideElement, revealedStep));
+    const markedState = markedStepStates.get(slideElement);
+    if (markedState?.revealedStep !== revealedStep || markedState.hotUpdateCounter !== hotUpdateCounter) {
+      reportStepCount(markReachedSteps(slideElement, revealedStep));
+    }
     slideElement.dispatchEvent(new Event(stepChangeEventName));
   });
 }
@@ -82,6 +91,7 @@ export function markReachedSteps(slideElement: HTMLElement, revealedStep: number
     stepElement.toggleAttribute("data-step-reached", Number(stepElement.dataset.stepIndex) <= revealedStep);
   }
   markArrivingSteps(slideElement, stepElements, revealedStep);
+  markedStepStates.set(slideElement, { revealedStep, hotUpdateCounter });
   return stepCount;
 }
 
