@@ -2,34 +2,36 @@ import { useRef, useState } from "react";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
 import { usePopoverClosing } from "../presentation-interface/popover-closing.ts";
 import { ToolbarButton } from "../presentation-interface/presentation-toolbar.tsx";
-import { isCompleteRemoteCode, normalizeTypedCode, type RemoteConnection } from "./remote-channel.ts";
+import { normalizeTypedCode, type RemoteConnection } from "./remote-channel.ts";
 
 type RemotePanelProperties = {
   languageCode: string;
-  hostingCode: string;
-  changeHostingCode: (hostingCode: string) => void;
+  panelCode: string;
+  changePanelCode: (panelCode: string) => void;
+  isRemoteMode: boolean;
   connectedRemoteCount: number;
   describeFollowedPosition: (slideIndex: number, stepIndex: number) => { slideText: string; stepText: string | undefined };
+  disconnectFromHostingScreen: () => void;
 } & RemoteConnection;
 
-// The same panel on both sides: the presenting screen shows its code, a phone on the same domain enters it and gets a remote.
+// One field is the whole panel: on the presenting screen it shows the code to type on the phone,
+// on the phone the same field is typed over with that code and this window becomes the remote.
 export function RemoteControlPanel({
   languageCode,
-  hostingCode,
-  changeHostingCode,
+  panelCode,
+  changePanelCode,
+  isRemoteMode,
   connectedRemoteCount,
   describeFollowedPosition,
   connectionStatus,
   followedSlideIndex,
   followedStepIndex,
   isFollowedPaused,
-  connectToHostingScreen,
   disconnectFromHostingScreen,
   sendRemoteCommand,
 }: RemotePanelProperties) {
   const interfaceTexts = pickInterfaceTexts(languageCode);
   const [isPanelOpen, setPanelOpen] = useState(false);
-  const [typedRemoteCode, setTypedRemoteCode] = useState("");
   const panelAnchorReference = useRef<HTMLDivElement>(null);
   usePopoverClosing(isPanelOpen, panelAnchorReference, () => setPanelOpen(false));
   const isRemoteConnected = connectionStatus === "connected";
@@ -41,32 +43,42 @@ export function RemoteControlPanel({
         <RemotePhoneIcon />
       </ToolbarButton>
       {isPanelOpen && (
-        <fieldset data-remote-panel aria-label={interfaceTexts.remoteButton}>
-          <section data-remote-section="hosting">
-            <h2 data-remote-heading>{interfaceTexts.remoteHostingTitle}</h2>
-            <p data-remote-hint>{interfaceTexts.remoteHostingHint}</p>
-            <input
-              data-remote-code
-              value={hostingCode}
-              onChange={(inputEvent) => changeHostingCode(normalizeTypedCode(inputEvent.target.value))}
-              inputMode="numeric"
-              autoComplete="off"
-              spellCheck={false}
-              aria-label={interfaceTexts.remoteCodeLabel}
-            />
-            <output data-remote-status>
-              {connectedRemoteCount === 0 ? interfaceTexts.remoteWaitingForRemotes : interfaceTexts.remoteRemotesConnected(connectedRemoteCount)}
+        <fieldset data-remote-panel data-remote-mode={isRemoteMode ? "remote" : "hosting"} aria-label={interfaceTexts.remoteButton}>
+          <input
+            data-remote-code
+            value={panelCode}
+            onChange={(inputEvent) => changePanelCode(normalizeTypedCode(inputEvent.target.value))}
+            inputMode="numeric"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="000000"
+            aria-label={interfaceTexts.remoteCodeLabel}
+          />
+          {!isRemoteMode && (
+            <>
+              <p data-remote-hint>{interfaceTexts.remoteHostingHint}</p>
+              <output data-remote-status>
+                {connectedRemoteCount === 0 ? interfaceTexts.remoteWaitingForRemotes : interfaceTexts.remoteRemotesConnected(connectedRemoteCount)}
+              </output>
+            </>
+          )}
+          {isRemoteMode && !isRemoteConnected && (
+            <output data-remote-status={connectionStatus === "unanswered" ? "unanswered" : undefined}>
+              {connectionStatus === "connecting"
+                ? interfaceTexts.remoteConnecting
+                : connectionStatus === "unanswered"
+                  ? interfaceTexts.remoteUnanswered
+                  : interfaceTexts.remoteClientHint}
             </output>
-          </section>
-          <span data-remote-divider />
-          {isRemoteConnected && followedPositionDescription !== undefined ? (
-            <section data-remote-section="client">
-              <h2 data-remote-heading>
-                {interfaceTexts.remoteConnectedMark}
+          )}
+          {isRemoteMode && isRemoteConnected && followedPositionDescription !== undefined && (
+            <>
+              <p data-remote-connection>
+                <output data-remote-status="connected">{interfaceTexts.remoteConnectedMark}</output>
                 <button type="button" data-remote-disconnect onClick={disconnectFromHostingScreen}>
                   {interfaceTexts.remoteDisconnectButton}
                 </button>
-              </h2>
+              </p>
               <p data-remote-position>{followedPositionDescription.slideText}</p>
               {followedPositionDescription.stepText !== undefined && <p data-remote-step>{followedPositionDescription.stepText}</p>}
               {isFollowedPaused && <output data-remote-status="paused">{interfaceTexts.remotePausedMark}</output>}
@@ -83,34 +95,7 @@ export function RemoteControlPanel({
               <button type="button" data-remote-pause onClick={() => sendRemoteCommand("pause")}>
                 {isFollowedPaused ? interfaceTexts.remoteResumeButton : interfaceTexts.remotePauseButton}
               </button>
-            </section>
-          ) : (
-            <section data-remote-section="client">
-              <h2 data-remote-heading>{interfaceTexts.remoteClientTitle}</h2>
-              <p data-remote-hint>{interfaceTexts.remoteClientHint}</p>
-              <input
-                data-remote-code
-                value={typedRemoteCode}
-                onChange={(inputEvent) => setTypedRemoteCode(normalizeTypedCode(inputEvent.target.value))}
-                onKeyDown={(keyboardEvent) => {
-                  if (keyboardEvent.key === "Enter" && isCompleteRemoteCode(typedRemoteCode)) connectToHostingScreen(typedRemoteCode);
-                }}
-                inputMode="numeric"
-                autoComplete="off"
-                spellCheck={false}
-                placeholder="000000"
-                aria-label={interfaceTexts.remoteCodeLabel}
-              />
-              {connectionStatus === "unanswered" && <output data-remote-status="unanswered">{interfaceTexts.remoteUnanswered}</output>}
-              <button
-                type="button"
-                data-remote-connect
-                disabled={!isCompleteRemoteCode(typedRemoteCode) || connectionStatus === "connecting"}
-                onClick={() => connectToHostingScreen(typedRemoteCode)}
-              >
-                {connectionStatus === "connecting" ? interfaceTexts.remoteConnecting : interfaceTexts.remoteConnectButton}
-              </button>
-            </section>
+            </>
           )}
         </fieldset>
       )}
