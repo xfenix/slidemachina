@@ -333,3 +333,49 @@ test("сборка: один HTML-файл листается без серве�
     await rm(outputFolder, { recursive: true, force: true });
   }
 });
+
+test("плавающий QR подгоняется при прямом открытии собранного файла", async ({ page }) => {
+  // QR грузится лениво за плейсхолдером: файл, открытый сразу на слайде с флоатом, всё равно должен дождаться кода и подогнать его.
+  test.setTimeout(90_000);
+  const talkFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-float-qr-"));
+  const outputFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-float-qr-build-"));
+  try {
+    await writeFile(
+      path.join(talkFolder, "index.tsx"),
+      `import * as Machina from "slidemachina";
+export default (
+  <Machina.Presentation lang="ru">
+    <Machina.Slide>
+      <h2>Первый</h2>
+    </Machina.Slide>
+    <Machina.Slide>
+      <h2>Последний</h2>
+      <Machina.QR value="https://example.com" float="left">
+        <figcaption>код</figcaption>
+      </Machina.QR>
+      <p>Текст обтекает код, открытие сразу на этом слайде подгоняет флоат.</p>
+    </Machina.Slide>
+  </Machina.Presentation>
+);
+`,
+    );
+    await runCommand(process.execPath, [commandLineScript, "build", talkFolder, "--html", "--out", outputFolder]);
+    const builtPage = (await readdir(outputFolder)).find((builtFile) => builtFile.endsWith(".html"))!;
+    await page.goto(`${pathToFileURL(path.join(outputFolder, builtPage)).href}#2`);
+    await page.waitForFunction(() => {
+      const currentSlide = document.querySelector("[data-canvas] > [data-slide][data-current]");
+      return currentSlide?.querySelector(":scope > [data-content] > [data-media-float]") !== null && currentSlide?.querySelector(":scope > [data-content] > [data-media-float]") !== undefined;
+    });
+    // Подгонка обязана случиться сразу за появлением кода, а не после случайного перерендера секунды спустя.
+    await page.waitForTimeout(300);
+    const fittedRoomHeight = await page.evaluate(() => {
+      const currentSlide = document.querySelector("[data-canvas] > [data-slide][data-current]");
+      const floatElement = currentSlide?.querySelector(":scope > [data-content] > [data-media-float]");
+      return floatElement?.style.getPropertyValue("--float-room-height") ?? null;
+    });
+    expect(fittedRoomHeight).not.toBe("");
+  } finally {
+    await rm(talkFolder, { recursive: true, force: true });
+    await rm(outputFolder, { recursive: true, force: true });
+  }
+});
