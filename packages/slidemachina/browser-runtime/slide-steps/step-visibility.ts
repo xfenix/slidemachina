@@ -73,7 +73,6 @@ function markArrivingSteps(slideElement: HTMLElement, stepElements: HTMLElement[
   }
 }
 
-// Returns the number of steps on the slide.
 export function markReachedSteps(slideElement: HTMLElement, revealedStep: number): number {
   markSequenceSteps(slideElement);
   markDefaultEffects(slideElement);

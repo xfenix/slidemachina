@@ -167,7 +167,7 @@ export function findRewordedPairs(
   return rewordedPairs;
 }
 
-// Paired text morphs word by word too: two snapshots of one line at different sizes or widths never line up and show it twice.
+// Paired text morphs word by word too: two snapshots of one line at different sizes or widths never line up, and the line would show twice.
 export function rewordPairedTexts(
   morphPairs: MorphPair[],
   isOutgoingStepReached?: StepReachedPredicate,

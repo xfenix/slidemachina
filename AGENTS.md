@@ -36,6 +36,9 @@ Keep folder nesting as shallow as possible.
 Remove an extra level if the logic and order of the project do not suffer.
 Code is clear without comments: names explain everything.
 Write a comment only when the code cannot be understood without it.
+A comment says why, never what: delete a comment that restates the line below it.
+One component does one thing: a component that renders two unrelated pieces of UI or keeps two unrelated states is two components, or a component plus a hook in its own module.
+Code is written in clear plain English: names, comments and user-facing texts use common words, no invented terms or abbreviations.
 
 Names are long and descriptive, at least 8 characters. This applies to everything: variables, functions, classes, files.
 No generic names like `data`, `user`, `item`, `result`.
@@ -43,6 +46,7 @@ A name says what is inside: not `data` but `parsedSlideMarkup`.
 Function names are always verbs.
 Constants, types and interfaces are grouped at the top of the file.
 Declarations of one kind go in a row without blank lines between them: constants, types, interfaces.
+Inside a component the blocks go in order: hook calls in one row, then event handlers and callbacks in one row, then the returned JSX. No blank lines inside a block, exactly one blank line between blocks.
 Magic numbers are forbidden: always use constants with meaningful names.
 
 ## Tests
