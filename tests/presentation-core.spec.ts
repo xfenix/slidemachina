@@ -15,6 +15,9 @@ const chartAnimationDuration = 60_000;
 const chartAlignmentTolerance = 2;
 const chartAuthorAxisWidth = 88;
 const minimumChartLabelGap = 8;
+const balancedListWidthShare = 0.75;
+const minimumBalancedLineRatio = 0.7;
+const maximumUnbalancedLineRatio = 0.6;
 
 async function editFileWhile(filePath: string, editText: (originalText: string) => string, checkEditedPage: () => Promise<void>) {
   const originalText = await readFile(filePath, "utf8");
@@ -937,6 +940,72 @@ test("демо листается, показывает шаги и навига
     });
     expect(pageErrors).toEqual([]);
   });
+});
+
+test("строки списков сбалансированы, типограф и ручные переносы сохранены", async ({ page }) => {
+  await page.goto("/");
+  await editFileWhile(
+    demoPresentationFile,
+    (originalPresentation) => originalPresentation.replace(
+      "    <Machina.Slide hidden>",
+      `    <Machina.Slide>
+      <h2>Переносы списков</h2>
+      <ul><li data-balanced-bullet>Сетевики закупают серверы для обхода ограничений: больше адресов для всех подписок</li></ul>
+      <ol><li data-balanced-bullet>Сетевики закупают серверы для обхода ограничений: больше адресов для всех подписок</li></ol>
+      <ul><li data-manual-break>«Переходим в прод»<br />после проверки</li></ul>
+    </Machina.Slide>
+    <Machina.Slide hidden>`,
+    ),
+    async () => {
+      await expect(page.locator("[data-canvas] h2").filter({ hasText: "Переносы списков" })).toHaveCount(1);
+      await jumpToHeading(page, "Переносы списков");
+      await page.evaluate(() => document.fonts.ready);
+      for (const listBullet of await currentSlide(page).locator("[data-balanced-bullet]").all()) {
+        const lineMeasurements = await listBullet.evaluate((bulletElement, widthShare) => {
+          const measureLineWidths = () => {
+            const lineEdges = new Map<number, { left: number; right: number }>();
+            const textWalker = document.createTreeWalker(bulletElement, NodeFilter.SHOW_TEXT);
+            while (textWalker.nextNode()) {
+              const textRange = document.createRange();
+              textRange.selectNodeContents(textWalker.currentNode);
+              for (const textBounds of textRange.getClientRects()) {
+                if (textBounds.width === 0) continue;
+                const linePosition = Math.round(textBounds.top);
+                const previousEdges = lineEdges.get(linePosition);
+                lineEdges.set(linePosition, {
+                  left: Math.min(previousEdges?.left ?? textBounds.left, textBounds.left),
+                  right: Math.max(previousEdges?.right ?? textBounds.right, textBounds.right),
+                });
+              }
+            }
+            return [...lineEdges.values()].map((lineEdges) => lineEdges.right - lineEdges.left);
+          };
+          const canvasElement = bulletElement.closest<HTMLElement>("[data-canvas]")!;
+          const canvasScale = canvasElement.getBoundingClientRect().width / canvasElement.offsetWidth;
+          bulletElement.style.whiteSpace = "nowrap";
+          const fullTextWidth = Math.max(...measureLineWidths()) / canvasScale;
+          const bulletPadding = parseFloat(getComputedStyle(bulletElement).paddingLeft);
+          bulletElement.style.width = fullTextWidth * widthShare + bulletPadding + "px";
+          bulletElement.style.removeProperty("white-space");
+          const balancedWidths = measureLineWidths();
+          const originalText = bulletElement.textContent;
+          bulletElement.style.textWrap = "wrap";
+          const unbalancedWidths = measureLineWidths();
+          bulletElement.style.removeProperty("text-wrap");
+          return { balancedWidths, unbalancedWidths, originalText, finalText: bulletElement.textContent };
+        }, balancedListWidthShare);
+        expect(lineMeasurements.balancedWidths).toHaveLength(2);
+        expect(Math.min(...lineMeasurements.balancedWidths) / Math.max(...lineMeasurements.balancedWidths)).toBeGreaterThan(minimumBalancedLineRatio);
+        expect(Math.min(...lineMeasurements.unbalancedWidths) / Math.max(...lineMeasurements.unbalancedWidths)).toBeLessThan(maximumUnbalancedLineRatio);
+        expect(lineMeasurements.finalText).toBe(lineMeasurements.originalText);
+      }
+      const manualBreakBullet = currentSlide(page).locator("[data-manual-break]");
+      expect(await manualBreakBullet.textContent()).toContain("в\u00a0прод");
+      await expect(manualBreakBullet.locator("br")).toHaveCount(1);
+      await expect(manualBreakBullet).toHaveCSS("hyphens", "auto");
+      await expect(currentSlide(page).locator("h2")).toHaveCSS("hyphens", "manual");
+    },
+  );
 });
 
 test("графики Recharts используют тему слайда, сохраняют цвета автора и готовы к печати", async ({ page }) => {
