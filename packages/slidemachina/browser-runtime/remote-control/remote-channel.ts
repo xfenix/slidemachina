@@ -21,8 +21,6 @@ export type RemoteConnection = {
   followedSlideIndex: number | undefined;
   followedStepIndex: number;
   isFollowedPaused: boolean;
-  connectToHostingScreen: (remoteCode: string) => void;
-  disconnectFromHostingScreen: () => void;
   sendRemoteCommand: (slideCommand: SlideCommand) => void;
 };
 
@@ -109,38 +107,46 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
   return { connectedRemoteCount };
 }
 
-// A phone or a second laptop joins the channel of a code and drives the window that hosts it.
-export function useRemoteConnection(): RemoteConnection {
+// A phone or a second laptop joins the channel of the target code and drives the window that hosts it.
+// The target comes from the panel field: the hook reacts to it, there is no connect button.
+export function useRemoteConnection(targetCode: string | undefined): RemoteConnection {
   const clientChannelReference = useRef<BroadcastChannel | undefined>(undefined);
-  const [requestedCode, setRequestedCode] = useState<string | undefined>(undefined);
-  const [connectionStatus, setConnectionStatus] = useState<RemoteConnectionStatus>("idle");
-  const [followedPosition, setFollowedPosition] = useState<{ slidePosition: PresentationPosition; isPaused: boolean } | undefined>(undefined);
+  const [connectionReport, setConnectionReport] = useState<
+    { targetCode: string; connectionStatus: Exclude<RemoteConnectionStatus, "idle">; followedPosition: { slidePosition: PresentationPosition; isPaused: boolean } | undefined } | undefined
+  >(undefined);
+  const isReportCurrent = connectionReport !== undefined && connectionReport.targetCode === targetCode;
+  const connectionStatus: RemoteConnectionStatus = targetCode === undefined ? "idle" : isReportCurrent ? connectionReport.connectionStatus : "connecting";
+  const followedPosition = isReportCurrent ? connectionReport.followedPosition : undefined;
 
   useEffect(() => {
-    if (requestedCode === undefined) return;
-    const clientChannel = new BroadcastChannel(nameRemoteChannel(requestedCode));
+    if (targetCode === undefined) return;
+    const clientChannel = new BroadcastChannel(nameRemoteChannel(targetCode));
     clientChannelReference.current = clientChannel;
     const receiveClientMessage = (channelMessage: RemoteChannelMessage) => {
       if (channelMessage.messageKind !== "welcome" && channelMessage.messageKind !== "position") return;
       clearTimeout(answerTimeout);
-      setConnectionStatus("connected");
-      setFollowedPosition({ slidePosition: channelMessage.slidePosition, isPaused: channelMessage.isPaused });
+      setConnectionReport({
+        targetCode,
+        connectionStatus: "connected",
+        followedPosition: { slidePosition: channelMessage.slidePosition, isPaused: channelMessage.isPaused },
+      });
     };
     clientChannel.addEventListener("message", (messageEvent: MessageEvent<RemoteChannelMessage>) => receiveClientMessage(messageEvent.data));
     clientChannel.postMessage({ messageKind: "greeting" } satisfies RemoteChannelMessage);
     const answerTimeout = setTimeout(() => {
       if (clientChannelReference.current === clientChannel) {
         clientChannelReference.current = undefined;
-        setConnectionStatus("unanswered");
-        setRequestedCode(undefined);
+        clientChannel.close();
+        setConnectionReport({ targetCode, connectionStatus: "unanswered", followedPosition: undefined });
       }
     }, connectionAnswerTimeoutMs);
     return () => {
       clearTimeout(answerTimeout);
+      clientChannel.postMessage({ messageKind: "farewell" } satisfies RemoteChannelMessage);
       clientChannel.close();
       if (clientChannelReference.current === clientChannel) clientChannelReference.current = undefined;
     };
-  }, [requestedCode]);
+  }, [targetCode]);
 
   // A farewell keeps the host counter honest when the remote page closes without disconnecting.
   useEffect(() => {
@@ -149,17 +155,6 @@ export function useRemoteConnection(): RemoteConnection {
     return () => window.removeEventListener("pagehide", sayFarewellOnLeaving);
   }, []);
 
-  const connectToHostingScreen = (remoteCode: string) => {
-    setConnectionStatus("connecting");
-    setFollowedPosition(undefined);
-    setRequestedCode(remoteCode);
-  };
-  const disconnectFromHostingScreen = () => {
-    clientChannelReference.current?.postMessage({ messageKind: "farewell" } satisfies RemoteChannelMessage);
-    setConnectionStatus("idle");
-    setFollowedPosition(undefined);
-    setRequestedCode(undefined);
-  };
   const sendRemoteCommand = (slideCommand: SlideCommand) => {
     if (connectionStatus !== "connected") return;
     clientChannelReference.current?.postMessage({ messageKind: "command", slideCommand } satisfies RemoteChannelMessage);
@@ -170,8 +165,6 @@ export function useRemoteConnection(): RemoteConnection {
     followedSlideIndex: followedPosition?.slidePosition.slideIndex,
     followedStepIndex: followedPosition?.slidePosition.stepIndex ?? 0,
     isFollowedPaused: followedPosition?.isPaused ?? false,
-    connectToHostingScreen,
-    disconnectFromHostingScreen,
     sendRemoteCommand,
   };
 }

@@ -24,17 +24,15 @@
     animation: slidemachina-menu-in 0.16s var(--step-easing);
   }
 
-  [data-remote-section] {
-    display: grid;
-    gap: 10px;
-  }
-
-  [data-remote-heading] {
+  [data-remote-connection] {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     margin: 0;
+  }
+
+  [data-remote-status="connected"] {
     color: #fff;
     font-size: 15px;
     line-height: 20px;
@@ -84,11 +82,6 @@
     color: #ff9d8a;
   }
 
-  [data-remote-divider] {
-    height: 1px;
-    background: rgb(255 255 255 / 0.08);
-  }
-
   [data-remote-position] {
     margin: 0;
     color: #fff;
@@ -110,7 +103,7 @@
     gap: 10px;
   }
 
-  [data-remote-panel] :is([data-remote-move], [data-remote-pause], [data-remote-connect], [data-remote-disconnect]) {
+  [data-remote-panel] :is([data-remote-move], [data-remote-pause], [data-remote-disconnect]) {
     all: unset;
     box-sizing: border-box;
     display: flex;
@@ -129,11 +122,11 @@
     transition: background-color 0.2s;
   }
 
-  [data-remote-panel] :is([data-remote-move], [data-remote-pause], [data-remote-connect]):hover {
+  [data-remote-panel] :is([data-remote-move], [data-remote-pause]):hover {
     background: rgb(255 255 255 / 0.18);
   }
 
-  [data-remote-panel] :is([data-remote-move], [data-remote-pause], [data-remote-connect], [data-remote-disconnect]):focus-visible {
+  [data-remote-panel] :is([data-remote-move], [data-remote-pause], [data-remote-disconnect]):focus-visible {
     outline: var(--interface-focus-ring-width) solid var(--accent-color-on-dark);
     outline-offset: calc(-1 * var(--interface-focus-ring-width));
   }
@@ -150,24 +143,6 @@
 
   [data-remote-pause]:hover {
     background: rgb(255 255 255 / 0.08);
-  }
-
-  [data-remote-connect] {
-    background: var(--accent-color-on-dark);
-    color: var(--dark-background);
-  }
-
-  [data-remote-connect]:hover {
-    background: color-mix(in srgb, var(--accent-color-on-dark) 85%, #fff);
-  }
-
-  [data-remote-connect]:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-
-  [data-remote-connect]:disabled:hover {
-    background: var(--accent-color-on-dark);
   }
 
   /* Disconnect is a quiet text button next to the connected state. */

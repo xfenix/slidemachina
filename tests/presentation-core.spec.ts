@@ -1154,25 +1154,29 @@ test("графики Recharts используют тему слайда, сох
 });
 
 
-test("пульт с телефона: экран показывает код, телефон на том же домене подключается по коду и листает", async ({ page, context }) => {
+test("пульт с телефона: экран показывает код, телефон на том же домене вводит его вместо своего и листает", async ({ page, context }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
 
   await page.getByRole("button", { name: "Пульт с телефона" }).click();
-  const hostingCode = await page.locator('[data-remote-section="hosting"] [data-remote-code]').inputValue();
+  const hostingCode = await page.locator("[data-remote-code]").inputValue();
   expect(hostingCode, "код шесть цифр").toMatch(/^\d{6}$/);
-  await expect(page.locator('[data-remote-section="hosting"] [data-remote-status]')).toContainText("Ожидает подключения телефона");
+  await expect(page.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "hosting");
+  await expect(page.locator("[data-remote-status]")).toContainText("Ожидает подключения телефона");
 
   // The phone opens the same address: one origin, so BroadcastChannel reaches the presenting screen.
+  // Typing the presenter's code over its own makes the phone a remote, with no connect button.
   const phonePage = await context.newPage();
   await phonePage.setViewportSize({ width: 390, height: 844 });
   await phonePage.goto("/");
   await phonePage.getByRole("button", { name: "Пульт с телефона" }).click();
-  await phonePage.locator('[data-remote-section="client"] [data-remote-code]').fill(hostingCode);
-  await phonePage.locator("[data-remote-connect]").click();
+  const ownPhoneCode = await phonePage.locator("[data-remote-code]").inputValue();
+  expect(ownPhoneCode, "у телефона свой код").not.toBe(hostingCode);
+  await phonePage.locator("[data-remote-code]").fill(hostingCode);
+  await expect(phonePage.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "remote");
   await expect(phonePage.locator("[data-remote-position]")).toContainText("Слайд 1 из");
-  await expect(page.locator('[data-remote-section="hosting"] [data-remote-status]')).toContainText("Подключено 1 устройство");
+  await expect(page.locator("[data-remote-status]")).toContainText("Подключено 1 устройство");
 
   await phonePage.locator('[data-remote-move="forward"]').click();
   await expect(page).toHaveURL(/#2$/);
@@ -1187,10 +1191,11 @@ test("пульт с телефона: экран показывает код, т
   await phonePage.locator("[data-remote-pause]").click();
   await expect(page.locator("[data-pause-screen]")).toHaveCount(0);
 
-  // A code nobody hosts is reported, not waited on forever.
+  // Disconnecting gives the field back to the phone's own code; a code nobody hosts is reported, not waited on forever.
   await phonePage.locator("[data-remote-disconnect]").click();
-  await phonePage.locator('[data-remote-section="client"] [data-remote-code]').fill(hostingCode === "999999" ? "999998" : "999999");
-  await phonePage.locator("[data-remote-connect]").click();
+  await expect(phonePage.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "hosting");
+  await expect(phonePage.locator("[data-remote-code]")).toHaveValue(ownPhoneCode);
+  await phonePage.locator("[data-remote-code]").fill(hostingCode === "999999" ? "999998" : "999999");
   await expect(phonePage.locator('[data-remote-status="unanswered"]')).toContainText("Никто не ответил на код");
   await phonePage.close();
 });
