@@ -1083,3 +1083,45 @@ test("графики Recharts используют тему слайда, сох
     expect(sliceColors, "цвет серии действует на ячейки без своего цвета").toEqual(["rgb(255, 0, 0)", "rgb(0, 0, 255)"]);
   });
 });
+
+
+test("пульт с телефона: экран показывает код, телефон на том же домене подключается по коду и листает", async ({ page, context }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Пульт с телефона" }).click();
+  const hostingCode = await page.locator('[data-remote-section="hosting"] [data-remote-code]').inputValue();
+  expect(hostingCode, "код шесть цифр").toMatch(/^\d{6}$/);
+  await expect(page.locator('[data-remote-section="hosting"] [data-remote-status]')).toContainText("Ожидает подключения телефона");
+
+  // The phone opens the same address: one origin, so BroadcastChannel reaches the presenting screen.
+  const phonePage = await context.newPage();
+  await phonePage.setViewportSize({ width: 390, height: 844 });
+  await phonePage.goto("/");
+  await phonePage.getByRole("button", { name: "Пульт с телефона" }).click();
+  await phonePage.locator('[data-remote-section="client"] [data-remote-code]').fill(hostingCode);
+  await phonePage.locator("[data-remote-connect]").click();
+  await expect(phonePage.locator("[data-remote-position]")).toContainText("Слайд 1 из");
+  await expect(page.locator('[data-remote-section="hosting"] [data-remote-status]')).toContainText("Подключено 1 устройство");
+
+  await phonePage.locator('[data-remote-move="forward"]').click();
+  await expect(page).toHaveURL(/#2$/);
+  await expect(phonePage.locator("[data-remote-position]")).toContainText("Слайд 2 из");
+  await phonePage.locator('[data-remote-move="backward"]').click();
+  await expect(page).toHaveURL(/#1$/);
+
+  await phonePage.locator("[data-remote-pause]").click();
+  await expect(page.locator("[data-pause-screen]")).toBeVisible();
+  await expect(phonePage.locator("[data-remote-pause]")).toContainText("Вернуться к слайду");
+  await expect(phonePage.locator('[data-remote-status="paused"]')).toContainText("Зал видит чёрный экран");
+  await phonePage.locator("[data-remote-pause]").click();
+  await expect(page.locator("[data-pause-screen]")).toHaveCount(0);
+
+  // A code nobody hosts is reported, not waited on forever.
+  await phonePage.locator("[data-remote-disconnect]").click();
+  await phonePage.locator('[data-remote-section="client"] [data-remote-code]').fill(hostingCode === "999999" ? "999998" : "999999");
+  await phonePage.locator("[data-remote-connect]").click();
+  await expect(phonePage.locator('[data-remote-status="unanswered"]')).toContainText("Никто не ответил на код");
+  await phonePage.close();
+});

@@ -162,6 +162,7 @@ Line, bar, pie and other Recharts charts show numeric data. Wrap a chart in `<Ma
 ### For the speaker
 
 - The presenter window opens with <kbd>P</kbd>: the current slide, the next step, notes for each step in large type, a timer, a clock and how far ahead or behind you are. Either window can turn the slides, and it also works in an HTML file opened from disk.
+- A phone becomes a remote: the phone button on the control panel shows a six-digit code, the phone opens the same address, enters the code in the same panel and gets big Back and Next buttons, a black screen toggle and the current slide and step. Works over BroadcastChannel on the same domain, no server and no install.
 - The slide overview opens with <kbd>Esc</kbd>. There is also a jump by number, a pause with a black screen, full screen and a progress bar.
 - Hidden slides are skipped on stage and kept in print, PDF and PowerPoint. Put the details and theses for the copy you send after the talk there, and answers to audience questions.
 - Keys work in the Russian layout too, and on a phone a swipe or a tap turns the slide.
