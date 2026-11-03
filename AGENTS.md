@@ -44,10 +44,20 @@ Names are long and descriptive, at least 8 characters. This applies to everythin
 No generic names like `data`, `user`, `item`, `result`.
 A name says what is inside: not `data` but `parsedSlideMarkup`.
 Function names are always verbs.
-Constants, types and interfaces are grouped at the top of the file.
-Declarations of one kind go in a row without blank lines between them: constants, types, interfaces.
-Inside a component the blocks go in order: hook calls in one row, then event handlers and callbacks in one row, then the returned JSX. No blank lines inside a block, exactly one blank line between blocks.
 Magic numbers are forbidden: always use constants with meaningful names.
+
+## File structure
+
+Every file keeps one straight order of groups, top to bottom, and a group never comes back:
+
+1. Imports.
+2. Constants, types and interfaces of the module: constants in one row, types and interfaces in one row, no blank lines inside a row.
+3. The main component, hook or function the file is named after.
+4. Local helpers: the non-exported functions the main one uses, in the order they are read.
+
+A constant, a type or an interface is never declared below a function. A file that needs a value in a group above the one being written gets the value from the group that already exists, not the other way around.
+
+Inside a component the same straight order applies: hook calls in one block — a later hook may be preceded only by the plain callbacks it takes as arguments or uses inside — then derived values and event handlers in one block, then the returned JSX. Destructuring the properties belongs to the signature, not to a block. No blank lines inside a block, exactly one blank line between blocks.
 
 ## Tests
 

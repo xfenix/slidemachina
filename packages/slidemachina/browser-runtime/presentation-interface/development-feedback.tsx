@@ -12,6 +12,8 @@ const AgentationToolbar = lazy(() =>
 );
 
 const feedbackHostClass = "slidemachina-feedback";
+// Without its server Agentation would retry on every slide change; the dev server is asked once, then notes stay in the browser.
+let feedbackServerCheck: Promise<boolean> | undefined;
 // Agentation keeps its button in an open shadow root; these rules make it look like the other toolbar buttons.
 const feedbackButtonStyles = `
   [class*="toolbarContainer"][class*="collapsed"] { background: transparent; box-shadow: none; }
@@ -42,9 +44,6 @@ function styleFeedbackButton(): () => void {
   });
   return () => cancelAnimationFrame(waitingFrame);
 }
-
-// Without its server Agentation would retry on every slide change; the dev server is asked once, then notes stay in the browser.
-let feedbackServerCheck: Promise<boolean> | undefined;
 
 function checkFeedbackServer() {
   feedbackServerCheck ??= fetch("/@slidemachina/feedback-server")

@@ -14,6 +14,8 @@ export type InsertedSlide = {
 };
 
 const jsxTextEscapes: Record<string, string> = { "{": "&#123;", "}": "&#125;", "<": "&lt;", ">": "&gt;" };
+export type ListItemAction = "add" | "remove" | "earlier" | "later";
+const listContainerNames = new Set(["ul", "ol"]);
 
 // The code names what went wrong; the page shows it in the presentation's language.
 export class SourceEditProblem extends Error {
@@ -230,9 +232,6 @@ export function copyOrRemoveSlide(sourceCode: string, filePath: string, slidePla
   editedSource.remove(rangeStart, rangeEnd + followingBlank.length);
   return editedSource.toString();
 }
-
-export type ListItemAction = "add" | "remove" | "earlier" | "later";
-const listContainerNames = new Set(["ul", "ol"]);
 
 // The new item follows the shown one; a moved item trades places with its neighbour in the list.
 export function changeListItem(sourceCode: string, filePath: string, sourcePlace: SourcePlace, listItemAction: ListItemAction, newItemText: string): string {

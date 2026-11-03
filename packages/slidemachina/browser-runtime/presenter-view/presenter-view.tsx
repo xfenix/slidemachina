@@ -75,7 +75,6 @@ export function PresenterView({
   isAudiencePaused,
   steerSlides,
 }: PresenterViewProperties) {
-  const interfaceTexts = pickInterfaceTexts(languageCode);
   const { slideIndex, stepIndex } = currentPosition;
   const { slideAddresses, shownNumbers, shownSlideIndexes } = slideNumbering;
   const isHiddenSlide = slideNumbering.hiddenFlags[slideIndex] === true;
@@ -88,7 +87,21 @@ export function PresenterView({
     // oxlint-disable-next-line react/set-state-in-effect -- step counts arrive in a ref from the mounted copy
     setCurrentStepCount(countSteps(slideIndex));
   }, [countSteps, slideIndex, stepIndex]);
+  useEffect(() => {
+    notesReference.current?.scrollTo({ top: 0 });
+  }, [slideIndex]);
+  // The leading note follows the shown step; the view scrolls to it when the step or the slide changes.
+  useEffect(() => {
+    notesReference.current?.querySelector("[data-note-leading]")?.scrollIntoView({ block: "nearest" });
+  }, [slideIndex, stepIndex, slideNotes]);
+  useWindowKeydown((keyboardEvent) => {
+    if (keyboardEvent.code === "Equal" || keyboardEvent.code === "NumpadAdd") enlargeNotes();
+    else if (keyboardEvent.code === "Minus" || keyboardEvent.code === "NumpadSubtract") shrinkNotes();
+    else return false;
+    return true;
+  }, true);
 
+  const interfaceTexts = pickInterfaceTexts(languageCode);
   const hasNextStep = stepIndex < currentStepCount;
   const nextSlideIndex = findNeighbourSlide(slideNumbering, slideIndex, 1);
   const nextLabel = hasNextStep
@@ -99,20 +112,6 @@ export function PresenterView({
   // The latest note whose step is shown leads; notes for later steps wait dimmed.
   const leadingNoteStep = Math.max(0, ...slideNotes.map((slideNote) => slideNote.noteStep).filter((noteStep) => noteStep <= stepIndex));
   const marksLeadingNote = slideNotes.some((slideNote) => slideNote.noteStep > 0);
-
-  useEffect(() => {
-    notesReference.current?.scrollTo({ top: 0 });
-  }, [slideIndex]);
-  useEffect(() => {
-    notesReference.current?.querySelector("[data-note-leading]")?.scrollIntoView({ block: "nearest" });
-  }, [slideIndex, leadingNoteStep]);
-
-  useWindowKeydown((keyboardEvent) => {
-    if (keyboardEvent.code === "Equal" || keyboardEvent.code === "NumpadAdd") enlargeNotes();
-    else if (keyboardEvent.code === "Minus" || keyboardEvent.code === "NumpadSubtract") shrinkNotes();
-    else return false;
-    return true;
-  }, true);
 
   return (
     <div data-presenter-view style={canvasStyle}>

@@ -3,6 +3,10 @@ const wordPattern = /[^\s.,:;!?…«»()"]+(?:[.,:][^\s.,:;!?…«»()"]+)*|[.,:
 // Steps a transition can treat as reached without touching the DOM: the arrival step is applied only when the transition runs.
 export type StepReachedPredicate = (stepElement: HTMLElement) => boolean;
 const unreachedStepSelector = "[data-step]:not([data-step-reached])";
+export type WordMatch = {
+  outgoingWordPosition: number;
+  incomingWordPosition: number;
+};
 
 // The nearest step ancestor (or the element itself) that the predicate keeps unreached; the live-DOM path matches it with one native closest call.
 export function findUnreachedStepAncestor(walkedElement: HTMLElement, isStepReached: StepReachedPredicate): HTMLElement | null {
@@ -13,11 +17,6 @@ export function findUnreachedStepAncestor(walkedElement: HTMLElement, isStepReac
   }
   return null;
 }
-
-export type WordMatch = {
-  outgoingWordPosition: number;
-  incomingWordPosition: number;
-};
 
 function listVisibleTextNodes(textElement: HTMLElement, isStepReached?: StepReachedPredicate): Text[] {
   const textWalker = document.createTreeWalker(textElement, NodeFilter.SHOW_TEXT);

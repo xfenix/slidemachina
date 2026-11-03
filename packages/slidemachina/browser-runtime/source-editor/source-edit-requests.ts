@@ -2,6 +2,8 @@ import { sourceEditEndpoint } from "../../shared-between-runtimes/engine-constan
 import type { MemeKind } from "../../shared-between-runtimes/meme-template.js";
 
 const longestUpdateWait = 4000;
+// One edit at a time: the next one leaves after the page runs the file the previous one wrote, so it sends that version.
+let editQueue: Promise<unknown> = Promise.resolve();
 
 declare global {
   interface Window {
@@ -45,8 +47,6 @@ function waitForSourceUpdate(sourceFile: string, previousVersion: string | undef
     checkVersion();
   });
 }
-
-let editQueue: Promise<unknown> = Promise.resolve();
 
 // One edit at a time: the next one leaves after the page runs the file the previous one wrote, so it sends that version.
 export function sendSourceEdit(editRequest: SourceEditRequest) {
