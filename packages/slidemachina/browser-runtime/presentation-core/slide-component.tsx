@@ -65,15 +65,15 @@ export function Slide({
   const slideElementReference = useRef<HTMLElement>(null);
   const detectedTone = useBackgroundTone(slideElementReference, background, className);
   useStepVisibility(slideElementReference, slideEnvironment.revealedStep, slideEnvironment.reportStepCount);
-  const { isSlideDistant } = slideEnvironment;
-  useBigNumberFitting(slideElementReference, children, isSlideDistant);
-  useFloatFitting(slideElementReference, children, isSlideDistant);
-  useSourceWidthFitting(slideElementReference, children, isSlideDistant);
-  useBottomBandRoom(slideElementReference, children, isSlideDistant);
+  useBigNumberFitting(slideElementReference, children, slideEnvironment.isSlideDistant);
+  useFloatFitting(slideElementReference, children, slideEnvironment.isSlideDistant);
+  useSourceWidthFitting(slideElementReference, children, slideEnvironment.isSlideDistant);
+  useBottomBandRoom(slideElementReference, children, slideEnvironment.isSlideDistant);
   useSlideCallbacks(slideEnvironment.isCurrentSlide, onEnter, onLeave);
+  useLetterboxBackground(slideElementReference, slideEnvironment.isCurrentSlide, tone ?? detectedTone, readBackgroundAddress(background));
 
+  const { isSlideDistant } = slideEnvironment;
   const slideTone = tone ?? detectedTone;
-  useLetterboxBackground(slideElementReference, slideEnvironment.isCurrentSlide, slideTone, readBackgroundAddress(background));
   const slideAlign = align ?? (cover ? "center" : presentationSettings.align);
   const breadcrumbTrail = typeof breadcrumbs === "string" ? [breadcrumbs] : slideEnvironment.sectionTrail;
   const presentationLogo = presentationSettings.logo;

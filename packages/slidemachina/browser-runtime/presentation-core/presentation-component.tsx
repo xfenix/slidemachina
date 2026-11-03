@@ -32,7 +32,7 @@ import { scheduleAdjacentTransitionPrecaching } from "../slide-transitions/trans
 import { useTouchControls } from "../slide-navigation/touch-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
 import { usePresenterSync, type SlideCommand } from "../presenter-view/presenter-channel.ts";
-import { readStoredHostingCode, storeHostingCode, useRemoteConnection, useRemoteHosting } from "../remote-control/remote-channel.ts";
+import { useRemoteControlHosting } from "../remote-control/remote-control-hosting.ts";
 import { RemoteControlPanel } from "../remote-control/remote-panel.tsx";
 import { useCustomFavicon } from "./custom-favicon.ts";
 import { useEverySlideAfterFirstFrame } from "./slide-deferring.ts";
@@ -40,7 +40,6 @@ import { isPresenterWindow, openPresenterWindow, PresenterWindowSwitch } from ".
 
 // Only the presenter window runs this code: the audience never loads it.
 const PresenterView = lazy(() => import("../presenter-view/presenter-view.tsx").then((presenterModule) => ({ default: presenterModule.PresenterView })));
-
 // The list of a repository shows /talk/?cover in a frame, and the build photographs it: the first slide alone, every step shown.
 const isCoverPreview = new URLSearchParams(location.search).has("cover");
 // A slide two slides away or closer starts its heavy parts.
@@ -120,11 +119,6 @@ export function Presentation({
   const isCanvasResizing = useCanvasResizing({ canvasWidth, canvasHeight });
   const [isPaused, setPaused] = useState(false);
   const { isToolbarHidden, toggleToolbar } = useToolbarHiding();
-  const switchNavigator = (opensNavigator: boolean, chosenSlideIndex?: number) =>
-    runNavigatorTransition(() => {
-      if (chosenSlideIndex !== undefined) slideNavigation.jumpToSlide(chosenSlideIndex);
-      setNavigatorOpen(opensNavigator);
-    }, chosenSlideIndex ?? currentPosition.slideIndex);
   const presentationSettings: PresentationSettings = useMemo(
     () => ({ align, logo, lang, transition, speed, stepEffect }),
     [align, logo, lang, transition, speed, stepEffect],
@@ -139,11 +133,9 @@ export function Presentation({
     if (isCoverPreview || isPrintView || isPresenterWindow) return;
     return scheduleAdjacentTransitionPrecaching(currentPosition.slideIndex, (slideIndex) => stepCountsReference.current[slideIndex] ?? 0, slideNumbering);
   }, [currentPosition.slideIndex, isPrintView, slideNumbering]);
-
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
-
   const reportPosition = useEffectEvent((slideIndex: number, stepIndex: number) => onChange?.({ slide: shownNumbers[slideIndex] ?? slideIndex + 1, step: stepIndex }));
   useEffect(() => {
     if (!isCoverPreview && !isPresenterWindow) reportPosition(currentPosition.slideIndex, currentPosition.stepIndex);
@@ -158,6 +150,12 @@ export function Presentation({
     else if (slideCommand === "backward") unlessPaused(slideNavigation.goBackward)();
     else unlessPaused(slideNavigation.goToSlide)(slideCommand);
   };
+  const switchNavigator = (opensNavigator: boolean, chosenSlideIndex?: number) =>
+    runNavigatorTransition(() => {
+      if (chosenSlideIndex !== undefined) slideNavigation.jumpToSlide(chosenSlideIndex);
+      setNavigatorOpen(opensNavigator);
+    }, chosenSlideIndex ?? currentPosition.slideIndex);
+
   const { isAudienceConnected, steerSlides } = usePresenterSync({
     windowRole: isPresenterWindow ? "presenter" : isPrintView || isCoverPreview ? "alone" : "audience",
     currentPosition,
@@ -169,28 +167,15 @@ export function Presentation({
     },
   });
   const typedSlideNumber = useTypedSlideNumber((slideNumber) => steerSlides(findShownSlide(slideNumbering, slideNumber)));
-  // The slides window hosts a code from the panel; a phone on the same domain enters it and sends commands to this channel.
-  const [hostingCode, setHostingCode] = useState(readStoredHostingCode);
-  useEffect(() => {
-    storeHostingCode(hostingCode);
-  }, [hostingCode]);
-  const { connectedRemoteCount } = useRemoteHosting({
+  const remoteHosting = useRemoteControlHosting({
     isHostingAvailable: !isPresenterWindow && !isPrintView && !isCoverPreview,
-    hostingCode,
     currentPosition,
     isPaused,
     runSlideCommand,
+    languageCode: lang,
+    slideNumbering,
+    countSlideSteps: (slideIndex) => stepCountsReference.current[slideIndex] ?? 0,
   });
-  const remoteConnection = useRemoteConnection();
-  const describeFollowedPosition = (followedSlideIndex: number, followedStepIndex: number) => {
-    const remoteInterfaceTexts = pickInterfaceTexts(lang);
-    const shownSlideNumber = slideNumbering.shownNumbers[followedSlideIndex] ?? followedSlideIndex + 1;
-    const followedStepCount = stepCountsReference.current[followedSlideIndex] ?? 0;
-    return {
-      slideText: remoteInterfaceTexts.presenterSlideCounter(shownSlideNumber, slideNumbering.shownSlideIndexes.length),
-      stepText: followedStepCount > 0 ? remoteInterfaceTexts.presenterStepCounter(followedStepIndex, followedStepCount) : undefined,
-    };
-  };
   useKeyboardControls(
     {
       goForward: () => steerSlides("forward"),
@@ -226,7 +211,6 @@ export function Presentation({
       </SlideEnvironmentContext>
     );
   };
-
   const canvasStyle = {
     "--format-width": formatWidth,
     "--format-height": formatHeight,
@@ -258,7 +242,6 @@ export function Presentation({
       </Suspense>
     );
   }
-
   if (isCoverPreview) {
     return (
       <div data-presentation data-cover-preview style={canvasStyle}>
@@ -266,7 +249,6 @@ export function Presentation({
       </div>
     );
   }
-
   return (
     <div data-presentation data-print-view={isPrintView || undefined} data-toolbar-under-canvas={hasRoomUnderCanvas || undefined} style={canvasStyle}>
       {pageTitle !== undefined && pageTitle !== "" && <title>{pageTitle}</title>}
@@ -324,14 +306,7 @@ export function Presentation({
         toggleFullscreen={toggleFullscreen}
       >
         <PresenterWindowSwitch languageCode={lang} />
-        <RemoteControlPanel
-          languageCode={lang}
-          hostingCode={hostingCode}
-          changeHostingCode={setHostingCode}
-          connectedRemoteCount={connectedRemoteCount}
-          describeFollowedPosition={describeFollowedPosition}
-          {...remoteConnection}
-        />
+        <RemoteControlPanel languageCode={lang} {...remoteHosting} />
         <PrintMenu
           languageCode={lang}
           printsSteps={printsSteps}

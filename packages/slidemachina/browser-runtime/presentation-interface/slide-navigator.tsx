@@ -44,7 +44,6 @@ export function SlideNavigator({
   renderThumbnail,
   closeNavigator,
 }: SlideNavigatorProperties) {
-  const interfaceTexts = pickInterfaceTexts(languageCode);
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(currentSlideIndex);
   const thumbnailElements = useRef<HTMLButtonElement[]>([]);
   const scrollerReference = useRef<HTMLDivElement>(null);
@@ -81,12 +80,10 @@ export function SlideNavigator({
     return () => visibilityObserver.disconnect();
   }, []);
 
-  const openSlide = (slideIndex: number) => closeNavigator(slideIndex);
-
   useWindowKeydown((keyboardEvent) => {
     const lastSlideIndex = outlinedSlides.length - 1;
     if (keyboardEvent.code === "Escape" || keyboardEvent.code === "KeyO") closeNavigator();
-    else if (keyboardEvent.key === "Enter") openSlide(selectedSlideIndex);
+    else if (keyboardEvent.key === "Enter") closeNavigator(selectedSlideIndex);
     else if (keyboardEvent.key === "ArrowRight") setSelectedSlideIndex(Math.min(selectedSlideIndex + 1, lastSlideIndex));
     else if (keyboardEvent.key === "ArrowLeft") setSelectedSlideIndex(Math.max(selectedSlideIndex - 1, 0));
     else if (keyboardEvent.key === "ArrowDown") setSelectedSlideIndex(findVerticalNeighbour(thumbnailElements.current, selectedSlideIndex, 1));
@@ -97,6 +94,7 @@ export function SlideNavigator({
     return true;
   }, true);
 
+  const interfaceTexts = pickInterfaceTexts(languageCode);
   const leastThumbnailWidth = Math.max(minimumThumbnailWidth, minimumScreenThumbnailWidth / canvasScale);
   // The navigator covers the whole window, letterbox margins too: on a phone held upright it is the full screen, not a strip.
   const navigatorWidth = Math.max(formatWidth, window.innerWidth / canvasScale);
@@ -136,7 +134,7 @@ export function SlideNavigator({
                     ref={(thumbnailElement) => {
                       if (thumbnailElement !== null) thumbnailElements.current[slideIndex] = thumbnailElement;
                     }}
-                    onClick={() => openSlide(slideIndex)}
+                    onClick={() => closeNavigator(slideIndex)}
                   >
                     {drawnSlideIndexes.has(slideIndex) && renderThumbnail(slideIndex)}
                     <span data-thumbnail-number>
