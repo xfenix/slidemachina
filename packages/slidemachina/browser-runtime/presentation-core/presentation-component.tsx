@@ -28,6 +28,7 @@ import { MinimapSwitch, SlideMinimap, useMinimapShowing } from "../presentation-
 import { useOverviewAddress } from "../presentation-interface/overview-address.ts";
 import { buildSlideOutline, readPresentationTitle } from "./slide-outline.tsx";
 import { runNavigatorTransition } from "../slide-transitions/navigator-transition.ts";
+import { scheduleAdjacentTransitionPrecaching } from "../slide-transitions/transition-precaching.ts";
 import { useTouchControls } from "../slide-navigation/touch-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
 import { usePresenterSync, type SlideCommand } from "../presenter-view/presenter-channel.ts";
@@ -131,6 +132,13 @@ export function Presentation({
   const sectionTrails = useMemo(() => outlinedSlides.map((outlinedSlide) => outlinedSlide.sectionTrail), [outlinedSlides]);
   const describeSlideEnvironment = useSlideEnvironments(slideNumbering, sectionTrails, presentationSettings, stepCountsReference);
   const rendersEverySlide = useEverySlideAfterFirstFrame();
+
+  // The matching work between a slide and its neighbours waits for idle moments, so a key press finds it ready.
+  // A step inside a slide changes no key here: leaving forward always happens at the last step, leaving backward at the first.
+  useEffect(() => {
+    if (isCoverPreview || isPrintView || isPresenterWindow) return;
+    return scheduleAdjacentTransitionPrecaching(currentPosition.slideIndex, (slideIndex) => stepCountsReference.current[slideIndex] ?? 0, slideNumbering);
+  }, [currentPosition.slideIndex, isPrintView, slideNumbering]);
 
   useEffect(() => {
     document.documentElement.lang = lang;

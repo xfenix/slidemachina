@@ -35,6 +35,7 @@ export function useSlideNavigation(slideNumbering: SlideNumbering, stepCountsRef
     runSlideTransition(
       () => flushSync(showArrivedPosition),
       previousPosition.slideIndex,
+      previousPosition.stepIndex,
       nextPosition.slideIndex,
       nextPosition.stepIndex,
     );

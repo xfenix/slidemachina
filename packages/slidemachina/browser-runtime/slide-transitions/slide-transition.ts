@@ -1,10 +1,16 @@
-import { findCodePairs } from "../element-morphing/code-morphing.ts";
-import { collectSlideCandidates, findMorphPairs, findRewordedPairs, rewordPairedTexts, type SlideMorphCandidates } from "../element-morphing/morph-matching.ts";
+import type { CodePair } from "../element-morphing/code-morphing.ts";
+import type { MorphPair, RewordedPair } from "../element-morphing/morph-matching.ts";
 import { carryLeavingWords, measureWordLayers, type WordBoxes } from "../element-morphing/word-carrying.ts";
 import { bendCrossingPaths, type MovingLayer } from "../element-morphing/morph-arcs.ts";
 import { markReachedSteps } from "../slide-steps/step-visibility.ts";
 import { findPaintedShapes, paintShapeGroups, readIncomingPaints } from "./shape-layers.ts";
 import { maskSlideTiles } from "./tile-masks.ts";
+import {
+  analyseSlideTransition,
+  storePrecachedSlideAnalysis,
+  takePrecachedSlideAnalysis,
+  type SlideTransitionAnalysis,
+} from "./transition-precaching.ts";
 import {
   clearLayerName,
   clearLayerNames,
@@ -33,19 +39,18 @@ export type SlideTransition =
   | "none";
 
 const wholeSlideTransitions = new Set(["slide", "zoom", "cube", "flip", "wipe", "iris", "blinds", "mosaic"]);
-const emptyMorphCandidates: SlideMorphCandidates = { morphCandidates: [], codeBlocks: [] };
 
 let activeNamedLayers: NamedLayer[] = [];
 // Word wrappers and code piece names are taken back by these functions when a transition ends.
 let activeLayerRestorers: Array<() => void> = [];
 
-// "auto" morphs when the slides share elements and slides otherwise.
-function chooseTransition(requestedTransition: string, morphPairCount: number): string {
-  if (requestedTransition !== "auto") return requestedTransition;
-  return morphPairCount > 0 ? "morph" : "slide";
-}
-
-export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex: number, incomingSlideIndex: number, incomingStepIndex: number) {
+export function runSlideTransition(
+  updateSlides: () => void,
+  outgoingSlideIndex: number,
+  outgoingStepIndex: number,
+  incomingSlideIndex: number,
+  incomingStepIndex: number,
+) {
   const slideElements = document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide]");
   const outgoingSlide = slideElements[outgoingSlideIndex];
   const incomingSlide = slideElements[incomingSlideIndex];
@@ -61,13 +66,24 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
   const usesMorph = requestedTransition === "auto" || requestedTransition === "morph";
   // Pairs are looked up before the update: the hidden incoming slide shows now the step it will arrive at.
   if (usesMorph) markReachedSteps(incomingSlide, incomingStepIndex);
-  const outgoingCandidates = usesMorph ? collectSlideCandidates(outgoingSlide) : emptyMorphCandidates;
-  const incomingCandidates = usesMorph ? collectSlideCandidates(incomingSlide) : emptyMorphCandidates;
-  const pairedElements = findMorphPairs(outgoingCandidates.morphCandidates, incomingCandidates.morphCandidates);
-  const { shapePairs: morphPairs, textPairs } = rewordPairedTexts(pairedElements);
-  const rewordedPairs = [...textPairs, ...findRewordedPairs(outgoingCandidates.morphCandidates, incomingCandidates.morphCandidates, pairedElements)];
-  const codePairs = findCodePairs(outgoingCandidates.codeBlocks, incomingCandidates.codeBlocks);
-  const chosenTransition = chooseTransition(requestedTransition, morphPairs.length + rewordedPairs.length + codePairs.length);
+  const transitionPosition = { outgoingSlideIndex, outgoingStepIndex, incomingSlideIndex, incomingStepIndex };
+  const precachedAnalysis = usesMorph ? takePrecachedSlideAnalysis(requestedTransition, outgoingSlide, incomingSlide, transitionPosition) : undefined;
+  let morphPairs: MorphPair[];
+  let rewordedPairs: RewordedPair[];
+  let codePairs: CodePair[];
+  let chosenTransition: string;
+  if (precachedAnalysis !== undefined) {
+    ({ morphPairs, rewordedPairs, codePairs, chosenTransition } = precachedAnalysis);
+  } else if (usesMorph) {
+    const freshAnalysis: SlideTransitionAnalysis = analyseSlideTransition(outgoingSlide, incomingSlide, requestedTransition);
+    storePrecachedSlideAnalysis(requestedTransition, freshAnalysis, transitionPosition);
+    ({ morphPairs, rewordedPairs, codePairs, chosenTransition } = freshAnalysis);
+  } else {
+    morphPairs = [];
+    rewordedPairs = [];
+    codePairs = [];
+    chosenTransition = requestedTransition;
+  }
   const movesWholeSlides = wholeSlideTransitions.has(chosenTransition);
   const documentElement = document.documentElement;
   documentElement.dataset.slideTransition = chosenTransition;
@@ -77,7 +93,9 @@ export function runSlideTransition(updateSlides: () => void, outgoingSlideIndex:
   // The page root carries the transition layers, so it takes the speed of the slide whose transition plays.
   documentElement.style.setProperty("--transition-speed", (isMovingForward ? incomingSlide : outgoingSlide).style.getPropertyValue("--transition-speed") || "1");
   // The cube turns around its centre, half a slide behind the screen; CSS cannot take that from the snapshot.
-  documentElement.style.setProperty("--slide-half-width", `${outgoingSlide.offsetWidth / 2}px`);
+  if (chosenTransition === "cube" || chosenTransition === "flip") {
+    documentElement.style.setProperty("--slide-half-width", `${outgoingSlide.offsetWidth / 2}px`);
+  }
 
   // A key pressed mid-transition starts a new one; names left by the previous one would collide or get wiped.
   clearLayerNames(activeNamedLayers);

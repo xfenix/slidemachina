@@ -1194,3 +1194,34 @@ test("пульт с телефона: экран показывает код, т
   await expect(phonePage.locator('[data-remote-status="unanswered"]')).toContainText("Никто не ответил на код");
   await phonePage.close();
 });
+
+test("повторный морфинг по кэшу выдаёт те же слои и снимает обёртки слов", async ({ page }) => {
+  await page.goto("/");
+  await jumpToHeading(page, "Морфинг кода");
+  const collectMorphLayers = async () => {
+    await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "morph");
+    // Среди анимаций страницы бывают переходы обычных элементов вроде фона письма: сравниваем только слои перехода.
+    const morphLayers = (await collectTransitionAnimations(page))
+      .filter((animationLayer) => animationLayer.startsWith("::view-transition"))
+      .sort();
+    await expect.poll(() => listTransitionAnimations(page)).toEqual([]);
+    await expect(page.locator("[style*=view-transition]")).toHaveCount(0);
+    return morphLayers;
+  };
+  await page.keyboard.press("PageDown");
+  const firstRunLayers = await collectMorphLayers();
+  expect(firstRunLayers).toEqual(
+    expect.arrayContaining([
+      "::view-transition-group(code-piece-0-0) -ua-view-transition-group-anim-code-piece-0-0",
+      "::view-transition-group(code-box-0) -ua-view-transition-group-anim-code-box-0",
+    ]),
+  );
+  // Назад и снова вперёд: анализ этой пары уже в кэше, переход должен выглядеть точно так же.
+  await page.keyboard.press("PageUp");
+  await expect.poll(() => listTransitionAnimations(page)).toEqual([]);
+  await expect(page.locator("[style*=view-transition]")).toHaveCount(0);
+  await page.waitForTimeout(1500);
+  await page.keyboard.press("PageDown");
+  const secondRunLayers = await collectMorphLayers();
+  expect(secondRunLayers).toEqual(firstRunLayers);
+});
