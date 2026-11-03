@@ -14,6 +14,7 @@ const chartPreviewHeight = 240;
 const chartAnimationDuration = 60_000;
 const chartAlignmentTolerance = 2;
 const chartAuthorAxisWidth = 88;
+const minimumChartLabelGap = 8;
 
 async function editFileWhile(filePath: string, editText: (originalText: string) => string, checkEditedPage: () => Promise<void>) {
   const originalText = await readFile(filePath, "utf8");
@@ -954,6 +955,7 @@ test("графики Recharts используют тему слайда, сох
           <XAxis dataKey="runLabel" />
           <YAxis />
           <Tooltip />
+          <Legend />
           <Line dataKey="firstSeriesValue" />
           <Line dataKey="secondSeriesValue" />
         </LineChart>
@@ -1037,19 +1039,34 @@ test("графики Recharts используют тему слайда, сох
       });
 
     await jumpToSlide(page, await findSlideNumber(page, "h2", "График в светлой теме"));
-    await expect(currentSlide(page).locator(".machina-chart svg")).toBeAttached();
+    await expect(currentSlide(page).locator(".machina-chart svg[role=application]")).toBeAttached();
     await page.evaluate(() => document.fonts.ready.then(() => undefined));
     await expect.poll(() => currentSlide(page).evaluate((slideElement) => {
       const chartBounds = slideElement.querySelector(".machina-chart")!.getBoundingClientRect();
       const tickBounds = [...slideElement.querySelectorAll(".recharts-yAxis-tick-labels text")].map((tickElement) => tickElement.getBoundingClientRect());
       return Math.abs(Math.min(...tickBounds.map((tickRectangle) => tickRectangle.left)) - chartBounds.left);
     }), { message: "подписи левой оси начинаются у левого края блока" }).toBeLessThanOrEqual(chartAlignmentTolerance);
+    await expect.poll(() => currentSlide(page).evaluate((slideElement) => {
+      const chartElement = slideElement.querySelector<HTMLElement>(".machina-chart")!;
+      const chartBounds = chartElement.getBoundingClientRect();
+      const chartScale = chartBounds.width / chartElement.offsetWidth;
+      const horizontalLabels = [...chartElement.querySelectorAll(".recharts-xAxis-tick-labels text")].map((labelElement) => labelElement.getBoundingClientRect());
+      const verticalLabels = [...chartElement.querySelectorAll(".recharts-yAxis-tick-labels text")].map((labelElement) => labelElement.getBoundingClientRect());
+      return (Math.min(...horizontalLabels.map((labelBounds) => labelBounds.top)) - Math.max(...verticalLabels.map((labelBounds) => labelBounds.bottom))) / chartScale;
+    }), { message: "подписи осей разделены у начала координат" }).toBeGreaterThanOrEqual(minimumChartLabelGap);
+    await expect.poll(() => currentSlide(page).evaluate((slideElement) => {
+      const chartElement = slideElement.querySelector<HTMLElement>(".machina-chart")!;
+      const chartScale = chartElement.getBoundingClientRect().width / chartElement.offsetWidth;
+      const legendBounds = chartElement.querySelector(".recharts-default-legend")!.getBoundingClientRect();
+      const legendEntries = [...chartElement.querySelectorAll(".recharts-legend-item")].map((entryElement) => entryElement.getBoundingClientRect());
+      return (legendBounds.height - Math.max(...legendEntries.map((entryBounds) => entryBounds.height))) / chartScale;
+    }), { message: "легенда не наследует интервалы обычного списка" }).toBeLessThanOrEqual(chartAlignmentTolerance);
     const lightColors = await sampleChartColors();
     expect(lightColors.lineStrokes, "серии идут по палитре темы: акцент, второй акцент").toEqual([lightColors.accentColor, lightColors.secondAccentColor]);
     expect(lightColors.tickFill, "подписи осей приглушены").toBe(lightColors.mutedColor);
 
     await jumpToSlide(page, await findSlideNumber(page, "h2", "График на тёмном слайде"));
-    await expect(currentSlide(page).locator(".machina-chart svg")).toBeAttached();
+    await expect(currentSlide(page).locator(".machina-chart svg[role=application]")).toBeAttached();
     const authoredAxisOffset = await currentSlide(page).locator(".recharts-yAxis .recharts-cartesian-axis-line").getAttribute("x1");
     expect(Number(authoredAxisOffset), "ширина оси, заданная автором, сохраняется").toBe(chartAuthorAxisWidth);
     const darkColors = await sampleChartColors();

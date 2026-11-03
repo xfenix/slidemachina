@@ -135,7 +135,7 @@ import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts"
 - Series take the theme colours in order; a `stroke` or `fill` you set wins. Pie slices take colours from `<Cell>` children in order.
 - `height` sets the block height; unset, the chart is `--chart-height` tall. `stretch` grows it into the free space, also inside `machina-card-stretch`.
 - Chart text, tooltip and series palette are theme variables: `--chart-text-size`, `--chart-tooltip-*`, `--chart-series-1-color` and so on.
-- Y-axis widths fit their labels in slide coordinates, including on a scaled canvas. Explicit `width` and chart `margin` props override the defaults.
+- Y-axis widths fit their labels in slide coordinates, including on a scaled canvas. X-axis label spacing and height follow the chart font size so labels stay apart at the origin. Explicit axis `width`, `height`, `tickMargin` and chart `margin` props override the defaults.
 - Chart animations are off, so a printed PDF shows the finished chart; `isAnimationActive` on a series turns them on.
 
 ## Diagrams

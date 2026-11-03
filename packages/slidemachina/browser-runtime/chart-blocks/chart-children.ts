@@ -5,6 +5,7 @@ import type { ChartThemeValues } from "./chart-theme.ts";
 const chartMargins = { top: 5, right: 5, bottom: 5, left: 0 };
 const axisTickMargin = 2;
 const axisTickLength = 6;
+const horizontalLabelLineHeight = 1.2;
 const firstPaletteIndex = 0;
 const paletteIndexIncrement = 1;
 const seriesStrokeWidth = 3;
@@ -40,9 +41,12 @@ function themeSingleChild(chartChild: ReactElement, chartTheme: ChartThemeValues
   }
   if (axisElementTypes.includes(childType)) {
     const axisProperties = chartChild.props as { tickMargin?: number; tickSize?: number };
+    const horizontalTickMargin = chartTheme.textSize;
+    const horizontalAxisHeight = Math.ceil(chartTheme.textSize * horizontalLabelLineHeight) + (axisProperties.tickMargin ?? horizontalTickMargin) + (axisProperties.tickSize ?? axisTickLength);
     const axisWidth = themingState.axisLabelWidth === undefined ? undefined : themingState.axisLabelWidth + (axisProperties.tickMargin ?? axisTickMargin) + (axisProperties.tickSize ?? axisTickLength);
     return applyDefaultProps(chartChild, {
       ...(childType === YAxis ? { width: axisWidth, tickMargin: axisTickMargin, tickSize: axisTickLength } : {}),
+      ...(childType === XAxis ? { height: horizontalAxisHeight, tickMargin: horizontalTickMargin, tickSize: axisTickLength } : {}),
       stroke: chartTheme.axisColor,
       tickLine: false,
       axisLine: { stroke: chartTheme.axisColor },

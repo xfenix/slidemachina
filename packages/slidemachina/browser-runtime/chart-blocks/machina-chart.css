@@ -12,6 +12,7 @@
   }
   [data-slide] .machina-chart .recharts-legend-item {
     padding-left: 0;
+    margin-top: 0;
   }
 
   [data-slide] .machina-chart .recharts-legend-item:before {
