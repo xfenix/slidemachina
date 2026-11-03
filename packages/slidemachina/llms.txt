@@ -216,6 +216,8 @@ The theme is CSS in `style.css`, in any CSS file imported by `index.tsx`, or rig
 - One slide of its own: `className` on `Slide` and Tailwind classes in the markup: `className="text-(--accent-color)"`, `className="[--hanging-punctuation:0]"`.
 - A dark slide: `background="var(--dark-background)"`; the engine picks the text color.
 
+List items use `text-wrap: balance` to keep short multiline bullets visually even. Typography still protects short words with non-breaking spaces, and explicit `<br />` breaks remain. Paragraphs keep `pretty`; code keeps its whitespace. Browsers may limit balancing for long items. Use `className="text-wrap"` on a list item to keep ordinary wrapping.
+
 ## Rules of a clear talk
 
 `slidemachina check` checks them. They come from Richard Mayer's principles of multimedia learning and Miller's 7±2 limit of working memory.

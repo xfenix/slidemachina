@@ -406,6 +406,10 @@
     list-style: none;
   }
 
+  [data-slide] :is(ul, ol) > li {
+    text-wrap: balance;
+  }
+
   [data-slide] ul > li {
     padding-left: var(--list-bullet-indent);
   }
