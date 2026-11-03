@@ -211,17 +211,11 @@ export default (
 
     <Machina.Slide plain>
       <h1>Спасибо</h1>
-      <div className="machina-columns" style={{ gridTemplateColumns: "56cqh 1fr", height: "56cqh", flex: "0 0 auto" }}>
-        <div>
-          <Machina.QR value="https://github.com/xfenix/slidemachina">
-            <figcaption>репозиторий движка</figcaption>
-          </Machina.QR>
-        </div>
-        <div>
-          <p className="machina-lead">Заберите тему: она вся в style.css</p>
-          <p>Звёзды, туманности и неон — обычные переменные и два псевдоэлемента.</p>
-        </div>
-      </div>
+      <Machina.QR value="https://github.com/xfenix/slidemachina" float="left">
+        <figcaption>репозиторий движка</figcaption>
+      </Machina.QR>
+      <p className="machina-lead">Заберите тему: она вся в style.css</p>
+      <p>Звёзды, туманности и неон — обычные переменные и два псевдоэлемента.</p>
       <Machina.Notes>
         <p>Поблагодарите зал, покажите QR.</p>
       </Machina.Notes>
