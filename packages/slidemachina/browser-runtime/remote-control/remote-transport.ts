@@ -8,260 +8,142 @@ export type RemoteChannelMessage =
   | { messageKind: "greeting" }
   | { messageKind: "welcome"; slidePosition: PresentationPosition; isPaused: boolean }
   | { messageKind: "farewell" };
+export type RemoteClientFailure = "no-host" | "no-broker";
 export type RemoteTransportHandle = {
   sendRemoteMessage: (channelMessage: RemoteChannelMessage) => void;
   closeRemoteTransport: () => void;
 };
-type RemoteLink = {
-  isLinkReady: boolean;
-  sendRemoteMessage: (channelMessage: RemoteChannelMessage) => void;
-  closeRemoteLink: () => void;
+export type RemoteHostingEvents = {
+  onChannelMessage: (channelMessage: RemoteChannelMessage) => void;
+  onHostingOnline: () => void;
+  onHostingOffline: () => void;
 };
-type RawMessageHandler = (fromLink: RemoteLink, rawMessage: unknown) => void;
-type LinkReadyHandler = (readyLink: RemoteLink) => void;
-type LinkFailedHandler = (failedLink: RemoteLink) => void;
 
-const peerBrokerHost = "0.peerjs.com";
-const peerBrokerPort = 443;
-const peerBrokerPath = "/";
-// Both sides give up on the cloud broker after this long and rely on BroadcastChannel alone.
-const peerBrokerTimeoutMs = 4000;
+const defaultBrokerHost = "0.peerjs.com";
+const defaultBrokerPort = 443;
+const brokerQueryParameter = "remote-broker";
+// A broker either answers in these four seconds or is not reachable: the panel says the remote needs the internet.
+const brokerRegistrationTimeoutMs = 4000;
 const peerLinkIdPrefix = "slidemachina";
-const remoteLinkPrefix = "slidemachina-remote";
 const knownMessageKinds = new Set(["position", "command", "greeting", "welcome", "farewell"]);
 
-const peerjsBrokerOptions: PeerJSOption = {
-  host: peerBrokerHost,
-  port: peerBrokerPort,
-  path: peerBrokerPath,
-  secure: true,
-};
-
-// The presenting screen listens on every transport at once: BroadcastChannel for tabs on this machine,
-// PeerJS for phones from any network. An answer from either transport reaches the remote logic.
-export function openRemoteHostingTransport(remoteCode: string, receiveChannelMessage: (channelMessage: RemoteChannelMessage) => void): RemoteTransportHandle {
-  const receiveSafeMessage: RawMessageHandler = (_fromLink, rawMessage) => {
-    const channelMessage = parseRemoteMessage(rawMessage);
-    if (channelMessage !== undefined) receiveChannelMessage(channelMessage);
-  };
-  const ignoreLinkReady: LinkReadyHandler = () => undefined;
-  const openLinks = [
-    openBroadcastLink(nameRemoteLink(remoteCode), receiveSafeMessage, ignoreLinkReady),
-    openPeerjsHostingLink(peerLinkIdFor(remoteCode), receiveSafeMessage, ignoreLinkReady),
-  ];
-  return {
-    sendRemoteMessage: (channelMessage) => {
-      for (const openLink of openLinks) openLink.sendRemoteMessage(channelMessage);
-    },
-    closeRemoteTransport: () => {
-      for (const openLink of openLinks) openLink.closeRemoteLink();
-    },
-  };
+// The presenting screen hosts its code on the public PeerJS broker by default; ?remote-broker=host:port points
+// both sides at another broker, for a self-hosted one or for the local broker of the tests.
+export function readRemoteBrokerOptions(): PeerJSOption {
+  const brokerOverride = new URLSearchParams(location.search).get(brokerQueryParameter);
+  if (brokerOverride === null) return { host: defaultBrokerHost, port: defaultBrokerPort, path: "/", secure: true };
+  const [overrideHost = defaultBrokerHost, overridePort = "80"] = brokerOverride.split(":");
+  const isLocalBroker = overrideHost === "localhost" || overrideHost === "127.0.0.1";
+  // A local broker means a local test: host candidates alone connect two same-machine tabs instantly,
+  // and no public STUN server is polled.
+  return { host: overrideHost, port: Number(overridePort), path: "/", secure: !isLocalBroker, config: { iceServers: [] } };
 }
 
-// The phone greets over every ready transport; the first one to answer wins, the losers get a farewell so the
-// host's remote count stays honest. PeerJS failure never blocks the local BroadcastChannel path, it reports
-// "unanswered" so the panel does not wait for the full answer timeout on a code nobody hosts.
-export function openRemoteClientTransport(
-  remoteCode: string,
-  receiveChannelMessage: (channelMessage: RemoteChannelMessage) => void,
-  reportTransportFailure: () => void,
-): RemoteTransportHandle {
-  let hasGreetingBeenSent = false;
-  let settledLink: RemoteLink | undefined;
-  const greetedLinks = new Set<RemoteLink>();
-  const openLinks = new Set<RemoteLink>();
-
-  const closeLosingLink = (losingLink: RemoteLink) => {
-    if (greetedLinks.has(losingLink)) losingLink.sendRemoteMessage({ messageKind: "farewell" });
-    greetedLinks.delete(losingLink);
-    openLinks.delete(losingLink);
-    losingLink.closeRemoteLink();
-  };
-  const receiveFromLink: RawMessageHandler = (fromLink, rawMessage) => {
-    const channelMessage = parseRemoteMessage(rawMessage);
-    if (channelMessage === undefined) return;
-    if ((channelMessage.messageKind === "welcome" || channelMessage.messageKind === "position") && settledLink === undefined) {
-      settledLink = fromLink;
-      for (const openLink of openLinks) if (openLink !== fromLink) closeLosingLink(openLink);
-    }
-    if (settledLink === undefined || settledLink === fromLink) receiveChannelMessage(channelMessage);
-  };
-  const greetReadyLink: LinkReadyHandler = (readyLink) => {
-    if (!readyLink.isLinkReady || !hasGreetingBeenSent || greetedLinks.has(readyLink)) return;
-    readyLink.sendRemoteMessage({ messageKind: "greeting" });
-    greetedLinks.add(readyLink);
-  };
-  const reportLinkFailure = () => {
-    if (settledLink !== undefined) return;
-    reportTransportFailure();
-  };
-  const registerLink = (openLink: RemoteLink) => {
-    openLinks.add(openLink);
-    greetReadyLink(openLink);
-  };
-
-  registerLink(openBroadcastLink(nameRemoteLink(remoteCode), receiveFromLink, greetReadyLink));
-  registerLink(openPeerjsClientLink(peerLinkIdFor(remoteCode), receiveFromLink, greetReadyLink, () => reportLinkFailure()));
-
-  return {
-    sendRemoteMessage: (channelMessage) => {
-      if (channelMessage.messageKind === "greeting") {
-        hasGreetingBeenSent = true;
-        for (const openLink of openLinks) greetReadyLink(openLink);
-        return;
-      }
-      settledLink?.sendRemoteMessage(channelMessage);
-    },
-    closeRemoteTransport: () => {
-      for (const openLink of openLinks) closeLosingLink(openLink);
-    },
-  };
-}
-
-function openBroadcastLink(broadcastName: string, reportRawMessage: RawMessageHandler, reportLinkReady: LinkReadyHandler): RemoteLink {
-  if (typeof BroadcastChannel === "undefined") return createInertLink();
-  const broadcastChannel = new BroadcastChannel(broadcastName);
-  const broadcastLink: RemoteLink = {
-    isLinkReady: true,
-    sendRemoteMessage: (channelMessage) => broadcastChannel.postMessage(channelMessage),
-    closeRemoteLink: () => broadcastChannel.close(),
-  };
-  broadcastChannel.addEventListener("message", (messageEvent: MessageEvent<unknown>) => reportRawMessage(broadcastLink, messageEvent.data));
-  reportLinkReady(broadcastLink);
-  return broadcastLink;
-}
-
-// A browser without BroadcastChannel (or a page where it is unavailable) still gets the full WebRTC path.
-function createInertLink(): RemoteLink {
-  return {
-    isLinkReady: false,
-    sendRemoteMessage: () => undefined,
-    closeRemoteLink: () => undefined,
-  };
-}
-
-function openPeerjsHostingLink(peerLinkId: string, reportRawMessage: RawMessageHandler, reportLinkReady: LinkReadyHandler): RemoteLink {
+// Every slides window hosts its own code on the broker and obeys remotes that know it; the code is the only key,
+// like a short password. One transport for all remotes: messages fan out to every open connection.
+export function openRemoteHostingTransport(hostingCode: string, hostingEvents: RemoteHostingEvents): RemoteTransportHandle {
+  const brokerOptions = readRemoteBrokerOptions();
   let hostingPeer: Peer | undefined;
   const openConnections = new Set<DataConnection>();
-  let isLinkReady = false;
-  let isLinkClosed = false;
-  const hostingLink: RemoteLink = {
-    get isLinkReady() {
-      return isLinkReady;
-    },
-    sendRemoteMessage: (channelMessage) => {
-      for (const openConnection of openConnections) if (openConnection.open) void openConnection.send(channelMessage);
-    },
-    closeRemoteLink: () => {
-      isLinkClosed = true;
-      hostingPeer?.destroy();
-    },
-  };
-  const giveUpOnBroker = () => {
-    if (!isLinkReady && !isLinkClosed) {
-      isLinkClosed = true;
-      hostingPeer?.destroy();
-    }
-  };
+  let isHostingClosed = false;
   void loadPeerModule().then(({ default: PeerConstructor }) => {
-    if (isLinkClosed) return;
-    const createdPeer = new PeerConstructor(peerLinkId, peerjsBrokerOptions);
+    if (isHostingClosed) return;
+    const createdPeer = new PeerConstructor(peerLinkIdFor(hostingCode), brokerOptions);
     hostingPeer = createdPeer;
-    setTimeout(giveUpOnBroker, peerBrokerTimeoutMs);
+    setTimeout(() => {
+      if (createdPeer.open || isHostingClosed) return;
+      isHostingClosed = true;
+      createdPeer.destroy();
+      hostingEvents.onHostingOffline();
+    }, brokerRegistrationTimeoutMs);
     createdPeer.on("open", () => {
-      if (isLinkClosed) return;
-      isLinkReady = true;
-      reportLinkReady(hostingLink);
+      if (isHostingClosed) return;
+      hostingEvents.onHostingOnline();
     });
     createdPeer.on("connection", (incomingConnection: DataConnection) => {
-      incomingConnection.on("data", (rawMessage: unknown) => reportRawMessage(hostingLink, rawMessage));
+      incomingConnection.on("data", (rawMessage: unknown) => {
+        const channelMessage = parseRemoteMessage(rawMessage);
+        if (channelMessage !== undefined) hostingEvents.onChannelMessage(channelMessage);
+      });
       incomingConnection.on("open", () => openConnections.add(incomingConnection));
       incomingConnection.on("close", () => openConnections.delete(incomingConnection));
     });
-    createdPeer.on("error", () => giveUpOnBroker());
     createdPeer.on("disconnected", () => {
-      if (!isLinkClosed) hostingPeer?.reconnect();
+      if (!isHostingClosed) hostingPeer?.reconnect();
     });
   });
-  return hostingLink;
+  return {
+    sendRemoteMessage: (channelMessage) => {
+      for (const openConnection of openConnections) if (openConnection.open) void openConnection.send(channelMessage);
+    },
+    closeRemoteTransport: () => {
+      isHostingClosed = true;
+      hostingPeer?.destroy();
+    },
+  };
 }
 
-function openPeerjsClientLink(hostPeerLinkId: string, reportRawMessage: RawMessageHandler, reportLinkReady: LinkReadyHandler, reportLinkFailed: LinkFailedHandler): RemoteLink {
+// A phone or a second laptop joins the link of the target code and drives the window that hosts it. Outgoing
+// messages wait in a queue until the channel opens, so the greeting can be sent right away. A missing host on the
+// broker is reported at once; a silent broker is reported by the registration timeout or the answer timeout above.
+export function openRemoteClientTransport(
+  targetCode: string,
+  receiveChannelMessage: (channelMessage: RemoteChannelMessage) => void,
+  reportClientFailure: (clientFailure: RemoteClientFailure) => void,
+): RemoteTransportHandle {
+  const brokerOptions = readRemoteBrokerOptions();
   let clientPeer: Peer | undefined;
   let clientConnection: DataConnection | undefined;
-  let isLinkReady = false;
-  let isLinkClosed = false;
-  const clientLink: RemoteLink = {
-    get isLinkReady() {
-      return isLinkReady;
-    },
+  const pendingMessages: RemoteChannelMessage[] = [];
+  let isClientClosed = false;
+  void loadPeerModule().then(({ default: PeerConstructor }) => {
+    if (isClientClosed) return;
+    const createdPeer = new PeerConstructor(brokerOptions);
+    clientPeer = createdPeer;
+    setTimeout(() => {
+      if (createdPeer.open || isClientClosed) return;
+      isClientClosed = true;
+      createdPeer.destroy();
+      reportClientFailure("no-broker");
+    }, brokerRegistrationTimeoutMs);
+    createdPeer.on("open", () => {
+      if (isClientClosed) return;
+      clientConnection = createdPeer.connect(peerLinkIdFor(targetCode), { reliable: true });
+      clientConnection.on("data", (rawMessage: unknown) => {
+        const channelMessage = parseRemoteMessage(rawMessage);
+        if (channelMessage !== undefined) receiveChannelMessage(channelMessage);
+      });
+      clientConnection.on("open", () => {
+        for (const pendingMessage of pendingMessages.splice(0)) void clientConnection?.send(pendingMessage);
+      });
+    });
+    createdPeer.on("error", (clientError: { type: string }) => {
+      if (createdPeer.open || isClientClosed) return;
+      isClientClosed = true;
+      createdPeer.destroy();
+      reportClientFailure(clientError.type === "peer-unavailable" ? "no-host" : "no-broker");
+    });
+    createdPeer.on("disconnected", () => {
+      if (!isClientClosed) clientPeer?.reconnect();
+    });
+  });
+  return {
     sendRemoteMessage: (channelMessage) => {
       if (clientConnection?.open) void clientConnection.send(channelMessage);
+      else pendingMessages.push(channelMessage);
     },
-    closeRemoteLink: () => {
-      isLinkClosed = true;
+    closeRemoteTransport: () => {
+      isClientClosed = true;
       clientConnection?.close();
       clientPeer?.destroy();
     },
   };
-  const giveUpOnBroker = () => {
-    if (isLinkReady || isLinkClosed) return;
-    isLinkClosed = true;
-    clientPeer?.destroy();
-  };
-  void loadPeerModule().then(({ default: PeerConstructor }) => {
-    if (isLinkClosed) return;
-    const createdPeer = new PeerConstructor(peerjsBrokerOptions);
-    clientPeer = createdPeer;
-    setTimeout(() => {
-      if (isLinkReady || isLinkClosed) return;
-      giveUpOnBroker();
-      // Four silent seconds for BroadcastChannel to answer locally; after that the code is truly unanswered.
-      reportLinkFailed(clientLink);
-    }, peerBrokerTimeoutMs);
-    createdPeer.on("open", () => {
-      if (isLinkClosed) return;
-      clientConnection = createdPeer.connect(hostPeerLinkId, { reliable: true });
-      clientConnection.on("data", (rawMessage: unknown) => reportRawMessage(clientLink, rawMessage));
-      clientConnection.on("open", () => {
-        if (isLinkClosed) return;
-        isLinkReady = true;
-        reportLinkReady(clientLink);
-      });
-    });
-    // "peer-unavailable" means the broker is reachable but the code is not hosted there: by then BroadcastChannel
-    // has long had its chance, so report right away. Other errors are silent: the local link may still answer
-    // before the broker timeout reports the failure.
-    createdPeer.on("error", (clientError: { type: string }) => {
-      if (isLinkReady || isLinkClosed) return;
-      if (clientError.type === "peer-unavailable") reportLinkFailed(clientLink);
-      giveUpOnBroker();
-    });
-    createdPeer.on("disconnected", () => {
-      if (!isLinkClosed) clientPeer?.reconnect();
-    });
-  });
-  return clientLink;
 }
 
-// The channel is named by the page path and the code: remotes from another talk on the same domain do not interfere.
-function nameRemoteLink(remoteCode: string): string {
-  return `${remoteLinkPrefix}:${location.pathname}:${remoteCode}`;
-}
-
-// PeerJS ids live on the public broker, so the id also carries a hash of the origin and path: talks on different
-// domains never share a link id, and the six-digit code stays the only part a phone needs to know.
+// The link id is the code alone: a phone page on any domain, including a published remote.html or a deck opened
+// from disk, connects to the same room by the same code.
 function peerLinkIdFor(remoteCode: string): string {
-  return `${peerLinkIdPrefix}-${hashTextToBase36(`${location.origin}${location.pathname}`)}-${remoteCode}`;
-}
-
-function hashTextToBase36(textToHash: string): string {
-  let hashValue = 0;
-  for (let characterIndex = 0; characterIndex < textToHash.length; characterIndex += 1) {
-    hashValue = (Math.imul(hashValue, 33) ^ textToHash.charCodeAt(characterIndex)) >>> 0;
-  }
-  return hashValue.toString(36);
+  return `${peerLinkIdPrefix}-${remoteCode}`;
 }
 
 // Messages from the network are checked before they reach the slide engine: anything of an unknown kind is dropped.
@@ -273,8 +155,7 @@ function parseRemoteMessage(rawMessage: unknown): RemoteChannelMessage | undefin
 
 type PeerModule = typeof import("peerjs");
 let cachedPeerModulePromise: Promise<PeerModule> | undefined;
-// The module loads on demand: pages that never open the panel do not pay for it, and an offline machine
-// still falls back to BroadcastChannel when the panel does open.
+// The module loads on demand: pages that never open the panel do not pay for it.
 function loadPeerModule(): Promise<PeerModule> {
   cachedPeerModulePromise ??= import("peerjs");
   return cachedPeerModulePromise;

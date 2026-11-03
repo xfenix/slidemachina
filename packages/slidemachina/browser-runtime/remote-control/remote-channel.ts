@@ -3,7 +3,8 @@ import type { PresentationPosition } from "../slide-navigation/position-hash.ts"
 import type { SlideCommand } from "../presenter-view/presenter-channel.ts";
 import { openRemoteClientTransport, openRemoteHostingTransport, type RemoteChannelMessage, type RemoteTransportHandle } from "./remote-transport.ts";
 
-export type RemoteConnectionStatus = "idle" | "connecting" | "connected" | "unanswered";
+export type RemoteConnectionStatus = "idle" | "connecting" | "connected" | "unanswered" | "no-broker";
+export type RemoteHostingReachability = "registering" | "online" | "offline";
 export type RemoteHostingOptions = {
   isHostingAvailable: boolean;
   hostingCode: string;
@@ -21,8 +22,7 @@ export type RemoteConnection = {
 
 const remoteCodeLength = 6;
 const remoteCodeDigits = "0123456789";
-// The PeerJS cloud handshake (module load, broker, ICE) can take several seconds; BroadcastChannel answers instantly.
-// A code nobody hosts is reported sooner than this by the PeerJS "peer-unavailable" error.
+// The WebRTC handshake through the broker takes a couple of seconds; a code nobody hosts is reported sooner by the broker itself.
 const connectionAnswerTimeoutMs = 8000;
 const hostingCodeStorageKey = `slidemachina-remote-code:${location.pathname}`;
 
@@ -35,8 +35,8 @@ export function createRemoteCode(): string {
   return remoteCode;
 }
 
-// Session storage, not local: every tab hosts its own code, otherwise a phone on the same domain would host the
-// presenter's code as well and execute the commands it sends.
+// Session storage, not local: every tab hosts its own code, otherwise a second tab on the same domain would host
+// the presenter's code as well and execute the commands it sends.
 export function readStoredHostingCode(): string {
   const storedCode = sessionStorage.getItem(hostingCodeStorageKey);
   return storedCode !== null && new RegExp(`^\\d{${remoteCodeLength}}$`).test(storedCode) ? storedCode : createRemoteCode();
@@ -46,7 +46,7 @@ export function storeHostingCode(hostingCode: string) {
   sessionStorage.setItem(hostingCodeStorageKey, hostingCode);
 }
 
-// Digits only, at most the code length: a partial code simply names an empty channel until it is complete.
+// Digits only, at most the code length: a partial code simply names an empty room until it is complete.
 export function normalizeTypedCode(typedText: string): string {
   return typedText.replace(/\D/g, "").slice(0, remoteCodeLength);
 }
@@ -60,6 +60,9 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
   const hostingTransportReference = useRef<RemoteTransportHandle | undefined>(undefined);
   const connectedRemotesReference = useRef(0);
   const [connectedRemoteCount, setConnectedRemoteCount] = useState(0);
+  const [hostingReachabilityReport, setHostingReachabilityReport] = useState<{ hostingCode: string; reachability: RemoteHostingReachability } | undefined>(undefined);
+  const hostingReachability: RemoteHostingReachability =
+    hostingReachabilityReport !== undefined && hostingReachabilityReport.hostingCode === hostingCode ? hostingReachabilityReport.reachability : "registering";
   const { slideIndex, stepIndex } = currentPosition;
 
   const receiveHostingMessage = useEffectEvent((channelMessage: RemoteChannelMessage) => {
@@ -81,7 +84,11 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
 
   useEffect(() => {
     if (!isHostingAvailable || !isCompleteRemoteCode(hostingCode)) return;
-    const hostingTransport = openRemoteHostingTransport(hostingCode, receiveHostingMessage);
+    const hostingTransport = openRemoteHostingTransport(hostingCode, {
+      onChannelMessage: receiveHostingMessage,
+      onHostingOnline: () => setHostingReachabilityReport({ hostingCode, reachability: "online" }),
+      onHostingOffline: () => setHostingReachabilityReport({ hostingCode, reachability: "offline" }),
+    });
     hostingTransportReference.current = hostingTransport;
     return () => {
       hostingTransport.closeRemoteTransport();
@@ -95,7 +102,7 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
     if (isHostingAvailable) postFollowedPosition();
   }, [isHostingAvailable, hostingCode, slideIndex, stepIndex, isPaused]);
 
-  return { connectedRemoteCount };
+  return { connectedRemoteCount, hostingReachability };
 }
 
 // A phone or a second laptop joins the link of the target code and drives the window that hosts it.
@@ -112,13 +119,14 @@ export function useRemoteConnection(targetCode: string | undefined): RemoteConne
   useEffect(() => {
     if (targetCode === undefined) return;
     let isConnectionLive = true;
-    const reportUnanswered = () => {
-      if (!isConnectionLive || clientTransportReference.current !== clientTransport) return;
+    const reportFailed = (failureStatus: Exclude<RemoteConnectionStatus, "idle" | "connected">) => {
+      if (!isConnectionLive || clientTransportReference.current === undefined) return;
       isConnectionLive = false;
       clearTimeout(answerTimeout);
+      const failedTransport = clientTransportReference.current;
       clientTransportReference.current = undefined;
-      clientTransport.closeRemoteTransport();
-      setConnectionReport({ targetCode, connectionStatus: "unanswered", followedPosition: undefined });
+      failedTransport.closeRemoteTransport();
+      setConnectionReport({ targetCode, connectionStatus: failureStatus, followedPosition: undefined });
     };
     const clientTransport = openRemoteClientTransport(
       targetCode,
@@ -132,11 +140,12 @@ export function useRemoteConnection(targetCode: string | undefined): RemoteConne
           followedPosition: { slidePosition: channelMessage.slidePosition, isPaused: channelMessage.isPaused },
         });
       },
-      reportUnanswered,
+      (clientFailure) => reportFailed(clientFailure === "no-host" ? "unanswered" : "no-broker"),
     );
     clientTransportReference.current = clientTransport;
     clientTransport.sendRemoteMessage({ messageKind: "greeting" });
-    const answerTimeout = setTimeout(reportUnanswered, connectionAnswerTimeoutMs);
+    // The broker is reachable at this point: no answer means the code is wrong or the presenting screen is offline.
+    const answerTimeout = setTimeout(() => reportFailed("unanswered"), connectionAnswerTimeoutMs);
     return () => {
       isConnectionLive = false;
       clearTimeout(answerTimeout);

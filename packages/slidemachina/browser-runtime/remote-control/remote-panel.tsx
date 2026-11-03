@@ -10,6 +10,7 @@ type RemotePanelProperties = {
   changePanelCode: (panelCode: string) => void;
   isRemoteMode: boolean;
   connectedRemoteCount: number;
+  hostingReachability: "registering" | "online" | "offline";
   describeFollowedPosition: (slideIndex: number, stepIndex: number) => { slideText: string; stepText: string | undefined };
   disconnectFromHostingScreen: () => void;
 } & RemoteConnection;
@@ -22,6 +23,7 @@ export function RemoteControlPanel({
   changePanelCode,
   isRemoteMode,
   connectedRemoteCount,
+  hostingReachability,
   describeFollowedPosition,
   connectionStatus,
   followedSlideIndex,
@@ -57,18 +59,24 @@ export function RemoteControlPanel({
           {!isRemoteMode && (
             <>
               <p data-remote-hint>{interfaceTexts.remoteHostingHint}</p>
-              <output data-remote-status>
-                {connectedRemoteCount === 0 ? interfaceTexts.remoteWaitingForRemotes : interfaceTexts.remoteRemotesConnected(connectedRemoteCount)}
+              <output data-remote-status={hostingReachability}>
+                {hostingReachability === "offline"
+                  ? interfaceTexts.remoteHostingOffline
+                  : connectedRemoteCount === 0
+                    ? interfaceTexts.remoteWaitingForRemotes
+                    : interfaceTexts.remoteRemotesConnected(connectedRemoteCount)}
               </output>
             </>
           )}
           {isRemoteMode && !isRemoteConnected && (
-            <output data-remote-status={connectionStatus === "unanswered" ? "unanswered" : undefined}>
+            <output data-remote-status={connectionStatus}>
               {connectionStatus === "connecting"
                 ? interfaceTexts.remoteConnecting
                 : connectionStatus === "unanswered"
                   ? interfaceTexts.remoteUnanswered
-                  : interfaceTexts.remoteClientHint}
+                  : connectionStatus === "no-broker"
+                    ? interfaceTexts.remoteNoBroker
+                    : interfaceTexts.remoteClientHint}
             </output>
           )}
           {isRemoteMode && isRemoteConnected && followedPositionDescription !== undefined && (
