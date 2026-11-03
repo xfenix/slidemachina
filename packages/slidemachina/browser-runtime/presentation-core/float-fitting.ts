@@ -14,7 +14,7 @@ export function useFloatFitting(slideElementReference: RefObject<HTMLElement | n
   useLayoutEffect(() => {
     if (isSlideDistant) return;
     const contentElement = slideElementReference.current?.querySelector<HTMLElement>(":scope > [data-content]");
-    if (contentElement === null || contentElement === undefined || contentElement.querySelector("[data-media-float]") === null) return;
+    if (contentElement === null || contentElement === undefined) return;
     let refitFrame = 0;
     const refitFloats = () => {
       cancelAnimationFrame(refitFrame);
@@ -23,9 +23,13 @@ export function useFloatFitting(slideElementReference: RefObject<HTMLElement | n
     fitFloatsToHeight(contentElement);
     const sizeObserver = new ResizeObserver(refitFloats);
     sizeObserver.observe(contentElement);
+    // QR and Chart load lazily behind a placeholder: the float appears after the first fit, so a child swap refits too.
+    const contentObserver = new MutationObserver(refitFloats);
+    contentObserver.observe(contentElement, { childList: true });
     void document.fonts.ready.then(refitFloats);
     return () => {
       sizeObserver.disconnect();
+      contentObserver.disconnect();
       cancelAnimationFrame(refitFrame);
     };
   }, [slideElementReference, slideContent, isSlideDistant]);
