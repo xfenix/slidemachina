@@ -2,6 +2,20 @@ import * as Machina from "slidemachina";
 
 const heartRows = ["0110110", "1111111", "1111111", "0111110", "0011100", "0001000"];
 
+const starRows = [
+  "000010000",
+  "000111000",
+  "000111000",
+  "011111110",
+  "111111111",
+  "011111110",
+  "001111100",
+  "000111000",
+  "000111000",
+];
+
+const coinRows = ["0111110", "1100011", "1000001", "1000001", "1000001", "1100011", "0111110"];
+
 function PixelHeart() {
   return (
     <svg className="pixel-heart" viewBox="0 0 7 6" shapeRendering="crispEdges" aria-hidden>
@@ -22,6 +36,39 @@ function PixelHeart() {
     </svg>
   );
 }
+
+function PixelArt({ pictureRows, pictureFill, pictureShade, shinePosition }: PixelArtProperties) {
+  const pixelWidth = pictureRows[0]!.length;
+  const pixelHeight = pictureRows.length;
+  return (
+    <svg className="pixel-art" viewBox={`0 0 ${pixelWidth} ${pixelHeight}`} shapeRendering="crispEdges" aria-hidden>
+      {pictureRows.flatMap((pictureRow, rowIndex) =>
+        pictureRow.split("").map((pictureCell, columnIndex) => {
+          if (pictureCell !== "1") return null;
+          const isShinePixel = shinePosition[0] === columnIndex && shinePosition[1] === rowIndex;
+          const isShadedEdge = columnIndex === pixelWidth - 1 || rowIndex === pixelHeight - 1;
+          return (
+            <rect
+              key={`${rowIndex}-${columnIndex}`}
+              x={columnIndex}
+              y={rowIndex}
+              width={1}
+              height={1}
+              fill={isShinePixel ? "#ffffff" : isShadedEdge ? pictureShade : pictureFill}
+            />
+          );
+        }),
+      )}
+    </svg>
+  );
+}
+
+type PixelArtProperties = {
+  pictureRows: string[];
+  pictureFill: string;
+  pictureShade: string;
+  shinePosition: [number, number];
+};
 
 export default (
   <Machina.Presentation title="8 бит" lang="ru" date="2026-11-02">
@@ -86,6 +133,24 @@ if (player.hp > 0) {
       </Machina.Slide>
 
       <Machina.Slide>
+        <h2>Спрайты из кода</h2>
+        <div className="machina-columns">
+          <div className="machina-card pixel-sprite-card">
+            <PixelArt pictureRows={starRows} pictureFill="#ffd23f" pictureShade="#d9a400" shinePosition={[2, 1]} />
+            <h3>Звезда</h3>
+          </div>
+          <div className="machina-card pixel-sprite-card">
+            <PixelArt pictureRows={coinRows} pictureFill="#3ee6ff" pictureShade="#17a5c6" shinePosition={[1, 1]} />
+            <h3>Монетка</h3>
+          </div>
+        </div>
+        <figcaption>Каждый спрайт — массив строк, нарисованный SVG-прямоугольниками</figcaption>
+        <Machina.Notes>
+          <p>Ни одной картинки: пиксели кодируются единицами в строках, блик — белым пикселем.</p>
+        </Machina.Notes>
+      </Machina.Slide>
+
+      <Machina.Slide>
         <h2>Карта уровня</h2>
         <Machina.Diagram>
           <Machina.Box id="start">Старт</Machina.Box>
@@ -113,6 +178,44 @@ if (player.hp > 0) {
         <figcaption>Три полосы — по одной на шаг</figcaption>
         <Machina.Notes>
           <p>Столбики растут по шагам, как шкала опыта.</p>
+        </Machina.Notes>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Таблица рекордов</h2>
+        <table data-steps>
+          <thead>
+            <tr>
+              <th>Игрок</th>
+              <th>Уровень</th>
+              <th>Очки</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>pixel_witch</td>
+              <td>12</td>
+              <td>99 480</td>
+            </tr>
+            <tr>
+              <td>cartridge_kid</td>
+              <td>11</td>
+              <td>88 120</td>
+            </tr>
+            <tr>
+              <td>demo_scenic</td>
+              <td>10</td>
+              <td>76 500</td>
+            </tr>
+            <tr>
+              <td>вы</td>
+              <td>9</td>
+              <td>64 000</td>
+            </tr>
+          </tbody>
+        </table>
+        <Machina.Notes>
+          <p>Строки встают на табло по шагам, как в аркадном автомате.</p>
         </Machina.Notes>
       </Machina.Slide>
 
@@ -162,6 +265,10 @@ if (player.hp > 0) {
           <p>Цитата короткая, автор подписан.</p>
         </Machina.Notes>
       </Machina.Slide>
+
+      <Machina.Slide background="var(--accent-color)" transition="fade">
+        <p className="machina-thesis">Хорошая тема проходит босса без потери жизней</p>
+      </Machina.Slide>
     </Machina.Section>
 
     <Machina.Slide cover>
@@ -169,7 +276,7 @@ if (player.hp > 0) {
       <PixelHeart />
       <p className="pixel-blink machina-note">Нажми старт ещё раз</p>
       <Machina.Notes>
-        <p>Поблагодарите зал. Сердечко из box-shadow — тоже тема.</p>
+        <p>Поблагодарите зал. Сердечко — SVG-спрайт из массива строк, вся графика в разметке.</p>
       </Machina.Notes>
     </Machina.Slide>
   </Machina.Presentation>

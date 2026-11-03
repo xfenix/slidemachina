@@ -207,6 +207,23 @@
   filter: drop-shadow(8px 8px 0 rgb(6 6 20 / 0.9));
 }
 
+/* Спрайты в карточках: крупные пиксели без сглаживания и та же жёсткая тень. */
+.pixel-art {
+  display: block;
+  width: 170px;
+  height: auto;
+  margin: 4px auto 24px;
+  image-rendering: pixelated;
+  filter: drop-shadow(6px 6px 0 rgb(6 6 20 / 0.9));
+}
+
+[data-slide] .pixel-sprite-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 56px;
+}
+
 /* Столбики графика — полосы здоровья. */
 [data-slide] .machina-bars li {
   background: var(--accent-color);

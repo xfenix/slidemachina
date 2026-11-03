@@ -37,7 +37,7 @@ export default (
           </figure>
           <figure className="machina-big-number">
             <p>6</p>
-            <figcaption>градусов в секунду облёт камеры</figcaption>
+            <figcaption>градусов в секунду</figcaption>
           </figure>
           <figure className="machina-big-number">
             <p>0</p>
@@ -46,6 +46,21 @@ export default (
         </div>
         <Machina.Notes>
           <p>По цифре на шаг. Подписи не читайте.</p>
+        </Machina.Notes>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Сборка станции</h2>
+        <Machina.Scene orbit={5} floor={false}>
+          <Machina.Cube id="station-core" size={1.6} color="#2a4a9e" spin />
+          <Machina.Cube id="station-module" size={0.6} color="#6ee7ff" position={[2, 0.4, 0]} material="glossy" />
+          <Machina.Move on="station-module" position={[-2, 0.4, 0]} step />
+          <Machina.Text position={[0, -1.7, 0]} size={0.4} step>
+            модуль на месте
+          </Machina.Text>
+        </Machina.Scene>
+        <Machina.Notes>
+          <p>Вторая сцена: куб вращается сам, шаг переносит модуль на другую сторону.</p>
         </Machina.Notes>
       </Machina.Slide>
     </Machina.Section>
@@ -77,6 +92,52 @@ export default (
 }`}</Machina.Code>
         <Machina.Notes>
           <p>Фон, два акцента и толщина заголовков — всё тема, кода движка не трогаем.</p>
+        </Machina.Notes>
+      </Machina.Slide>
+
+      <Machina.Slide>
+        <h2>Палитра миссии</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Токен</th>
+              <th>Роль</th>
+              <th>Где светится</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <code>--slide-background</code>
+              </td>
+              <td>Ночь</td>
+              <td>Всё полотно слайда</td>
+            </tr>
+            <tr>
+              <td>
+                <code>--accent-color</code>
+              </td>
+              <td>Лёд</td>
+              <td>Заголовки и крупные цифры</td>
+            </tr>
+            <tr>
+              <td>
+                <code>--second-accent-color</code>
+              </td>
+              <td>Неон</td>
+              <td>Градиент и номера разделов</td>
+            </tr>
+            <tr>
+              <td>
+                <code>--muted-color</code>
+              </td>
+              <td>Пыль</td>
+              <td>Подписи и сноски</td>
+            </tr>
+          </tbody>
+        </table>
+        <Machina.Notes>
+          <p>Четыре токена закрывают всю тему, остальное движок считает сам.</p>
         </Machina.Notes>
       </Machina.Slide>
 
@@ -142,6 +203,10 @@ export default (
       <Machina.Notes>
         <p>Цитата короткая, автор подписан.</p>
       </Machina.Notes>
+    </Machina.Slide>
+
+    <Machina.Slide background="var(--accent-color)" transition="fade">
+      <p className="machina-thesis">Свет на слайде — часть смысла, а не украшение</p>
     </Machina.Slide>
 
     <Machina.Slide plain>
