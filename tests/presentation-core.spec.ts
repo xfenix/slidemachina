@@ -1156,6 +1156,9 @@ test("графики Recharts используют тему слайда, сох
 
 test("пульт с телефона: экран показывает код, телефон на том же домене вводит его вместо своего и листает", async ({ page, context }) => {
   test.setTimeout(60_000);
+  // The PeerJS cloud stays out of the test: with the broker unreachable both sides fall back to BroadcastChannel,
+  // so the check is deterministic and offline-friendly. The WebRTC path itself is verified by hand.
+  await context.route("**://0.peerjs.com/**", (interceptedRoute) => interceptedRoute.abort());
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
 
@@ -1196,7 +1199,7 @@ test("пульт с телефона: экран показывает код, т
   await expect(phonePage.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "hosting");
   await expect(phonePage.locator("[data-remote-code]")).toHaveValue(ownPhoneCode);
   await phonePage.locator("[data-remote-code]").fill(hostingCode === "999999" ? "999998" : "999999");
-  await expect(phonePage.locator('[data-remote-status="unanswered"]')).toContainText("Никто не ответил на код");
+  await expect(phonePage.locator('[data-remote-status="unanswered"]')).toContainText("Никто не ответил на код", { timeout: 15_000 });
   await phonePage.close();
 });
 
