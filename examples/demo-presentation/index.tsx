@@ -1,5 +1,5 @@
 import * as Machina from "slidemachina";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, Scatter, ScatterChart, Symbols, Tooltip, XAxis, YAxis } from "recharts";
 import duskPicture from "./images/dusk.webp";
 import developmentToolbarPicture from "./images/development-toolbar.webp";
 import editorPicture from "./images/source-editor.webp";
@@ -30,24 +30,28 @@ const talkDurationRows = [
   { talkPartLabel: "Вопросы", durationMinutes: 2 },
 ];
 const cumulativeRegistrationRows = [
-  { weekdayLabel: "Пн", registrationCount: 24 },
-  { weekdayLabel: "Вт", registrationCount: 55 },
-  { weekdayLabel: "Ср", registrationCount: 83 },
-  { weekdayLabel: "Чт", registrationCount: 125 },
-  { weekdayLabel: "Пт", registrationCount: 163 },
+  { weekdayLabel: "Пн", registrationCount: 24, trialSubscriptionCount: 8, paidSubscriptionCount: 3 },
+  { weekdayLabel: "Вт", registrationCount: 55, trialSubscriptionCount: 19, paidSubscriptionCount: 8 },
+  { weekdayLabel: "Ср", registrationCount: 83, trialSubscriptionCount: 35, paidSubscriptionCount: 17 },
+  { weekdayLabel: "Чт", registrationCount: 125, trialSubscriptionCount: 62, paidSubscriptionCount: 31 },
+  { weekdayLabel: "Пт", registrationCount: 163, trialSubscriptionCount: 91, paidSubscriptionCount: 48 },
 ];
-const responseTimeRows = [
-  { requestRate: 80, responseMilliseconds: 68 },
-  { requestRate: 120, responseMilliseconds: 76 },
-  { requestRate: 180, responseMilliseconds: 88 },
-  { requestRate: 240, responseMilliseconds: 104 },
-  { requestRate: 300, responseMilliseconds: 136 },
-  { requestRate: 380, responseMilliseconds: 168 },
-  { requestRate: 460, responseMilliseconds: 205 },
-  { requestRate: 540, responseMilliseconds: 248 },
-];
-const doughnutInnerRadius = "55%";
-const scatterMarkerArea = 180;
+const responseSampleCount = 120;
+const responseMinimumRequests = 40;
+const responseRequestStep = 5;
+const responseBaseLatency = 80;
+const responseLoadLatencyShare = 0.3;
+const responseNoiseAmplitude = 40;
+const responseNoiseFrequency = 2.4;
+const responseTimeRows = Array.from({ length: responseSampleCount }, (_unusedSample, sampleIndex) => {
+  const requestRate = responseMinimumRequests + sampleIndex * responseRequestStep;
+  const responseMilliseconds = Math.round(responseBaseLatency + requestRate * responseLoadLatencyShare + Math.sin(sampleIndex * responseNoiseFrequency) * responseNoiseAmplitude);
+  return { requestRate, responseMilliseconds };
+});
+const doughnutInnerRadius = 165;
+const doughnutOuterRadius = 240;
+const scatterMarkerArea = 700;
+const paidSeriesDashPattern = "10 6";
 
 Machina.css`
   ::selection {
@@ -712,10 +716,13 @@ export default (
             <XAxis dataKey="weekdayLabel" />
             <YAxis allowDecimals={false} />
             <Tooltip />
-            <Area dataKey="registrationCount" name="Всего регистраций" />
+            <Legend />
+            <Area dataKey="registrationCount" name="Регистрации" />
+            <Area dataKey="trialSubscriptionCount" name="Пробные подписки" />
+            <Area dataKey="paidSubscriptionCount" name="Оплаты" strokeDasharray={paidSeriesDashPattern} />
           </AreaChart>
         </Machina.Chart>
-        <p className="machina-note max-w-none">График с областями: за пять дней накопилось 163 регистрации. Учебные данные</p>
+        <p className="machina-note max-w-none">За пять дней: 163 регистрации, 91 пробная подписка и 48 оплат. Учебные данные</p>
       </Machina.Slide>
 
       <Machina.Slide>
@@ -723,8 +730,8 @@ export default (
         <Machina.Chart stretch>
           <PieChart>
             <Tooltip />
-            <Legend />
-            <Pie data={talkDurationRows} dataKey="durationMinutes" nameKey="talkPartLabel" innerRadius={doughnutInnerRadius}>
+            <Legend align="left" />
+            <Pie data={talkDurationRows} dataKey="durationMinutes" nameKey="talkPartLabel" cx={doughnutOuterRadius} outerRadius={doughnutOuterRadius} innerRadius={doughnutInnerRadius}>
               {talkDurationRows.map((talkDuration) => <Cell key={talkDuration.talkPartLabel} />)}
             </Pie>
           </PieChart>
@@ -739,12 +746,11 @@ export default (
             <CartesianGrid />
             <XAxis type="number" dataKey="requestRate" name="Нагрузка, запросов/с" />
             <YAxis type="number" dataKey="responseMilliseconds" name="Время ответа, мс" />
-            <ZAxis range={[scatterMarkerArea, scatterMarkerArea]} />
             <Tooltip />
-            <Scatter data={responseTimeRows} name="Замеры" />
+            <Scatter data={responseTimeRows} name="Замеры" shape={<Symbols type="circle" size={scatterMarkerArea} />} />
           </ScatterChart>
         </Machina.Chart>
-        <p className="machina-note max-w-none">Точечный график: с ростом нагрузки время ответа увеличивается. Учебные данные: запросы/с и мс</p>
+        <p className="machina-note max-w-none">Точечный график: {responseSampleCount} учебных замеров. Нагрузка — запросы/с, время ответа — мс</p>
       </Machina.Slide>
     </Machina.Section>
 
