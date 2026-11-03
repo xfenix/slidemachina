@@ -31,6 +31,8 @@ import { runNavigatorTransition } from "../slide-transitions/navigator-transitio
 import { useTouchControls } from "../slide-navigation/touch-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
 import { usePresenterSync, type SlideCommand } from "../presenter-view/presenter-channel.ts";
+import { readStoredHostingCode, storeHostingCode, useRemoteConnection, useRemoteHosting } from "../remote-control/remote-channel.ts";
+import { RemoteControlPanel } from "../remote-control/remote-panel.tsx";
 import { useCustomFavicon } from "./custom-favicon.ts";
 import { useEverySlideAfterFirstFrame } from "./slide-deferring.ts";
 import { isPresenterWindow, openPresenterWindow, PresenterWindowSwitch } from "../presenter-view/presenter-window.tsx";
@@ -159,6 +161,28 @@ export function Presentation({
     },
   });
   const typedSlideNumber = useTypedSlideNumber((slideNumber) => steerSlides(findShownSlide(slideNumbering, slideNumber)));
+  // The slides window hosts a code from the panel; a phone on the same domain enters it and sends commands to this channel.
+  const [hostingCode, setHostingCode] = useState(readStoredHostingCode);
+  useEffect(() => {
+    storeHostingCode(hostingCode);
+  }, [hostingCode]);
+  const { connectedRemoteCount } = useRemoteHosting({
+    isHostingAvailable: !isPresenterWindow && !isPrintView && !isCoverPreview,
+    hostingCode,
+    currentPosition,
+    isPaused,
+    runSlideCommand,
+  });
+  const remoteConnection = useRemoteConnection();
+  const describeFollowedPosition = (followedSlideIndex: number, followedStepIndex: number) => {
+    const remoteInterfaceTexts = pickInterfaceTexts(lang);
+    const shownSlideNumber = slideNumbering.shownNumbers[followedSlideIndex] ?? followedSlideIndex + 1;
+    const followedStepCount = stepCountsReference.current[followedSlideIndex] ?? 0;
+    return {
+      slideText: remoteInterfaceTexts.presenterSlideCounter(shownSlideNumber, slideNumbering.shownSlideIndexes.length),
+      stepText: followedStepCount > 0 ? remoteInterfaceTexts.presenterStepCounter(followedStepIndex, followedStepCount) : undefined,
+    };
+  };
   useKeyboardControls(
     {
       goForward: () => steerSlides("forward"),
@@ -292,6 +316,14 @@ export function Presentation({
         toggleFullscreen={toggleFullscreen}
       >
         <PresenterWindowSwitch languageCode={lang} />
+        <RemoteControlPanel
+          languageCode={lang}
+          hostingCode={hostingCode}
+          changeHostingCode={setHostingCode}
+          connectedRemoteCount={connectedRemoteCount}
+          describeFollowedPosition={describeFollowedPosition}
+          {...remoteConnection}
+        />
         <PrintMenu
           languageCode={lang}
           printsSteps={printsSteps}
