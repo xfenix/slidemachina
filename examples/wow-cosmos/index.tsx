@@ -211,7 +211,7 @@ export default (
 
     <Machina.Slide plain>
       <h1>Спасибо</h1>
-      <div className="machina-columns" style={{ gridTemplateColumns: "1fr 1fr", height: "56cqh", flex: "0 0 auto" }}>
+      <div className="machina-columns" style={{ gridTemplateColumns: "56cqh 1fr", height: "56cqh", flex: "0 0 auto" }}>
         <div>
           <Machina.QR value="https://github.com/xfenix/slidemachina">
             <figcaption>репозиторий движка</figcaption>
