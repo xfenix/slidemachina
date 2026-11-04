@@ -227,6 +227,8 @@ async function recordRemoteControlClip() {
     });
     await phonePage.locator(moveForwardSelector).click();
     const deckReactingSegment = await captureScreencast(deckPage, false, async () => {
+      // The panel fades after two idle seconds: keep it on screen for the ending, it shows the connected status.
+      await deckPage.mouse.move(deckViewportSize.width / 2, 16);
       await deckPage.waitForTimeout(deckTailMilliseconds);
     });
     await sharedContext.close();

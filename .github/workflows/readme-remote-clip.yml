@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: readme-remote-clip
@@ -36,9 +35,7 @@ jobs:
       - name: Record the clip
         run: node tests/remote-media-recording.ts
 
-      - name: Offer the new clip as a pull request
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Push the new clip branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -46,4 +43,5 @@ jobs:
           git add docs/readme/remote-control.webp
           git commit --quiet --message "docs: refresh the phone-remote README clip"
           git push --quiet origin HEAD
-          gh pr create --fill --label documentation
+          echo "Clip branch pushed: $(git branch --show-current). A pull request from it is created by hand — GitHub Actions cannot create pull requests."
+
