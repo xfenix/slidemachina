@@ -14,7 +14,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: remote-clip
@@ -42,9 +41,7 @@ jobs:
       - name: Record the clip
         run: node tests/remote-media-recording.ts
 
-      - name: Commit the fresh clip through a pull request
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Commit the fresh clip straight to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -54,10 +51,7 @@ jobs:
             exit 0
           fi
           git commit -m "docs: клип пульта перезаписан — актуальный экран remote"
-          # main мог уйти вперёд с момента checkout: перебазируемся, чтобы пуш ветки не отклонился.
+          # main мог уйти вперёд с момента checkout: перебазируемся, чтобы пуш не отклонился.
           git fetch origin main
           git rebase origin/main
-          clipBranch="bot/remote-clip-${{ github.run_id }}"
-          git push --force-with-lease origin "HEAD:refs/heads/$clipBranch"
-          gh pr create --base main --head "$clipBranch" --title "docs: клип пульта перезаписан — актуальный экран remote" --body "Перезаписан workflow-ом: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}."
-          gh pr merge --squash --delete-branch
+          git push origin HEAD:main
