@@ -171,6 +171,7 @@ export function Presentation({
     isHostingAvailable: !isPresenterWindow && !isPrintView && !isCoverPreview,
     currentPosition,
     isPaused,
+    presentationTitle: pageTitle,
     runSlideCommand,
     slideNumbering,
     countSlideSteps: (slideIndex) => stepCountsReference.current[slideIndex] ?? 0,

@@ -42,6 +42,7 @@ export function RemoteClientScreen() {
   return (
     <div data-remote-screen>
       <SlidemachinaLogo dark />
+      {remoteConnection.followedPresentationTitle !== undefined && <h1 data-remote-title>{remoteConnection.followedPresentationTitle}</h1>}
       <fieldset data-remote-panel data-remote-mode="remote" aria-label={interfaceTexts.remoteButton}>
         <RemoteClientView
           languageCode={navigator.language}
@@ -51,11 +52,11 @@ export function RemoteClientScreen() {
           givePressFeedback={givePressFeedback}
           {...remoteConnection}
         />
+        <label data-remote-haptics>
+          <input type="checkbox" checked={isHapticsEnabled} onChange={toggleHaptics} />
+          {interfaceTexts.remoteHapticsLabel}
+        </label>
       </fieldset>
-      <label data-remote-haptics>
-        <input type="checkbox" checked={isHapticsEnabled} onChange={toggleHaptics} />
-        {interfaceTexts.remoteHapticsLabel}
-      </label>
     </div>
   );
 }
