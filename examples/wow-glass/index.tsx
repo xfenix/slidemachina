@@ -115,7 +115,7 @@ export default (
           <p className="glass-card-text" style={{ textAlign: "center" }}>ваш оттенок</p>
         </div>
         <div className="glass-arrow" style={{ left: "30cqw", width: "6cqw", top: "50cqh" }} />
-        <div className="glass-pane glass-flow glass-anim-rise" style={{ left: "40cqw", top: "30cqh", width: "52cqw", height: "40cqh", justifyContent: "center", "--glass-delay": "160ms" }}>
+        <div className="glass-pane glass-flow glass-anim-rise" style={{ left: "40cqw", top: "30cqh", width: "52cqw", height: "40cqh", justifyContent: "center", "--glass-delay": "160ms" } as CSSProperties}>
           <div className="glass-scale-stripe" data-step data-step-effect="scale" style={{ background: `linear-gradient(90deg, ${GLASS_VIOLET}, ${GLASS_MAGENTA})` }} />
           <div className="glass-scale-stripe" data-step data-step-effect="scale" style={{ background: `linear-gradient(90deg, ${GLASS_MAGENTA}, ${GLASS_AMBER})`, opacity: 0.85 }} />
           <div className="glass-scale-stripe" data-step data-step-effect="scale" style={{ background: `linear-gradient(90deg, ${GLASS_AMBER}, ${GLASS_CYAN})`, opacity: 0.7 }} />
@@ -138,7 +138,7 @@ export default (
         <p className="glass-speed-caption glass-anim-rise" style={{ "--glass-delay": "220ms" } as CSSProperties}>
           среднее время сборки палитры из одного цвета
         </p>
-        <div className="glass-pane glass-flow glass-anim-rise" style={{ left: "40cqw", top: "28cqh", width: "52cqw", height: "44cqh", justifyContent: "center", "--glass-delay": "160ms" }}>
+        <div className="glass-pane glass-flow glass-anim-rise" style={{ left: "40cqw", top: "28cqh", width: "52cqw", height: "44cqh", justifyContent: "center", "--glass-delay": "160ms" } as CSSProperties}>
           {SPEED_BARS.map((speedBar) => (
             <div className="glass-bar-row" key={speedBar.barLabel} data-step data-step-effect="scale">
               <div className="glass-bar-label">
@@ -191,7 +191,7 @@ export default (
           <p className="glass-contrast-name">тёмная тема, текст на фоне</p>
           <span className="glass-badge">AAA</span>
         </div>
-        <div className="glass-pane glass-contrast-light glass-anim-rise" style={{ left: "52cqw", top: "30cqh", width: "40cqw", height: "40cqh", "--glass-delay": "140ms" }}>
+        <div className="glass-pane glass-contrast-light glass-anim-rise" style={{ left: "52cqw", top: "30cqh", width: "40cqw", height: "40cqh", "--glass-delay": "140ms" } as CSSProperties}>
           <p className="glass-contrast-ratio">7.2 : 1</p>
           <p className="glass-contrast-name">светлая тема, текст на фоне</p>
           <span className="glass-badge">AAA</span>
@@ -209,7 +209,7 @@ export default (
       <GlassOrbs />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">06 · токены</p>
-        <div className="glass-pane glass-anim-rise" style={{ left: "8cqw", top: "26cqh", width: "56cqw", height: "38cqh", "--glass-delay": "80ms" }}>
+        <div className="glass-pane glass-anim-rise" style={{ left: "8cqw", top: "26cqh", width: "56cqw", height: "38cqh", "--glass-delay": "80ms" } as CSSProperties}>
           <div className="glass-terminal">
             <Machina.Code lang="css">{`:root {
   --brand: #7c5cff;
@@ -368,7 +368,7 @@ export default (
           <span className="glass-ticket-notch glass-ticket-notch-bottom" />
           <p className="glass-ticket-code">VITRAZ-26</p>
         </div>
-        <div className="glass-pane glass-ticket glass-flow glass-anim-rise" style={{ left: "52cqw", top: "32cqh", width: "40cqw", height: "36cqh", "--glass-delay": "140ms" }}>
+        <div className="glass-pane glass-ticket glass-flow glass-anim-rise" style={{ left: "52cqw", top: "32cqh", width: "40cqw", height: "36cqh", "--glass-delay": "140ms" } as CSSProperties}>
           <p className="glass-ticket-name" style={{ "--chip-tint": GLASS_CYAN } as CSSProperties}>лист ожидания</p>
           <p className="glass-ticket-text">запуск для всех — январь 2027, без кода</p>
           <span className="glass-ticket-perforation" />
@@ -412,10 +412,8 @@ export default (
 function GlassOrbs() {
   return (
     <div className="glass-orb-layer" aria-hidden>
-      <span className="glass-orb glass-orb-violet" />
-      <span className="glass-orb glass-orb-cyan" />
-      <span className="glass-orb glass-orb-magenta" />
-      <span className="glass-orb glass-orb-amber" />
+      <span className="glass-orb glass-orb-warm" />
+      <span className="glass-orb glass-orb-cold" />
     </div>
   );
 }
