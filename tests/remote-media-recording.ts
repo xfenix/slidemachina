@@ -173,13 +173,20 @@ async function launchBrowserConnection(): Promise<Browser> {
 async function recordRemoteControlClip() {
   const browserConnection = await launchBrowserConnection();
   try {
+    // The probe runs on a throwaway page and its context is closed afterwards: the working test does the
+    // same, and a probed page keeps enough WebRTC residue to break the real connection on some machines.
+    const probeContext = await browserConnection.newContext({ viewport: deckViewportSize });
+    const probePage = await probeContext.newPage();
+    await probePage.goto(`${serverAddress}/`);
+    await probePage.waitForTimeout(settlePauseMilliseconds);
+    if (!(await probeWebRtcLoopback(probePage))) {
+      throw new Error("WebRTC между двумя вкладками этой машины недоступен — клип пульта записывается на CI");
+    }
+    await probeContext.close();
     const deckContext = await browserConnection.newContext({ viewport: deckViewportSize });
     const deckPage = await deckContext.newPage();
     await deckPage.goto(`${serverAddress}/?remote-broker=localhost:${brokerServerPort}#1`);
     await deckPage.waitForTimeout(settlePauseMilliseconds);
-    if (!(await probeWebRtcLoopback(deckPage))) {
-      throw new Error("WebRTC между двумя вкладками этой машины недоступен — клип пульта записывается на CI");
-    }
     const deckWaitingSegment = await captureScreencast(deckPage, false, async () => {
       await deckPage.waitForTimeout(panelLeadMilliseconds);
       // The panel hides after two idle seconds and the slide starts intercepting clicks: wake it with the mouse.
@@ -193,10 +200,16 @@ async function recordRemoteControlClip() {
     const phonePage = await phoneContext.newPage();
     const phoneDrivingSegment = await captureScreencast(phonePage, true, async () => {
       await phonePage.goto(`${serverAddress}/?remote&remote-broker=localhost:${brokerServerPort}#${hostingCode}`);
-      await phonePage
-        .locator(remotePositionSelector)
-        .filter({ hasText: firstSlidePositionText })
-        .waitFor({ timeout: phoneConnectedTimeoutMilliseconds });
+      try {
+        await phonePage
+          .locator(remotePositionSelector)
+          .filter({ hasText: firstSlidePositionText })
+          .waitFor({ timeout: phoneConnectedTimeoutMilliseconds });
+      } catch (connectionTimeout) {
+        const phoneScreenText = (await phonePage.locator("[data-remote-screen]").textContent().catch(() => "нет экрана пульта")) ?? "";
+        const deckStatusText = (await deckPage.locator("[data-remote-status]").textContent().catch(() => "нет статуса")) ?? "";
+        throw new Error(`Телефон не подключился. Экран телефона: ${phoneScreenText.slice(0, 300)} · Панель доклада: ${deckStatusText.slice(0, 200)}`);
+      }
       await phonePage.waitForTimeout(phoneConnectedPauseMilliseconds);
       await phonePage.locator(moveForwardSelector).click();
       await phonePage.waitForTimeout(betweenTapsPauseMilliseconds);
