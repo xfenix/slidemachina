@@ -35,7 +35,7 @@ import { usePresenterSync, type SlideCommand } from "../presenter-view/presenter
 import { useRemoteControlHosting } from "../remote-control/remote-control-hosting.ts";
 import { RemoteControlPanel } from "../remote-control/remote-panel.tsx";
 import { useCustomFavicon } from "./custom-favicon.ts";
-import { useEverySlideAfterFirstFrame } from "./slide-deferring.ts";
+import { useEverySlideAfterFirstFrame, useInterfaceAfterFirstFrame } from "./slide-deferring.ts";
 import { isPresenterWindow, openPresenterWindow, PresenterWindowSwitch } from "../presenter-view/presenter-window.tsx";
 
 // Only the presenter window runs this code: the audience never loads it.
@@ -126,6 +126,7 @@ export function Presentation({
   const sectionTrails = useMemo(() => outlinedSlides.map((outlinedSlide) => outlinedSlide.sectionTrail), [outlinedSlides]);
   const describeSlideEnvironment = useSlideEnvironments(slideNumbering, sectionTrails, presentationSettings, stepCountsReference);
   const rendersEverySlide = useEverySlideAfterFirstFrame();
+  const rendersInterface = useInterfaceAfterFirstFrame(!import.meta.env.DEV);
 
   // The matching work between a slide and its neighbours waits for idle moments, so a key press finds it ready.
   // A step inside a slide changes no key here: leaving forward always happens at the last step, leaving backward at the first.
@@ -168,7 +169,8 @@ export function Presentation({
   });
   const typedSlideNumber = useTypedSlideNumber((slideNumber) => steerSlides(findShownSlide(slideNumbering, slideNumber)));
   const remoteHosting = useRemoteControlHosting({
-    isHostingAvailable: !isPresenterWindow && !isPrintView && !isCoverPreview,
+    // The WebSocket to the broker opens after the first frame: it is no use to the opening slide and would compete with its paint.
+    isHostingAvailable: rendersInterface && !isPresenterWindow && !isPrintView && !isCoverPreview,
     currentPosition,
     isPaused,
     presentationTitle: pageTitle,
@@ -297,35 +299,37 @@ export function Presentation({
           goToSlide={slideNavigation.goToSlide}
         />
       )}
-      <PresentationToolbar
-        languageCode={lang}
-        isHidden={isToolbarHidden}
-        toggleHidden={toggleToolbar}
-        isNavigatorOpen={isNavigatorOpen}
-        toggleNavigator={() => switchNavigator(!isNavigatorOpen)}
-        toggleFullscreen={toggleFullscreen}
-      >
-        <PresenterWindowSwitch languageCode={lang} />
-        <RemoteControlPanel languageCode={lang} {...remoteHosting} />
-        <PrintMenu
+      {rendersInterface && (
+        <PresentationToolbar
           languageCode={lang}
-          printsSteps={printsSteps}
-          choosePrintedSteps={printPreparation.choosePrintedSteps}
-          printsHidden={hasHiddenSlides ? printsHidden : undefined}
-          chooseHiddenSlides={printPreparation.chooseHiddenSlides}
-          printPresentation={printPreparation.printPresentation}
-          openPrintView={printPreparation.openPrintView}
-        />
-        {import.meta.env.DEV && (
-          <span data-toolbar-dev>
-            <span data-toolbar-divider />
-            <MinimapSwitch languageCode={lang} isMinimapShown={isMinimapShown} toggleMinimap={toggleMinimap} />
-            <EditorSwitch languageCode={lang} />
-            <MemePanelSwitch languageCode={lang} />
-            {import.meta.env.SLIDEMACHINA_AGENTATION !== "off" && <DevelopmentFeedback />}
-          </span>
-        )}
-      </PresentationToolbar>
+          isHidden={isToolbarHidden}
+          toggleHidden={toggleToolbar}
+          isNavigatorOpen={isNavigatorOpen}
+          toggleNavigator={() => switchNavigator(!isNavigatorOpen)}
+          toggleFullscreen={toggleFullscreen}
+        >
+          <PresenterWindowSwitch languageCode={lang} />
+          <RemoteControlPanel languageCode={lang} {...remoteHosting} />
+          <PrintMenu
+            languageCode={lang}
+            printsSteps={printsSteps}
+            choosePrintedSteps={printPreparation.choosePrintedSteps}
+            printsHidden={hasHiddenSlides ? printsHidden : undefined}
+            chooseHiddenSlides={printPreparation.chooseHiddenSlides}
+            printPresentation={printPreparation.printPresentation}
+            openPrintView={printPreparation.openPrintView}
+          />
+          {import.meta.env.DEV && (
+            <span data-toolbar-dev>
+              <span data-toolbar-divider />
+              <MinimapSwitch languageCode={lang} isMinimapShown={isMinimapShown} toggleMinimap={toggleMinimap} />
+              <EditorSwitch languageCode={lang} />
+              <MemePanelSwitch languageCode={lang} />
+              {import.meta.env.SLIDEMACHINA_AGENTATION !== "off" && <DevelopmentFeedback />}
+            </span>
+          )}
+        </PresentationToolbar>
+      )}
       {printPreparation.isPrintPrepared && (
         <PrintPages
           printedSlideIndexes={printedSlideIndexes}

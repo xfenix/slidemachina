@@ -3,12 +3,13 @@ import type { MorphPair, RewordedPair } from "../element-morphing/morph-matching
 import { measureWordLayers, type WordBoxes } from "../element-morphing/word-carrying.ts";
 import { markReachedSteps } from "../slide-steps/step-visibility.ts";
 import { findPaintedShapes, readIncomingPaints, type PaintedShape } from "./shape-layers.ts";
-import { clearLayerNames, describeContentLayers, nameLayer, nameMovingParts, restoreLayers } from "./transition-layers.ts";
+import { clearLayerNames, describeContentLayers, nameLayer, nameMovingParts, restoreLayers, type NamedLayer } from "./transition-layers.ts";
 
 export type LayerBoxes = { startBox: DOMRect; endBox: DOMRect };
 export type TransitionPressMeasurements = {
+  // The layer plan of the dry run: a press with a fresh stamp skips the live describing and painting entirely.
+  namedLayers: NamedLayer[];
   paintedShapes: PaintedShape[];
-  paintedLayerClasses: Map<string, string>;
   outgoingWordBoxes: WordBoxes;
   incomingWordBoxes: WordBoxes;
   movingLayerBoxes: Map<string, LayerBoxes>;
@@ -44,8 +45,7 @@ export type MeasuredTransitionSteps = {
 };
 
 // A dry run of the press-time layer work in an idle moment: the same wrapping and naming, the same reads,
-// undone inside one task. A press then finds the boxes ready and forces no layout of its own.
-// Only relative boxes are kept (deltas and midpoints), so a canvas rescale alone never invalidates them.
+// undone inside one task. A press with a fresh stamp reuses the whole plan and forces no layout of its own.
 export function measureTransitionPressWork(
   { outgoingElement, incomingElement, morphPairs, rewordedPairs, codePairs }: MeasuredTransitionParts,
   { outgoingMeasureStep, incomingMeasureStep, outgoingRestoreStep, incomingRestoreStep }: MeasuredTransitionSteps,
@@ -55,7 +55,6 @@ export function measureTransitionPressWork(
   try {
     const namedLayers = describeContentLayers(outgoingElement, incomingElement, morphPairs, rewordedPairs, codePairs);
     const paintedShapes = findPaintedShapes(namedLayers);
-    const paintedLayerClasses = new Map(namedLayers.filter((namedLayer) => namedLayer.layerClass !== undefined).map((namedLayer) => [namedLayer.layerName, namedLayer.layerClass!]));
     for (const namedLayer of namedLayers) nameLayer(namedLayer.incomingElement, namedLayer);
     readIncomingPaints(paintedShapes);
     const outgoingRestorers = nameMovingParts(rewordedPairs, codePairs, "outgoing");
@@ -71,7 +70,7 @@ export function measureTransitionPressWork(
             { startBox: pairOutgoing.getBoundingClientRect(), endBox: pairIncoming.getBoundingClientRect() },
           ]),
       );
-      return { paintedShapes, paintedLayerClasses, outgoingWordBoxes, incomingWordBoxes, movingLayerBoxes, contentStamp: contentGeneration };
+      return { namedLayers, paintedShapes, outgoingWordBoxes, incomingWordBoxes, movingLayerBoxes, contentStamp: contentGeneration };
     } finally {
       clearLayerNames(namedLayers);
       restoreLayers([...outgoingRestorers, ...incomingRestorers]);
