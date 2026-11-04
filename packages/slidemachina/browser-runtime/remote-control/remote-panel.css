@@ -70,19 +70,18 @@
     stroke: none;
   }
 
-  /* The address under the code: the full link, wrapped over lines if needed, for typing by hand. The scheme is a
-     given on a phone; a shortener shrinks the address when one answers, otherwise the long one stays. */
+  /* The address under the code is set in the panel font, fully visible, wrapped over lines if needed: the original
+     address, or a short one from a shortener service when one answers, for typing by hand. */
   [data-remote-link] {
     margin: 0;
     color: rgb(255 255 255 / 0.55);
     font-size: 13px;
     line-height: 18px;
-    font-family: var(--font-code);
     text-align: center;
     overflow-wrap: anywhere;
   }
 
-  /* The big readable code: 32 px tabular digits, wide tracking, on the same grid column as the buttons. */
+  /* The big readable code: 32 px tabular digits, wide tracking, in the panel font like everything else here. */
   [data-remote-code] {
     all: unset;
     box-sizing: border-box;
@@ -91,7 +90,6 @@
     border-radius: var(--block-radius);
     background: rgb(255 255 255 / 0.08);
     color: #fff;
-    font-family: var(--font-code);
     font-size: 28px;
     line-height: 36px;
     letter-spacing: 0.35em;
@@ -232,9 +230,8 @@
     flex: 1;
     min-width: 0;
     color: #fff;
-    font-family: var(--font-code);
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 15px;
+    line-height: 20px;
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
