@@ -54,11 +54,13 @@
     line-height: 24px;
   }
 
-  /* The haptics switch is a quiet row inside the panel grid, under the controls; the checkbox drives a real toggle. */
+  /* The haptics switch is a quiet row inside the panel grid, under the controls; the checkbox drives a real toggle.
+     A double gap over it keeps the switch away from the driving buttons. */
   [data-remote-haptics] {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-block-start: 14px;
     color: rgb(255 255 255 / 0.55);
     font-size: 13px;
     line-height: 18px;
