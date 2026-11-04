@@ -70,7 +70,7 @@ async function composePhoneFrame(phonePicture: Buffer) {
   return sharp({
     create: { width: deckViewportSize.width, height: deckViewportSize.height, channels: 3, background: phoneCanvasColor },
   })
-    .composite([{ input: borderedPhone, left: Math.round((deckViewportSize.width - phoneMetadata.width!) / 2), top: Math.round((deckViewportSize.height - phoneMetadata.height!) / 2) }])
+    .composite([{ input: borderedPhone, left: Math.round((deckViewportSize.width - phoneMetadata.width) / 2), top: Math.round((deckViewportSize.height - phoneMetadata.height) / 2) }])
     .png()
     .toBuffer();
 }
@@ -213,7 +213,7 @@ async function recordRemoteControlClip() {
           .locator(remotePositionSelector)
           .filter({ hasText: firstSlidePositionText })
           .waitFor({ timeout: phoneConnectedTimeoutMilliseconds });
-      } catch (connectionTimeout) {
+      } catch {
         const phoneScreenText = (await phonePage.locator("[data-remote-screen]").textContent().catch(() => "нет экрана пульта")) ?? "";
         const deckStatusText = (await deckPage.locator("[data-remote-status]").textContent().catch(() => "нет статуса")) ?? "";
         throw new Error(

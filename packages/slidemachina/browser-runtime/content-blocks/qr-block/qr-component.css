@@ -12,18 +12,34 @@
     color: var(--qr-color, var(--text-color));
   }
 
+  /* The code lives in its own square carrier: stretched, the carrier fills the frame; floated, the carrier takes the aspect and the caption rides under it inside the float. */
+  [data-slide] [data-qr] > [data-qr-code] {
+    position: relative;
+    height: 100%;
+  }
+
+  [data-slide] [data-qr][data-media-float] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  [data-slide] [data-qr][data-media-float] > [data-qr-code] {
+    height: auto;
+    aspect-ratio: 1;
+  }
+
   /* On a left-aligned slide the code starts on the line of the text, as the text does, in a column too. */
   [data-slide][data-align="left"] [data-media-frame]:has(> [data-media-group] > [data-qr]) {
     place-items: start;
   }
 
-  [data-slide] [data-qr] > svg {
+  [data-slide] [data-qr] > [data-qr-code] > svg {
     display: block;
     width: 100%;
     height: 100%;
   }
 
-  [data-slide] [data-qr] > [data-qr-logo] {
+  [data-slide] [data-qr] > [data-qr-code] > [data-qr-logo] {
     position: absolute;
     inset: var(--qr-logo-inset);
     width: calc(100% - 2 * var(--qr-logo-inset));
