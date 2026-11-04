@@ -1204,7 +1204,6 @@ test("пульт с телефона: QR ведёт на страницу пул
   // The dev server is localhost: a phone cannot open it, so the QR code leads to the published remote page.
   const joinLink = await page.locator("[data-remote-qr] title").textContent();
   expect(joinLink).toBe(`https://xfenix.github.io/slidemachina/remote.html#${hostingCode}`);
-  await expect(page.locator("[data-remote-link]")).toHaveText(joinLink!);
 
   // The phone opens the remote screen of the same address with the code after #: it connects without typing.
   const phonePage = await context.newPage();

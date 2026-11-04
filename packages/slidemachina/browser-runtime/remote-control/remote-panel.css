@@ -4,6 +4,7 @@
     margin: 0;
     border: 0;
     min-inline-size: 0;
+    box-sizing: border-box;
     position: absolute;
     left: 50%;
     bottom: calc(100% + 12px);
@@ -68,21 +69,13 @@
     stroke: none;
   }
 
-  [data-remote-link] {
-    margin: 0;
-    color: rgb(255 255 255 / 0.55);
-    font-size: 12px;
-    line-height: 16px;
-    font-family: var(--font-code);
-    word-break: break-all;
-    text-align: center;
-  }
-
-  /* The big readable code: 32 px tabular digits, wide tracking, one line on a projector and on a phone. */
+  /* The big readable code: 32 px tabular digits, wide tracking, one line on a projector and on a phone.
+     The field is as wide as six digits: it never reads like there is room for more. */
   [data-remote-code] {
     all: unset;
     box-sizing: border-box;
-    width: 100%;
+    width: min(100%, 230px);
+    margin-inline: auto;
     padding: 10px 12px;
     border-radius: var(--block-radius);
     background: rgb(255 255 255 / 0.08);
@@ -121,6 +114,9 @@
     color: #fff;
     font-size: 17px;
     line-height: 24px;
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
 
   [data-remote-step] {
@@ -128,6 +124,13 @@
     color: rgb(255 255 255 / 0.55);
     font-size: 13px;
     line-height: 18px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* The paused mark keeps its line even when the audience sees the slides: the buttons never jump. */
+  [data-remote-status="paused"][data-remote-paused-hidden] {
+    visibility: hidden;
   }
 
   /* The remote is driven by a thumb: the move buttons are large and sit side by side. */
@@ -153,7 +156,18 @@
     font-size: 15px;
     line-height: 20px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition:
+      background-color 0.2s,
+      transform 0.08s;
+  }
+
+  /* A pressed button answers at once: it darkens and gives a little, like a physical key. */
+  [data-remote-panel] :is([data-remote-move], [data-remote-pause]):active {
+    background: rgb(255 255 255 / 0.26);
+    transform: scale(0.96);
   }
 
   [data-remote-panel] :is([data-remote-move], [data-remote-pause]):hover {

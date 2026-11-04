@@ -61,7 +61,6 @@ export function RemoteControlPanel({
                   <path fill="currentColor" fillRule="evenodd" d={joinQrDrawing.modulesPath} />
                 </svg>
               </div>
-              <p data-remote-link>{hostingLink}</p>
               <p data-remote-hint>{interfaceTexts.remoteHostingHint}</p>
               <output data-remote-status={hostingReachability}>
                 {hostingReachability === "offline"

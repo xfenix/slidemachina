@@ -6,10 +6,13 @@ export type RemoteClientViewProperties = {
   panelCode: string;
   changePanelCode: (panelCode: string) => void;
   disconnectFromHostingScreen: () => void;
+  // A tap on a driving button: a vibration on the phone, nothing on the desktop panel.
+  givePressFeedback?: () => void;
 } & RemoteConnection;
 
 // The phone side of the remote control: one field for the code, the state under it, the driving buttons once
 // connected. The panel of the presenting screen renders this in place; the standalone remote page renders it whole.
+// The counter, the step line and the paused mark keep their places in every state: nothing jumps between slides.
 export function RemoteClientView({
   languageCode,
   panelCode,
@@ -18,10 +21,15 @@ export function RemoteClientView({
   followedCaption,
   isFollowedPaused,
   disconnectFromHostingScreen,
+  givePressFeedback,
   sendRemoteCommand,
 }: RemoteClientViewProperties) {
   const interfaceTexts = pickInterfaceTexts(languageCode);
   const isRemoteConnected = connectionStatus === "connected";
+  const pressAndSend = (slideCommand: "forward" | "backward" | "pause") => {
+    givePressFeedback?.();
+    sendRemoteCommand(slideCommand);
+  };
 
   return (
     <>
@@ -55,22 +63,24 @@ export function RemoteClientView({
             </button>
           </p>
           <p data-remote-position>{interfaceTexts.presenterSlideCounter(followedCaption.shownSlideNumber, followedCaption.shownSlideCount)}</p>
-          {followedCaption.stepCount > 0 && (
-            <p data-remote-step>{interfaceTexts.presenterStepCounter(followedCaption.stepIndex, followedCaption.stepCount)}</p>
-          )}
-          {isFollowedPaused && <output data-remote-status="paused">{interfaceTexts.remotePausedMark}</output>}
+          <p data-remote-step>
+            {followedCaption.stepCount > 0 ? interfaceTexts.presenterStepCounter(followedCaption.stepIndex, followedCaption.stepCount) : " "}
+          </p>
+          <output data-remote-status="paused" data-remote-paused-hidden={!isFollowedPaused || undefined}>
+            {interfaceTexts.remotePausedMark}
+          </output>
           <div data-remote-controls>
-            <button type="button" data-remote-move="backward" onClick={() => sendRemoteCommand("backward")}>
+            <button type="button" data-remote-move="backward" onClick={() => pressAndSend("backward")}>
               <ChevronIcon pointsLeft />
               {interfaceTexts.remoteBackButton}
             </button>
-            <button type="button" data-remote-move="forward" onClick={() => sendRemoteCommand("forward")}>
+            <button type="button" data-remote-move="forward" onClick={() => pressAndSend("forward")}>
               {interfaceTexts.remoteForwardButton}
               <ChevronIcon />
             </button>
           </div>
-          <button type="button" data-remote-pause onClick={() => sendRemoteCommand("pause")}>
-            {isFollowedPaused ? interfaceTexts.remoteResumeButton : interfaceTexts.remotePauseButton}
+          <button type="button" data-remote-pause onClick={() => pressAndSend("pause")}>
+            {isFollowedPaused ? interfaceTexts.remoteBackToSlideButton : interfaceTexts.remoteBlackScreenButton}
           </button>
         </>
       )}
