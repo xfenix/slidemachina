@@ -123,6 +123,12 @@ Pictures go to `images/`, and TypeScript suggests components and their props.
     <td>Pictures and video fill the free space, the whole slide or float beside the text. On a dark background the text and the logo turn light automatically.</td>
     <td>QR codes with a logo, drawn as vectors. Memes and GIFs are one command away: <code>slidemachina meme</code>. A picture in <code>images/memes/</code> works by name, without an import: <code>&lt;Meme src="fine"&gt;</code>.</td>
   </tr>
+  <tr>
+    <td colspan="2"><img src="docs/readme/remote-control.webp" alt="A phone becomes a remote: the deck shows a QR code, the phone connects by itself and turns the slides" width="860"></td>
+  </tr>
+  <tr>
+    <td colspan="2">A phone remote: the phone button on the panel shows a code and a QR code; the phone connects by itself over WebRTC and turns the slides with big buttons. No server and no install.</td>
+  </tr>
 </table>
 
 ### Layout
@@ -165,10 +171,6 @@ Line, bar, pie and other Recharts charts show numeric data. Wrap a chart in `<Ma
 - The slide overview opens with <kbd>Esc</kbd>. There is also a jump by number, a pause with a black screen, full screen and a progress bar.
 - Hidden slides are skipped on stage and kept in print, PDF and PowerPoint. Put the details and theses for the copy you send after the talk there, and answers to audience questions.
 - Keys work in the Russian layout too, and on a phone a swipe or a tap turns the slide.
-
-<p align="center">
-  <img src="docs/readme/remote-control.webp" alt="A phone becomes a remote: the deck shows a QR code, the phone connects by itself and turns the slides" width="860">
-</p>
 
 ### Build
 
