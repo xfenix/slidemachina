@@ -29,7 +29,6 @@ const moveForwardSelector = '[data-remote-move="forward"]';
 const firstSlidePositionText = "Слайд 1 из";
 const settlePauseMilliseconds = 2500;
 const panelLeadMilliseconds = 800;
-const panelWakeMilliseconds = 400;
 const panelTailMilliseconds = 1600;
 const phoneConnectedPauseMilliseconds = 700;
 const betweenTapsPauseMilliseconds = 700;
@@ -170,11 +169,18 @@ async function launchBrowserConnection(): Promise<Browser> {
   }
 }
 
+function collectConsoleMessages(monitoredPage: Page, messageBuffer: string[]) {
+  monitoredPage.on("console", (consoleMessage) => messageBuffer.push(consoleMessage.text().slice(0, 200)));
+  monitoredPage.on("pageerror", (pageError) => messageBuffer.push(`pageerror: ${String(pageError).slice(0, 200)}`));
+}
+
 async function recordRemoteControlClip() {
   const browserConnection = await launchBrowserConnection();
+  const deckConsoleMessages: string[] = [];
+  const phoneConsoleMessages: string[] = [];
   try {
-    // The probe runs on a throwaway page and its context is closed afterwards: the working test does the
-    // same, and a probed page keeps enough WebRTC residue to break the real connection on some machines.
+    // The probe runs on a throwaway page and its context is closed afterwards: the probed page keeps enough
+    // WebRTC residue to break the real connection on some machines.
     const probeContext = await browserConnection.newContext({ viewport: deckViewportSize });
     const probePage = await probeContext.newPage();
     await probePage.goto(`${serverAddress}/`);
@@ -183,23 +189,24 @@ async function recordRemoteControlClip() {
       throw new Error("WebRTC между двумя вкладками этой машины недоступен — клип пульта записывается на CI");
     }
     await probeContext.close();
-    const deckContext = await browserConnection.newContext({ viewport: deckViewportSize });
-    const deckPage = await deckContext.newPage();
-    await deckPage.goto(`${serverAddress}/?remote-broker=localhost:${brokerServerPort}#1`);
-    await deckPage.waitForTimeout(settlePauseMilliseconds);
+    // The deck and the phone live in one context and the panel opens right after the load, exactly like the
+    // working remote test: a later click meets the panel faded, and a separate context failed to connect on CI.
+    const sharedContext = await browserConnection.newContext({ viewport: deckViewportSize });
+    const deckPage = await sharedContext.newPage();
+    collectConsoleMessages(deckPage, deckConsoleMessages);
+    await deckPage.goto(`${serverAddress}/?remote-broker=localhost:${brokerServerPort}`);
+    await deckPage.waitForTimeout(panelLeadMilliseconds);
     const deckWaitingSegment = await captureScreencast(deckPage, false, async () => {
-      await deckPage.waitForTimeout(panelLeadMilliseconds);
-      // The panel hides after two idle seconds and the slide starts intercepting clicks: wake it with the mouse.
-      await deckPage.mouse.move(deckViewportSize.width / 2, 16);
-      await deckPage.waitForTimeout(panelWakeMilliseconds);
       await deckPage.getByRole("button", { name: remotePanelButtonLabel }).click();
       await deckPage.waitForTimeout(panelTailMilliseconds);
     });
     const hostingCode = await deckPage.locator(hostingCodeSelector).inputValue();
-    const phoneContext = await browserConnection.newContext({ viewport: phoneViewportSize });
-    const phonePage = await phoneContext.newPage();
+    const phonePage = await sharedContext.newPage();
+    collectConsoleMessages(phonePage, phoneConsoleMessages);
+    await phonePage.setViewportSize(phoneViewportSize);
     const phoneDrivingSegment = await captureScreencast(phonePage, true, async () => {
       await phonePage.goto(`${serverAddress}/?remote&remote-broker=localhost:${brokerServerPort}#${hostingCode}`);
+      await phonePage.locator("[data-remote-screen]").waitFor({ timeout: phoneConnectedTimeoutMilliseconds });
       try {
         await phonePage
           .locator(remotePositionSelector)
@@ -208,7 +215,10 @@ async function recordRemoteControlClip() {
       } catch (connectionTimeout) {
         const phoneScreenText = (await phonePage.locator("[data-remote-screen]").textContent().catch(() => "нет экрана пульта")) ?? "";
         const deckStatusText = (await deckPage.locator("[data-remote-status]").textContent().catch(() => "нет статуса")) ?? "";
-        throw new Error(`Телефон не подключился. Экран телефона: ${phoneScreenText.slice(0, 300)} · Панель доклада: ${deckStatusText.slice(0, 200)}`);
+        throw new Error(
+          `Телефон не подключился. Экран телефона: ${phoneScreenText.slice(0, 300)} · Панель доклада: ${deckStatusText.slice(0, 200)}` +
+            ` · Консоль доклада: ${deckConsoleMessages.slice(-5).join(" | ") || "пусто"} · Консоль телефона: ${phoneConsoleMessages.slice(-5).join(" | ") || "пусто"}`,
+        );
       }
       await phonePage.waitForTimeout(phoneConnectedPauseMilliseconds);
       await phonePage.locator(moveForwardSelector).click();
@@ -218,8 +228,7 @@ async function recordRemoteControlClip() {
     const deckReactingSegment = await captureScreencast(deckPage, false, async () => {
       await deckPage.waitForTimeout(deckTailMilliseconds);
     });
-    await phoneContext.close();
-    await deckContext.close();
+    await sharedContext.close();
     if (deckWaitingSegment.capturedFrames.length === 0 || phoneDrivingSegment.capturedFrames.length === 0 || deckReactingSegment.capturedFrames.length === 0) {
       throw new Error("Скринкаст не захватил ни одного кадра — клип не записан");
     }
