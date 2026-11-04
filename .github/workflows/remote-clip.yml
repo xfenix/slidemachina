@@ -1,0 +1,55 @@
+# Перезаписывает клип пульта в README: на машине разработчика локальный WebRTC недоступен, на раннере — работает.
+# Клип обновляется при изменении экрана пульта или самого скрипта записи; запуск вручную — тоже.
+name: Record the remote-control clip
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - packages/slidemachina/browser-runtime/remote-control/**
+      - packages/slidemachina/browser-runtime/presentation-interface/interface-texts.ts
+      - tests/remote-media-recording.ts
+      - .github/workflows/remote-clip.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: remote-clip
+  cancel-in-progress: true
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 26
+
+      - name: Install
+        run: npm ci
+
+      - name: Playwright Chromium and img2webp
+        run: |
+          sudo apt-get update && sudo apt-get install -y webp
+          npx playwright install --with-deps chromium
+
+      - name: Record the clip
+        run: node tests/remote-media-recording.ts
+
+      - name: Commit the fresh clip
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/readme/remote-control.webp
+          if git diff --cached --quiet; then
+            echo "Клип без изменений"
+            exit 0
+          fi
+          git commit -m "docs: клип пульта перезаписан — актуальный экран remote"
+          git pull --rebase origin main
+          git push origin HEAD:main
