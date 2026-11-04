@@ -1,5 +1,6 @@
 # Measures the same talk in the slidemachina of this commit, reveal.js, Slidev and open-slide from npm.
-# The picture goes to the benchmark branch, so main gets no bot commits; the README shows it through jsDelivr.
+# The picture goes to the benchmark branch, so main gets no bot commits; the README shows it from raw.githubusercontent,
+# which revalidates a branch file in minutes — no CDN purge to wait for.
 name: Benchmark
 
 on:
@@ -49,7 +50,3 @@ jobs:
           git add --all
           git commit --quiet --message "Benchmark of $(date -u +%Y-%m-%d)"
           git push --force --quiet "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" benchmark
-
-      # jsDelivr keeps a branch file for hours; the README should show the new picture now.
-      - name: Refresh the jsDelivr copy
-        run: curl --fail --silent --show-error "https://purge.jsdelivr.net/gh/${{ github.repository }}@benchmark/benchmark.svg" > /dev/null
