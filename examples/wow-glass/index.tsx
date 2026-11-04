@@ -1,10 +1,10 @@
 import type { CSSProperties } from "react";
 import * as Machina from "slidemachina";
 
-const GLASS_VIOLET = "#7c5cff";
-const GLASS_CYAN = "#35e0ff";
-const GLASS_MAGENTA = "#ff6ec7";
-const GLASS_AMBER = "#ffc24b";
+const GLASS_VIOLET = "#7c3aed";
+const GLASS_CYAN = "#06b6d4";
+const GLASS_MAGENTA = "#ec4899";
+const GLASS_AMBER = "#fbbf24";
 const ROLE_CARDS = [
   { roleLabel: "основной", roleGradient: `linear-gradient(135deg, ${GLASS_VIOLET}, ${GLASS_MAGENTA})` },
   { roleLabel: "фон", roleGradient: `linear-gradient(135deg, #1a2148, #0d1129)` },
@@ -43,7 +43,7 @@ const PRICING_PLANS = [
 export default (
   <Machina.Presentation title="Витраж" lang="ru" date="2026-11-04">
     <Machina.Slide cover>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">стекло · 2026</p>
         <div className="glass-pane glass-hero glass-anim-rise" style={{ "--glass-delay": "80ms" } as CSSProperties} />
@@ -79,22 +79,22 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">01 · боль</p>
-        <div className="glass-pane glass-anim-rise" style={{ left: "8cqw", top: "26cqh", width: "26cqw", height: "34cqh", "--glass-tilt": "-3deg" } as CSSProperties}>
+        <div className="glass-pane glass-pane-deep glass-anim-rise" style={{ left: "8cqw", top: "26cqh", width: "26cqw", height: "34cqh", "--glass-tilt": "-3deg" } as CSSProperties}>
           <p className="glass-shard-text">
             <span className="glass-shard-index">разъезд</span>
             палитры плывут между макетом и кодом
           </p>
         </div>
-        <div className="glass-pane glass-anim-rise" style={{ left: "37cqw", top: "36cqh", width: "26cqw", height: "34cqh", "--glass-tilt": "2deg", "--glass-delay": "120ms" } as CSSProperties}>
+        <div className="glass-pane glass-pane-deep glass-anim-rise" style={{ left: "37cqw", top: "36cqh", width: "26cqw", height: "34cqh", "--glass-tilt": "2deg", "--glass-delay": "120ms" } as CSSProperties}>
           <p className="glass-shard-text">
             <span className="glass-shard-index">контраст</span>
             ловят на ревью за неделю до релиза
           </p>
         </div>
-        <div className="glass-pane glass-anim-rise" style={{ left: "66cqw", top: "24cqh", width: "26cqw", height: "34cqh", "--glass-tilt": "-2deg", "--glass-delay": "240ms" } as CSSProperties}>
+        <div className="glass-pane glass-pane-deep glass-anim-rise" style={{ left: "66cqw", top: "24cqh", width: "26cqw", height: "34cqh", "--glass-tilt": "-2deg", "--glass-delay": "240ms" } as CSSProperties}>
           <p className="glass-shard-text">
             <span className="glass-shard-index">токены</span>
             правят руками в пяти файлах сразу
@@ -107,15 +107,15 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">02 · как работает</p>
-        <div className="glass-pane glass-flow glass-anim-rise" style={{ left: "8cqw", top: "34cqh", width: "20cqw", height: "32cqh", alignItems: "center", justifyContent: "center" }}>
+        <div className="glass-pane glass-pane-deep glass-flow glass-anim-rise" style={{ left: "8cqw", top: "34cqh", width: "20cqw", height: "32cqh", alignItems: "center", justifyContent: "center" }}>
           <span className="glass-chip-dot" style={{ "--chip-tint": GLASS_VIOLET, width: "4cqw", height: "4cqw" } as CSSProperties} />
           <p className="glass-card-text" style={{ textAlign: "center" }}>ваш оттенок</p>
         </div>
         <div className="glass-arrow" style={{ left: "30cqw", width: "6cqw", top: "50cqh" }} />
-        <div className="glass-pane glass-flow glass-anim-rise" style={{ left: "40cqw", top: "30cqh", width: "52cqw", height: "40cqh", justifyContent: "center", "--glass-delay": "160ms" } as CSSProperties}>
+        <div className="glass-pane glass-pane-deep glass-flow glass-anim-rise" style={{ left: "40cqw", top: "30cqh", width: "52cqw", height: "40cqh", justifyContent: "center", "--glass-delay": "160ms" } as CSSProperties}>
           <div className="glass-scale-stripe" data-step data-step-effect="scale" style={{ background: `linear-gradient(90deg, ${GLASS_VIOLET}, ${GLASS_MAGENTA})` }} />
           <div className="glass-scale-stripe" data-step data-step-effect="scale" style={{ background: `linear-gradient(90deg, ${GLASS_MAGENTA}, ${GLASS_AMBER})`, opacity: 0.85 }} />
           <div className="glass-scale-stripe" data-step data-step-effect="scale" style={{ background: `linear-gradient(90deg, ${GLASS_AMBER}, ${GLASS_CYAN})`, opacity: 0.7 }} />
@@ -131,14 +131,14 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">03 · скорость</p>
         <p className="glass-speed-number glass-anim-rise" style={{ "--glass-delay": "100ms" } as CSSProperties}>0,4 с</p>
         <p className="glass-speed-caption glass-anim-rise" style={{ "--glass-delay": "220ms" } as CSSProperties}>
           среднее время сборки палитры из одного цвета
         </p>
-        <div className="glass-pane glass-flow glass-anim-rise" style={{ left: "40cqw", top: "28cqh", width: "52cqw", height: "44cqh", justifyContent: "center", "--glass-delay": "160ms" } as CSSProperties}>
+        <div className="glass-pane glass-pane-deep glass-flow glass-anim-rise" style={{ left: "40cqw", top: "28cqh", width: "52cqw", height: "44cqh", justifyContent: "center", "--glass-delay": "160ms" } as CSSProperties}>
           {SPEED_BARS.map((speedBar) => (
             <div className="glass-bar-row" key={speedBar.barLabel} data-step data-step-effect="scale">
               <div className="glass-bar-label">
@@ -158,7 +158,7 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">04 · палитра</p>
         <p className="glass-thanks-note glass-anim-rise" style={{ left: "8cqw", top: "22cqh", width: "60cqw" }}>
@@ -183,7 +183,7 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">05 · контраст</p>
         <div className="glass-pane glass-contrast-dark glass-anim-rise" style={{ left: "8cqw", top: "30cqh", width: "40cqw", height: "40cqh" }}>
@@ -206,15 +206,15 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">06 · токены</p>
-        <div className="glass-pane glass-anim-rise" style={{ left: "8cqw", top: "26cqh", width: "56cqw", height: "38cqh", "--glass-delay": "80ms" } as CSSProperties}>
+        <div className="glass-pane glass-pane-deep glass-anim-rise" style={{ left: "8cqw", top: "26cqh", width: "56cqw", height: "38cqh", "--glass-delay": "80ms" } as CSSProperties}>
           <div className="glass-terminal">
             <Machina.Code lang="css">{`:root {
-  --brand: #7c5cff;
+  --brand: #7c3aed;
   --brand-text: #ffffff;
-  --surface: #0a0e1f;
+  --surface: #0c071f;
 }`}</Machina.Code>
           </div>
         </div>
@@ -236,12 +236,12 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">07 · устройство</p>
         {SPEC_CARDS.map((specCard, cardIndex) => (
           <div
-            className="glass-pane glass-flow glass-anim-rise"
+            className="glass-pane glass-pane-deep glass-flow glass-anim-rise"
             key={specCard.specHeading}
             style={{ left: `${8 + cardIndex * 22}cqw`, top: "30cqh", width: "18cqw", height: "38cqh", "--glass-delay": `${cardIndex * 110}ms` } as CSSProperties}
           >
@@ -256,7 +256,7 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">08 · интеграции</p>
         <div className="glass-orbit-ring" />
@@ -275,7 +275,7 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">09 · планы</p>
         <div className="glass-rail" />
@@ -283,7 +283,7 @@ export default (
           <div key={roadmapStop.stopQuarter}>
             <span className="glass-stop-dot" style={{ left: `${8 + stopIndex * 24}cqw`, "--stop-tint": roadmapStop.stopTint } as CSSProperties} />
             <div
-              className="glass-pane glass-flow glass-anim-rise"
+              className="glass-pane glass-pane-deep glass-flow glass-anim-rise"
               style={{ left: `${8 + stopIndex * 24}cqw`, top: stopIndex % 2 === 0 ? "58cqh" : "22cqh", width: "20cqw", height: "20cqh", "--glass-delay": `${stopIndex * 120}ms` } as CSSProperties}
             >
               <p className="glass-stop-quarter" style={{ "--stop-tint": roadmapStop.stopTint } as CSSProperties}>{roadmapStop.stopQuarter}</p>
@@ -298,13 +298,13 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">10 · тарифы</p>
         <span className="glass-sticker glass-anim-slap" style={{ left: "36cqw", top: "20cqh" }}>выбирают чаще</span>
         {PRICING_PLANS.map((pricingPlan, planIndex) => (
           <div
-            className={`glass-pane glass-flow glass-anim-rise${planIndex === 1 ? " glass-pane-hot" : ""}`}
+            className={`glass-pane glass-pane-deep glass-flow glass-anim-rise${planIndex === 1 ? " glass-pane-hot" : ""}`}
             key={pricingPlan.planName}
             style={{ left: `${8 + planIndex * 28}cqw`, top: "28cqh", width: "24cqw", height: "52cqh", justifyContent: "center", gap: "2cqh", "--glass-delay": `${planIndex * 120}ms` } as CSSProperties}
           >
@@ -320,12 +320,12 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">11 · цифры</p>
         {STAT_CARDS.map((statCard, cardIndex) => (
           <div
-            className="glass-pane glass-flow glass-anim-rise"
+            className="glass-pane glass-pane-deep glass-flow glass-anim-rise"
             key={statCard.statNumber}
             style={{ left: `${8 + cardIndex * 22}cqw`, top: "32cqh", width: "18cqw", height: "36cqh", justifyContent: "center", "--glass-delay": `${cardIndex * 110}ms` } as CSSProperties}
           >
@@ -341,10 +341,10 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">12 · кейс</p>
-        <div className="glass-pane glass-anim-rise" style={{ left: "8cqw", top: "28cqh", width: "84cqw", height: "44cqh" }}>
+        <div className="glass-pane glass-pane-deep glass-anim-rise" style={{ left: "8cqw", top: "28cqh", width: "84cqw", height: "44cqh" }}>
           <p className="glass-quote">
             пересобрали тему за один вечер — триста двенадцать токенов сами легли на места
             <span className="glass-quote-sign">команда из четырёх человек, переход с ручных таблиц</span>
@@ -357,10 +357,10 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <p className="glass-tag glass-anim-rise">13 · доступ</p>
-        <div className="glass-pane glass-ticket glass-flow glass-anim-rise" style={{ left: "8cqw", top: "32cqh", width: "40cqw", height: "36cqh" }}>
+        <div className="glass-pane glass-pane-deep glass-ticket glass-flow glass-anim-rise" style={{ left: "8cqw", top: "32cqh", width: "40cqw", height: "36cqh" }}>
           <p className="glass-ticket-name" style={{ "--chip-tint": GLASS_AMBER } as CSSProperties}>ранний доступ</p>
           <p className="glass-ticket-text">ноябрь 2026 · код из письма · пятьсот мест</p>
           <span className="glass-ticket-perforation" />
@@ -368,7 +368,7 @@ export default (
           <span className="glass-ticket-notch glass-ticket-notch-bottom" />
           <p className="glass-ticket-code">VITRAZ-26</p>
         </div>
-        <div className="glass-pane glass-ticket glass-flow glass-anim-rise" style={{ left: "52cqw", top: "32cqh", width: "40cqw", height: "36cqh", "--glass-delay": "140ms" } as CSSProperties}>
+        <div className="glass-pane glass-pane-deep glass-ticket glass-flow glass-anim-rise" style={{ left: "52cqw", top: "32cqh", width: "40cqw", height: "36cqh", "--glass-delay": "140ms" } as CSSProperties}>
           <p className="glass-ticket-name" style={{ "--chip-tint": GLASS_CYAN } as CSSProperties}>лист ожидания</p>
           <p className="glass-ticket-text">запуск для всех — январь 2027, без кода</p>
           <span className="glass-ticket-perforation" />
@@ -383,10 +383,10 @@ export default (
     </Machina.Slide>
 
     <Machina.Slide>
-      <GlassOrbs />
+      <GlassScene />
       <div className="machina-freeform-full">
         <h1 className="glass-thanks-title">Спасибо</h1>
-        <div className="glass-pane glass-thanks-qr glass-anim-rise" style={{ "--glass-delay": "120ms" } as CSSProperties}>
+        <div className="glass-pane glass-pane-deep glass-thanks-qr glass-anim-rise" style={{ "--glass-delay": "120ms" } as CSSProperties}>
           <Machina.QR value="https://github.com/xfenix/slidemachina" color="#eef1ff">
             репозиторий движка
           </Machina.QR>
@@ -409,11 +409,14 @@ export default (
   </Machina.Presentation>
 );
 
-function GlassOrbs() {
+function GlassScene() {
   return (
     <div className="glass-orb-layer" aria-hidden>
-      <span className="glass-orb glass-orb-warm" />
-      <span className="glass-orb glass-orb-cold" />
+      <span className="glass-orb glass-orb-violet" />
+      <span className="glass-orb glass-orb-cyan" />
+      <span className="glass-orb glass-orb-magenta" />
+      <span className="glass-orb glass-orb-amber" />
+      <span className="glass-streak" />
     </div>
   );
 }

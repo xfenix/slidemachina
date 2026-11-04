@@ -1,5 +1,4 @@
-/* Стеклянный «Витраж»: один свет проходит через стекло и раскладывается в систему. Два источника света,
-   фактурное стекло с яркой верхней кромкой и тёмным низом. Свободные композиции на полотне. */
+/* Стеклянный «Витраж»: сочная аврора за матовым стеклом, спокойная типографика. Свободные композиции на полотне, никаких «заголовок плюс список». */
 
 @import "tailwindcss";
 
@@ -44,37 +43,32 @@
   --font-heading: "Onest Variable", system-ui, sans-serif;
   --font-code: "JetBrains Mono Variable", ui-monospace, monospace;
 
-  --slide-background: #05070f;
-  --dark-background: #05070f;
-  --section-background: #0b1020;
-  --text-color: #f2f5ff;
-  --muted-color: rgb(196 208 240 / 0.66);
-  --text-color-on-dark: #f2f5ff;
-  --muted-color-on-dark: rgb(196 208 240 / 0.66);
+  --slide-background: #0c071f;
+  --dark-background: #08040f;
+  --section-background: #17102e;
+  --text-color: #f4f2ff;
+  --muted-color: rgb(214 210 240 / 0.78);
+  --text-color-on-dark: #f4f2ff;
+  --muted-color-on-dark: rgb(214 210 240 / 0.78);
 
-  --accent-color: #7c5cff;
-  --second-accent-color: #35e0ff;
-  --accent-soft-color: rgb(124 92 255 / 0.18);
-  --second-accent-soft-color: rgb(53 224 255 / 0.14);
-  --accent-color-on-dark: #a68bff;
-  --second-accent-color-on-dark: #7ceaff;
+  --accent-color: #7c3aed;
+  --second-accent-color: #06b6d4;
+  --accent-soft-color: rgb(124 58 237 / 0.22);
+  --second-accent-soft-color: rgb(6 182 212 / 0.18);
+  --accent-color-on-dark: #a78bfa;
+  --second-accent-color-on-dark: #67e8f9;
 
-  --glass-ink: #05070f;
-  --glass-violet: #7c5cff;
-  --glass-cyan: #35e0ff;
-  --glass-magenta: #ff6ec7;
-  --glass-amber: #ffb35c;
-  --glass-warm-light: #ffb35c;
-  --glass-cold-light: #5cc8ff;
-  --glass-text: #f2f5ff;
-  --glass-muted: rgb(196 208 240 / 0.66);
-  --glass-fill: rgb(255 255 255 / 0.03);
-  --glass-fill-bright: rgb(255 255 255 / 0.11);
-  --glass-fill-decor: rgb(255 255 255 / 0.05);
+  --glass-ink: #0c071f;
+  --glass-violet: #7c3aed;
+  --glass-cyan: #06b6d4;
+  --glass-magenta: #ec4899;
+  --glass-amber: #fbbf24;
+  --glass-text: #f4f2ff;
+  --glass-muted: rgb(214 210 240 / 0.78);
   --glass-edge: rgb(255 255 255 / 0.22);
-  --glass-edge-bright: rgb(255 255 255 / 0.45);
-  --glass-shadow: 0 1.6cqw 4cqw rgb(2 4 12 / 0.55);
-  --glass-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --glass-edge-dim: rgb(255 255 255 / 0.12);
+  --glass-edge-bright: rgb(255 255 255 / 0.6);
+  --glass-glow: var(--pane-glow, rgb(124 58 237 / 0.35));
 
   --hairline-color: rgb(255 255 255 / 0.16);
   --hairline-color-on-dark: rgb(255 255 255 / 0.16);
@@ -82,19 +76,9 @@
   --code-background: rgb(255 255 255 / 0.05);
   --code-background-on-dark: rgb(255 255 255 / 0.05);
 
-  --toolbar-background: #05070f;
-  --navigator-background: #05070f;
-  --transition-stage-background: #05070f;
-}
-
-/* Виньетка держит края сцены в тени, чтобы свет читался в середине слайда. */
-[data-slide]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(90cqw 70cqh at 50% 42%, transparent 58%, rgb(2 4 12 / 0.5) 100%);
+  --toolbar-background: #08040f;
+  --navigator-background: #08040f;
+  --transition-stage-background: #08040f;
 }
 
 /* Контент не течёт на слайдах с композициями: слайд — доска, на ней абсолютные блоки. */
@@ -112,57 +96,44 @@
   z-index: 5;
   margin: 0;
   font-family: var(--font-code);
-  font-size: 1.4cqw;
+  font-size: 1.3cqw;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--glass-text);
-  padding: 0.55em 0.95em;
+  padding: 0.6em 1em;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--glass-fill-decor), rgb(255 255 255 / 0.02));
-  border: 0.12cqw solid var(--glass-edge);
-  box-shadow: 0 1cqw 2.4cqw rgb(2 4 12 / 0.45);
-  backdrop-filter: blur(1.4cqw) saturate(1.6);
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.05));
+  border: 0.1cqw solid var(--glass-edge);
+  box-shadow: inset 0 0.14cqw 0.25cqw rgb(255 255 255 / 0.28);
+  backdrop-filter: blur(1.6cqw) saturate(1.35);
 }
 
-/* Основа стекла: панель несёт текст, поэтому заливка выше и blur сильнее, чем у декоративных стёкол.
-   Верхняя кромка ловит свет, низ уходит в тень — материал держится на контрасте кромок. */
+/* Основа светлого стекла: белая заливка, кромка ярче сверху-слева, тонкий блик по верхней кромке. */
 .glass-pane {
   position: absolute;
   z-index: 4;
-  border-radius: 1.6cqw;
-  background: linear-gradient(150deg, var(--glass-fill-bright), var(--glass-fill) 60%);
-  border: 0.12cqw solid var(--glass-edge);
+  border-radius: 2cqw;
+  background: linear-gradient(150deg, rgb(255 255 255 / 0.17), rgb(255 255 255 / 0.06) 55%, rgb(255 255 255 / 0.1));
+  border: 0.1cqw solid var(--glass-edge);
   box-shadow:
-    inset 0 0.15cqw 0.3cqw rgb(255 255 255 / 0.4),
-    inset 0 -1.2cqw 2cqw rgb(2 4 12 / 0.35),
-    var(--glass-shadow);
-  backdrop-filter: blur(2cqw) saturate(1.8);
+    inset 0 0.18cqw 0.3cqw rgb(255 255 255 / 0.35),
+    inset 0 -1.2cqw 2.4cqw rgb(255 255 255 / 0.05),
+    0 1.8cqw 4.5cqw rgb(4 2 12 / 0.45),
+    0 0 3.5cqw var(--glass-glow);
+  backdrop-filter: blur(2.2cqw) saturate(1.5);
   transform: rotate(var(--glass-tilt, 0deg));
 }
 
-.glass-pane::before {
-  content: "";
-  position: absolute;
-  left: 6%;
-  right: 6%;
-  top: 0.35cqw;
-  height: 30%;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.12), transparent);
-}
-
-/* Зерно на материале снимает пластиковую гладкость. */
-.glass-pane::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background-image: var(--glass-noise);
-  background-size: 160px;
-  opacity: 0.06;
+/* Тёмное стекло для чтения: плотная тёмная заливка держит контраст текста на любой авроре. */
+.glass-pane-deep {
+  background: linear-gradient(150deg, rgb(16 10 38 / 0.72), rgb(16 10 38 / 0.45) 55%, rgb(16 10 38 / 0.6));
+  border-color: var(--glass-edge-dim);
+  box-shadow:
+    inset 0 0.18cqw 0.3cqw rgb(255 255 255 / 0.22),
+    inset 0 -1.2cqw 2.4cqw rgb(255 255 255 / 0.04),
+    0 1.8cqw 4.5cqw rgb(4 2 12 / 0.55),
+    0 0 3.5cqw var(--glass-glow);
 }
 
 /* Панель в потоке: колонки и сетки внутри композиций. Позиционирование остаётся у .glass-pane. */
@@ -178,20 +149,22 @@
   position: absolute;
   z-index: 6;
   font-family: var(--font-code);
-  font-size: 1.4cqw;
+  font-size: 1.35cqw;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--glass-text);
-  padding: 0.6em 1em;
+  padding: 0.65em 1.05em;
   border-radius: 999px;
-  border: 0.12cqw solid transparent;
+  border: 0.1cqw solid transparent;
   background:
-    linear-gradient(135deg, rgb(20 24 48 / 0.88), rgb(12 15 32 / 0.82)) padding-box,
-    linear-gradient(120deg, var(--glass-edge-bright), rgb(255 255 255 / 0.12)) border-box;
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(1.4cqw) saturate(1.6);
+    linear-gradient(135deg, rgb(30 18 60 / 0.92), rgb(14 8 32 / 0.88)) padding-box,
+    linear-gradient(120deg, var(--glass-edge-bright), rgb(255 255 255 / 0.14)) border-box;
+  box-shadow:
+    inset 0 0.16cqw 0.28cqw rgb(255 255 255 / 0.3),
+    0 1cqw 2.6cqw rgb(4 2 12 / 0.5);
+  backdrop-filter: blur(1.6cqw) saturate(1.35);
   transform: rotate(var(--glass-tilt, -2deg));
 }
 
@@ -234,11 +207,6 @@
   }
 }
 
-[data-slide][data-current] .glass-anim-slap {
-  animation: glass-slap 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: var(--glass-delay, 0ms);
-}
-
 [data-slide][data-current] .glass-anim-rise {
   animation: glass-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--glass-delay, 0ms);
@@ -249,61 +217,111 @@
   animation-delay: var(--glass-delay, 0ms);
 }
 
-/* Сцена за стеклом: глубокая тень, два источника света — тёплый сверху слева и холодный снизу справа,
-   луч над верхними кромками и зерно поверх всего. Без света за спиной стеклу нечего преломлять.
-   Сцена целиком — фон слайда: луч на вложенном слое дал бы видимый прямоугольный шов на полях слайда.
-   Зерно живёт на слое сфер: он уходит за края холста, поэтому шва у него нет. */
-[data-slide]:has(.glass-orb-layer) {
-  background-image:
-    linear-gradient(115deg, rgb(255 255 255 / 0.06), transparent 55%),
-    radial-gradient(120cqw 90cqh at 50% 45%, #0b1020, var(--slide-background) 80%);
+[data-slide][data-current] .glass-anim-slap {
+  animation: glass-slap 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--glass-delay, 0ms);
+}
+
+/* Аврора — фон самого слайда: четыре сочных пятна цвета, энергия, которую стекло преломляет. */
+[data-slide]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(50cqw 40cqw at 78% 8%, rgb(124 58 237 / 0.5), transparent 70%),
+    radial-gradient(44cqw 38cqw at 8% 88%, rgb(6 182 212 / 0.4), transparent 70%),
+    linear-gradient(160deg, #150b33 0%, #0c071f 45%, #12082b 100%);
+}
+
+/* Зерно поверх авроры: ткань премиальных тёмных сайтов, без неё градиенты выглядят цифровыми. */
+[data-slide]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .glass-orb-layer {
   position: absolute;
-  inset: -10cqw -12cqw;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.glass-orb-layer::after {
-  content: "";
-  position: absolute;
   inset: 0;
-  background-image: var(--glass-noise);
-  background-size: 160px;
-  opacity: 0.05;
-  mix-blend-mode: overlay;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .glass-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(5cqw);
+  filter: blur(4.5cqw);
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
   animation-direction: alternate;
 }
 
-.glass-orb-warm {
+.glass-orb-violet {
   left: -10cqw;
   top: -16cqh;
-  width: 46cqw;
-  height: 46cqw;
-  background: radial-gradient(circle, rgb(255 179 92 / 0.55), transparent 70%);
+  width: 44cqw;
+  height: 44cqw;
+  background: radial-gradient(circle, rgb(139 92 246 / 0.95), rgb(124 58 237 / 0.4) 55%, transparent 72%);
   animation-name: glass-drift-a;
+  animation-duration: 21s;
+}
+
+.glass-orb-cyan {
+  right: -12cqw;
+  top: 10cqh;
+  width: 40cqw;
+  height: 40cqw;
+  background: radial-gradient(circle, rgb(34 211 238 / 0.85), rgb(6 182 212 / 0.35) 55%, transparent 72%);
+  animation-name: glass-drift-b;
+  animation-duration: 26s;
+}
+
+.glass-orb-magenta {
+  left: 22cqw;
+  bottom: -20cqh;
+  width: 42cqw;
+  height: 42cqw;
+  background: radial-gradient(circle, rgb(236 72 153 / 0.8), rgb(190 24 93 / 0.3) 55%, transparent 72%);
+  animation-name: glass-drift-c;
+  animation-duration: 18s;
+}
+
+.glass-orb-amber {
+  right: 12cqw;
+  bottom: -8cqh;
+  width: 26cqw;
+  height: 26cqw;
+  background: radial-gradient(circle, rgb(251 191 36 / 0.7), transparent 68%);
+  animation-name: glass-drift-b;
   animation-duration: 23s;
 }
 
-.glass-orb-cold {
-  right: -12cqw;
-  bottom: -18cqh;
-  width: 42cqw;
-  height: 42cqw;
-  background: radial-gradient(circle, rgb(92 200 255 / 0.5), transparent 70%);
-  animation-name: glass-drift-b;
-  animation-duration: 27s;
+/* Луч света наискосок через сцену: медленный, едва заметный. */
+.glass-streak {
+  position: absolute;
+  top: -30cqh;
+  left: 30cqw;
+  width: 26cqw;
+  height: 160cqh;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.09) 50%, transparent);
+  transform: rotate(24deg);
+  filter: blur(1.5cqw);
+  animation: glass-streak-drift 19s ease-in-out infinite alternate;
+}
+
+@keyframes glass-streak-drift {
+  from {
+    transform: rotate(24deg) translateX(-8cqw);
+  }
+  to {
+    transform: rotate(24deg) translateX(10cqw);
+  }
 }
 
 @keyframes glass-drift-a {
@@ -320,26 +338,45 @@
     transform: translate(0, 0) scale(1.05);
   }
   to {
-    transform: translate(-3cqw, -4cqh) scale(0.96);
+    transform: translate(-3cqw, 4cqh) scale(0.96);
   }
 }
 
-/* Обложка: стеклянная плита, сквозь которую проходит свет сцены. Блик на ней статичный — изгиб, не полировка. */
+@keyframes glass-drift-c {
+  from {
+    transform: translate(0, 0) scale(0.95);
+  }
+  to {
+    transform: translate(3cqw, -3cqh) scale(1.06);
+  }
+}
+
+/* Обложка: разрывная стекляшка наискосок через весь заголовок. */
 .glass-hero {
   left: 4cqw;
   top: 14cqh;
   width: 64cqw;
   height: 54cqh;
+  border-radius: 2.6cqw;
+  backdrop-filter: blur(2cqw) saturate(1.7);
 }
 
 .glass-hero::after {
   content: "";
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  inset: -20%;
   pointer-events: none;
-  background-image: linear-gradient(115deg, transparent 42%, rgb(255 255 255 / 0.13) 50%, transparent 58%), var(--glass-noise);
-  background-size: auto, 160px;
+  background: linear-gradient(115deg, transparent 42%, rgb(255 255 255 / 0.2) 50%, transparent 58%);
+  animation: glass-sheen 7.5s ease-in-out infinite;
+}
+
+@keyframes glass-sheen {
+  0%, 55% {
+    transform: translateX(-70%);
+  }
+  85%, 100% {
+    transform: translateX(70%);
+  }
 }
 
 .glass-cover-title {
@@ -349,14 +386,26 @@
   z-index: 5;
   margin: 0;
   font-family: var(--font-heading);
-  font-weight: 300;
-  font-size: 14cqw;
+  font-weight: 200;
+  font-size: 14.5cqw;
   line-height: 0.95;
-  letter-spacing: 0.015em;
-  background: linear-gradient(100deg, #ffffff 35%, #d7e4ff 55%, #9fd8ff 70%);
+  letter-spacing: -0.025em;
+  background: linear-gradient(100deg, #ffffff 20%, #ddd0ff 40%, #a5f3fc 52%, #ddd0ff 64%, #ffffff 80%);
+  background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  filter: drop-shadow(0 0 2.6cqw rgb(139 92 246 / 0.45));
+  animation: glass-title-shine 7s linear infinite;
+}
+
+@keyframes glass-title-shine {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
 }
 
 .glass-cover-lead {
@@ -368,11 +417,11 @@
   margin: 0;
   text-align: left;
   font-size: 2.1cqw;
+  font-weight: 400;
   line-height: 1.35;
   color: var(--glass-muted);
 }
 
-/* Командная строка: тёмное стекло, а не сплошная плашка — терминал тонет в сцене наполовину. */
 .glass-command {
   position: absolute;
   z-index: 6;
@@ -381,17 +430,16 @@
   gap: 0.8em;
   margin: 0;
   font-family: var(--font-code);
-  font-size: 1.7cqw;
+  font-size: 1.65cqw;
   color: var(--glass-text);
   padding: 1em 1.2em;
   border-radius: 1.2cqw;
-  background: linear-gradient(150deg, rgb(10 13 28 / 0.72), rgb(10 13 28 / 0.52));
-  border: 0.12cqw solid var(--glass-edge);
+  background: linear-gradient(135deg, rgb(10 6 24 / 0.85), rgb(20 12 44 / 0.78));
+  border: 0.1cqw solid var(--glass-edge);
   box-shadow:
-    inset 0 0.15cqw 0.3cqw rgb(255 255 255 / 0.3),
-    inset 0 -1cqw 1.8cqw rgb(2 4 12 / 0.4),
-    var(--glass-shadow);
-  backdrop-filter: blur(2cqw) saturate(1.6);
+    inset 0 0.16cqw 0.28cqw rgb(255 255 255 / 0.24),
+    0 1.2cqw 3cqw rgb(4 2 12 / 0.55);
+  backdrop-filter: blur(1.8cqw) saturate(1.4);
 }
 
 .glass-command-prompt {
@@ -425,19 +473,18 @@
   width: 26cqw;
   height: 12cqh;
   padding: 0 1.4cqw;
-  border-radius: 1.6cqw;
-  background: linear-gradient(150deg, var(--glass-fill-bright), var(--glass-fill) 60%);
-  border: 0.12cqw solid var(--glass-edge);
+  border-radius: 1.4cqw;
+  background: linear-gradient(150deg, rgb(255 255 255 / 0.15), rgb(255 255 255 / 0.05) 60%);
+  border: 0.1cqw solid var(--glass-edge);
   box-shadow:
-    inset 0 0.15cqw 0.3cqw rgb(255 255 255 / 0.35),
-    inset 0 -1cqw 1.8cqw rgb(2 4 12 / 0.3),
-    var(--glass-shadow);
-  backdrop-filter: blur(2cqw) saturate(1.8);
+    inset 0 0.16cqw 0.28cqw rgb(255 255 255 / 0.3),
+    0 1.4cqw 3.4cqw rgb(4 2 12 / 0.45);
+  backdrop-filter: blur(2cqw) saturate(1.45);
 }
 
 .glass-chip-dot {
-  width: 1.4cqw;
-  height: 1.4cqw;
+  width: 1.3cqw;
+  height: 1.3cqw;
   border-radius: 50%;
   background: var(--chip-tint, var(--glass-violet));
   box-shadow: 0 0 1.2cqw var(--chip-tint, var(--glass-violet));
@@ -447,23 +494,22 @@
 .glass-chip-name {
   flex: 1;
   font-family: var(--font-code);
-  font-size: 1.4cqw;
+  font-size: 1.35cqw;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .glass-chip-value {
   font-family: var(--font-code);
-  font-size: 1.5cqw;
+  font-size: 1.4cqw;
   color: var(--glass-muted);
 }
 
-/* Мелкие парящие стеклышки поверх героя: декоративный тир — меньше заливка и blur. */
+/* Мелкие парящие стеклышки поверх героя. */
 .glass-float {
   z-index: 5;
-  background: linear-gradient(150deg, var(--glass-fill-decor), rgb(255 255 255 / 0.02) 60%);
-  backdrop-filter: blur(1.4cqw) saturate(1.6);
+  backdrop-filter: blur(1.6cqw) saturate(1.4);
 }
 
 /* Осколки боли: повёрнутые панели с цитатами. */
@@ -471,17 +517,18 @@
   position: relative;
   z-index: 2;
   margin: 0;
-  font-size: 1.9cqw;
-  font-weight: 500;
+  font-size: 1.85cqw;
+  font-weight: 450;
   line-height: 1.35;
   color: var(--glass-text);
   padding: 2.4cqh 1.8cqw;
 }
 
 .glass-shard-index {
-  font-size: 1.3cqw;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-family: var(--font-code);
+  font-size: 1.25cqw;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--glass-muted);
   display: block;
   margin-bottom: 1cqh;
@@ -491,7 +538,7 @@
 .glass-arrow {
   position: absolute;
   z-index: 3;
-  height: 0.24cqh;
+  height: 0.22cqh;
   background: linear-gradient(90deg, transparent, var(--glass-edge-bright));
 }
 
@@ -502,17 +549,19 @@
   top: -0.55cqw;
   width: 1.2cqw;
   height: 1.2cqw;
-  border-top: 0.24cqh solid var(--glass-edge-bright);
-  border-right: 0.24cqh solid var(--glass-edge-bright);
+  border-top: 0.22cqh solid var(--glass-edge-bright);
+  border-right: 0.22cqh solid var(--glass-edge-bright);
   transform: rotate(45deg);
 }
 
 /* Цветовая шкала: полосы растут по шагам движка. */
 .glass-scale-stripe {
   height: 4cqh;
-  border-radius: 0.9cqw;
-  border: 0.12cqw solid var(--glass-edge);
-  box-shadow: inset 0 0.15cqw 0.3cqw rgb(255 255 255 / 0.25);
+  border-radius: 999px;
+  border: 0.1cqw solid var(--glass-edge);
+  box-shadow:
+    inset 0 0.15cqw 0.3cqw rgb(255 255 255 / 0.35),
+    0 0.6cqw 1.6cqw rgb(4 2 12 / 0.4);
 }
 
 .glass-scale-stripe + .glass-scale-stripe {
@@ -526,13 +575,15 @@
   top: 32cqh;
   z-index: 3;
   margin: 0;
-  font-size: 10cqw;
-  font-weight: 250;
-  letter-spacing: -0.02em;
-  background: linear-gradient(120deg, #ffffff, #9fd8ff);
+  font-family: var(--font-heading);
+  font-weight: 200;
+  font-size: 10.5cqw;
+  letter-spacing: -0.03em;
+  background: linear-gradient(115deg, #ffffff, #a5f3fc 70%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  filter: drop-shadow(0 0 2cqw rgb(6 182 212 / 0.4));
 }
 
 .glass-speed-caption {
@@ -554,52 +605,53 @@
 .glass-bar-label {
   display: flex;
   justify-content: space-between;
-  font-size: 1.3cqw;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-family: var(--font-code);
+  font-size: 1.25cqw;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--glass-muted);
   margin-bottom: 0.8cqh;
 }
 
 .glass-bar-track {
-  height: 3.2cqh;
+  height: 2.6cqh;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.07);
-  border: 0.12cqw solid var(--glass-edge);
+  background: rgb(255 255 255 / 0.08);
+  border: 0.1cqw solid var(--glass-edge-dim);
   overflow: hidden;
 }
 
 .glass-bar-fill {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--glass-violet), var(--glass-cyan));
-  box-shadow: 0 0 1.6cqw rgb(124 92 255 / 0.55);
+  background: linear-gradient(90deg, var(--glass-violet), var(--glass-magenta));
+  box-shadow: 0 0 1.6cqw rgb(124 58 237 / 0.6);
   transform-origin: left center;
 }
 
 /* Карточка роли палитры: градиентный лепесток и подпись. */
 .glass-role-gradient {
   flex: 1;
-  border-radius: 1.2cqw;
-  border: 0.12cqw solid var(--glass-edge);
+  border-radius: 1.3cqw;
+  border: 0.1cqw solid var(--glass-edge);
   box-shadow:
-    inset 0 0.2cqw 0.35cqw rgb(255 255 255 / 0.35),
-    0 0.8cqw 2cqw rgb(2 4 14 / 0.4);
+    inset 0 0.18cqw 0.32cqw rgb(255 255 255 / 0.4),
+    0 0.8cqw 2cqw rgb(4 2 12 / 0.4);
 }
 
 .glass-role-label {
-  font-size: 1.4cqw;
+  font-family: var(--font-code);
+  font-size: 1.35cqw;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   text-align: center;
   color: var(--glass-text);
 }
 
-/* Контраст: тёмная и светлая пары — два материала, а не белая вставка на тёмном поле. */
+/* Контраст: тёмная и светлая пары. */
 .glass-contrast-dark {
-  background: linear-gradient(150deg, #0e1330, #070a1c);
+  background: linear-gradient(135deg, #171040, #0c0722);
   border-color: rgb(255 255 255 / 0.14);
 }
 
@@ -608,8 +660,8 @@
 }
 
 .glass-contrast-light {
-  background: linear-gradient(150deg, rgb(240 244 255 / 0.94), rgb(214 226 255 / 0.86));
-  border-color: rgb(255 255 255 / 0.8);
+  background: linear-gradient(135deg, #faf9ff, #e4e0ff);
+  border-color: rgb(255 255 255 / 0.75);
 }
 
 .glass-contrast-light::before {
@@ -620,8 +672,10 @@
   position: relative;
   z-index: 2;
   margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 250;
   font-size: 5.5cqw;
-  font-weight: 300;
+  letter-spacing: -0.02em;
   padding: 2cqh 2cqw 0;
 }
 
@@ -630,7 +684,7 @@
 }
 
 .glass-contrast-light .glass-contrast-ratio {
-  color: #141a3a;
+  color: #171040;
 }
 
 .glass-contrast-name {
@@ -638,15 +692,15 @@
   z-index: 2;
   margin: 0;
   padding: 0 2cqw;
-  font-size: 1.6cqw;
+  font-size: 1.55cqw;
 }
 
 .glass-contrast-dark .glass-contrast-name {
-  color: rgb(238 241 255 / 0.65);
+  color: rgb(244 242 255 / 0.66);
 }
 
 .glass-contrast-light .glass-contrast-name {
-  color: rgb(20 26 58 / 0.6);
+  color: rgb(23 16 64 / 0.62);
 }
 
 .glass-badge {
@@ -655,13 +709,14 @@
   right: 1.4cqw;
   top: 1.6cqh;
   font-family: var(--font-code);
-  font-size: 1.3cqw;
+  font-size: 1.25cqw;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  color: #0a0e1f;
-  background: linear-gradient(120deg, #9beaff, #c9b8ff);
+  letter-spacing: 0.14em;
+  color: #12082b;
+  background: linear-gradient(120deg, #a5f3fc, #ddd0ff);
   border-radius: 999px;
-  padding: 0.45em 0.9em;
+  padding: 0.5em 0.95em;
+  box-shadow: 0 0.5cqw 1.4cqw rgb(6 182 212 / 0.4);
 }
 
 /* Терминал с токенами. */
@@ -683,9 +738,10 @@
 .glass-card-heading {
   position: relative;
   z-index: 2;
-  font-size: 1.3cqw;
+  font-family: var(--font-code);
+  font-size: 1.25cqw;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--chip-tint, var(--glass-cyan));
 }
@@ -695,6 +751,7 @@
   z-index: 2;
   margin: 0;
   font-size: 1.6cqw;
+  font-weight: 450;
   line-height: 1.4;
   color: var(--glass-text);
 }
@@ -703,11 +760,13 @@
   position: relative;
   z-index: 2;
   margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 200;
   font-size: 3.9cqw;
-  font-weight: 300;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   white-space: nowrap;
-  background: linear-gradient(120deg, #ffffff, #9fd8ff);
+  background: linear-gradient(115deg, #ffffff, #a5f3fc 75%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -720,7 +779,7 @@
   top: 21cqh;
   width: 46cqw;
   height: 46cqw;
-  border: 0.12cqw dashed rgb(255 255 255 / 0.18);
+  border: 0.1cqw dashed rgb(255 255 255 / 0.2);
   border-radius: 50%;
   z-index: 1;
 }
@@ -736,17 +795,16 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 1.8cqw;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  background: linear-gradient(150deg, rgb(124 92 255 / 0.3), rgb(53 224 255 / 0.14));
-  border: 0.14cqw solid var(--glass-edge-bright);
+  font-family: var(--font-heading);
+  font-size: 1.9cqw;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  background: linear-gradient(135deg, rgb(124 58 237 / 0.4), rgb(6 182 212 / 0.2));
+  border: 0.12cqw solid var(--glass-edge-bright);
   box-shadow:
-    inset 0 0.3cqw 0.5cqw rgb(255 255 255 / 0.4),
-    inset 0 -1.4cqw 2.4cqw rgb(2 4 12 / 0.35),
-    0 0 4cqw rgb(124 92 255 / 0.4);
-  backdrop-filter: blur(2cqw) saturate(1.8);
+    inset 0 0.25cqw 0.45cqw rgb(255 255 255 / 0.45),
+    0 0 4.5cqw rgb(124 58 237 / 0.5);
+  backdrop-filter: blur(2cqw) saturate(1.55);
 }
 
 .glass-satellite {
@@ -756,16 +814,18 @@
   align-items: center;
   gap: 0.9cqw;
   font-family: var(--font-code);
-  font-size: 1.5cqw;
+  font-size: 1.45cqw;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--glass-text);
   padding: 0.7em 1.1em;
   border-radius: 999px;
-  background: linear-gradient(150deg, var(--glass-fill-decor), rgb(255 255 255 / 0.02));
-  border: 0.12cqw solid var(--glass-edge);
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(1.4cqw) saturate(1.6);
+  background: linear-gradient(150deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.06) 60%);
+  border: 0.1cqw solid var(--glass-edge);
+  box-shadow:
+    inset 0 0.15cqw 0.28cqw rgb(255 255 255 / 0.3),
+    0 1.2cqw 3cqw rgb(4 2 12 / 0.45);
+  backdrop-filter: blur(1.8cqw) saturate(1.4);
 }
 
 /* Дорожная карта: рельса и остановки. */
@@ -777,7 +837,7 @@
   height: 0.5cqh;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--glass-violet), var(--glass-cyan), var(--glass-magenta));
-  box-shadow: 0 0 2cqw rgb(124 92 255 / 0.5);
+  box-shadow: 0 0 2.2cqw rgb(124 58 237 / 0.55);
   z-index: 2;
 }
 
@@ -789,16 +849,17 @@
   height: 3.2cqw;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #ffffff, var(--stop-tint, var(--glass-violet)) 60%);
-  border: 0.14cqw solid var(--glass-edge-bright);
-  box-shadow: 0 0 1.6cqw var(--stop-tint, var(--glass-violet));
+  border: 0.12cqw solid var(--glass-edge-bright);
+  box-shadow: 0 0 1.8cqw var(--stop-tint, var(--glass-violet));
 }
 
 .glass-stop-quarter {
   position: relative;
   z-index: 2;
-  font-size: 1.6cqw;
+  font-family: var(--font-code);
+  font-size: 1.55cqw;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--stop-tint, var(--glass-violet));
 }
 
@@ -807,26 +868,28 @@
   z-index: 2;
   margin: 0;
   font-size: 1.55cqw;
+  font-weight: 450;
   line-height: 1.35;
   color: var(--glass-text);
 }
 
 /* Тарифы: средняя панель ярче, наклейка на общей шапке. */
 .glass-pane-hot {
-  background: linear-gradient(150deg, rgb(124 92 255 / 0.3), rgb(53 224 255 / 0.12) 60%);
+  background: linear-gradient(150deg, rgb(124 58 237 / 0.38), rgb(16 10 38 / 0.5) 55%, rgb(6 182 212 / 0.16));
   border-color: var(--glass-edge-bright);
   box-shadow:
-    inset 0 0.2cqw 0.35cqw rgb(255 255 255 / 0.4),
-    inset 0 -1.2cqw 2cqw rgb(2 4 12 / 0.3),
-    0 0 4cqw rgb(124 92 255 / 0.38);
+    inset 0 0.18cqw 0.32cqw rgb(255 255 255 / 0.4),
+    0 0 4.5cqw rgb(124 58 237 / 0.45),
+    0 1.8cqw 4.5cqw rgb(4 2 12 / 0.5);
 }
 
 .glass-price-name {
   position: relative;
   z-index: 2;
-  font-size: 1.5cqw;
+  font-family: var(--font-code);
+  font-size: 1.45cqw;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
@@ -834,8 +897,10 @@
   position: relative;
   z-index: 2;
   margin: 0;
-  font-size: 4cqw;
-  font-weight: 300;
+  font-family: var(--font-heading);
+  font-weight: 250;
+  font-size: 4.2cqw;
+  letter-spacing: -0.02em;
 }
 
 .glass-price-line {
@@ -843,6 +908,7 @@
   z-index: 2;
   margin: 0;
   font-size: 1.5cqw;
+  font-weight: 450;
   line-height: 1.5;
   color: var(--glass-muted);
 }
@@ -852,9 +918,10 @@
   position: relative;
   z-index: 2;
   margin: 0;
-  font-size: 3.1cqw;
+  font-size: 3cqw;
   font-weight: 300;
   line-height: 1.3;
+  letter-spacing: -0.01em;
   padding: 4cqh 4cqw;
 }
 
@@ -866,13 +933,14 @@
   font-size: 9cqw;
   font-weight: 200;
   color: var(--glass-violet);
-  opacity: 0.45;
+  opacity: 0.5;
 }
 
 .glass-quote-sign {
   display: block;
   margin-top: 2.4cqh;
-  font-size: 1.4cqw;
+  font-family: var(--font-code);
+  font-size: 1.35cqw;
   letter-spacing: 0.06em;
   color: var(--glass-muted);
 }
@@ -888,7 +956,7 @@
   bottom: 1.5cqh;
   right: 8cqw;
   width: 0;
-  border-left: 0.24cqw dashed rgb(255 255 255 / 0.28);
+  border-left: 0.22cqw dashed rgb(255 255 255 / 0.3);
   z-index: 3;
 }
 
@@ -899,7 +967,7 @@
   height: 3.2cqw;
   border-radius: 50%;
   background: var(--glass-ink);
-  border: 0.12cqw solid var(--glass-edge);
+  border: 0.1cqw solid var(--glass-edge);
   z-index: 4;
 }
 
@@ -914,9 +982,10 @@
 .glass-ticket-name {
   position: relative;
   z-index: 2;
-  font-size: 1.6cqw;
+  font-family: var(--font-code);
+  font-size: 1.55cqw;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -924,7 +993,8 @@
   position: relative;
   z-index: 2;
   margin: 0;
-  font-size: 1.7cqw;
+  font-size: 1.65cqw;
+  font-weight: 450;
   line-height: 1.4;
   color: var(--glass-muted);
 }
@@ -948,14 +1018,17 @@
   z-index: 3;
   margin: 0;
   font-family: var(--font-heading);
-  font-weight: 300;
+  font-weight: 200;
   font-size: 9cqw;
   line-height: 1;
-  letter-spacing: 0.02em;
-  background: linear-gradient(100deg, #ffffff 35%, #cfe0ff 60%, #9fd8ff 75%);
+  letter-spacing: -0.02em;
+  background: linear-gradient(100deg, #ffffff 25%, #ddd0ff 45%, #a5f3fc 55%, #ffffff 75%);
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  filter: drop-shadow(0 0 2cqw rgb(139 92 246 / 0.4));
+  animation: glass-title-shine 7s linear infinite;
 }
 
 .glass-thanks-qr {
@@ -979,12 +1052,14 @@
   width: 36cqw;
   margin: 0;
   font-size: 1.7cqw;
+  font-weight: 450;
   line-height: 1.4;
   color: var(--glass-muted);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .glass-orb-layer,
+  .glass-orb,
+  .glass-streak,
   .glass-cursor {
     display: none;
   }
