@@ -191,7 +191,8 @@ async function recordRemoteControlClip() {
     await probeContext.close();
     // The deck and the phone live in one context and the panel opens right after the load, exactly like the
     // working remote test: a later click meets the panel faded, and a separate context failed to connect on CI.
-    const sharedContext = await browserConnection.newContext({ viewport: deckViewportSize });
+    // The Russian locale keeps the interface texts Russian on a machine with another system language.
+    const sharedContext = await browserConnection.newContext({ viewport: deckViewportSize, locale: "ru-RU" });
     const deckPage = await sharedContext.newPage();
     collectConsoleMessages(deckPage, deckConsoleMessages);
     await deckPage.goto(`${serverAddress}/?remote-broker=localhost:${brokerServerPort}`);
