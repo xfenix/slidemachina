@@ -1,0 +1,47 @@
+import { useEffect, useState } from "react";
+import { pickTextLanguage } from "../../shared-between-runtimes/text-language.js";
+import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
+import { SlidemachinaLogo } from "../presentation-core/slidemachina-logo.tsx";
+import { isCompleteRemoteCode, normalizeTypedCode, useRemoteConnection } from "./remote-channel.ts";
+import { RemoteClientView } from "./remote-client-view.tsx";
+
+// The standalone phone page: opened from the QR code of a presenting screen with the connection code after # in
+// the address, so the phone connects without typing. The interface speaks the language of the phone itself.
+export function RemoteClientScreen() {
+  const screenLanguage = pickTextLanguage(navigator.language);
+  const interfaceTexts = pickInterfaceTexts(navigator.language);
+  const [panelCode, setPanelCode] = useState(readHashRemoteCode);
+  const targetCode = isCompleteRemoteCode(panelCode) ? panelCode : undefined;
+  const remoteConnection = useRemoteConnection(targetCode);
+  useEffect(() => {
+    document.documentElement.lang = screenLanguage;
+    document.title = interfaceTexts.remotePageTitle;
+    const followHashChange = () => setPanelCode(readHashRemoteCode());
+    window.addEventListener("hashchange", followHashChange);
+    return () => window.removeEventListener("hashchange", followHashChange);
+  }, [screenLanguage, interfaceTexts]);
+
+  const disconnectFromHostingScreen = () => {
+    history.replaceState(null, "", `${location.pathname}${location.search}`);
+    setPanelCode("");
+  };
+
+  return (
+    <div data-remote-screen>
+      <SlidemachinaLogo dark />
+      <fieldset data-remote-panel data-remote-mode="remote" aria-label={interfaceTexts.remoteButton}>
+        <RemoteClientView
+          languageCode={navigator.language}
+          panelCode={panelCode}
+          changePanelCode={setPanelCode}
+          disconnectFromHostingScreen={disconnectFromHostingScreen}
+          {...remoteConnection}
+        />
+      </fieldset>
+    </div>
+  );
+}
+
+function readHashRemoteCode(): string {
+  return normalizeTypedCode(location.hash.slice(1));
+}

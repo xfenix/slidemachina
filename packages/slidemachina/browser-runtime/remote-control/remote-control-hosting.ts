@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
 import type { PresentationPosition } from "../slide-navigation/position-hash.ts";
 import type { SlideCommand } from "../presenter-view/presenter-channel.ts";
-import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
+import { buildRemoteJoinLink } from "./remote-join-link.ts";
 import { isCompleteRemoteCode, readStoredHostingCode, storeHostingCode, useRemoteConnection, useRemoteHosting } from "./remote-channel.ts";
 
 export type RemoteControlHostingOptions = {
@@ -10,7 +10,6 @@ export type RemoteControlHostingOptions = {
   currentPosition: PresentationPosition;
   isPaused: boolean;
   runSlideCommand: (slideCommand: SlideCommand) => void;
-  languageCode: string;
   slideNumbering: SlideNumbering;
   countSlideSteps: (slideIndex: number) => number;
 };
@@ -22,7 +21,6 @@ export function useRemoteControlHosting({
   currentPosition,
   isPaused,
   runSlideCommand,
-  languageCode,
   slideNumbering,
   countSlideSteps,
 }: RemoteControlHostingOptions) {
@@ -33,30 +31,29 @@ export function useRemoteControlHosting({
   }, [ownCode]);
   const isRemoteMode = panelCode !== ownCode;
   const targetCode = isRemoteMode && isCompleteRemoteCode(panelCode) ? panelCode : undefined;
+  const describeSlideCaption = (slideIndex: number, stepIndex: number) => ({
+    shownSlideNumber: slideNumbering.shownNumbers[slideIndex] ?? slideIndex + 1,
+    shownSlideCount: slideNumbering.shownSlideIndexes.length,
+    stepIndex,
+    stepCount: countSlideSteps(slideIndex),
+  });
   const { connectedRemoteCount, hostingReachability } = useRemoteHosting({
     isHostingAvailable,
     hostingCode: ownCode,
     currentPosition,
     isPaused,
+    describeSlideCaption,
     runSlideCommand,
   });
   const remoteConnection = useRemoteConnection(targetCode);
-  const describeFollowedPosition = (followedSlideIndex: number, followedStepIndex: number) => {
-    const remoteInterfaceTexts = pickInterfaceTexts(languageCode);
-    const shownSlideNumber = slideNumbering.shownNumbers[followedSlideIndex] ?? followedSlideIndex + 1;
-    const followedStepCount = countSlideSteps(followedSlideIndex);
-    return {
-      slideText: remoteInterfaceTexts.presenterSlideCounter(shownSlideNumber, slideNumbering.shownSlideIndexes.length),
-      stepText: followedStepCount > 0 ? remoteInterfaceTexts.presenterStepCounter(followedStepIndex, followedStepCount) : undefined,
-    };
-  };
+  const hostingLink = useMemo(() => buildRemoteJoinLink(ownCode), [ownCode]);
   return {
     panelCode,
     changePanelCode: setPanelCode,
     isRemoteMode,
+    hostingLink,
     connectedRemoteCount,
     hostingReachability,
-    describeFollowedPosition,
     disconnectFromHostingScreen: () => setPanelCode(ownCode),
     ...remoteConnection,
   };

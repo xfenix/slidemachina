@@ -6,11 +6,12 @@ const systemLanguage = Intl.DateTimeFormat().resolvedOptions().locale;
 const englishTexts = {
   usage: [
     "Usage:",
-    "  slidemachina dev [folder] [--port 5173]   start the presentation in development mode",
+    "  slidemachina dev [folder] [--port 5173]   start the presentation in development mode (--host opens it to the local network)",
     "  slidemachina build [folder] [variants]    build the presentation; without variants it asks",
     "  slidemachina meme <query>                 find meme templates, and GIFs with a GIPHY key",
     "  slidemachina check [folder] [--json]      check the slides against the rules of a clear talk",
     "  slidemachina shot <slide> [folder]        a PNG of one slide: 12, 12.2 after two steps, 12+1 hidden; --out file.png",
+    "  slidemachina remote-page [--out file.html]  the phone page of the remote control, one HTML file for hosting",
     "",
     "In a repository of presentations, a folder with presentation folders and a shared theme/:",
     "  slidemachina dev                          the list of presentations, any of them opens with a click",
@@ -46,6 +47,7 @@ const englishTexts = {
   wrongSlidePosition: (positionText: string) => `Which slide to shoot: "${positionText}" is not a slide. Write it as in the address: 12, 12.2 or 12+1`,
   shotNeedsPresentation: "A shot is taken of one presentation: pass its folder, like slidemachina shot 3 my-talk",
   shotSaved: (picturePath: string) => `Saved ${picturePath}`,
+  remotePageBuilt: (filePath: string) => `Saved ${filePath}. It is the phone page of the remote control: host it where the QR code of a talk can point at it.`,
   wrongPort: (portText: string) => `The port is a whole number from 1 to 65535, not "${portText}"`,
   outputOverSources: (outputFolder: string) =>
     `${outputFolder} is the source folder or a folder above it. The build would erase the slides. Choose another folder with --out`,
@@ -139,11 +141,12 @@ const englishTexts = {
 const russianTexts: typeof englishTexts = {
   usage: [
     "Как запустить:",
-    "  slidemachina dev [папка] [--port 5173]   открыть презентацию в режиме разработки",
+    "  slidemachina dev [папка] [--port 5173]   открыть презентацию в режиме разработки (--host откроет её устройствам в локальной сети)",
     "  slidemachina build [папка] [варианты]    собрать презентацию; без вариантов спросит, что собрать",
     "  slidemachina meme <запрос>               найти шаблоны мемов, а с ключом GIPHY — и GIF",
     "  slidemachina check [папка] [--json]      проверить слайды по правилам понятного доклада",
     "  slidemachina shot <слайд> [папка]        снимок слайда в PNG: 12, 12.2 после двух шагов, 12+1 скрытый; --out файл.png",
+    "  slidemachina remote-page [--out файл.html]  страница пульта для телефона: один HTML-файл для хостинга",
     "",
     "В репозитории презентаций, то есть в папке с папками презентаций и общей темой theme/:",
     "  slidemachina dev                         список презентаций, любая открывается по клику",
@@ -179,6 +182,7 @@ const russianTexts: typeof englishTexts = {
   wrongSlidePosition: (positionText) => `Какой слайд снять: «${positionText}» — не слайд. Напишите как в адресе: 12, 12.2 или 12+1`,
   shotNeedsPresentation: "Снимок делается в одной презентации: укажите её папку, например slidemachina shot 3 my-talk",
   shotSaved: (picturePath) => `Сохранено: ${picturePath}`,
+  remotePageBuilt: (filePath) => `Сохранено: ${filePath}. Это страница пульта для телефона: разместите её там, куда сможет ссылаться QR-код доклада.`,
   wrongPort: (portText) => `Порт — целое число от 1 до 65535, а не «${portText}»`,
   outputOverSources: (outputFolder) =>
     `${outputFolder} — папка с исходниками или папка над ней. Сборка стёрла бы слайды. Укажите в --out другую папку`,

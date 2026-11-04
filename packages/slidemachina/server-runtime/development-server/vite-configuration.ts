@@ -2,7 +2,7 @@ import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
-import { listAllowedFolders, engineResolution } from "./engine-resolution.ts";
+import { listAllowedFolders, engineResolution, enginePackageFolder } from "./engine-resolution.ts";
 import { listModuleId } from "./entry-modules.ts";
 import { describeEnginePrebundling } from "./engine-prebundling.ts";
 import { createImageCompressionPlugin } from "../presentation-build/image-compression.ts";
@@ -106,5 +106,55 @@ export function createListBuildConfiguration(siteLayout: SiteLayout, buildFolder
         transformIndexHtml: (builtHtml) => builtHtml.replaceAll(" crossorigin", ""),
       },
     ],
+  };
+}
+
+const remotePageVirtualPath = path.join(enginePackageFolder, "remote.html");
+const remoteMountingModuleId = "/@slidemachina/remote-mounting.js";
+const remotePageHtml = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>slidemachina · remote</title>
+  </head>
+  <body>
+    <div id="slidemachina"></div>
+    <script type="module" src="${remoteMountingModuleId}"></script>
+  </body>
+</html>`;
+
+// The standalone remote page as one inlined HTML file: the phone opens it from any static hosting to join a talk.
+export function createRemotePageBuildConfiguration(remoteHtmlPath: string): InlineConfig {
+  return {
+    configFile: false,
+    root: enginePackageFolder,
+    mode: "production",
+    logLevel: "warn",
+    base: "./",
+    plugins: [
+      react({ compiler: true }),
+      viteSingleFile({ removeViteModuleLoader: true }),
+      {
+        name: "slidemachina-remote-page",
+        resolveId(requestedModuleId) {
+          if (requestedModuleId === remotePageVirtualPath) return remotePageVirtualPath;
+          return requestedModuleId === remoteMountingModuleId ? "\0" + remoteMountingModuleId : undefined;
+        },
+        load(loadedModuleId) {
+          if (loadedModuleId === remotePageVirtualPath) return remotePageHtml;
+          if (loadedModuleId === "\0" + remoteMountingModuleId)
+            return `import { mountRemoteClientScreen } from "slidemachina/remote-mounting";\nmountRemoteClientScreen();`;
+          return undefined;
+        },
+      },
+    ],
+    resolve: engineResolution,
+    build: {
+      outDir: path.dirname(remoteHtmlPath),
+      emptyOutDir: false,
+      reportCompressedSize: false,
+      rollupOptions: { input: remotePageVirtualPath },
+    },
   };
 }

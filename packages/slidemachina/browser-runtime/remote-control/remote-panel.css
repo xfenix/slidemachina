@@ -46,6 +46,38 @@
     line-height: 18px;
   }
 
+  /* The QR code is a white plate with dark modules: every phone camera reads it from a projector-bright screen. */
+  [data-remote-qr] {
+    box-sizing: border-box;
+    width: 196px;
+    margin-inline: auto;
+    padding: 10px;
+    border-radius: var(--block-radius);
+    background: #fff;
+    color: var(--dark-background);
+  }
+
+  [data-remote-qr] svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  [data-remote-qr] path {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  [data-remote-link] {
+    margin: 0;
+    color: rgb(255 255 255 / 0.55);
+    font-size: 12px;
+    line-height: 16px;
+    font-family: var(--font-code);
+    word-break: break-all;
+    text-align: center;
+  }
+
   /* The big readable code: 32 px tabular digits, wide tracking, one line on a projector and on a phone. */
   [data-remote-code] {
     all: unset;

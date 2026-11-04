@@ -27,8 +27,7 @@
   <a href="#your-own-theme">Your own theme</a> ·
   <a href="#for-agents">For agents</a> ·
   <a href="#how-it-compares">Comparison</a> ·
-  <a href="#benchmark">Benchmark</a> ·
-  <a href="docs/slidemachina.md">Docs (Russian)</a>
+  <a href="#benchmark">Benchmark</a>
 </p>
 
 <p align="center">
@@ -162,7 +161,7 @@ Line, bar, pie and other Recharts charts show numeric data. Wrap a chart in `<Ma
 ### For the speaker
 
 - The presenter window opens with <kbd>P</kbd>: the current slide, the next step, notes for each step in large type, a timer, a clock and how far ahead or behind you are. Either window can turn the slides, and it also works in an HTML file opened from disk.
-- A phone becomes a remote: the phone button on the control panel shows a six-digit code, the phone opens the same address, enters the code in the same panel and gets big Back and Next buttons, a black screen toggle and the current slide and step. Works over BroadcastChannel on the same domain, no server and no install.
+- A phone becomes a remote: the phone button on the control panel shows a six-digit code and a QR code. The phone scans the code and the page connects by itself over WebRTC; a deck on a public address serves the remote page itself, a deck opened from disk sends the phone to a public remote page. Big Back and Next buttons, a black screen toggle and the current slide and step. No server and no install.
 - The slide overview opens with <kbd>Esc</kbd>. There is also a jump by number, a pause with a black screen, full screen and a progress bar.
 - Hidden slides are skipped on stage and kept in print, PDF and PowerPoint. Put the details and theses for the copy you send after the talk there, and answers to audience questions.
 - Keys work in the Russian layout too, and on a phone a swipe or a tap turns the slide.
@@ -421,8 +420,6 @@ const BrandLogo = ({ dark }: { dark: boolean }) => (
 - A theme for some of the talks is a CSS file imported in `index.tsx`: `import "../theme/brand.css"`.
 - CSS right in `index.tsx` is `Machina.css` with a template, the same as `style.css`. `${…}` does not work in it: use CSS variables.
 
-Every variable is described in the "Тема" section of [docs/slidemachina.md](docs/slidemachina.md) (in Russian).
-
 </details>
 
 ## How it compares
@@ -513,7 +510,6 @@ npm run check    # TypeScript, Oxlint and module boundaries
 npm test         # integration tests on Playwright
 ```
 
-How the engine works, the decisions behind it and its limits are in [docs/slidemachina.md](docs/slidemachina.md) (in Russian).
 The rules for the code are in [AGENTS.md](AGENTS.md).
 
 ## License

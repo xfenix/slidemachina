@@ -172,7 +172,6 @@ export function Presentation({
     currentPosition,
     isPaused,
     runSlideCommand,
-    languageCode: lang,
     slideNumbering,
     countSlideSteps: (slideIndex) => stepCountsReference.current[slideIndex] ?? 0,
   });

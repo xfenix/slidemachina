@@ -1,0 +1,42 @@
+@layer slidemachina {
+  /* The phone page fills the screen with the dark stage colour of the engine and keeps the thumb away from the edges. */
+  [data-remote-screen] {
+    position: fixed;
+    inset: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+    background: var(--dark-background);
+    color: #fff;
+    font-family: var(--font-text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  [data-remote-screen] > svg {
+    width: min(210px, 62vw);
+    height: auto;
+    margin-block: 5vh 24px;
+    flex: none;
+  }
+
+  /* The panel chrome is for the toolbar popover; on the phone page the same grid is a plain centered column. */
+  [data-remote-screen] [data-remote-panel] {
+    position: static;
+    translate: none;
+    width: 100%;
+    max-width: 380px;
+    margin-block: auto;
+    background: transparent;
+    box-shadow: none;
+    animation: none;
+  }
+
+  [data-remote-screen] :is([data-remote-move], [data-remote-pause]) {
+    min-height: 64px;
+    font-size: 17px;
+    line-height: 24px;
+  }
+}
