@@ -26,7 +26,7 @@
   <a href="#features">Features</a> ·
   <a href="#your-own-theme">Your own theme</a> ·
   <a href="#for-agents">For agents</a> ·
-  <a href="#how-it-compares">Comparison</a> ·
+  <a href="#comparison">Comparison</a> ·
   <a href="#benchmark">Benchmark</a>
 </p>
 
@@ -428,7 +428,7 @@ const BrandLogo = ({ dark }: { dark: boolean }) => (
 
 </details>
 
-## How it compares
+## Comparison
 
 Other tools help you make a beautiful slide.
 slidemachina helps you give a talk people follow: it keeps lists, text and diagrams within Miller's 7±2 and follows Richard Mayer's 12 principles of multimedia learning.
@@ -462,6 +462,7 @@ The second rule is minimal markup. A slide is plain tags: no wrappers, ids or co
 | Editing | ✅ in a code editor and on the slide, written back to `index.tsx` | In a code editor | In a code editor and a Markdown panel | Comments on the slide, an agent applies them |
 | Presenter window | ✅ notes, timer, next slide, next step, notes per step | Notes, timer, next slide | Notes, timer, next slide, drawing | Notes, timer, next slide |
 | Phone remote | ✅ **the phone scans a QR code or types a six-digit code and turns the slides over WebRTC. No server, no install; a deck from disk sends the phone to a public remote page** | 🟡 a multiplex plugin with its own server | 🟡 the `--remote` flag: the phone opens the deck address on the same network | ❌ |
+| Slide overview | ✅ **Esc: a dark grid of thumbnails by section; arrows pick a slide, Enter opens it; the current slide shrinks into its thumbnail and grows back** | 🟡 the zoom plugin scales the deck, no thumbnails | 🟡 a list of titles in presenter mode | ❌ |
 | For agents | ✅ `llms.txt`, a skill, CLI commands: `check` for the rules of a clear talk, `shot` for a picture of a slide. No MCP server | ❌ | 🟡 an MCP server in `slidev dev` occupies agent context | 🟡 skills for writing and editing, an agent panel in the browser |
 | Many talks | ✅ a repository: a shared theme, a list with covers, one build for all | ❌ each one on its own | 🟡 themes as npm packages | 🟡 decks in one workspace, shared Markdown themes |
 | Hidden slides | ✅ **`<Slide hidden>`: the stage keeps a clean talk, the details wait for readers of the static copy. One attribute; print, PDF and PowerPoint keep them, one flag (`--no-hidden`, `?print&hidden=no`) drops them** | 🟡 `data-visibility="hidden"` removes the slide everywhere, PDF too | 🟡 `hide: true` drops the slide from the deck and the export | ❌ |
