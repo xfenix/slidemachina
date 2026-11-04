@@ -1,12 +1,17 @@
 import type { DataConnection, Peer, PeerJSOption } from "peerjs";
-import type { PresentationPosition } from "../slide-navigation/position-hash.ts";
 import type { SlideCommand } from "../presenter-view/presenter-channel.ts";
 
+export type RemoteSlideCaption = {
+  shownSlideNumber: number;
+  shownSlideCount: number;
+  stepIndex: number;
+  stepCount: number;
+};
 export type RemoteChannelMessage =
-  | { messageKind: "position"; slidePosition: PresentationPosition; isPaused: boolean }
+  | { messageKind: "position"; slideCaption: RemoteSlideCaption; isPaused: boolean }
   | { messageKind: "command"; slideCommand: SlideCommand }
   | { messageKind: "greeting" }
-  | { messageKind: "welcome"; slidePosition: PresentationPosition; isPaused: boolean }
+  | { messageKind: "welcome"; slideCaption: RemoteSlideCaption; isPaused: boolean }
   | { messageKind: "farewell" };
 export type RemoteClientFailure = "no-host" | "no-broker";
 export type RemoteTransportHandle = {

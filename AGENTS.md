@@ -11,22 +11,6 @@ Today the talks are made with reveal.js 4:
 
 They show which features are needed in practice: section slides, lists with fragments, full-slide pictures, code highlighting, speaker notes, breadcrumbs, printing to PDF.
 
-## Stages
-
-The final document is `docs/slidemachina.md` (in Russian).
-The current stage has its own file: `docs/stage48.md`, then `docs/stage49.md` and so on.
-The stage file says what was done, which decisions were made and why, and what remains.
-
-When a stage is closed, its outcome moves to `docs/slidemachina.md` and the stage file is deleted.
-The outcome is decisions and reasons. The search history and measurements stay out.
-What was not done goes to the section about what remains.
-
-Stages 1–44, 46 and 47 were closed on October 28, 2026, including the second 36 (line breaks) and 37 (hidden slides). Their outcome is condensed in `docs/slidemachina.md`.
-
-A new stage starts with a clean context.
-Everything needed for the work comes from the project files: `AGENTS.md`, `docs/slidemachina.md`, the current stage file, the code.
-So before moving to a new stage, finish the current stage file: whatever is not in the files is lost.
-
 ## Code
 
 The rules of this section and of "Tests" are mandatory. No exceptions.

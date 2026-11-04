@@ -24,6 +24,7 @@ function readCommandLine() {
       allowNegative: true,
       options: {
         port: { type: "string" },
+        host: { type: "boolean" },
         html: { type: "boolean" },
         protected: { type: "boolean" },
         folder: { type: "boolean" },
@@ -62,6 +63,13 @@ async function runCommandLine() {
     // The meme command needs no Vite: it searches, downloads and prints markup.
     const { runMemeCommand } = await import("./meme-command.ts");
     await runMemeCommand(parsedCommandLine.positionals.slice(1), parsedCommandLine.values);
+    process.exit(0);
+  }
+
+  if (commandName === "remote-page") {
+    // The remote page build needs no presentation: it is one engine file for any talk.
+    const { runRemotePageCommand } = await import("./remote-page-command.ts");
+    await runRemotePageCommand(parsedCommandLine.values.out ?? "remote.html");
     process.exit(0);
   }
 
@@ -116,7 +124,9 @@ async function runCommandLine() {
       process.exit(1);
     }
   } else {
-    const developmentServer = await createServer(createViteConfiguration(siteLayout, { port: portNumber, open: process.stdout.isTTY }));
+    const developmentServer = await createServer(
+      createViteConfiguration(siteLayout, { port: portNumber, host: parsedCommandLine.values.host ? true : undefined, open: process.stdout.isTTY }),
+    );
     await developmentServer.listen();
     developmentServer.printUrls();
     // The page and its modules compile while the browser opens; a repository does not know which presentation comes first.

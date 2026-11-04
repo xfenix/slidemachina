@@ -1188,7 +1188,7 @@ async function checkWebRtcLoopbackWorks(page: import("@playwright/test").Page): 
   });
 }
 
-test("пульт с телефона: экран показывает код, телефон вводит его вместо своего и листает по WebRTC", async ({ page, context }) => {
+test("пульт с телефона: QR ведёт на страницу пульта, телефон подключается по коду из адреса и листает по WebRTC", async ({ page, context }) => {
   test.setTimeout(60_000);
   if (!(await checkWebRtcLoopbackWorks(page))) {
     test.skip(true, "WebRTC между двумя вкладками этой машины недоступен — VPN режет локальный UDP; полный путь проверяется на CI");
@@ -1201,17 +1201,17 @@ test("пульт с телефона: экран показывает код, т
   expect(hostingCode, "код шесть цифр").toMatch(/^\d{6}$/);
   await expect(page.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "hosting");
   await expect(page.locator("[data-remote-status]")).toContainText("Ожидает подключения телефона");
+  // The dev server is localhost: a phone cannot open it, so the QR code leads to the published remote page.
+  const joinLink = await page.locator("[data-remote-qr] title").textContent();
+  expect(joinLink).toBe(`https://xfenix.github.io/slidemachina/remote.html#${hostingCode}`);
+  await expect(page.locator("[data-remote-link]")).toHaveText(joinLink!);
 
-  // The phone opens the same address against the same local broker. Typing the presenter's code over its own
-  // makes the phone a remote over a real WebRTC channel, with no connect button.
+  // The phone opens the remote screen of the same address with the code after #: it connects without typing.
   const phonePage = await context.newPage();
   await phonePage.setViewportSize({ width: 390, height: 844 });
-  await phonePage.goto("/?remote-broker=localhost:9300");
-  await phonePage.getByRole("button", { name: "Пульт с телефона" }).click();
-  const ownPhoneCode = await phonePage.locator("[data-remote-code]").inputValue();
-  expect(ownPhoneCode, "у телефона свой код").not.toBe(hostingCode);
-  await phonePage.locator("[data-remote-code]").fill(hostingCode);
-  await expect(phonePage.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "remote");
+  await phonePage.goto(`/?remote&remote-broker=localhost:9300#${hostingCode}`);
+  await expect(phonePage.locator("[data-remote-screen]")).toBeVisible();
+  await expect(phonePage.locator("[data-remote-code]")).toHaveValue(hostingCode);
   await expect(phonePage.locator("[data-remote-position]")).toContainText("Слайд 1 из", { timeout: 20_000 });
   await expect(page.locator("[data-remote-status]")).toContainText("Подключено 1 устройство");
 
@@ -1228,10 +1228,9 @@ test("пульт с телефона: экран показывает код, т
   await phonePage.locator("[data-remote-pause]").click();
   await expect(page.locator("[data-pause-screen]")).toHaveCount(0);
 
-  // Disconnecting gives the field back to the phone's own code; a code nobody hosts is reported by the broker itself.
+  // Disconnecting clears the field; a code nobody hosts is reported by the broker itself.
   await phonePage.locator("[data-remote-disconnect]").click();
-  await expect(phonePage.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "hosting");
-  await expect(phonePage.locator("[data-remote-code]")).toHaveValue(ownPhoneCode);
+  await expect(phonePage.locator("[data-remote-code]")).toHaveValue("");
   await phonePage.locator("[data-remote-code]").fill(hostingCode === "999999" ? "999998" : "999999");
   await expect(phonePage.locator('[data-remote-status="unanswered"]')).toContainText("Никто не ответил на код", { timeout: 15_000 });
   await phonePage.close();

@@ -1,7 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { PresentationPosition } from "../slide-navigation/position-hash.ts";
 import type { SlideCommand } from "../presenter-view/presenter-channel.ts";
-import { openRemoteClientTransport, openRemoteHostingTransport, type RemoteChannelMessage, type RemoteTransportHandle } from "./remote-transport.ts";
+import { openRemoteClientTransport, openRemoteHostingTransport, type RemoteChannelMessage, type RemoteSlideCaption, type RemoteTransportHandle } from "./remote-transport.ts";
 
 export type RemoteConnectionStatus = "idle" | "connecting" | "connected" | "unanswered" | "no-broker";
 export type RemoteHostingReachability = "registering" | "online" | "offline";
@@ -10,12 +10,12 @@ export type RemoteHostingOptions = {
   hostingCode: string;
   currentPosition: PresentationPosition;
   isPaused: boolean;
+  describeSlideCaption: (slideIndex: number, stepIndex: number) => RemoteSlideCaption;
   runSlideCommand: (slideCommand: SlideCommand) => void;
 };
 export type RemoteConnection = {
   connectionStatus: RemoteConnectionStatus;
-  followedSlideIndex: number | undefined;
-  followedStepIndex: number;
+  followedCaption: RemoteSlideCaption | undefined;
   isFollowedPaused: boolean;
   sendRemoteCommand: (slideCommand: SlideCommand) => void;
 };
@@ -56,7 +56,7 @@ export function isCompleteRemoteCode(remoteCode: string): boolean {
 }
 
 // Every slides window hosts its own code and obeys remotes that know it; the code is the only key, like a short password.
-export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosition, isPaused, runSlideCommand }: RemoteHostingOptions) {
+export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosition, isPaused, describeSlideCaption, runSlideCommand }: RemoteHostingOptions) {
   const hostingTransportReference = useRef<RemoteTransportHandle | undefined>(undefined);
   const connectedRemotesReference = useRef(0);
   const [connectedRemoteCount, setConnectedRemoteCount] = useState(0);
@@ -69,7 +69,7 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
     if (channelMessage.messageKind === "greeting") {
       connectedRemotesReference.current += 1;
       setConnectedRemoteCount(connectedRemotesReference.current);
-      hostingTransportReference.current?.sendRemoteMessage({ messageKind: "welcome", slidePosition: { slideIndex, stepIndex }, isPaused });
+      hostingTransportReference.current?.sendRemoteMessage({ messageKind: "welcome", slideCaption: describeSlideCaption(slideIndex, stepIndex), isPaused });
     }
     if (channelMessage.messageKind === "farewell") {
       connectedRemotesReference.current = Math.max(0, connectedRemotesReference.current - 1);
@@ -79,7 +79,7 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
   });
   const postFollowedPosition = useEffectEvent(() => {
     if (connectedRemotesReference.current > 0)
-      hostingTransportReference.current?.sendRemoteMessage({ messageKind: "position", slidePosition: { slideIndex, stepIndex }, isPaused });
+      hostingTransportReference.current?.sendRemoteMessage({ messageKind: "position", slideCaption: describeSlideCaption(slideIndex, stepIndex), isPaused });
   });
 
   useEffect(() => {
@@ -106,11 +106,11 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
 }
 
 // A phone or a second laptop joins the link of the target code and drives the window that hosts it.
-// The target comes from the panel field: the hook reacts to it, there is no connect button.
+// The target comes from the panel field or the address after #: the hook reacts to it, there is no connect button.
 export function useRemoteConnection(targetCode: string | undefined): RemoteConnection {
   const clientTransportReference = useRef<RemoteTransportHandle | undefined>(undefined);
   const [connectionReport, setConnectionReport] = useState<
-    { targetCode: string; connectionStatus: Exclude<RemoteConnectionStatus, "idle">; followedPosition: { slidePosition: PresentationPosition; isPaused: boolean } | undefined } | undefined
+    { targetCode: string; connectionStatus: Exclude<RemoteConnectionStatus, "idle">; followedPosition: { slideCaption: RemoteSlideCaption; isPaused: boolean } | undefined } | undefined
   >(undefined);
   const isReportCurrent = connectionReport !== undefined && connectionReport.targetCode === targetCode;
   const connectionStatus: RemoteConnectionStatus = targetCode === undefined ? "idle" : isReportCurrent ? connectionReport.connectionStatus : "connecting";
@@ -137,7 +137,7 @@ export function useRemoteConnection(targetCode: string | undefined): RemoteConne
         setConnectionReport({
           targetCode,
           connectionStatus: "connected",
-          followedPosition: { slidePosition: channelMessage.slidePosition, isPaused: channelMessage.isPaused },
+          followedPosition: { slideCaption: channelMessage.slideCaption, isPaused: channelMessage.isPaused },
         });
       },
       (clientFailure) => reportFailed(clientFailure === "no-host" ? "unanswered" : "no-broker"),
@@ -169,8 +169,7 @@ export function useRemoteConnection(targetCode: string | undefined): RemoteConne
 
   return {
     connectionStatus,
-    followedSlideIndex: followedPosition?.slidePosition.slideIndex,
-    followedStepIndex: followedPosition?.slidePosition.stepIndex ?? 0,
+    followedCaption: followedPosition?.slideCaption,
     isFollowedPaused: followedPosition?.isPaused ?? false,
     sendRemoteCommand,
   };
