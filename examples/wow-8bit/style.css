@@ -1,0 +1,252 @@
+/* 8-битная ретро-игра: пиксельный шрифт, CRT-сканлайны, дизеринг, жёсткие тени. */
+
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Press Start 2P";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("./fonts/ps2p-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: "Press Start 2P";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("./fonts/ps2p-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212;
+}
+
+:root {
+  --font-text: "Onest Variable", system-ui, sans-serif;
+  --font-heading: "Press Start 2P", "Onest Variable", monospace;
+  --font-code: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  --slide-background: #141433;
+  --dark-background: #0d0d26;
+  --section-background: #1c1c4a;
+  --text-color: #f2efff;
+  --muted-color: #c3bce8;
+  --text-color-on-dark: #f2efff;
+  --muted-color-on-dark: #c3bce8;
+
+  --accent-color: #ffd23f;
+  --second-accent-color: #3ee6ff;
+  --accent-soft-color: rgb(255 210 63 / 0.14);
+  --second-accent-soft-color: rgb(62 230 255 / 0.14);
+  --accent-color-on-dark: #ffd23f;
+  --second-accent-color-on-dark: #3ee6ff;
+
+  --heading-weight: 400;
+  --heading-size: 44px;
+  --heading-line-height: 1.35;
+  --cover-heading-size: 76px;
+  --display-size: 96px;
+
+  --hairline-color: rgb(164 154 214 / 0.3);
+  --hairline-color-on-dark: rgb(164 154 214 / 0.38);
+
+  --code-background: #0d0d2e;
+  --code-background-on-dark: #0d0d2e;
+
+  --section-number-start-color: #ffd23f;
+  --section-number-end-color: #ff8a3d;
+  --section-number-strength: 30%;
+  --section-glow-strength: 0%;
+  --section-texture: none;
+
+  --progress-color: var(--accent-color);
+  --progress-color-on-dark: var(--accent-color);
+  --progress-height: 12px;
+  --progress-track-color: rgb(255 255 255 / 0.08);
+
+  --block-radius: 0px;
+  --inline-radius: 0px;
+  --diagram-radius: 0px;
+
+  --toolbar-background: #0d0d26;
+  --navigator-background: #0d0d26;
+  --transition-stage-background: #0d0d26;
+}
+
+/* CRT-сканлайны поверх всего слайда. */
+[data-slide]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgb(6 6 20 / 0.14) 0 2px, transparent 2px 6px),
+    radial-gradient(120cqw 120cqh at 50% 50%, transparent 62%, rgb(6 6 20 / 0.4));
+}
+
+/* Обложка раздела: название читается поверх номера — белое и с тёмной подложкой-тенью. */
+[data-slide]:has(> [data-content] > h1[data-section-number]) :is(h1, h2) {
+  color: var(--text-color);
+  text-shadow: 6px 6px 0 rgb(6 6 20 / 0.95);
+}
+
+/* Заголовки: жёлтый пиксельный текст с жёсткой тенью-копией. */
+[data-slide] :is(h1, h2) {
+  color: var(--accent-color);
+  text-shadow: 5px 5px 0 rgb(6 6 20 / 0.9);
+  text-transform: uppercase;
+}
+
+[data-slide] h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.55em;
+  width: 6em;
+  height: 6px;
+  background: repeating-linear-gradient(90deg, var(--second-accent-color) 0 12px, transparent 12px 20px);
+}
+
+[data-slide] h2 {
+  position: relative;
+}
+
+/* Подписи — пиксельные бирки. */
+[data-slide] figcaption,
+[data-slide] .machina-note,
+[data-slide] .machina-source,
+[data-slide] .machina-lead,
+[data-slide] [data-breadcrumbs],
+[data-slide] [data-slide-number] {
+  font-family: var(--font-heading);
+  font-size: 0.5em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+[data-slide] .machina-lead {
+  font-size: 0.5em;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Большие числа — пиксельные и жёлтые. */
+[data-slide] .machina-big-number p {
+  font-family: var(--font-heading);
+  color: var(--accent-color);
+  text-shadow: 6px 6px 0 rgb(6 6 20 / 0.9);
+}
+
+[data-slide] .machina-big-number figcaption {
+  font-size: 0.36em;
+}
+
+/* Большие числа меряет движок по ширине: пиксельный шрифт шире, даём запас. */
+[data-slide] .machina-big-number {
+  --big-number-size: 110px;
+}
+
+/* Карточки — монолитные блоки с рамкой и сдвинутой тенью, как спрайты. */
+[data-slide] .machina-card {
+  background: #20205c;
+  border: 4px solid var(--text-color);
+  border-radius: 0;
+  box-shadow: 10px 10px 0 rgb(6 6 20 / 0.85);
+}
+
+/* Код — экран терминала с жёсткой рамкой, по центру и крупно. */
+:root {
+  --code-size: 32px;
+}
+
+[data-slide] [data-code] {
+  margin-inline: auto;
+  border: 4px solid var(--text-color);
+  box-shadow: 10px 10px 0 rgb(6 6 20 / 0.85);
+}
+
+/* Пункты списка — жёлтые пиксельные квадраты с тенью. */
+[data-slide] ul > li:before {
+  clip-path: none;
+  border-radius: 0;
+  background: var(--accent-color);
+  box-shadow: 3px 3px 0 rgb(6 6 20 / 0.9);
+}
+
+/* Дизеринг: шахматный полупрозрачный слой для градиентов без градиентов. */
+[data-slide] .pixel-dither {
+  background: repeating-conic-gradient(rgb(255 255 255 / 0.05) 0% 25%, transparent 0% 50%) 0 0 / 12px 12px;
+}
+
+/* Мигающий пригласительный текст, как «press start». */
+[data-slide] .pixel-blink {
+  animation: pixel-blink 1.4s linear infinite;
+}
+
+@keyframes pixel-blink {
+  0%, 74% {
+    opacity: 1;
+  }
+  75%, 100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slide] .pixel-blink {
+    animation: none;
+  }
+}
+
+/* Пиксельное сердце-спрайт: SVG с жёсткой жёлтой тенью-копией. */
+.pixel-heart {
+  display: block;
+  width: 190px;
+  height: auto;
+  margin: 12px auto 56px;
+  filter: drop-shadow(8px 8px 0 rgb(6 6 20 / 0.9));
+}
+
+/* Спрайты в карточках: крупные пиксели без сглаживания и та же жёсткая тень. */
+.pixel-art {
+  display: block;
+  width: 170px;
+  height: auto;
+  margin: 4px auto 24px;
+  image-rendering: pixelated;
+  filter: drop-shadow(6px 6px 0 rgb(6 6 20 / 0.9));
+}
+
+[data-slide] .pixel-sprite-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 56px;
+}
+
+/* Столбики графика — полосы здоровья. */
+[data-slide] .machina-bars li {
+  background: var(--accent-color);
+  border: 4px solid var(--text-color);
+  border-bottom: none;
+  box-shadow: 6px 0 0 rgb(6 6 20 / 0.85);
+}
+
+[data-slide] .machina-bars li:nth-child(2) {
+  background: var(--second-accent-color);
+}
+
+[data-slide] .machina-bars li:nth-child(3) {
+  background: #7dff6a;
+}
+
+@media print {
+  [data-slide]::after {
+    display: none;
+  }
+
+  [data-slide] :is(h1, h2),
+  [data-slide] .machina-big-number p {
+    text-shadow: none;
+  }
+}

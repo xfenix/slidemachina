@@ -1,0 +1,1123 @@
+/* Осенний «Клен»: наклейки, комоды, билеты и листопад. Свободные композиции на полотне, никаких «заголовок плюс список». */
+
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Oswald Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 700;
+  src: url("./fonts/oswald-cyrillic-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: "Oswald Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 700;
+  src: url("./fonts/oswald-latin-wght-normal.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --font-text: "Onest Variable", system-ui, sans-serif;
+  --font-heading: "Oswald Variable", "Onest Variable", sans-serif;
+  --font-code: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  --slide-background: #f6efe1;
+  --dark-background: #2a1d12;
+  --section-background: #332416;
+  --text-color: #33261a;
+  --muted-color: #83715c;
+  --text-color-on-dark: #f6efe1;
+  --muted-color-on-dark: #c9b8a0;
+
+  --accent-color: #c2510f;
+  --second-accent-color: #97801f;
+  --accent-soft-color: rgb(194 81 15 / 0.12);
+  --second-accent-soft-color: rgb(151 128 31 / 0.16);
+  --accent-color-on-dark: #e07a35;
+  --second-accent-color-on-dark: #c9b458;
+
+  --autumn-cream: #fdf8ec;
+  --autumn-amber: #d98e1b;
+  --autumn-maple: #a8341f;
+  --autumn-manila: #efe3c4;
+  --autumn-sticky: #f7e9b8;
+  --autumn-shadow-color: #241a10;
+  --autumn-border: 0.24cqw solid #33261a;
+  --autumn-shadow: 0.5cqw 0.5cqw 0 0 var(--autumn-shadow-color);
+
+  --hairline-color: rgb(120 90 50 / 0.28);
+  --hairline-color-on-dark: rgb(246 239 225 / 0.25);
+
+  --code-background: #f1e7d2;
+  --code-background-on-dark: #241a10;
+
+  --toolbar-background: #2a1d12;
+  --navigator-background: #2a1d12;
+  --transition-stage-background: #2a1d12;
+}
+
+/* Фактура бумаги и низкое солнце, как раньше. */
+[data-slide]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(rgb(120 84 40 / 0.055) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+}
+
+[data-slide]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(58cqw 48cqw at 84% -12%, rgb(217 142 27 / 0.18), transparent 70%);
+}
+
+/* Конент не течёт на слайдах с композициями: слайд — доска, на ней абсолютные блоки. */
+[data-slide]:has(.machina-freeform-full) [data-content] {
+  display: block;
+  padding: 0;
+}
+
+/* Сетка композиций: поля 8cqw слева и справа, колонки кратны 4cqw, вертикальный шаг 2cqh.
+   Метка и правые наклейки стоят в одной шапке: y = 6cqh. Повороты остаются у наклеек, края — на сетке. */
+.autumn-tag {
+  position: absolute;
+  left: 8cqw;
+  top: 6cqh;
+  z-index: 5;
+  margin: 0;
+  font-family: var(--font-code);
+  font-size: 1.5cqw;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: #33261a;
+  color: #f6efe1;
+  padding: 0.55em 0.95em;
+  border-radius: 0.6cqw;
+  box-shadow: 0.35cqw 0.35cqw 0 0 var(--autumn-shadow-color);
+}
+
+/* Наклейка: бумажный ярлык с поворотом и жёсткой тенью. */
+.autumn-sticker {
+  position: absolute;
+  z-index: 6;
+  font-family: var(--font-code);
+  font-size: 1.5cqw;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: var(--autumn-sticker-fill, var(--autumn-amber));
+  color: #33261a;
+  border: var(--autumn-border);
+  border-radius: 0.7cqw;
+  padding: 0.5em 0.85em;
+  box-shadow: var(--autumn-shadow);
+  transform: rotate(var(--autumn-tilt, -2deg));
+}
+
+/* Вход: штамп — прилетает снизу-сбоку и оседает на месте. */
+@keyframes autumn-stamp {
+  0% {
+    opacity: 0;
+    translate: -0.9cqw -1.3cqw;
+  }
+  60% {
+    opacity: 1;
+    translate: 0.3cqw 0.3cqw;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* Вход: шлепок — перелетает с переворотом и садится на свой поворот. */
+@keyframes autumn-slap {
+  0% {
+    opacity: 0;
+    rotate: calc(var(--autumn-tilt, -2deg) + 12deg);
+    scale: 1.5;
+  }
+  100% {
+    opacity: 1;
+    rotate: var(--autumn-tilt, -2deg);
+    scale: 1;
+  }
+}
+
+/* Вход: рост из нуля по горизонтали или вертикали. */
+@keyframes autumn-grow-x {
+  from {
+    scale: 0 1;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+
+@keyframes autumn-grow-y {
+  from {
+    scale: 1 0;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+
+/* Анимации играют, только пока слайд текущий. */
+[data-slide][data-current] .autumn-anim-stamp {
+  animation: autumn-stamp var(--autumn-duration, 420ms) cubic-bezier(0.2, 0.8, 0.2, 1) var(--autumn-delay, 0ms) both;
+}
+
+[data-slide][data-current] .autumn-anim-slap {
+  animation: autumn-slap var(--autumn-duration, 420ms) cubic-bezier(0.2, 0.8, 0.2, 1) var(--autumn-delay, 0ms) both;
+}
+
+[data-slide][data-current] .autumn-anim-grow-x {
+  animation: autumn-grow-x var(--autumn-duration, 500ms) cubic-bezier(0.2, 0.8, 0.2, 1) var(--autumn-delay, 0ms) both;
+  transform-origin: left center;
+}
+
+[data-slide][data-current] .autumn-anim-grow-y {
+  animation: autumn-grow-y var(--autumn-duration, 500ms) cubic-bezier(0.2, 0.8, 0.2, 1) var(--autumn-delay, 0ms) both;
+  transform-origin: center bottom;
+}
+
+/* Обложка: слово-афиша с жёсткой тенью. */
+.autumn-cover-title {
+  position: absolute;
+  left: 8cqw;
+  top: 16cqh;
+  margin: 0;
+  font-size: 21cqw;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--accent-color);
+  text-shadow: 0.55cqw 0.55cqw 0 0 var(--autumn-shadow-color);
+}
+
+.autumn-thanks-title {
+  font-size: 13cqw;
+  top: 10cqh;
+  left: 8cqw;
+}
+
+.autumn-cover-lead {
+  position: absolute;
+  left: 8cqw;
+  top: 48cqh;
+  width: 42cqw;
+  font-size: 2.4cqw;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+}
+
+/* Терминальная строка. */
+.autumn-command {
+  position: absolute;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  font-family: var(--font-code);
+  font-size: 1.9cqw;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--autumn-shadow-color);
+  color: #f6efe1;
+  border-radius: 0.7cqw;
+  padding: 0.75em 1.1em;
+  box-shadow: var(--autumn-shadow);
+}
+
+.autumn-command-prompt {
+  color: var(--autumn-amber);
+  margin-right: 0.6em;
+  font-weight: 700;
+}
+
+@keyframes autumn-blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+.autumn-cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 0.35em;
+  background: var(--autumn-amber);
+  animation: autumn-blink 1.1s steps(1) infinite;
+}
+
+/* Чип: квадрат-иконка, имя, статус, бейдж. */
+.autumn-chip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 1.1cqw;
+  width: 30cqw;
+  box-sizing: border-box;
+  background: var(--autumn-cream);
+  border: var(--autumn-border);
+  border-radius: 0.9cqw;
+  padding: 1.3cqw 1.6cqw;
+  box-shadow: var(--autumn-shadow);
+}
+
+.autumn-chip-icon {
+  width: 2.4cqw;
+  height: 2.4cqw;
+  flex: none;
+  border: 0.2cqw solid #33261a;
+  border-radius: 0.5cqw;
+  box-sizing: border-box;
+}
+
+.autumn-chip-name {
+  font-family: var(--font-heading);
+  font-size: 2cqw;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.autumn-chip-status {
+  font-family: var(--font-code);
+  font-size: 1.25cqw;
+  color: var(--muted-color);
+}
+
+.autumn-chip-badge {
+  margin-left: auto;
+  font-family: var(--font-code);
+  font-size: 1.4cqw;
+  font-weight: 700;
+  background: #f6efe1;
+  border: 0.2cqw solid #33261a;
+  border-radius: 0.5cqw;
+  padding: 0.35em 0.6em;
+}
+
+/* Звёздный взрыв-наклейка. */
+.autumn-burst {
+  position: absolute;
+  z-index: 6;
+  rotate: var(--autumn-tilt, 8deg);
+}
+
+.autumn-burst svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.autumn-burst-shadow {
+  fill: var(--autumn-shadow-color);
+}
+
+.autumn-burst-shape {
+  fill: var(--autumn-sticker-fill, var(--autumn-amber));
+  stroke: #33261a;
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+
+.autumn-burst-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #33261a;
+}
+
+.autumn-burst-top {
+  font-family: var(--font-heading);
+  font-size: 3.4cqw;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.autumn-burst-bottom {
+  font-family: var(--font-code);
+  font-size: 1cqw;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.5em;
+}
+
+/* Окно с терминалом: рамка, янтарная шапка с точками. */
+.autumn-window {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  background: var(--autumn-cream);
+  border: var(--autumn-border);
+  border-radius: 1.1cqw;
+  box-shadow: 0.6cqw 0.6cqw 0 0 var(--autumn-shadow-color);
+  overflow: hidden;
+}
+
+.autumn-window-bar {
+  flex: none;
+  height: 5.6cqh;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.8cqw;
+  padding: 0 1.6cqw;
+  background: var(--autumn-amber);
+  border-bottom: var(--autumn-border);
+}
+
+.autumn-window-dot {
+  width: 1.4cqw;
+  height: 1.4cqw;
+  flex: none;
+  background: var(--autumn-cream);
+  border: 0.2cqw solid #33261a;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.autumn-window-title {
+  margin-left: 0.6cqw;
+  font-family: var(--font-code);
+  font-size: 1.4cqw;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.autumn-window-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2.2cqw;
+  min-height: 0;
+}
+
+.autumn-window-footnote {
+  margin: auto 0 0;
+  font-family: var(--font-code);
+  font-size: 1.15cqw;
+  color: var(--muted-color);
+}
+
+/* Лог внутри окна: без рамки и фона движка. */
+.autumn-window [data-code] {
+  margin: 0 0 2cqh;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-size: 1.5cqw;
+}
+
+/* Полоса сегментов «куда уходят минуты». */
+.autumn-segment-row {
+  display: flex;
+  height: 9cqh;
+  background: var(--autumn-cream);
+  border: var(--autumn-border);
+  border-radius: 0.7cqw;
+  overflow: hidden;
+}
+
+.autumn-segment {
+  display: flex;
+  align-items: flex-end;
+  box-sizing: border-box;
+  border-right: 0.18cqw solid #33261a;
+  padding: 0.8cqw 0.7cqw;
+}
+
+.autumn-segment:last-child {
+  border-right: none;
+}
+
+.autumn-segment-label {
+  font-family: var(--font-code);
+  font-size: 1cqw;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #fdf8ec;
+  text-shadow: 0 0 0.4cqw rgb(36 26 16 / 0.6);
+  white-space: nowrap;
+}
+
+.autumn-segment-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1cqh;
+  font-family: var(--font-code);
+  font-size: 1.05cqw;
+  color: var(--muted-color);
+}
+
+.autumn-side-number {
+  position: absolute;
+  z-index: 5;
+  font-family: var(--font-code);
+  font-size: 6cqw;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--autumn-maple);
+  text-align: right;
+}
+
+.autumn-side-number-label {
+  display: block;
+  margin-top: 1.2cqh;
+  font-size: 1.4cqw;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--muted-color);
+}
+
+/* Коробки уравнения. */
+.autumn-equation-box {
+  position: absolute;
+  z-index: 5;
+  min-width: 20cqw;
+  box-sizing: border-box;
+  text-align: center;
+  background: var(--autumn-cream);
+  border: var(--autumn-border);
+  border-radius: 1cqw;
+  padding: 2.4cqw 2.6cqw;
+  box-shadow: var(--autumn-shadow);
+}
+
+.autumn-equation-big {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 6cqw;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--accent-color);
+}
+
+.autumn-equation-label {
+  display: block;
+  margin-top: 1cqh;
+  font-family: var(--font-code);
+  font-size: 1.3cqw;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-color);
+}
+
+.autumn-operator {
+  position: absolute;
+  z-index: 5;
+  font-family: var(--font-heading);
+  font-size: 6cqw;
+  font-weight: 700;
+  color: #33261a;
+}
+
+/* Скорость: гигантская цифра и две полосы. */
+.autumn-speed-number {
+  position: absolute;
+  z-index: 5;
+  font-family: var(--font-heading);
+  font-size: 15cqw;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--accent-color);
+  text-shadow: 0.45cqw 0.45cqw 0 0 var(--autumn-shadow-color);
+}
+
+.autumn-speed-caption {
+  position: absolute;
+  z-index: 5;
+  font-family: var(--font-code);
+  font-size: 1.5cqw;
+  color: var(--muted-color);
+}
+
+.autumn-speed-row {
+  position: absolute;
+  z-index: 5;
+  width: 42cqw;
+}
+
+.autumn-speed-row-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8cqh;
+  font-family: var(--font-code);
+  font-size: 1.4cqw;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.autumn-track {
+  height: 4.6cqh;
+  background: var(--autumn-cream);
+  border: var(--autumn-border);
+  border-radius: 0.7cqw;
+  overflow: hidden;
+}
+
+.autumn-track-fill {
+  height: 100%;
+  min-width: 0.7cqw;
+}
+
+/* Комод: ящики со стрелками-потоком. */
+.autumn-drawer {
+  position: absolute;
+  z-index: 5;
+  width: 22cqw;
+  box-sizing: border-box;
+  background: var(--autumn-cream);
+  border: var(--autumn-border);
+  border-radius: 0.8cqw;
+  padding: 2.6cqh 1.8cqw 2cqh;
+  box-shadow: var(--autumn-shadow);
+  text-align: center;
+}
+
+.autumn-drawer-handle {
+  display: block;
+  width: 8cqw;
+  height: 0.9cqh;
+  margin: 0 auto 1.8cqh;
+  background: #33261a;
+  border-radius: 999px;
+}
+
+.autumn-drawer-name {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 2.1cqw;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.autumn-drawer-count {
+  display: block;
+  margin-top: 0.8cqh;
+  font-family: var(--font-code);
+  font-size: 1.2cqw;
+  color: var(--muted-color);
+}
+
+.autumn-flow-arrow {
+  position: absolute;
+  z-index: 4;
+  width: 5.5cqw;
+  height: 4cqh;
+}
+
+.autumn-flow-arrow path {
+  stroke: #33261a;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.autumn-window-query {
+  display: flex;
+  align-items: center;
+  margin: 0 0 1cqh;
+  font-family: var(--font-code);
+  font-size: 1.5cqw;
+  color: var(--muted-color);
+}
+
+/* Результаты поиска в окне. */
+.autumn-result {
+  display: flex;
+  align-items: baseline;
+  gap: 2cqw;
+  padding: 1.5cqh 0.4cqw;
+  border-bottom: 0.14cqw dashed rgb(120 90 50 / 0.4);
+}
+
+.autumn-result-title {
+  font-size: 1.9cqw;
+  font-weight: 600;
+}
+
+.autumn-result-note {
+  margin-left: auto;
+  font-family: var(--font-code);
+  font-size: 1.1cqw;
+  color: var(--muted-color);
+  text-align: right;
+}
+
+.autumn-mark {
+  display: inline-block;
+  background: rgb(217 142 27 / 0.45);
+  border-radius: 0.35cqw;
+  padding: 0 0.25em;
+  rotate: -1deg;
+}
+
+/* Досье-файл. */
+.autumn-file {
+  position: absolute;
+  z-index: 5;
+  width: 34cqw;
+  height: 46cqh;
+  box-sizing: border-box;
+  background: var(--autumn-manila);
+  border: var(--autumn-border);
+  border-radius: 0 1.1cqw 1.1cqw 1.1cqw;
+  box-shadow: 0.8cqw 0.8cqw 0 0 var(--autumn-shadow-color);
+  padding: 3.4cqw 3cqw;
+}
+
+.autumn-file-tab {
+  position: absolute;
+  left: 3cqw;
+  top: -3.1cqh;
+  width: 15cqw;
+  height: 3.2cqh;
+  background: #e7d6ae;
+  border: var(--autumn-border);
+  border-bottom: none;
+  border-radius: 0.8cqw 0.8cqw 0 0;
+  box-sizing: border-box;
+}
+
+.autumn-file-name {
+  display: block;
+  font-family: var(--font-code);
+  font-size: 2.6cqw;
+  font-weight: 700;
+  margin-bottom: 3cqh;
+}
+
+.autumn-file-line {
+  display: block;
+  height: 1cqh;
+  margin-top: 1.8cqh;
+  background: rgb(51 38 26 / 0.16);
+  border-radius: 999px;
+}
+
+/* Паспортные данные файла. */
+.autumn-spec {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: baseline;
+  gap: 1.4cqw;
+  background: var(--autumn-cream);
+  border: var(--autumn-border);
+  border-radius: 0.8cqw;
+  padding: 1.4cqw 1.8cqw;
+  box-shadow: var(--autumn-shadow);
+  width: 32cqw;
+  box-sizing: border-box;
+}
+
+.autumn-spec-value {
+  font-family: var(--font-heading);
+  font-size: 2.6cqw;
+  font-weight: 700;
+  color: var(--accent-color);
+}
+
+.autumn-spec-label {
+  font-family: var(--font-code);
+  font-size: 1.25cqw;
+  color: var(--muted-color);
+}
+
+/* Четыре недели: столбики-градусник. */
+.autumn-bars {
+  position: absolute;
+  left: 24cqw;
+  top: 20cqh;
+  display: flex;
+  align-items: flex-end;
+  gap: 6cqw;
+  height: 62cqh;
+}
+
+.autumn-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.autumn-bar-value {
+  font-family: var(--font-code);
+  font-size: 1.6cqw;
+  font-weight: 700;
+  margin-bottom: 1cqh;
+}
+
+.autumn-bar-track {
+  width: 9cqw;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: var(--autumn-cream);
+  border: var(--autumn-border);
+  border-radius: 0.7cqw;
+  overflow: hidden;
+}
+
+.autumn-bar-fill {
+  background: linear-gradient(180deg, var(--autumn-amber), var(--accent-color));
+}
+
+.autumn-bar-label {
+  margin-top: 1.2cqh;
+  font-family: var(--font-code);
+  font-size: 1.25cqw;
+  color: var(--muted-color);
+}
+
+/* Билеты дорожной карты. */
+.autumn-ticket {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: row !important;
+  width: 40cqw;
+  background: var(--autumn-cream) !important;
+  border: var(--autumn-border) !important;
+  border-radius: 1cqw !important;
+  box-shadow: var(--autumn-shadow) !important;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.autumn-ticket-stub {
+  flex: none;
+  width: 9cqw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6cqh;
+  background: var(--autumn-amber);
+  border-right: 0.26cqw dashed #33261a;
+  font-family: var(--font-code);
+  font-size: 1.2cqw;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.autumn-ticket-body {
+  flex: 1;
+  padding: 2.2cqw 2.4cqw;
+}
+
+.autumn-ticket-season {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 2.3cqw;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.autumn-ticket-plan {
+  display: block;
+  margin-top: 1cqh;
+  font-size: 1.7cqw;
+}
+
+/* Образцы краски. */
+.autumn-swatch {
+  position: absolute;
+  z-index: 5;
+  width: 18cqw;
+  box-sizing: border-box;
+  background: var(--autumn-cream);
+  border: var(--autumn-border);
+  border-radius: 0.9cqw;
+  padding: 1.3cqw;
+  box-shadow: var(--autumn-shadow);
+  transform: rotate(var(--autumn-tilt, 0deg));
+}
+
+.autumn-swatch-color {
+  display: block;
+  height: 8cqh;
+  background: var(--swatch-color);
+  border: 0.2cqw solid #33261a;
+  border-radius: 0.6cqw;
+}
+
+.autumn-swatch-name {
+  display: block;
+  margin-top: 1.2cqh;
+  font-family: var(--font-heading);
+  font-size: 1.8cqw;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.autumn-swatch-hex {
+  display: block;
+  font-family: var(--font-code);
+  font-size: 1.1cqw;
+  color: var(--muted-color);
+}
+
+/* Гигантский лист для анатомии. */
+.autumn-leaf-hero {
+  position: absolute;
+  left: 44cqw;
+  top: 36cqh;
+  width: 24cqh;
+  height: 24cqh;
+  z-index: 4;
+  background: linear-gradient(140deg, color-mix(in srgb, var(--accent-color) 76%, #fff2d2), var(--accent-color) 74%);
+  border: 0.24cqw solid #33261a;
+  border-radius: 8% 62% 8% 62%;
+  box-shadow: inset -0.5cqw -0.8cqw 0 rgb(74 42 12 / 0.2), 0.5cqw 0.5cqw 0 0 var(--autumn-shadow-color);
+  rotate: 18deg;
+}
+
+.autumn-leaf-hero::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -20%;
+  width: 9%;
+  min-width: 3px;
+  height: 30%;
+  border-radius: 999px;
+  background: rgb(74 42 12 / 0.6);
+  transform: translateX(-50%) rotate(6deg);
+}
+
+.autumn-callout {
+  position: absolute;
+  z-index: 5;
+  font-family: var(--font-code);
+  font-size: 1.35cqw;
+  font-weight: 700;
+  background: var(--autumn-cream);
+  border: var(--autumn-border);
+  border-radius: 0.6cqw;
+  padding: 0.55em 0.85em;
+  box-shadow: 0.35cqw 0.35cqw 0 0 var(--autumn-shadow-color);
+  white-space: nowrap;
+}
+
+.autumn-anatomy {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.autumn-anatomy path {
+  stroke: #33261a;
+  stroke-width: 0.28;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Стикер-цитата со скотчем. */
+.autumn-note {
+  position: absolute;
+  left: 27cqw;
+  top: 28cqh;
+  width: 46cqw;
+  z-index: 5;
+  background: var(--autumn-sticky);
+  border-radius: 0.4cqw;
+  box-shadow: 0 1cqw 2.4cqw -1cqw rgb(36 26 16 / 0.45);
+  padding: 3.2cqw 3cqw 2.4cqw;
+  rotate: -2deg;
+}
+
+.autumn-note::before,
+.autumn-note::after {
+  content: "";
+  position: absolute;
+  width: 7cqw;
+  height: 3cqh;
+  background: rgb(233 222 190 / 0.75);
+  box-shadow: 0 0.2cqw 0.5cqw rgb(36 26 16 / 0.15);
+}
+
+.autumn-note::before {
+  left: -2cqw;
+  top: -1.2cqh;
+  rotate: -38deg;
+}
+
+.autumn-note::after {
+  right: -2cqw;
+  bottom: -1.2cqh;
+  rotate: -38deg;
+}
+
+.autumn-note p {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 3cqw;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.autumn-note-sign {
+  margin-top: 2cqh !important;
+  font-family: var(--font-code) !important;
+  font-size: 1.4cqw !important;
+  color: var(--muted-color);
+}
+
+/* Листопад: внешний span падает, вложенный качается и крутится. */
+.autumn-leaf-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.autumn-leaf-fall {
+  position: absolute;
+  top: 0;
+  display: block;
+  animation-name: autumn-leaf-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@keyframes autumn-leaf-fall {
+  from {
+    transform: translate3d(0, -14cqh, 0);
+  }
+  to {
+    transform: translate3d(0, 114cqh, 0);
+  }
+}
+
+.autumn-leaf-sway {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 8% 62% 8% 62%;
+  background: linear-gradient(140deg, color-mix(in srgb, var(--leaf-tint) 76%, #fff2d2), var(--leaf-tint) 74%);
+  box-shadow: inset -2px -4px 0 rgb(74 42 12 / 0.2);
+  animation-name: autumn-leaf-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.autumn-leaf-sway::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -20%;
+  width: 9%;
+  min-width: 1.5px;
+  height: 30%;
+  border-radius: 999px;
+  background: rgb(74 42 12 / 0.55);
+  transform: translateX(-50%) rotate(6deg);
+}
+
+@keyframes autumn-leaf-sway {
+  0% {
+    transform: translateX(0) rotate(-18deg);
+  }
+  25% {
+    transform: translateX(var(--leaf-sway-shift)) rotate(72deg);
+  }
+  50% {
+    transform: translateX(0) rotate(162deg);
+  }
+  75% {
+    transform: translateX(calc(-1 * var(--leaf-sway-shift))) rotate(252deg);
+  }
+  100% {
+    transform: translateX(0) rotate(342deg);
+  }
+}
+
+/* QR на прощании: колонка с местом — рамка медиа сама занимает свободное место.
+   QR и правый столбец начинаются на одной линии 36, столбец — колонка 48, строки с шагом 16. */
+.autumn-thanks-qr {
+  position: absolute;
+  left: 8cqw;
+  top: 36cqh;
+  width: 30cqw;
+  height: 44cqh;
+  display: flex;
+  flex-direction: column;
+}
+
+.autumn-thanks-note {
+  position: absolute;
+  z-index: 5;
+  width: 40cqw;
+  font-family: var(--font-code);
+  font-size: 1.4cqw;
+  line-height: 1.45;
+  color: var(--muted-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .autumn-leaf-layer,
+  .autumn-cursor {
+    display: none;
+  }
+}
+
+@media print {
+  .autumn-leaf-layer,
+  [data-slide]::before,
+  [data-slide]::after {
+    display: none;
+  }
+
+  [data-slide] [class*="autumn-anim"] {
+    animation: none !important;
+  }
+}
