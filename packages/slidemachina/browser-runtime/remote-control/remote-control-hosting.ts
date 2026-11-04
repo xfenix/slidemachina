@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
+import { findShownSlide } from "../../shared-between-runtimes/slide-numbering.ts";
 import type { PresentationPosition } from "../slide-navigation/position-hash.ts";
 import type { SlideCommand } from "../presenter-view/presenter-channel.ts";
 import { buildRemoteJoinLink } from "./remote-join-link.ts";
@@ -42,6 +43,10 @@ export function useRemoteControlHosting({
     stepIndex,
     stepCount: countSlideSteps(slideIndex),
   });
+  // A remote knows shown numbers only and never hears about hidden slides; the host turns a typed number into
+  // a slide index, and a number past the end lands on the last slide like the typed numbers on the keyboard.
+  const runHostedSlideCommand = (slideCommand: SlideCommand) =>
+    runSlideCommand(typeof slideCommand === "number" ? findShownSlide(slideNumbering, slideCommand) : slideCommand);
   const { connectedRemoteCount, hostingReachability } = useRemoteHosting({
     isHostingAvailable: isHostingAvailable && isRemoteAccessEnabled,
     hostingCode: ownCode,
@@ -50,7 +55,7 @@ export function useRemoteControlHosting({
     isPaused,
     presentationTitle,
     describeSlideCaption,
-    runSlideCommand,
+    runSlideCommand: runHostedSlideCommand,
   });
   const remoteConnection = useRemoteConnection(targetCode);
   const hostingLink = useMemo(() => buildRemoteJoinLink(ownCode), [ownCode]);

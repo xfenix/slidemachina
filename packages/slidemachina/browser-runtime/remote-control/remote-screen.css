@@ -48,7 +48,7 @@
     text-align: center;
   }
 
-  [data-remote-screen] :is([data-remote-move], [data-remote-pause]) {
+  [data-remote-screen] [data-remote-move] {
     min-height: 72px;
     font-size: 17px;
     line-height: 24px;

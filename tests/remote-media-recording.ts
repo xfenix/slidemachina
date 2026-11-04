@@ -24,9 +24,8 @@ const mediaFolder = path.join(workspaceFolder, "docs", "readme");
 const clipFileName = "remote-control.webp";
 const remotePanelButtonLabel = "Пульт с телефона";
 const hostingCodeSelector = "[data-remote-code]";
-const remotePositionSelector = "[data-remote-position]";
+const remoteJumpInputSelector = "[data-remote-jump] input";
 const moveForwardSelector = '[data-remote-move="forward"]';
-const firstSlidePositionText = "Слайд 1 из";
 const settlePauseMilliseconds = 2500;
 const panelLeadMilliseconds = 800;
 const panelTailMilliseconds = 1600;
@@ -209,10 +208,12 @@ async function recordRemoteControlClip() {
       await phonePage.goto(`${serverAddress}/?remote&remote-broker=localhost:${brokerServerPort}#${hostingCode}`);
       await phonePage.locator("[data-remote-screen]").waitFor({ timeout: phoneConnectedTimeoutMilliseconds });
       try {
-        await phonePage
-          .locator(remotePositionSelector)
-          .filter({ hasText: firstSlidePositionText })
-          .waitFor({ timeout: phoneConnectedTimeoutMilliseconds });
+        // The jump field appears connected and shows the first slide: the welcome carried the position.
+        await phonePage.waitForFunction(
+          (jumpSelector) => document.querySelector<HTMLInputElement>(jumpSelector)?.value === "1",
+          remoteJumpInputSelector,
+          { timeout: phoneConnectedTimeoutMilliseconds },
+        );
       } catch {
         const phoneScreenText = (await phonePage.locator("[data-remote-screen]").textContent().catch(() => "нет экрана пульта")) ?? "";
         const deckStatusText = (await deckPage.locator("[data-remote-status]").textContent().catch(() => "нет статуса")) ?? "";

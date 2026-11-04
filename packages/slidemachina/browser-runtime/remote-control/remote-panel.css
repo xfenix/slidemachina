@@ -121,16 +121,6 @@
     color: #ff9d8a;
   }
 
-  [data-remote-position] {
-    margin: 0;
-    color: #fff;
-    font-size: 17px;
-    line-height: 24px;
-    text-align: center;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-  }
-
   [data-remote-step] {
     margin: 0;
     color: rgb(255 255 255 / 0.55);
@@ -202,8 +192,58 @@
   }
 
   [data-remote-pause] {
+    min-height: 44px;
+    padding: 8px 12px;
     background: transparent;
     box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25);
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  [data-remote-pause] svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* The black screen switch and the typed slide number share one row. */
+  [data-remote-pause-row] {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  [data-remote-jump] {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 4px 12px;
+    border-radius: var(--block-radius);
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  [data-remote-jump]:focus-within {
+    box-shadow: inset 0 0 0 var(--interface-focus-ring-width) var(--accent-color-on-dark);
+  }
+
+  [data-remote-jump] input {
+    all: unset;
+    flex: 1;
+    min-width: 0;
+    color: #fff;
+    font-family: var(--font-code);
+    font-size: 17px;
+    line-height: 24px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  [data-remote-jump-total] {
+    color: rgb(255 255 255 / 0.55);
+    font-size: 13px;
+    line-height: 18px;
+    white-space: nowrap;
   }
 
   [data-remote-pause]:hover {
