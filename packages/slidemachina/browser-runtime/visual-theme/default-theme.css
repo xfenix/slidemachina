@@ -236,14 +236,14 @@
     --scene-shadow-opacity-on-dark: 0.5;
 
     /* Durations at speed="normal"; the speed of the presentation or slide divides them. */
-    --transition-duration: 0.28s;
-    --morph-duration: 0.38s;
-    --rotation-duration: 0.42s;
+    --transition-duration: 0.34s;
+    --morph-duration: 0.46s;
+    --rotation-duration: 0.5s;
     /* A new colour flooding the slide is a bigger move than a fade: the whole transition slows down to it. */
-    --color-flood-duration: 0.7s;
+    --color-flood-duration: 0.85s;
     /* An early rise, a soft landing: the first moved pixels show at once, nothing slams into place. */
     --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
-    --step-duration: 0.2s;
+    --step-duration: 0.25s;
     --step-easing: cubic-bezier(0.2, 0.7, 0.2, 1);
     --step-rise-distance: 0.6em;
     --dim-opacity: 0.35;
