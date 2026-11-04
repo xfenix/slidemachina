@@ -13,7 +13,7 @@
     gap: 14px;
     width: max-content;
     min-width: 300px;
-    max-width: min(92vw, 380px);
+    max-width: min(92vw, 430px);
     padding: 16px;
     border-radius: var(--block-radius);
     background: var(--toolbar-background);
@@ -70,12 +70,13 @@
     stroke: none;
   }
 
-  /* The address under the code: one line, for typing by hand on a phone next to the projector. */
+  /* The address under the code: one line, the same size as the hint and the status, for typing by hand.
+     The scheme is a given on a phone; the full address with https:// lives in the QR code and its title. */
   [data-remote-link] {
     margin: 0;
     color: rgb(255 255 255 / 0.55);
-    font-size: 10px;
-    line-height: 14px;
+    font-size: 13px;
+    line-height: 18px;
     font-family: var(--font-code);
     text-align: center;
     white-space: nowrap;
