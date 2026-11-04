@@ -5,6 +5,7 @@ import { bendCrossingPaths, type MovingLayer } from "../element-morphing/morph-a
 import { markReachedSteps } from "../slide-steps/step-visibility.ts";
 import { findPaintedShapes, paintShapeGroups, readIncomingPaints } from "./shape-layers.ts";
 import { maskSlideTiles } from "./tile-masks.ts";
+import { readContentGeneration, type TransitionPressMeasurements } from "./transition-measuring.ts";
 import {
   analyseSlideTransition,
   storePrecachedSlideAnalysis,
@@ -72,8 +73,11 @@ export function runSlideTransition(
   let rewordedPairs: RewordedPair[];
   let codePairs: CodePair[];
   let chosenTransition: string;
+  let measurements: TransitionPressMeasurements | undefined;
   if (precachedAnalysis !== undefined) {
     ({ morphPairs, rewordedPairs, codePairs, chosenTransition } = precachedAnalysis);
+    // Fonts or a hot update moved the layout after the dry run: the boxes stayed behind and the press measures live.
+    if (precachedAnalysis.measurements?.contentStamp === readContentGeneration()) measurements = precachedAnalysis.measurements;
   } else if (usesMorph) {
     const freshAnalysis: SlideTransitionAnalysis = analyseSlideTransition(outgoingSlide, incomingSlide, requestedTransition);
     storePrecachedSlideAnalysis(requestedTransition, freshAnalysis, transitionPosition);
@@ -103,22 +107,28 @@ export function runSlideTransition(
   const namedLayers = movesWholeSlides
     ? describeWholeSlideLayers(outgoingSlide, incomingSlide, chosenTransition)
     : describeContentLayers(outgoingSlide, incomingSlide, morphPairs, rewordedPairs, codePairs);
+  if (measurements !== undefined) {
+    for (const namedLayer of namedLayers) {
+      const cachedLayerClass = measurements.paintedLayerClasses.get(namedLayer.layerName);
+      if (cachedLayerClass !== undefined) namedLayer.layerClass = cachedLayerClass;
+    }
+  }
   activeNamedLayers = namedLayers;
   documentElement.toggleAttribute("data-color-flood", namedLayers.some((namedLayer) => namedLayer.layerClass === "slide-color"));
-  const paintedShapes = findPaintedShapes(namedLayers);
+  const paintedShapes = measurements?.paintedShapes ?? findPaintedShapes(namedLayers);
   for (const namedLayer of namedLayers) {
     nameLayer(namedLayer.outgoingElement, namedLayer);
   }
   const outgoingLayerRestorers = nameMovingParts(rewordedPairs, codePairs, "outgoing");
   activeLayerRestorers = outgoingLayerRestorers;
-  const outgoingWordBoxes = measureWordLayers(rewordedPairs.map((rewordedPair) => rewordedPair.outgoingElement));
+  const outgoingWordBoxes = measurements?.outgoingWordBoxes ?? measureWordLayers(rewordedPairs.map((rewordedPair) => rewordedPair.outgoingElement));
   let incomingWordBoxes: WordBoxes = new Map();
   // Apart parts such as diagram arrows cover the whole diagram: they would all look like crossing paths.
-  const movingLayers: MovingLayer[] = morphPairs.flatMap(({ outgoingElement, incomingElement }, pairPosition) =>
-    outgoingElement.hasAttribute("data-morph-apart")
-      ? []
-      : [{ layerName: `morph-${pairPosition}`, outgoingElement, incomingElement, startBox: outgoingElement.getBoundingClientRect() }],
-  );
+  const movingLayers: MovingLayer[] = morphPairs.flatMap(({ outgoingElement, incomingElement }, pairPosition) => {
+    if (outgoingElement.hasAttribute("data-morph-apart")) return [];
+    const cachedBoxes = measurements?.movingLayerBoxes.get(`morph-${pairPosition}`);
+    return [{ layerName: `morph-${pairPosition}`, outgoingElement, incomingElement, startBox: cachedBoxes?.startBox ?? outgoingElement.getBoundingClientRect() }];
+  });
   const viewTransition = document.startViewTransition(() => {
     updateSlides();
     for (const namedLayer of namedLayers) {
@@ -127,13 +137,16 @@ export function runSlideTransition(
     restoreLayers(outgoingLayerRestorers);
     // A newer transition already owns the names; this one only applies the slide change.
     if (activeNamedLayers !== namedLayers) return;
-    readIncomingPaints(paintedShapes);
     for (const namedLayer of namedLayers) {
       nameLayer(namedLayer.incomingElement, namedLayer);
     }
     activeLayerRestorers = nameMovingParts(rewordedPairs, codePairs, "incoming");
-    incomingWordBoxes = measureWordLayers(rewordedPairs.map((rewordedPair) => rewordedPair.incomingElement));
-    for (const movingLayer of movingLayers) movingLayer.endBox = movingLayer.incomingElement.getBoundingClientRect();
+    // All writes land before the reads: one style pass instead of one per write batch.
+    if (measurements === undefined) readIncomingPaints(paintedShapes);
+    incomingWordBoxes = measurements?.incomingWordBoxes ?? measureWordLayers(rewordedPairs.map((rewordedPair) => rewordedPair.incomingElement));
+    for (const movingLayer of movingLayers) {
+      movingLayer.endBox = measurements?.movingLayerBoxes.get(movingLayer.layerName)?.endBox ?? movingLayer.incomingElement.getBoundingClientRect();
+    }
   });
   // A quick next press skips this transition on purpose; the browser would report it as an error.
   let shapePaints: Animation[] = [];

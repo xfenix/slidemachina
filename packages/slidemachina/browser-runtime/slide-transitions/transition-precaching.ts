@@ -8,8 +8,9 @@ import {
   type RewordedPair,
 } from "../element-morphing/morph-matching.ts";
 import type { StepReachedPredicate } from "../element-morphing/word-morphing.ts";
-import { runInIdleBackgroundTurn } from "../presentation-core/idle-background-turns.ts";
+import { runInPriorityIdleTurn } from "../presentation-core/idle-background-turns.ts";
 import { findNeighbourSlide, type SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
+import { measureTransitionPressWork, type TransitionPressMeasurements } from "./transition-measuring.ts";
 
 const liveSlideSelector = "[data-canvas] > [data-slide]";
 const precachedAnalysisLimit = 48;
@@ -24,6 +25,8 @@ export type SlideTransitionAnalysis = {
   // Text lengths of both slide contents: a cheap proof that a cached analysis still describes the DOM.
   outgoingContentLength: number;
   incomingContentLength: number;
+  // A dry run of the press-time wrapping and measuring, done in the idle pass; used only while its stamp is fresh.
+  measurements?: TransitionPressMeasurements;
 };
 
 export type SlideTransitionPosition = {
@@ -134,6 +137,7 @@ function readMountedSlideElements(): HTMLElement[] {
 // forward leaves the current slide fully revealed, backward leaves it at its first step.
 function precacheNeighbourTransition(
   currentSlideIndex: number,
+  readCurrentStep: () => number,
   neighbourSlideIndex: number,
   moveDirection: 1 | -1,
   countSlideSteps: (slideIndex: number) => number,
@@ -158,6 +162,25 @@ function precacheNeighbourTransition(
     createReachedStepPredicate(transitionPosition.outgoingStepIndex),
     createReachedStepPredicate(transitionPosition.incomingStepIndex),
   );
+  if (analysis.morphPairs.length + analysis.rewordedPairs.length + analysis.codePairs.length > 0) {
+    const currentStepIndex = readCurrentStep();
+    analysis.measurements = measureTransitionPressWork(
+      analysis,
+      moveDirection === 1
+        ? {
+            outgoingMeasureStep: transitionPosition.outgoingStepIndex,
+            incomingMeasureStep: 0,
+            outgoingRestoreStep: currentStepIndex,
+            incomingRestoreStep: 0,
+          }
+        : {
+            outgoingMeasureStep: 0,
+            incomingMeasureStep: transitionPosition.incomingStepIndex,
+            outgoingRestoreStep: currentStepIndex,
+            incomingRestoreStep: Infinity,
+          },
+    );
+  }
   storePrecachedSlideAnalysis(requestedTransition, analysis, transitionPosition);
 }
 
@@ -165,6 +188,7 @@ function precacheNeighbourTransition(
 // a press then finds it ready and the matching work between the slides never lands on the key press path.
 export function scheduleAdjacentTransitionPrecaching(
   currentSlideIndex: number,
+  readCurrentStep: () => number,
   countSlideSteps: (slideIndex: number) => number,
   slideNumbering: SlideNumbering,
 ): () => void {
@@ -173,7 +197,7 @@ export function scheduleAdjacentTransitionPrecaching(
     const neighbourSlideIndex = findNeighbourSlide(slideNumbering, currentSlideIndex, moveDirection);
     if (neighbourSlideIndex === undefined) continue;
     cancelCallbacks.push(
-      runInIdleBackgroundTurn(() => precacheNeighbourTransition(currentSlideIndex, neighbourSlideIndex, moveDirection, countSlideSteps)),
+      runInPriorityIdleTurn(() => precacheNeighbourTransition(currentSlideIndex, readCurrentStep, neighbourSlideIndex, moveDirection, countSlideSteps)),
     );
   }
   return () => {

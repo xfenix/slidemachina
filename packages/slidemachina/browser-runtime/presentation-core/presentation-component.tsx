@@ -100,7 +100,7 @@ export function Presentation({
   const hasHiddenSlides = shownSlideIndexes.length < outlinedSlides.length;
   const stepCountsReference = useRef<number[]>([]);
   const slideNavigation = useSlideNavigation(slideNumbering, stepCountsReference);
-  const { currentPosition } = slideNavigation;
+  const { currentPosition, readLatestPosition } = slideNavigation;
   const formatSize = useMemo(() => {
     const measuredFormatSize = measureCanvasSize(aspectRatio);
     if (measuredFormatSize === undefined) throw new Error(pickInterfaceTexts(lang).wrongAspectRatio(aspectRatio));
@@ -131,8 +131,8 @@ export function Presentation({
   // A step inside a slide changes no key here: leaving forward always happens at the last step, leaving backward at the first.
   useEffect(() => {
     if (isCoverPreview || isPrintView || isPresenterWindow) return;
-    return scheduleAdjacentTransitionPrecaching(currentPosition.slideIndex, (slideIndex) => stepCountsReference.current[slideIndex] ?? 0, slideNumbering);
-  }, [currentPosition.slideIndex, isPrintView, slideNumbering]);
+    return scheduleAdjacentTransitionPrecaching(currentPosition.slideIndex, () => readLatestPosition().stepIndex, (slideIndex) => stepCountsReference.current[slideIndex] ?? 0, slideNumbering);
+  }, [currentPosition.slideIndex, isPrintView, slideNumbering, readLatestPosition]);
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
