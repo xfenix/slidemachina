@@ -1194,7 +1194,9 @@ test("пульт с телефона: QR ведёт на страницу пул
     test.skip(true, "WebRTC между двумя вкладками этой машины недоступен — VPN режет локальный UDP; полный путь проверяется на CI");
   }
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.goto("/?remote-broker=localhost:9300");
+  // The chain starts with a port nothing listens on: the registration must fail over to the local broker,
+  // the same way a blocked public broker is skipped in a real network.
+  await page.goto("/?remote-broker=localhost:5999,localhost:9300");
 
   await page.getByRole("button", { name: "Пульт с телефона" }).click();
   const hostingCode = await page.locator("[data-remote-code]").inputValue();
@@ -1214,7 +1216,7 @@ test("пульт с телефона: QR ведёт на страницу пул
   // The phone opens the remote screen of the same address with the code after #: it connects without typing.
   const phonePage = await context.newPage();
   await phonePage.setViewportSize({ width: 390, height: 844 });
-  await phonePage.goto(`/?remote&remote-broker=localhost:9300#${hostingCode}`);
+  await phonePage.goto(`/?remote&remote-broker=localhost:5999,localhost:9300#${hostingCode}`);
   await expect(phonePage.locator("[data-remote-screen]")).toBeVisible();
   await expect(phonePage.locator("[data-remote-code]")).toHaveValue(hostingCode);
   await expect(phonePage.locator("[data-remote-jump] select")).toHaveValue("1", { timeout: 20_000 });

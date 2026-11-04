@@ -22,6 +22,8 @@ export default defineConfig({
   workers: 1,
   use: {
     channel: "chrome",
+    // The suite reads the Russian interface texts; the browser locale must not depend on the machine it runs on.
+    locale: "ru-RU",
     baseURL: `http://localhost:${testServerPort}`,
     launchOptions: {
       // Two same-machine tabs connect over plain host candidates in the remote control test:
