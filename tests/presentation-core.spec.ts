@@ -1154,25 +1154,66 @@ test("графики Recharts используют тему слайда, сох
 });
 
 
-test("пульт с телефона: экран показывает код, телефон на том же домене подключается по коду и листает", async ({ page, context }) => {
-  test.setTimeout(60_000);
-  await page.setViewportSize({ width: 1280, height: 720 });
+// Two same-machine tabs must be able to reach each other over WebRTC for the check below. Some corporate VPNs
+// hijack every interface so local UDP dies: the probe connects two peer connections inside the page and the test
+// skips with a clear reason instead of flaking forever.
+async function checkWebRtcLoopbackWorks(page: import("@playwright/test").Page): Promise<boolean> {
   await page.goto("/");
+  return page.evaluate(async () => {
+    const probeTimeoutMs = 4000;
+    const firstConnection = new RTCPeerConnection({ iceServers: [] });
+    const secondConnection = new RTCPeerConnection({ iceServers: [] });
+    const probeChannel = firstConnection.createDataChannel("probe");
+    const channelOpened = new Promise<boolean>((resolve) => {
+      probeChannel.onopen = () => resolve(true);
+      setTimeout(() => resolve(false), probeTimeoutMs);
+    });
+    firstConnection.onicecandidate = (candidateEvent) => {
+      if (candidateEvent.candidate) void secondConnection.addIceCandidate(candidateEvent.candidate);
+    };
+    secondConnection.onicecandidate = (candidateEvent) => {
+      if (candidateEvent.candidate) void firstConnection.addIceCandidate(candidateEvent.candidate);
+    };
+    secondConnection.ondatachannel = (channelEvent) => {
+      channelEvent.channel.onopen = () => channelEvent.channel.send("probe");
+    };
+    await firstConnection.setLocalDescription(await firstConnection.createOffer());
+    await secondConnection.setRemoteDescription(firstConnection.localDescription!);
+    await secondConnection.setLocalDescription(await secondConnection.createAnswer());
+    await firstConnection.setRemoteDescription(secondConnection.localDescription!);
+    const opened = await channelOpened;
+    firstConnection.close();
+    secondConnection.close();
+    return opened;
+  });
+}
+
+test("пульт с телефона: экран показывает код, телефон вводит его вместо своего и листает по WebRTC", async ({ page, context }) => {
+  test.setTimeout(60_000);
+  if (!(await checkWebRtcLoopbackWorks(page))) {
+    test.skip(true, "WebRTC между двумя вкладками этой машины недоступен — VPN режет локальный UDP; полный путь проверяется на CI");
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/?remote-broker=localhost:9300");
 
   await page.getByRole("button", { name: "Пульт с телефона" }).click();
-  const hostingCode = await page.locator('[data-remote-section="hosting"] [data-remote-code]').inputValue();
+  const hostingCode = await page.locator("[data-remote-code]").inputValue();
   expect(hostingCode, "код шесть цифр").toMatch(/^\d{6}$/);
-  await expect(page.locator('[data-remote-section="hosting"] [data-remote-status]')).toContainText("Ожидает подключения телефона");
+  await expect(page.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "hosting");
+  await expect(page.locator("[data-remote-status]")).toContainText("Ожидает подключения телефона");
 
-  // The phone opens the same address: one origin, so BroadcastChannel reaches the presenting screen.
+  // The phone opens the same address against the same local broker. Typing the presenter's code over its own
+  // makes the phone a remote over a real WebRTC channel, with no connect button.
   const phonePage = await context.newPage();
   await phonePage.setViewportSize({ width: 390, height: 844 });
-  await phonePage.goto("/");
+  await phonePage.goto("/?remote-broker=localhost:9300");
   await phonePage.getByRole("button", { name: "Пульт с телефона" }).click();
-  await phonePage.locator('[data-remote-section="client"] [data-remote-code]').fill(hostingCode);
-  await phonePage.locator("[data-remote-connect]").click();
-  await expect(phonePage.locator("[data-remote-position]")).toContainText("Слайд 1 из");
-  await expect(page.locator('[data-remote-section="hosting"] [data-remote-status]')).toContainText("Подключено 1 устройство");
+  const ownPhoneCode = await phonePage.locator("[data-remote-code]").inputValue();
+  expect(ownPhoneCode, "у телефона свой код").not.toBe(hostingCode);
+  await phonePage.locator("[data-remote-code]").fill(hostingCode);
+  await expect(phonePage.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "remote");
+  await expect(phonePage.locator("[data-remote-position]")).toContainText("Слайд 1 из", { timeout: 20_000 });
+  await expect(page.locator("[data-remote-status]")).toContainText("Подключено 1 устройство");
 
   await phonePage.locator('[data-remote-move="forward"]').click();
   await expect(page).toHaveURL(/#2$/);
@@ -1187,11 +1228,12 @@ test("пульт с телефона: экран показывает код, т
   await phonePage.locator("[data-remote-pause]").click();
   await expect(page.locator("[data-pause-screen]")).toHaveCount(0);
 
-  // A code nobody hosts is reported, not waited on forever.
+  // Disconnecting gives the field back to the phone's own code; a code nobody hosts is reported by the broker itself.
   await phonePage.locator("[data-remote-disconnect]").click();
-  await phonePage.locator('[data-remote-section="client"] [data-remote-code]').fill(hostingCode === "999999" ? "999998" : "999999");
-  await phonePage.locator("[data-remote-connect]").click();
-  await expect(phonePage.locator('[data-remote-status="unanswered"]')).toContainText("Никто не ответил на код");
+  await expect(phonePage.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "hosting");
+  await expect(phonePage.locator("[data-remote-code]")).toHaveValue(ownPhoneCode);
+  await phonePage.locator("[data-remote-code]").fill(hostingCode === "999999" ? "999998" : "999999");
+  await expect(phonePage.locator('[data-remote-status="unanswered"]')).toContainText("Никто не ответил на код", { timeout: 15_000 });
   await phonePage.close();
 });
 

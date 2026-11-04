@@ -1,14 +1,10 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { PresentationPosition } from "../slide-navigation/position-hash.ts";
 import type { SlideCommand } from "../presenter-view/presenter-channel.ts";
+import { openRemoteClientTransport, openRemoteHostingTransport, type RemoteChannelMessage, type RemoteTransportHandle } from "./remote-transport.ts";
 
-type RemoteChannelMessage =
-  | { messageKind: "position"; slidePosition: PresentationPosition; isPaused: boolean }
-  | { messageKind: "command"; slideCommand: SlideCommand }
-  | { messageKind: "greeting" }
-  | { messageKind: "welcome"; slidePosition: PresentationPosition; isPaused: boolean }
-  | { messageKind: "farewell" };
-export type RemoteConnectionStatus = "idle" | "connecting" | "connected" | "unanswered";
+export type RemoteConnectionStatus = "idle" | "connecting" | "connected" | "unanswered" | "no-broker";
+export type RemoteHostingReachability = "registering" | "online" | "offline";
 export type RemoteHostingOptions = {
   isHostingAvailable: boolean;
   hostingCode: string;
@@ -21,20 +17,14 @@ export type RemoteConnection = {
   followedSlideIndex: number | undefined;
   followedStepIndex: number;
   isFollowedPaused: boolean;
-  connectToHostingScreen: (remoteCode: string) => void;
-  disconnectFromHostingScreen: () => void;
   sendRemoteCommand: (slideCommand: SlideCommand) => void;
 };
 
 const remoteCodeLength = 6;
 const remoteCodeDigits = "0123456789";
-const connectionAnswerTimeoutMs = 2000;
+// The WebRTC handshake through the broker takes a couple of seconds; a code nobody hosts is reported sooner by the broker itself.
+const connectionAnswerTimeoutMs = 8000;
 const hostingCodeStorageKey = `slidemachina-remote-code:${location.pathname}`;
-
-// The channel is named by the page path and the code: remotes from another talk on the same domain do not interfere.
-function nameRemoteChannel(remoteCode: string): string {
-  return `slidemachina-remote:${location.pathname}:${remoteCode}`;
-}
 
 // A six-digit code reads well aloud and from a projector screen; only digits, so a phone keyboard is enough.
 export function createRemoteCode(): string {
@@ -45,8 +35,8 @@ export function createRemoteCode(): string {
   return remoteCode;
 }
 
-// Session storage, not local: every tab hosts its own code, otherwise a phone on the same domain would host the
-// presenter's code as well and execute the commands it sends.
+// Session storage, not local: every tab hosts its own code, otherwise a second tab on the same domain would host
+// the presenter's code as well and execute the commands it sends.
 export function readStoredHostingCode(): string {
   const storedCode = sessionStorage.getItem(hostingCodeStorageKey);
   return storedCode !== null && new RegExp(`^\\d{${remoteCodeLength}}$`).test(storedCode) ? storedCode : createRemoteCode();
@@ -56,7 +46,7 @@ export function storeHostingCode(hostingCode: string) {
   sessionStorage.setItem(hostingCodeStorageKey, hostingCode);
 }
 
-// Digits only, at most the code length: a partial code simply names an empty channel until it is complete.
+// Digits only, at most the code length: a partial code simply names an empty room until it is complete.
 export function normalizeTypedCode(typedText: string): string {
   return typedText.replace(/\D/g, "").slice(0, remoteCodeLength);
 }
@@ -67,16 +57,19 @@ export function isCompleteRemoteCode(remoteCode: string): boolean {
 
 // Every slides window hosts its own code and obeys remotes that know it; the code is the only key, like a short password.
 export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosition, isPaused, runSlideCommand }: RemoteHostingOptions) {
-  const hostingChannelReference = useRef<BroadcastChannel | undefined>(undefined);
+  const hostingTransportReference = useRef<RemoteTransportHandle | undefined>(undefined);
   const connectedRemotesReference = useRef(0);
   const [connectedRemoteCount, setConnectedRemoteCount] = useState(0);
+  const [hostingReachabilityReport, setHostingReachabilityReport] = useState<{ hostingCode: string; reachability: RemoteHostingReachability } | undefined>(undefined);
+  const hostingReachability: RemoteHostingReachability =
+    hostingReachabilityReport !== undefined && hostingReachabilityReport.hostingCode === hostingCode ? hostingReachabilityReport.reachability : "registering";
   const { slideIndex, stepIndex } = currentPosition;
 
   const receiveHostingMessage = useEffectEvent((channelMessage: RemoteChannelMessage) => {
     if (channelMessage.messageKind === "greeting") {
       connectedRemotesReference.current += 1;
       setConnectedRemoteCount(connectedRemotesReference.current);
-      hostingChannelReference.current?.postMessage({ messageKind: "welcome", slidePosition: { slideIndex, stepIndex }, isPaused } satisfies RemoteChannelMessage);
+      hostingTransportReference.current?.sendRemoteMessage({ messageKind: "welcome", slidePosition: { slideIndex, stepIndex }, isPaused });
     }
     if (channelMessage.messageKind === "farewell") {
       connectedRemotesReference.current = Math.max(0, connectedRemotesReference.current - 1);
@@ -86,17 +79,20 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
   });
   const postFollowedPosition = useEffectEvent(() => {
     if (connectedRemotesReference.current > 0)
-      hostingChannelReference.current?.postMessage({ messageKind: "position", slidePosition: { slideIndex, stepIndex }, isPaused } satisfies RemoteChannelMessage);
+      hostingTransportReference.current?.sendRemoteMessage({ messageKind: "position", slidePosition: { slideIndex, stepIndex }, isPaused });
   });
 
   useEffect(() => {
     if (!isHostingAvailable || !isCompleteRemoteCode(hostingCode)) return;
-    const hostingChannel = new BroadcastChannel(nameRemoteChannel(hostingCode));
-    hostingChannelReference.current = hostingChannel;
-    hostingChannel.addEventListener("message", (messageEvent: MessageEvent<RemoteChannelMessage>) => receiveHostingMessage(messageEvent.data));
+    const hostingTransport = openRemoteHostingTransport(hostingCode, {
+      onChannelMessage: receiveHostingMessage,
+      onHostingOnline: () => setHostingReachabilityReport({ hostingCode, reachability: "online" }),
+      onHostingOffline: () => setHostingReachabilityReport({ hostingCode, reachability: "offline" }),
+    });
+    hostingTransportReference.current = hostingTransport;
     return () => {
-      hostingChannel.close();
-      hostingChannelReference.current = undefined;
+      hostingTransport.closeRemoteTransport();
+      hostingTransportReference.current = undefined;
       connectedRemotesReference.current = 0;
       setConnectedRemoteCount(0);
     };
@@ -106,63 +102,69 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
     if (isHostingAvailable) postFollowedPosition();
   }, [isHostingAvailable, hostingCode, slideIndex, stepIndex, isPaused]);
 
-  return { connectedRemoteCount };
+  return { connectedRemoteCount, hostingReachability };
 }
 
-// A phone or a second laptop joins the channel of a code and drives the window that hosts it.
-export function useRemoteConnection(): RemoteConnection {
-  const clientChannelReference = useRef<BroadcastChannel | undefined>(undefined);
-  const [requestedCode, setRequestedCode] = useState<string | undefined>(undefined);
-  const [connectionStatus, setConnectionStatus] = useState<RemoteConnectionStatus>("idle");
-  const [followedPosition, setFollowedPosition] = useState<{ slidePosition: PresentationPosition; isPaused: boolean } | undefined>(undefined);
+// A phone or a second laptop joins the link of the target code and drives the window that hosts it.
+// The target comes from the panel field: the hook reacts to it, there is no connect button.
+export function useRemoteConnection(targetCode: string | undefined): RemoteConnection {
+  const clientTransportReference = useRef<RemoteTransportHandle | undefined>(undefined);
+  const [connectionReport, setConnectionReport] = useState<
+    { targetCode: string; connectionStatus: Exclude<RemoteConnectionStatus, "idle">; followedPosition: { slidePosition: PresentationPosition; isPaused: boolean } | undefined } | undefined
+  >(undefined);
+  const isReportCurrent = connectionReport !== undefined && connectionReport.targetCode === targetCode;
+  const connectionStatus: RemoteConnectionStatus = targetCode === undefined ? "idle" : isReportCurrent ? connectionReport.connectionStatus : "connecting";
+  const followedPosition = isReportCurrent ? connectionReport.followedPosition : undefined;
 
   useEffect(() => {
-    if (requestedCode === undefined) return;
-    const clientChannel = new BroadcastChannel(nameRemoteChannel(requestedCode));
-    clientChannelReference.current = clientChannel;
-    const receiveClientMessage = (channelMessage: RemoteChannelMessage) => {
-      if (channelMessage.messageKind !== "welcome" && channelMessage.messageKind !== "position") return;
+    if (targetCode === undefined) return;
+    let isConnectionLive = true;
+    const reportFailed = (failureStatus: Exclude<RemoteConnectionStatus, "idle" | "connected">) => {
+      if (!isConnectionLive || clientTransportReference.current === undefined) return;
+      isConnectionLive = false;
       clearTimeout(answerTimeout);
-      setConnectionStatus("connected");
-      setFollowedPosition({ slidePosition: channelMessage.slidePosition, isPaused: channelMessage.isPaused });
+      const failedTransport = clientTransportReference.current;
+      clientTransportReference.current = undefined;
+      failedTransport.closeRemoteTransport();
+      setConnectionReport({ targetCode, connectionStatus: failureStatus, followedPosition: undefined });
     };
-    clientChannel.addEventListener("message", (messageEvent: MessageEvent<RemoteChannelMessage>) => receiveClientMessage(messageEvent.data));
-    clientChannel.postMessage({ messageKind: "greeting" } satisfies RemoteChannelMessage);
-    const answerTimeout = setTimeout(() => {
-      if (clientChannelReference.current === clientChannel) {
-        clientChannelReference.current = undefined;
-        setConnectionStatus("unanswered");
-        setRequestedCode(undefined);
-      }
-    }, connectionAnswerTimeoutMs);
+    const clientTransport = openRemoteClientTransport(
+      targetCode,
+      (channelMessage: RemoteChannelMessage) => {
+        if (channelMessage.messageKind !== "welcome" && channelMessage.messageKind !== "position") return;
+        if (clientTransportReference.current !== clientTransport) return;
+        clearTimeout(answerTimeout);
+        setConnectionReport({
+          targetCode,
+          connectionStatus: "connected",
+          followedPosition: { slidePosition: channelMessage.slidePosition, isPaused: channelMessage.isPaused },
+        });
+      },
+      (clientFailure) => reportFailed(clientFailure === "no-host" ? "unanswered" : "no-broker"),
+    );
+    clientTransportReference.current = clientTransport;
+    clientTransport.sendRemoteMessage({ messageKind: "greeting" });
+    // The broker is reachable at this point: no answer means the code is wrong or the presenting screen is offline.
+    const answerTimeout = setTimeout(() => reportFailed("unanswered"), connectionAnswerTimeoutMs);
     return () => {
+      isConnectionLive = false;
       clearTimeout(answerTimeout);
-      clientChannel.close();
-      if (clientChannelReference.current === clientChannel) clientChannelReference.current = undefined;
+      clientTransport.sendRemoteMessage({ messageKind: "farewell" });
+      clientTransport.closeRemoteTransport();
+      if (clientTransportReference.current === clientTransport) clientTransportReference.current = undefined;
     };
-  }, [requestedCode]);
+  }, [targetCode]);
 
   // A farewell keeps the host counter honest when the remote page closes without disconnecting.
   useEffect(() => {
-    const sayFarewellOnLeaving = () => clientChannelReference.current?.postMessage({ messageKind: "farewell" } satisfies RemoteChannelMessage);
+    const sayFarewellOnLeaving = () => clientTransportReference.current?.sendRemoteMessage({ messageKind: "farewell" });
     window.addEventListener("pagehide", sayFarewellOnLeaving);
     return () => window.removeEventListener("pagehide", sayFarewellOnLeaving);
   }, []);
 
-  const connectToHostingScreen = (remoteCode: string) => {
-    setConnectionStatus("connecting");
-    setFollowedPosition(undefined);
-    setRequestedCode(remoteCode);
-  };
-  const disconnectFromHostingScreen = () => {
-    clientChannelReference.current?.postMessage({ messageKind: "farewell" } satisfies RemoteChannelMessage);
-    setConnectionStatus("idle");
-    setFollowedPosition(undefined);
-    setRequestedCode(undefined);
-  };
   const sendRemoteCommand = (slideCommand: SlideCommand) => {
     if (connectionStatus !== "connected") return;
-    clientChannelReference.current?.postMessage({ messageKind: "command", slideCommand } satisfies RemoteChannelMessage);
+    clientTransportReference.current?.sendRemoteMessage({ messageKind: "command", slideCommand });
   };
 
   return {
@@ -170,8 +172,6 @@ export function useRemoteConnection(): RemoteConnection {
     followedSlideIndex: followedPosition?.slidePosition.slideIndex,
     followedStepIndex: followedPosition?.slidePosition.stepIndex ?? 0,
     isFollowedPaused: followedPosition?.isPaused ?? false,
-    connectToHostingScreen,
-    disconnectFromHostingScreen,
     sendRemoteCommand,
   };
 }

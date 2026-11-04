@@ -3,7 +3,7 @@ import type { SlideNumbering } from "../../shared-between-runtimes/slide-numberi
 import type { PresentationPosition } from "../slide-navigation/position-hash.ts";
 import type { SlideCommand } from "../presenter-view/presenter-channel.ts";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
-import { readStoredHostingCode, storeHostingCode, useRemoteConnection, useRemoteHosting } from "./remote-channel.ts";
+import { isCompleteRemoteCode, readStoredHostingCode, storeHostingCode, useRemoteConnection, useRemoteHosting } from "./remote-channel.ts";
 
 export type RemoteControlHostingOptions = {
   isHostingAvailable: boolean;
@@ -15,7 +15,8 @@ export type RemoteControlHostingOptions = {
   countSlideSteps: (slideIndex: number) => number;
 };
 
-// The slides window hosts a code from the panel; a phone on the same domain enters it and sends commands to this channel.
+// One field is the whole panel: it shows the code of this screen, and typing another screen's code over it makes
+// this window a remote for that code. Hosting always runs on this tab's own code, so a remote never executes its own commands.
 export function useRemoteControlHosting({
   isHostingAvailable,
   currentPosition,
@@ -25,18 +26,21 @@ export function useRemoteControlHosting({
   slideNumbering,
   countSlideSteps,
 }: RemoteControlHostingOptions) {
-  const [hostingCode, changeHostingCode] = useState(readStoredHostingCode);
+  const [ownCode] = useState(readStoredHostingCode);
+  const [panelCode, setPanelCode] = useState(ownCode);
   useEffect(() => {
-    storeHostingCode(hostingCode);
-  }, [hostingCode]);
-  const { connectedRemoteCount } = useRemoteHosting({
+    storeHostingCode(ownCode);
+  }, [ownCode]);
+  const isRemoteMode = panelCode !== ownCode;
+  const targetCode = isRemoteMode && isCompleteRemoteCode(panelCode) ? panelCode : undefined;
+  const { connectedRemoteCount, hostingReachability } = useRemoteHosting({
     isHostingAvailable,
-    hostingCode,
+    hostingCode: ownCode,
     currentPosition,
     isPaused,
     runSlideCommand,
   });
-  const remoteConnection = useRemoteConnection();
+  const remoteConnection = useRemoteConnection(targetCode);
   const describeFollowedPosition = (followedSlideIndex: number, followedStepIndex: number) => {
     const remoteInterfaceTexts = pickInterfaceTexts(languageCode);
     const shownSlideNumber = slideNumbering.shownNumbers[followedSlideIndex] ?? followedSlideIndex + 1;
@@ -46,5 +50,14 @@ export function useRemoteControlHosting({
       stepText: followedStepCount > 0 ? remoteInterfaceTexts.presenterStepCounter(followedStepIndex, followedStepCount) : undefined,
     };
   };
-  return { hostingCode, changeHostingCode, connectedRemoteCount, describeFollowedPosition, ...remoteConnection };
+  return {
+    panelCode,
+    changePanelCode: setPanelCode,
+    isRemoteMode,
+    connectedRemoteCount,
+    hostingReachability,
+    describeFollowedPosition,
+    disconnectFromHostingScreen: () => setPanelCode(ownCode),
+    ...remoteConnection,
+  };
 }

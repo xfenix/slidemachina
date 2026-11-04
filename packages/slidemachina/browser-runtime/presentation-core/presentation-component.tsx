@@ -317,13 +317,13 @@ export function Presentation({
           openPrintView={printPreparation.openPrintView}
         />
         {import.meta.env.DEV && (
-          <>
+          <span data-toolbar-dev>
             <span data-toolbar-divider />
             <MinimapSwitch languageCode={lang} isMinimapShown={isMinimapShown} toggleMinimap={toggleMinimap} />
             <EditorSwitch languageCode={lang} />
             <MemePanelSwitch languageCode={lang} />
             {import.meta.env.SLIDEMACHINA_AGENTATION !== "off" && <DevelopmentFeedback />}
-          </>
+          </span>
         )}
       </PresentationToolbar>
       {printPreparation.isPrintPrepared && (
