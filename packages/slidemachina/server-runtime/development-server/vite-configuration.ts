@@ -7,6 +7,7 @@ import { listModuleId } from "./entry-modules.ts";
 import { describeEnginePrebundling } from "./engine-prebundling.ts";
 import { createImageCompressionPlugin } from "../presentation-build/image-compression.ts";
 import { createPresentationPageHtml, pageFileName, createSlidemachinaPlugin } from "./page-serving.ts";
+import { createInlineBuiltAssetsPlugin } from "./inline-built-assets.ts";
 import { renderListPage } from "../presentation-repository/presentation-list-page.ts";
 import { createSlideSourcePlugin } from "../source-transforms/slide-source-plugin.ts";
 import { createElkWorkerStubPlugin } from "../presentation-build/elk-worker-stub.ts";
@@ -78,6 +79,8 @@ export function createBuildConfiguration(siteLayout: SiteLayout, buildFolder: st
       createElkWorkerStubPlugin(siteLayout.rootFolder),
       createSlidemachinaPlugin(siteLayout, builtPageHtml),
       createImageCompressionPlugin(buildReport),
+      // The list keeps its stylesheet file: only a presentation page paints its cover before scripts and needs the styles inside the HTML.
+      listPageHtml === undefined && createInlineBuiltAssetsPlugin(buildFolder),
       isSingleFile && viteSingleFile({ removeViteModuleLoader: true }),
     ],
     resolve: engineResolution,

@@ -21,3 +21,26 @@ export function useEverySlideAfterFirstFrame(): boolean {
   }, []);
   return rendersEverySlide;
 }
+
+// The toolbar, print menu and remote panel are no use on the first frame; they mount right after it, while the rest of the slides still render in the background.
+// The development server mounts the interface at once: its editor and meme keys answer from the very first moment, like they always did.
+export function useInterfaceAfterFirstFrame(waitsForFirstFrame: boolean): boolean {
+  const [rendersInterface, setRendersInterface] = useState(!waitsForFirstFrame);
+  useEffect(() => {
+    if (!waitsForFirstFrame) return;
+    const renderInterface = () => startTransition(() => setRendersInterface(true));
+    if (document.visibilityState === "hidden") {
+      renderInterface();
+      return;
+    }
+    let afterFrameTimer = 0;
+    const firstFrame = requestAnimationFrame(() => {
+      afterFrameTimer = window.setTimeout(renderInterface);
+    });
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      clearTimeout(afterFrameTimer);
+    };
+  }, []);
+  return rendersInterface;
+}

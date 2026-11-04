@@ -40,6 +40,7 @@ export type SlideTransition =
   | "none";
 
 const wholeSlideTransitions = new Set(["slide", "zoom", "cube", "flip", "wipe", "iris", "blinds", "mosaic"]);
+const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 let activeNamedLayers: NamedLayer[] = [];
 // Word wrappers and code piece names are taken back by these functions when a transition ends.
@@ -55,7 +56,7 @@ export function runSlideTransition(
   const slideElements = document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide]");
   const outgoingSlide = slideElements[outgoingSlideIndex];
   const incomingSlide = slideElements[incomingSlideIndex];
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReducedMotion = reducedMotionQuery.matches;
   if (!("startViewTransition" in document) || prefersReducedMotion || !outgoingSlide || !incomingSlide) {
     updateSlides();
     return;
@@ -65,8 +66,6 @@ export function runSlideTransition(
   // Going back plays the same transition in reverse: it belongs to the later of the two slides.
   const requestedTransition = (isMovingForward ? incomingSlide : outgoingSlide).dataset.transition ?? "auto";
   const usesMorph = requestedTransition === "auto" || requestedTransition === "morph";
-  // Pairs are looked up before the update: the hidden incoming slide shows now the step it will arrive at.
-  if (usesMorph) markReachedSteps(incomingSlide, incomingStepIndex);
   const transitionPosition = { outgoingSlideIndex, outgoingStepIndex, incomingSlideIndex, incomingStepIndex };
   const precachedAnalysis = usesMorph ? takePrecachedSlideAnalysis(requestedTransition, outgoingSlide, incomingSlide, transitionPosition) : undefined;
   let morphPairs: MorphPair[];
@@ -79,6 +78,8 @@ export function runSlideTransition(
     // Fonts or a hot update moved the layout after the dry run: the boxes stayed behind and the press measures live.
     if (precachedAnalysis.measurements?.contentStamp === readContentGeneration()) measurements = precachedAnalysis.measurements;
   } else if (usesMorph) {
+    // Pairs are looked up before the update: the hidden incoming slide shows now the step it will arrive at.
+    markReachedSteps(incomingSlide, incomingStepIndex);
     const freshAnalysis: SlideTransitionAnalysis = analyseSlideTransition(outgoingSlide, incomingSlide, requestedTransition);
     storePrecachedSlideAnalysis(requestedTransition, freshAnalysis, transitionPosition);
     ({ morphPairs, rewordedPairs, codePairs, chosenTransition } = freshAnalysis);
@@ -104,15 +105,11 @@ export function runSlideTransition(
   // A key pressed mid-transition starts a new one; names left by the previous one would collide or get wiped.
   clearLayerNames(activeNamedLayers);
   restoreLayers(activeLayerRestorers);
-  const namedLayers = movesWholeSlides
-    ? describeWholeSlideLayers(outgoingSlide, incomingSlide, chosenTransition)
-    : describeContentLayers(outgoingSlide, incomingSlide, morphPairs, rewordedPairs, codePairs);
-  if (measurements !== undefined) {
-    for (const namedLayer of namedLayers) {
-      const cachedLayerClass = measurements.paintedLayerClasses.get(namedLayer.layerName);
-      if (cachedLayerClass !== undefined) namedLayer.layerClass = cachedLayerClass;
-    }
-  }
+  const namedLayers =
+    measurements?.namedLayers ??
+    (movesWholeSlides
+      ? describeWholeSlideLayers(outgoingSlide, incomingSlide, chosenTransition)
+      : describeContentLayers(outgoingSlide, incomingSlide, morphPairs, rewordedPairs, codePairs));
   activeNamedLayers = namedLayers;
   documentElement.toggleAttribute("data-color-flood", namedLayers.some((namedLayer) => namedLayer.layerClass === "slide-color"));
   const paintedShapes = measurements?.paintedShapes ?? findPaintedShapes(namedLayers);
