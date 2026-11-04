@@ -89,21 +89,32 @@ export function reportBuild(chosenVariants: BuildVariant[], outputPaths: OutputP
 }
 
 // The pictures never stop the build: a missing Chrome or a too big file only leaves a message.
-async function shootPreviewQuietly(builtPage: string, htmlPath: string, sharedChrome: SharedChrome): Promise<(() => void) | void> {
+async function shootPreviewQuietly(builtPage: string, htmlPath: string, sharedChrome: SharedChrome, printedPdfPath?: string): Promise<(() => void) | void> {
   try {
     const { addScriptFreePreview, quickLookSizeLimit } = await import("./script-free-preview.ts");
-    const hasPreview = await addScriptFreePreview(builtPage, htmlPath, sharedChrome);
+    const hasPreview = await addScriptFreePreview(builtPage, htmlPath, sharedChrome, printedPdfPath);
     if (!hasPreview) return () => log.info(commandLineTexts.previewTooLarge(formatFileSize(quickLookSizeLimit)));
   } catch (previewError) {
+    // The shared tab never came: the PDF prints on its own, as it does without the html variant.
+    if (printedPdfPath !== undefined) {
+      try {
+        await (await import("./pdf-printing.ts")).printPdf(builtPage, printedPdfPath, { printsSteps: false, printsHidden: true }, sharedChrome);
+      } catch {
+        // The preview problem below says why the build has no pictures; a failed PDF rescue adds nothing.
+      }
+    }
     const previewProblem = previewError instanceof Error ? previewError.message : String(previewError);
     return () => log.warn(previewProblem === commandLineTexts.missingChrome ? commandLineTexts.previewWithoutChrome : commandLineTexts.previewFailed(previewProblem));
   }
 }
 
+// The plain PDF wants the same print view as the Quick Look pictures: one step prints it from a picture tab instead of loading the page again.
 function listChromeSteps(chosenVariants: BuildVariant[], builtPage: string, outputPaths: OutputPaths, printsHidden: boolean, sharedChrome: SharedChrome): ChromeStep[] {
-  const previewSteps = chosenVariants.includes("html") ? [{ stepTitle: commandLineTexts.shootingPreview, stepWork: () => shootPreviewQuietly(builtPage, outputPaths.html, sharedChrome) }] : [];
+  const printsPdfFromPreviewTab = chosenVariants.includes("html") && chosenVariants.includes("pdf") && printsHidden;
+  const previewSteps = chosenVariants.includes("html") ? [{ stepTitle: commandLineTexts.shootingPreview, stepWork: () => shootPreviewQuietly(builtPage, outputPaths.html, sharedChrome, printsPdfFromPreviewTab ? outputPaths.pdf : undefined) }] : [];
   const pdfSteps = pdfVariantNames
     .filter((variantName) => chosenVariants.includes(variantName))
+    .filter((variantName) => !(variantName === "pdf" && printsPdfFromPreviewTab))
     .map((pdfVariant) => {
       const printsSteps = pdfVariant === "pdf-steps";
       return { stepTitle: commandLineTexts.printingPdf(printsSteps), stepWork: async () => (await import("./pdf-printing.ts")).printPdf(builtPage, outputPaths[pdfVariant], { printsSteps, printsHidden }, sharedChrome) };
@@ -112,7 +123,18 @@ function listChromeSteps(chosenVariants: BuildVariant[], builtPage: string, outp
   return [...previewSteps, ...pdfSteps, ...pptxSteps];
 }
 
-// Folder and zip come first: in a repository the folder is the presentation's own output folder, other files go into it after.
+// The folder output is wiped before the phase and filled after it: in a repository downloads land inside it during the phase.
+async function addFolderCoverQuietly(folderBuild: string, sharedChrome: SharedChrome): Promise<(() => void) | void> {
+  try {
+    await (await import("./folder-cover.ts")).addFolderCover(folderBuild, sharedChrome);
+  } catch (coverError) {
+    const coverProblem = coverError instanceof Error ? coverError.message : String(coverError);
+    return () => log.warn(commandLineTexts.staticCoverFailed(coverProblem));
+  }
+}
+
+// Every step that reads the built pages in Chrome or encrypts them stands alone: they touch nothing but their own outputs,
+// so one shared step runs them side by side on the tabs of one Chrome instead of waiting for each other.
 export async function buildPresentation(
   presentationLayout: SiteLayout,
   chosenVariants: BuildVariant[],
@@ -129,6 +151,12 @@ export async function buildPresentation(
   const buildsSingleFile = chosenVariants.some((variantName) => singleFileVariants.has(variantName));
   const folderBuild = path.join(temporaryFolder, "folder");
   const singleFileFolder = path.join(temporaryFolder, "single-file");
+  const builtPage = path.join(singleFileFolder, "index.html");
+  const singleFileChromeSteps = buildsSingleFile ? listChromeSteps(chosenVariants, builtPage, outputPaths, printsHidden, sharedChrome) : [];
+  // Chrome launch is a second of mostly waiting: it starts before the bundle and the first tab finds it running.
+  const singleFileNeedsChrome = buildsSingleFile && (singleFileChromeSteps.length > 0 || chosenVariants.includes("hyperframes") || pageSecret !== undefined);
+  const folderNeedsChrome = buildsFolder && !presentationLayout.isRepository;
+  if (singleFileNeedsChrome || folderNeedsChrome) void sharedChrome.openChrome().catch(() => undefined);
   try {
     // The two builds share nothing but the compressed-picture cache, so they run at the same time.
     const bundleTitles = [buildsFolder && commandLineTexts.buildingFiles(false), buildsSingleFile && commandLineTexts.buildingFiles(true)].filter(
@@ -145,75 +173,65 @@ export async function buildPresentation(
         isInteractive,
       );
     }
-    if (buildsFolder) {
-      // The folder index opens on a painted first slide, like the single-file builds; a missing Chrome leaves it without one.
-      if (!presentationLayout.isRepository) {
-        try {
-          await runBuildStep(
-            nameStepTitle(commandLineTexts.staticCoverStep),
-            async () => (await import("./folder-cover.ts")).addFolderCover(folderBuild, sharedChrome),
-            isInteractive,
-          );
-        } catch (coverError) {
-          const coverProblem = coverError instanceof Error ? coverError.message : String(coverError);
-          log.warn(commandLineTexts.staticCoverFailed(coverProblem));
-        }
-      }
-      if (chosenVariants.includes("folder")) {
-        removeOldOutput(outputPaths.folder);
-        cpSync(folderBuild, outputPaths.folder, { recursive: true });
-      }
-      if (chosenVariants.includes("zip")) zipFolder(folderBuild, outputPaths.zip);
-      builtPages.push(folderBuild);
-    }
+    if (buildsFolder && chosenVariants.includes("folder")) removeOldOutput(outputPaths.folder);
+    const chromeSteps: ChromeStep[] = [];
+    if (folderNeedsChrome) chromeSteps.push({ stepTitle: commandLineTexts.staticCoverStep, stepWork: () => addFolderCoverQuietly(folderBuild, sharedChrome) });
+    let staticCoverMarkup: string | undefined;
     if (buildsSingleFile) {
-      const builtPage = path.join(singleFileFolder, "index.html");
-      let staticCoverMarkup: string | undefined;
-      if (chosenVariants.includes("html") || pageSecret !== undefined) {
+      const wantsCover = chosenVariants.includes("html") || pageSecret !== undefined;
+      // The protected page is encrypted from the covered file, so there the capture stays ahead of the encryption;
+      // with no secret the cover is captured side by side with the other Chrome work.
+      const coverWithChromeSteps = wantsCover && pageSecret === undefined && (singleFileChromeSteps.length > 0 || chosenVariants.includes("hyperframes") || folderNeedsChrome);
+      const captureCoverQuietly = async (): Promise<(() => void) | void> => {
         try {
-          await runBuildStep(
-            nameStepTitle(commandLineTexts.staticCoverStep),
-            async () => {
-              staticCoverMarkup = (await (await import("./static-cover.ts")).captureStaticCover(builtPage, sharedChrome)) ?? undefined;
-            },
-            isInteractive,
-          );
+          staticCoverMarkup = (await (await import("./static-cover.ts")).captureStaticCover(builtPage, sharedChrome)) ?? undefined;
         } catch (coverError) {
           const coverProblem = coverError instanceof Error ? coverError.message : String(coverError);
-          log.warn(commandLineTexts.staticCoverFailed(coverProblem));
+          return () => log.warn(commandLineTexts.staticCoverFailed(coverProblem));
         }
+      };
+      if (wantsCover && !coverWithChromeSteps) {
+        const coverReport = await runBuildStep(nameStepTitle(commandLineTexts.staticCoverStep), captureCoverQuietly, isInteractive);
+        coverReport?.();
       }
+      if (coverWithChromeSteps) chromeSteps.push({ stepTitle: commandLineTexts.staticCoverStep, stepWork: captureCoverQuietly });
       if (pageSecret !== undefined) {
         if (staticCoverMarkup !== undefined) (await import("./static-cover.ts")).injectStaticCover(builtPage, staticCoverMarkup);
         const presentationTitle = readPresentationFile(projectFolder).presentationTitle ?? path.basename(projectFolder);
-        await runBuildStep(
-          nameStepTitle(commandLineTexts.encryptingFile),
-          async () => (await import("./page-encryption.ts")).encryptPage(builtPage, outputPaths.protected, pageSecret, presentationTitle),
-          isInteractive,
-        );
+        chromeSteps.push({
+          stepTitle: commandLineTexts.encryptingFile,
+          stepWork: async () => (await import("./page-encryption.ts")).encryptPage(builtPage, outputPaths.protected, pageSecret, presentationTitle),
+        });
       }
       if (chosenVariants.includes("html")) copyFileSync(builtPage, outputPaths.html);
       if (chosenVariants.includes("hyperframes")) {
         const hyperframesFolder = path.join(temporaryFolder, "hyperframes");
-        await runBuildStep(
-          nameStepTitle(commandLineTexts.exportingHyperframes),
-          async () => (await import("./script-free-preview.ts")).exportHyperframes(builtPage, projectFolder, hyperframesFolder, printsHidden, sharedChrome),
-          isInteractive,
-        );
-        removeOldOutput(outputPaths.hyperframes);
-        cpSync(hyperframesFolder, outputPaths.hyperframes, { recursive: true });
+        chromeSteps.push({
+          stepTitle: commandLineTexts.exportingHyperframes,
+          stepWork: async () => {
+            await (await import("./script-free-preview.ts")).exportHyperframes(builtPage, projectFolder, hyperframesFolder, printsHidden, sharedChrome);
+            removeOldOutput(outputPaths.hyperframes);
+            cpSync(hyperframesFolder, outputPaths.hyperframes, { recursive: true });
+          },
+        });
       }
-      const chromeSteps = listChromeSteps(chosenVariants, builtPage, outputPaths, printsHidden, sharedChrome);
-      // Pictures, PDF and PowerPoint take tabs of one Chrome at once: printing mostly waits while the export keeps the processor busy.
-      if (chromeSteps.length > 0) {
-        const stepReports = await runBuildStep(
-          nameStepTitle(chromeSteps.map(({ stepTitle }) => stepTitle).join(" · ")),
-          () => Promise.all(chromeSteps.map(({ stepWork }) => stepWork())),
-          isInteractive,
-        );
-        for (const stepReport of stepReports) stepReport?.();
-      }
-      if (staticCoverMarkup !== undefined && chosenVariants.includes("html")) {
+      chromeSteps.push(...singleFileChromeSteps);
+    }
+    if (chromeSteps.length > 0) {
+      const stepReports = await runBuildStep(
+        nameStepTitle(chromeSteps.map(({ stepTitle }) => stepTitle).join(" · ")),
+        () => Promise.all(chromeSteps.map(({ stepWork }) => stepWork())),
+        isInteractive,
+      );
+      for (const stepReport of stepReports) stepReport?.();
+    }
+    if (buildsFolder) {
+      if (chosenVariants.includes("folder")) cpSync(folderBuild, outputPaths.folder, { recursive: true });
+      if (chosenVariants.includes("zip")) zipFolder(folderBuild, outputPaths.zip);
+      builtPages.push(folderBuild);
+    }
+    if (buildsSingleFile) {
+      if (chosenVariants.includes("html") && staticCoverMarkup !== undefined) {
         const { injectStaticCover } = await import("./static-cover.ts");
         injectStaticCover(outputPaths.html, staticCoverMarkup);
       }
