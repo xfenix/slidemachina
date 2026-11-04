@@ -13,9 +13,9 @@ export type { ChartProperties } from "./chart-blocks/chart-component.tsx";
 export { Presentation, type PresentationPosition, type PresentationProperties } from "./presentation-core/presentation-component.tsx";
 export type { AspectRatio } from "../shared-between-runtimes/canvas-size.js";
 export { Section, type SectionProperties } from "./presentation-core/section-component.tsx";
-export { Slide, type SlideLogoPlacement, type SlideProperties, type SlideVerticalAlign } from "./presentation-core/slide-component.tsx";
+export { Slide, type SlideLogoPlacement, type SlideProperties } from "./presentation-core/slide-component.tsx";
 export { Notes, type NotesProperties } from "./presentation-core/slide-notes.tsx";
-export { Code, type CodeProperties } from "./content-blocks/code-block/code-component.tsx";
+export { Code, type CodeAnchorSpecification, type CodeProperties } from "./content-blocks/code-block/code-component.tsx";
 export { Image, type ImageFloat, type ImageProperties } from "./content-blocks/image-component.tsx";
 export { Video, type VideoProperties } from "./content-blocks/video-component.tsx";
 export type { MediaFit } from "./content-blocks/media-frame.tsx";
@@ -33,6 +33,7 @@ export {
   type FocusProperties,
   type GroupProperties,
 } from "./diagram-blocks/diagram-parts.tsx";
+export type { ArrowEndpoint, CodeAnchorEndpoint } from "./diagram-blocks/arrow-endpoints.ts";
 export { Actor, Message, Sequence, type ActorProperties, type MessageProperties, type SequenceProperties } from "./diagram-blocks/sequence-component.tsx";
 export { Scene, type SceneProperties } from "./scene-blocks/scene-component.tsx";
 export {
@@ -54,8 +55,9 @@ export {
 export type { DiagramDirection } from "./diagram-blocks/diagram-graph.ts";
 export { SlidemachinaLogo } from "./presentation-core/slidemachina-logo.tsx";
 export { css } from "./visual-theme/embedded-styles.ts";
-export { useSlide, type PresentationLogo, type SlideAlign, type SlideState } from "./presentation-core/slide-environment.ts";
+export { useSlide, type PresentationLogo, type SlideAlign, type SlideState, type SlideVerticalAlign } from "./presentation-core/slide-environment.ts";
 export type { SlideTransition } from "./slide-transitions/slide-transition.ts";
+export type { StepTransition } from "./slide-transitions/step-transition.ts";
 export type { TransitionSpeed } from "./slide-transitions/transition-speed.ts";
 export type { StepEffect } from "./slide-steps/step-attributes.ts";
 

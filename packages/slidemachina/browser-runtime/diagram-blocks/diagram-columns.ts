@@ -1,3 +1,4 @@
+import { readArrowNodeIdentifier } from "./arrow-endpoints.ts";
 import { listNodeParts, type ArrowPart, type DiagramPart, type NodePart } from "./diagram-outline.ts";
 
 type ProjectedArrow = { sourceIdentifier: string; targetIdentifier: string };
@@ -79,7 +80,10 @@ function assignLevelColumns(siblingParts: NodePart[], levelArrows: ProjectedArro
 
 // Columns count inside their own level: blocks of a group line up within the group's frame.
 export function assignDiagramColumns(diagramParts: DiagramPart[], drawnArrows: ArrowPart[], groupChains: Map<string, string[]>): Map<string, number> {
-  const allArrows = drawnArrows.map(({ arrowProperties }) => ({ sourceIdentifier: arrowProperties.from, targetIdentifier: arrowProperties.to }));
+  const allArrows = drawnArrows.map(({ arrowProperties }) => ({
+    sourceIdentifier: readArrowNodeIdentifier(arrowProperties.from),
+    targetIdentifier: readArrowNodeIdentifier(arrowProperties.to),
+  }));
   const columnNumbers = new Map<string, number>();
   const assignLevel = (siblingParts: NodePart[], levelChain: string[]) => {
     assignLevelColumns(siblingParts, projectArrows(levelChain, allArrows, groupChains), columnNumbers);

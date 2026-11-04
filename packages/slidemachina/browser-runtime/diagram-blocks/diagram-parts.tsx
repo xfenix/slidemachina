@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { createPartStepAttributes, type StepEffect } from "../slide-steps/step-attributes.ts";
+import type { ArrowEndpoint } from "./arrow-endpoints.ts";
 
 type StepProperties = {
   step?: boolean | number;
@@ -18,8 +19,8 @@ export type GroupProperties = StepProperties & {
   children?: ReactNode;
 };
 export type ArrowProperties = StepProperties & {
-  from: string;
-  to: string;
+  from: ArrowEndpoint;
+  to: ArrowEndpoint;
   id?: string;
   label?: string;
 };

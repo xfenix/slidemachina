@@ -17,7 +17,7 @@ npx slidemachina meme "this is fine"         # meme search; every result is prin
 ```
 
 - `build` flags: `--html` (one file), `--protected` (password from `SLIDEMACHINA_PASSWORD`), `--folder`, `--zip`, `--pdf`, `--steps` (PDF by steps), `--pptx`, `--hyperframes` (a folder with timed still frames of slides and steps; optional `hyperframes.json` beside `index.tsx`: positive seconds in a `durations` array, one per frame; default 5 seconds; video, GIF and 3D are stills), `--no-hidden` (PDF, PowerPoint and HyperFrames without hidden slides; by default they are in), `--out <folder>`.
-- For native slide transitions in HyperFrames, set `"motion":"native"` in `hyperframes.json` with `durations`, optional integer `fps` (1–60, default 30), and optional positive `transitionDuration` in seconds. Chrome bakes native word/code/card morphing into lossless WebP frames; `motion.json` records frame timing and animation names. A transition occupies the beginning of the incoming state's duration and must leave one hold frame. Same-slide steps are stills. Video, iframe and 3D content are rejected; animated pictures and custom timers are not deterministic. Render at the export fps. Omit `motion` or use `"still"` for the default export.
+For native slide transitions and same-slide step entrances in HyperFrames, set `"motion":"native"` in `hyperframes.json` with `durations`, optional integer `fps` (1–60, default 30), and optional positive `transitionDuration` in seconds. Chrome bakes native word/code/card morphing and step effects into lossless WebP frames; `motion.json` records frame timing and animation names. A transition occupies the beginning of the incoming state's duration and must leave one hold frame. Video, iframe and 3D content are rejected; animated pictures and custom timers are not deterministic. Render at the export fps. Omit `motion` or use `"still"` for the default export.
 - `shot` writes `slide-12.png` to the current folder; `--out file.png` writes elsewhere. Use it to check the layout by eye, not by reading code. PDF, covers and `shot` need Chrome installed.
 - Browser address: `#7` is slide 7, `#7.2` is after two steps, `?print` is the print view, `?overview` is the slide overview.
 
@@ -59,9 +59,10 @@ export default (
 ```
 
 - `index.tsx` exports a default element. Your own component is declared right in the file, above the slides.
-- `Presentation`: `title`, `lang` (`ru`, `en`), `align` (`left`, `center`, `right`), `logo` (a file, `{ light, dark }` or a component), `transition`, `speed`, `stepEffect`, `aspectRatio` (`"16:9"` by default, `"4:3"`, `"9:16"`…), `progress={false}`, `breadcrumbsSeparator`, `typography={false}`, `date` (`"2026-10-30"`), `duration` (minutes of the talk), `favicon`, `onChange`.
+- `Presentation`: `title`, `lang` (`ru`, `en`), `align` (`left`, `center`, `right`), `logo` (a file, `{ light, dark }` or a component), `transition`, `speed`, `stepEffect`, `stepTransition` (`"morph"` or `"jump"`), `valign` (`top`, `center`, `bottom`), `plain` (no logo, breadcrumbs or number), `number={false}`, `breadcrumbs` (`false` or one string instead of the trail), `aspectRatio` (`"16:9"` by default, `"4:3"`, `"9:16"`…), `progress={false}`, `breadcrumbsSeparator`, `typography={false}`, `date` (`"2026-10-30"`), `duration` (minutes of the talk), `favicon`, `onChange`.
+- `align`, `valign`, `transition`, `speed`, `stepEffect`, `stepTransition`, `plain`, `number` and `breadcrumbs` on `Presentation` set the default for every slide; a slide that sets its own wins.
 - `Section`: `title`; a nested `Section` is a subsection. A section adds its own numbered cover "02". The first `<Slide cover>` of a section replaces that cover; `cover={false}` removes it.
-- `Slide`: `cover`, `align`, `valign` (`top`, `center`, `bottom`), `background` (a color, picture, video, GIF or `{ iframe: "https://…" }`), `tone` (`dark`, `light`), `transition`, `speed`, `stepEffect`, `plain` (no logo, breadcrumbs or number), `logo` (`"top-right"`, `"top-left"`, `"top"`, `"center"`, `"bottom"`, `false`), `breadcrumbs`, `number={false}`, `hidden` (skipped on stage, kept in print, PDF and PowerPoint: details for the sent copy, answers to questions), `className`, `onEnter`, `onLeave`.
+- `Slide`: `cover`, `align`, `valign` (`top`, `center`, `bottom`), `background` (a color, picture, video, GIF or `{ iframe: "https://…" }`), `tone` (`dark`, `light`), `transition`, `speed`, `stepEffect`, `stepTransition` (`"morph"`: elements named with `morph` glide between steps of this slide instead of jumping; `"jump"` switches at once, the default), `plain` (no logo, breadcrumbs or number), `logo` (`"top-right"`, `"top-left"`, `"top"`, `"center"`, `"bottom"`, `false`), `breadcrumbs`, `number={false}`, `hidden` (skipped on stage, kept in print, PDF and PowerPoint: details for the sent copy, answers to questions), `className`, `onEnter`, `onLeave`.
 - A cover has `h1`, a regular slide has `h2`.
 - `<Machina.Notes>` are speaker notes, `<Machina.Notes step={2}>` belong to step 2. They are not on the slide; the P key opens the presenter window.
 - A phone as a remote: the phone button on the control panel shows a six-digit code; opening the same address on the phone and entering the code in the same panel gives Back/Next buttons, a black screen toggle and the current slide. It works over BroadcastChannel within one domain, no server.
@@ -109,6 +110,7 @@ Block components:
 ```
 
 - `lines="1 | 3-4 | 6"`: the first part shows at once, every next part is a step, the other lines are dimmed.
+- `id` and `anchors` name lines or character ranges inside the block, so a diagram arrow can start and end at an exact token: `anchors={{ task: { line: 2, columns: [5, 25] } }}`. Lines and columns count from 1 in the source text, the end column is exclusive; without `columns` the anchor is the whole line.
 - `// [!code highlight]` in a comment highlights a line.
 - The build does the highlighting, so write code as a string, not a variable.
 - One line of code without `title` is shown large and without a background, which suits a command.
@@ -155,6 +157,7 @@ import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts"
 ```
 
 - ELK lays out the boxes, no coordinates needed. `column={n}`, `first` and `last` set a box's column.
+- `Arrow from to` names box ids; an end can also point inside a `Code` block of a box: `from={{ node: "caller", code: "call-site", anchor: "enqueue" }}` with `anchors` on that `Code`. The arrow attaches to the selected text and follows auto-fit, wrapping and layout.
 - `Focus on={[…]}` dims everything else; `<Focus step />` without `on` removes the focus.
 - A sequence diagram: `<Machina.Sequence>`, `<Machina.Actor id>`, `<Machina.Message from to label reply step>`, `Focus`.
 - A diagram box flows into the box with the same `id` on the next slide.
@@ -177,6 +180,7 @@ import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts"
 
 - `transition`: `auto` (default), `morph`, `slide`, `fade`, `zoom`, `cube`, `flip`, `wipe`, `iris`, `blinds`, `mosaic`, `glitch`, `none`. `speed`: `fast`, `slow` or a number.
 - Morphing finds pairs automatically: equal headings and texts (word by word), pictures with the same `src`, cards, numbers and bars in order, diagram boxes with the same `id`, code line by line. Name your own pair with `morph="name"` on both slides.
+- `data-morph-path="name"` on two inline `path` elements (with the same name) interpolates the contour itself: absolute `M`/`L`/`Z` commands with the same structure, a shared `viewBox`. Incompatible paths keep the ordinary block morph.
 - To show a change, repeat the slide with the same heading and change one part.
 
 ## Theme

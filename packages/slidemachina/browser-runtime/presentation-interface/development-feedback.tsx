@@ -36,9 +36,9 @@ function styleFeedbackButton(): () => void {
       waitingFrame = requestAnimationFrame(addStylesWhenReady);
       return;
     }
-    if (feedbackRoot.querySelector("[data-slidemachina-styles]") !== null) return;
+    if (feedbackRoot.querySelector("[data--slidemachina-styles]") !== null) return;
     const buttonStyleElement = document.createElement("style");
-    buttonStyleElement.dataset.slidemachinaStyles = "";
+    buttonStyleElement.setAttribute("data--slidemachina-styles", "");
     buttonStyleElement.textContent = feedbackButtonStyles;
     feedbackRoot.append(buttonStyleElement);
   });

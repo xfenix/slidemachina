@@ -65,15 +65,51 @@ export function installMotionCapture() {
 }
 
 export async function changeMotionPosition(capturePage: Page, positionAddress: string, changesSlide: boolean) {
-  await capturePage.evaluate(({ positionAddress, changesSlide }) => {
+  await capturePage.evaluate((positionAddress) => {
     window.__slidemachinaMotionCapture = {
-      isEnabled: changesSlide, isReady: false, isPositionReady: false, targetAddress: positionAddress,
+      isEnabled: true, isReady: false, isPositionReady: false, targetAddress: positionAddress, viewTransition: undefined,
       capturedAnimations: [], previousAnimations: new Set(document.getAnimations()), durationMilliseconds: 0, animationNames: [],
     };
     location.hash = positionAddress;
-  }, { positionAddress, changesSlide });
+  }, positionAddress);
   if (!changesSlide) {
     await capturePage.waitForFunction(() => window.__slidemachinaMotionCapture.isPositionReady);
+    // One frame later every entrance transition of the newly arrived step is running: it is paused at the start and driven by seeks.
+    await capturePage.evaluate(
+      () =>
+        new Promise<void>((resolveCapture) => {
+          requestAnimationFrame(() => {
+            const motionCapture = window.__slidemachinaMotionCapture;
+            const currentSlide = document.querySelector<HTMLElement>("[data-canvas] > [data-slide][data-current]");
+            // Animations already running belong to the previous state; everything the new step started inside the slide is captured.
+            motionCapture.capturedAnimations = document
+              .getAnimations()
+              .filter(
+                (runningAnimation) =>
+                  !motionCapture.previousAnimations.has(runningAnimation) &&
+                  runningAnimation.effect instanceof KeyframeEffect &&
+                  runningAnimation.effect.target instanceof Element &&
+                  currentSlide?.contains(runningAnimation.effect.target),
+              );
+            motionCapture.durationMilliseconds = Math.max(
+              0,
+              ...motionCapture.capturedAnimations.map((capturedAnimation) => {
+                const animationEnd = Number(capturedAnimation.effect?.getComputedTiming().endTime);
+                return Number.isFinite(animationEnd) ? animationEnd : 0;
+              }),
+            );
+            motionCapture.animationNames = motionCapture.capturedAnimations.map(
+              (capturedAnimation) => (capturedAnimation as CSSAnimation).animationName || capturedAnimation.id || "anonymous",
+            );
+            for (const capturedAnimation of motionCapture.capturedAnimations) {
+              capturedAnimation.pause();
+              capturedAnimation.currentTime = 0;
+            }
+            motionCapture.isReady = true;
+            resolveCapture();
+          });
+        }),
+    );
     await waitForStillSlide(capturePage, "[data-canvas] > [data-slide][data-current]");
   }
 }

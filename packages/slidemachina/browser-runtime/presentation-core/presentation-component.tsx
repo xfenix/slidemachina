@@ -17,10 +17,12 @@ import {
   type PresentationLogo,
   type PresentationSettings,
   type SlideAlign,
+  type SlideVerticalAlign,
 } from "./slide-environment.ts";
 import { useSlideNavigation } from "../slide-navigation/slide-navigation.ts";
 import { findShownSlide, numberSlides } from "../../shared-between-runtimes/slide-numbering.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
+import type { StepTransition } from "../slide-transitions/step-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import type { StepEffect } from "../slide-steps/step-attributes.ts";
 import { SlideNavigator } from "../presentation-interface/slide-navigator.tsx";
@@ -59,6 +61,16 @@ export type PresentationProperties = {
   speed?: TransitionSpeed;
   // The effect of every step that names none of its own, "rise" by default; a slide can set its own.
   stepEffect?: StepEffect;
+  // Between steps of a slide: "morph" glides morph-named elements, "jump" (the default) switches at once; a slide can set its own.
+  stepTransition?: StepTransition;
+  // Vertical alignment of the content on every slide that names none of its own.
+  valign?: SlideVerticalAlign;
+  // No logo, breadcrumbs or number on slides that do not set plain themselves.
+  plain?: boolean;
+  // false hides the number on slides that do not set number themselves.
+  number?: boolean;
+  // false hides breadcrumbs on slides that do not set breadcrumbs themselves; a string replaces the trail with one line.
+  breadcrumbs?: boolean | string;
   // Stands between a section and its subsection in the breadcrumbs and the navigator: "/", "·", "→".
   breadcrumbsSeparator?: string;
   // Read by the build, which typographs the slide text; false keeps the text exactly as written.
@@ -86,6 +98,11 @@ export function Presentation({
   transition = "auto",
   speed = "normal",
   stepEffect,
+  stepTransition,
+  valign,
+  plain,
+  number,
+  breadcrumbs,
   breadcrumbsSeparator,
   aspectRatio = defaultAspectRatio,
   progress = true,
@@ -120,8 +137,8 @@ export function Presentation({
   const [isPaused, setPaused] = useState(false);
   const { isToolbarHidden, toggleToolbar } = useToolbarHiding();
   const presentationSettings: PresentationSettings = useMemo(
-    () => ({ align, logo, lang, transition, speed, stepEffect }),
-    [align, logo, lang, transition, speed, stepEffect],
+    () => ({ align, logo, lang, transition, speed, stepEffect, stepTransition, valign, plain, number, breadcrumbs }),
+    [align, logo, lang, transition, speed, stepEffect, stepTransition, valign, plain, number, breadcrumbs],
   );
   const sectionTrails = useMemo(() => outlinedSlides.map((outlinedSlide) => outlinedSlide.sectionTrail), [outlinedSlides]);
   const describeSlideEnvironment = useSlideEnvironments(slideNumbering, sectionTrails, presentationSettings, stepCountsReference);

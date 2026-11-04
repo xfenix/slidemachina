@@ -26,6 +26,8 @@ type HighlightedCode = {
   // number is the line in the source: a line with only a [!code …] comment is gone from the list.
   lines: Array<{ tokens: CodeFragment[]; marked: boolean; number?: number }>;
 };
+// Lines and columns are 1-based source coordinates, the end column is exclusive; a range selects the exact substring.
+export type CodeAnchorSpecification = { line: number; columns?: [number, number] };
 export type CodeProperties = {
   children?: string;
   lang?: string;
@@ -33,6 +35,10 @@ export type CodeProperties = {
   lines?: string;
   numbers?: boolean;
   title?: string;
+  // Names a line or a character range inside the block, so a diagram arrow can point at it: anchors={{ task: { line: 2, columns: [5, 25] } }}.
+  anchors?: Record<string, CodeAnchorSpecification>;
+  // The id a diagram arrow names in { node, code, anchor }; a Code block inside a Box is found by it.
+  id?: string;
   // Filled in by the build from Shiki; written by hand only without the slidemachina CLI.
   highlightedCode?: HighlightedCode;
 };
@@ -52,7 +58,7 @@ function renderCodeFragment(codeFragment: CodeFragment, fragmentIndex: number) {
   );
 }
 
-export function Code({ children, lang, src, lines, numbers, title, highlightedCode, ...otherProperties }: CodeProperties) {
+export function Code({ children, lang, src, lines, numbers, title, id, anchors, highlightedCode, ...otherProperties }: CodeProperties) {
   const codeElementReference = useRef<HTMLPreElement>(null);
   const shownCode = highlightedCode ?? listPlainLines(children ?? "");
   const codeLineCount = shownCode.lines.length;
@@ -70,6 +76,8 @@ export function Code({ children, lang, src, lines, numbers, title, highlightedCo
       ref={codeElementReference}
       data-code
       data-lang={lang}
+      data--slidemachina-code-id={id}
+      data--slidemachina-code-anchors={anchors === undefined ? undefined : JSON.stringify(anchors)}
       data-one-line={isOneLine ? "" : undefined}
       data-numbered={numbers === true ? "" : undefined}
       style={numberStyle}

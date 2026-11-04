@@ -4,10 +4,12 @@ import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
 import type { TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import type { SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
 import type { StepEffect } from "../slide-steps/step-attributes.ts";
+import type { StepTransition } from "../slide-transitions/step-transition.ts";
 
 export const SlideEnvironmentContext = createContext<SlideEnvironment | null>(null);
 
 export type SlideAlign = "left" | "center" | "right";
+export type SlideVerticalAlign = "top" | "center" | "bottom";
 
 // Keys name the slide tone: "dark" is the logo for dark slides. Without it the light logo is recoloured by a filter.
 // A component draws both versions itself and gets dark={true} on dark slides.
@@ -19,6 +21,11 @@ export type PresentationSettings = {
   transition: SlideTransition;
   speed: TransitionSpeed;
   stepEffect?: StepEffect;
+  stepTransition?: StepTransition;
+  valign?: SlideVerticalAlign;
+  plain?: boolean;
+  number?: boolean;
+  breadcrumbs?: boolean | string;
 };
 // What a custom component on a slide may read: useSlide() inside any element of a <Slide>.
 export type SlideState = { number: number; step: number; isCurrent: boolean; isCopy: boolean };
