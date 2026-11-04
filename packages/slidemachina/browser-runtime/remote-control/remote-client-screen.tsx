@@ -54,6 +54,9 @@ export function RemoteClientScreen() {
         />
         <label data-remote-haptics>
           <input type="checkbox" checked={isHapticsEnabled} onChange={toggleHaptics} />
+          <span data-remote-toggle-track>
+            <span data-remote-toggle-thumb />
+          </span>
           {interfaceTexts.remoteHapticsLabel}
         </label>
       </fieldset>
