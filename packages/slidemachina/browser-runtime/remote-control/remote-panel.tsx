@@ -11,7 +11,11 @@ type RemotePanelProperties = {
   panelCode: string;
   changePanelCode: (panelCode: string) => void;
   isRemoteMode: boolean;
+  isRemoteAccessEnabled: boolean;
+  changeRemoteAccessEnabled: (isEnabled: boolean) => void;
+  disconnectConnectedRemotes: () => void;
   hostingLink: string;
+  typableJoinLink: string;
   connectedRemoteCount: number;
   hostingReachability: "registering" | "online" | "offline";
   disconnectFromHostingScreen: () => void;
@@ -24,7 +28,11 @@ export function RemoteControlPanel({
   panelCode,
   changePanelCode,
   isRemoteMode,
+  isRemoteAccessEnabled,
+  changeRemoteAccessEnabled,
+  disconnectConnectedRemotes,
   hostingLink,
+  typableJoinLink,
   connectedRemoteCount,
   hostingReachability,
   disconnectFromHostingScreen,
@@ -45,31 +53,52 @@ export function RemoteControlPanel({
         <fieldset data-remote-panel data-remote-mode={isRemoteMode ? "remote" : "hosting"} aria-label={interfaceTexts.remoteButton}>
           {!isRemoteMode && (
             <>
-              <input
-                data-remote-code
-                value={panelCode}
-                onChange={(inputEvent) => changePanelCode(normalizeTypedCode(inputEvent.target.value))}
-                inputMode="numeric"
-                autoComplete="off"
-                spellCheck={false}
-                placeholder="000000"
-                aria-label={interfaceTexts.remoteCodeLabel}
-              />
-              <div data-remote-qr>
-                <svg viewBox={`0 0 ${joinQrDrawing.moduleCount} ${joinQrDrawing.moduleCount}`}>
-                  <title>{hostingLink}</title>
-                  <path fill="currentColor" fillRule="evenodd" d={joinQrDrawing.modulesPath} />
-                </svg>
-              </div>
-              <p data-remote-link>{hostingLink.replace("https://", "")}</p>
-              <p data-remote-hint>{interfaceTexts.remoteHostingHint}</p>
-              <output data-remote-status={hostingReachability}>
-                {hostingReachability === "offline"
-                  ? interfaceTexts.remoteHostingOffline
-                  : connectedRemoteCount === 0
-                    ? interfaceTexts.remoteWaitingForRemotes
-                    : interfaceTexts.remoteRemotesConnected(connectedRemoteCount)}
-              </output>
+              <label data-remote-access-toggle>
+                <input
+                  type="checkbox"
+                  checked={isRemoteAccessEnabled}
+                  onChange={(changeEvent) => changeRemoteAccessEnabled(changeEvent.target.checked)}
+                />
+                <span data-remote-toggle-track>
+                  <span data-remote-toggle-thumb />
+                </span>
+                {interfaceTexts.remoteAccessToggleLabel}
+              </label>
+              {isRemoteAccessEnabled && (
+                <>
+                  <input
+                    data-remote-code
+                    value={panelCode}
+                    onChange={(inputEvent) => changePanelCode(normalizeTypedCode(inputEvent.target.value))}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    spellCheck={false}
+                    placeholder="000000"
+                    aria-label={interfaceTexts.remoteCodeLabel}
+                  />
+                  <div data-remote-qr>
+                    <svg viewBox={`0 0 ${joinQrDrawing.moduleCount} ${joinQrDrawing.moduleCount}`}>
+                      <title>{hostingLink}</title>
+                      <path fill="currentColor" fillRule="evenodd" d={joinQrDrawing.modulesPath} />
+                    </svg>
+                  </div>
+                  <p data-remote-link>{typableJoinLink.replace("https://", "")}</p>
+                  <p data-remote-hint>{interfaceTexts.remoteHostingHint}</p>
+                  <output data-remote-status={hostingReachability}>
+                    {hostingReachability === "offline"
+                      ? interfaceTexts.remoteHostingOffline
+                      : connectedRemoteCount === 0
+                        ? interfaceTexts.remoteWaitingForRemotes
+                        : interfaceTexts.remoteRemotesConnected(connectedRemoteCount)}
+                  </output>
+                  {connectedRemoteCount > 0 && (
+                    <button type="button" data-remote-disconnect-all onClick={disconnectConnectedRemotes}>
+                      {interfaceTexts.remoteDisconnectAllButton}
+                    </button>
+                  )}
+                </>
+              )}
+              {!isRemoteAccessEnabled && <p data-remote-hint>{interfaceTexts.remoteAccessOffHint}</p>}
             </>
           )}
           {isRemoteMode && (

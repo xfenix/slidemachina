@@ -13,7 +13,7 @@ export type RemoteChannelMessage =
   | { messageKind: "greeting" }
   | { messageKind: "welcome"; slideCaption: RemoteSlideCaption; presentationTitle: string; isPaused: boolean }
   | { messageKind: "farewell" };
-export type RemoteClientFailure = "no-host" | "no-broker";
+export type RemoteClientFailure = "no-host" | "no-broker" | "host-lost";
 export type RemoteTransportHandle = {
   sendRemoteMessage: (channelMessage: RemoteChannelMessage) => void;
   closeRemoteTransport: () => void;
@@ -120,6 +120,13 @@ export function openRemoteClientTransport(
       });
       clientConnection.on("open", () => {
         for (const pendingMessage of pendingMessages.splice(0)) void clientConnection?.send(pendingMessage);
+      });
+      // The presenting screen goes away or drops every remote: the channel closes and the phone says so.
+      clientConnection.on("close", () => {
+        if (isClientClosed) return;
+        isClientClosed = true;
+        createdPeer.destroy();
+        reportClientFailure("host-lost");
       });
     });
     createdPeer.on("error", (clientError: { type: string }) => {

@@ -51,7 +51,9 @@ export function RemoteClientView({
               ? interfaceTexts.remoteUnanswered
               : connectionStatus === "no-broker"
                 ? interfaceTexts.remoteNoBroker
-                : interfaceTexts.remoteClientHint}
+                : connectionStatus === "lost"
+                  ? interfaceTexts.remoteLostConnection
+                  : interfaceTexts.remoteClientHint}
         </output>
       )}
       {isRemoteConnected && followedCaption !== undefined && (
@@ -69,6 +71,11 @@ export function RemoteClientView({
           <output data-remote-status="paused" data-remote-paused-hidden={!isFollowedPaused || undefined}>
             {interfaceTexts.remotePausedMark}
           </output>
+          {/* The black screen button sits above the move buttons: a stray thumb press lands on Back or Next,
+              not on the one switch that blacks out the hall. */}
+          <button type="button" data-remote-pause onClick={() => pressAndSend("pause")}>
+            {isFollowedPaused ? interfaceTexts.remoteBackToSlideButton : interfaceTexts.remoteBlackScreenButton}
+          </button>
           <div data-remote-controls>
             <button type="button" data-remote-move="backward" onClick={() => pressAndSend("backward")}>
               <ChevronIcon pointsLeft />
@@ -79,9 +86,6 @@ export function RemoteClientView({
               <ChevronIcon />
             </button>
           </div>
-          <button type="button" data-remote-pause onClick={() => pressAndSend("pause")}>
-            {isFollowedPaused ? interfaceTexts.remoteBackToSlideButton : interfaceTexts.remoteBlackScreenButton}
-          </button>
         </>
       )}
     </>

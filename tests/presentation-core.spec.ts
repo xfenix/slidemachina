@@ -1202,9 +1202,14 @@ test("пульт с телефона: QR ведёт на страницу пул
   await expect(page.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "hosting");
   await expect(page.locator("[data-remote-status]")).toContainText("Ожидает подключения телефона");
   // The dev server is localhost: a phone cannot open it, so the QR code leads to the published remote page.
+  // The QR keeps the full link: a scanned code never depends on a shortener staying alive.
   const joinLink = await page.locator("[data-remote-qr] title").textContent();
   expect(joinLink).toBe(`https://xfenix.github.io/slidemachina/remote.html#${hostingCode}`);
-  await expect(page.locator("[data-remote-link]")).toHaveText(joinLink!.replace("https://", ""));
+  // The link under the code is fully visible for typing by hand: the original address, or a short one from a
+  // shortener service when it answers; on a machine without the internet the original one stays.
+  const typedLinkText = ((await page.locator("[data-remote-link]").textContent()) ?? "").trim();
+  if (typedLinkText.endsWith(`#${hostingCode}`)) expect(typedLinkText).toBe(`xfenix.github.io/slidemachina/remote.html#${hostingCode}`);
+  else expect(typedLinkText, "короткая ссылка для набора руками").toMatch(/^[a-z0-9.-]+\/[A-Za-z0-9_-]+$/);
 
   // The phone opens the remote screen of the same address with the code after #: it connects without typing.
   const phonePage = await context.newPage();
@@ -1233,6 +1238,23 @@ test("пульт с телефона: QR ведёт на страницу пул
   await expect(phonePage.locator("[data-remote-code]")).toHaveValue("");
   await phonePage.locator("[data-remote-code]").fill(hostingCode === "999999" ? "999998" : "999999");
   await expect(phonePage.locator('[data-remote-status="unanswered"]')).toContainText("Никто не ответил на код", { timeout: 15_000 });
+
+  // The right code connects again; then the panel drops every phone at once and the phone says the link is lost.
+  await phonePage.locator("[data-remote-code]").fill(hostingCode);
+  await expect(phonePage.locator("[data-remote-position]")).toContainText("Слайд 1 из", { timeout: 20_000 });
+  await page.locator("[data-remote-disconnect-all]").click();
+  await expect(phonePage.locator('[data-remote-status="lost"]')).toContainText("Связь с презентацией прервалась", { timeout: 15_000 });
+  await expect(page.locator("[data-remote-status]")).toContainText("Ожидает подключения телефона");
+
+  // The access switch turns the hosting off entirely and hides the code; turning it back on issues a fresh code.
+  const accessToggle = page.locator("[data-remote-access-toggle]");
+  await accessToggle.click();
+  await expect(page.locator("[data-remote-code]")).toHaveCount(0);
+  await expect(page.locator("[data-remote-panel]")).toContainText("Пульт выключен");
+  await accessToggle.click();
+  const rotatedHostingCode = await page.locator("[data-remote-code]").inputValue();
+  expect(rotatedHostingCode).toMatch(/^\d{6}$/);
+  expect(rotatedHostingCode).not.toBe(hostingCode);
   await phonePage.close();
 });
 

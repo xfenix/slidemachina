@@ -3,11 +3,12 @@ import type { PresentationPosition } from "../slide-navigation/position-hash.ts"
 import type { SlideCommand } from "../presenter-view/presenter-channel.ts";
 import { openRemoteClientTransport, openRemoteHostingTransport, type RemoteChannelMessage, type RemoteSlideCaption, type RemoteTransportHandle } from "./remote-transport.ts";
 
-export type RemoteConnectionStatus = "idle" | "connecting" | "connected" | "unanswered" | "no-broker";
+export type RemoteConnectionStatus = "idle" | "connecting" | "connected" | "unanswered" | "no-broker" | "lost";
 export type RemoteHostingReachability = "registering" | "online" | "offline";
 export type RemoteHostingOptions = {
   isHostingAvailable: boolean;
   hostingCode: string;
+  hostingEpoch: number;
   currentPosition: PresentationPosition;
   isPaused: boolean;
   presentationTitle: string | undefined;
@@ -26,6 +27,8 @@ const remoteCodeLength = 6;
 const remoteCodeDigits = "0123456789";
 // The WebRTC handshake through the broker takes a couple of seconds; a code nobody hosts is reported sooner by the broker itself.
 const connectionAnswerTimeoutMs = 8000;
+// After a kick the broker needs a moment to forget the old peer before the same code registers again.
+const hostingReopenDelayMs = 600;
 const hostingCodeStorageKey = `slidemachina-remote-code:${location.pathname}`;
 
 // A six-digit code reads well aloud and from a projector screen; only digits, so a phone keyboard is enough.
@@ -58,7 +61,8 @@ export function isCompleteRemoteCode(remoteCode: string): boolean {
 }
 
 // Every slides window hosts its own code and obeys remotes that know it; the code is the only key, like a short password.
-export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosition, isPaused, presentationTitle, describeSlideCaption, runSlideCommand }: RemoteHostingOptions) {
+// The epoch restart drops every connected remote: the broker forgets the peer and opens it anew under the same code.
+export function useRemoteHosting({ isHostingAvailable, hostingCode, hostingEpoch, currentPosition, isPaused, presentationTitle, describeSlideCaption, runSlideCommand }: RemoteHostingOptions) {
   const hostingTransportReference = useRef<RemoteTransportHandle | undefined>(undefined);
   const connectedRemotesReference = useRef(0);
   const [connectedRemoteCount, setConnectedRemoteCount] = useState(0);
@@ -96,19 +100,22 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
 
   useEffect(() => {
     if (!isHostingAvailable || !isCompleteRemoteCode(hostingCode)) return;
-    const hostingTransport = openRemoteHostingTransport(hostingCode, {
-      onChannelMessage: receiveHostingMessage,
-      onHostingOnline: () => setHostingReachabilityReport({ hostingCode, reachability: "online" }),
-      onHostingOffline: () => setHostingReachabilityReport({ hostingCode, reachability: "offline" }),
-    });
-    hostingTransportReference.current = hostingTransport;
+    const reopenTimer = setTimeout(() => {
+      const hostingTransport = openRemoteHostingTransport(hostingCode, {
+        onChannelMessage: receiveHostingMessage,
+        onHostingOnline: () => setHostingReachabilityReport({ hostingCode, reachability: "online" }),
+        onHostingOffline: () => setHostingReachabilityReport({ hostingCode, reachability: "offline" }),
+      });
+      hostingTransportReference.current = hostingTransport;
+    }, hostingEpoch === 0 ? 0 : hostingReopenDelayMs);
     return () => {
-      hostingTransport.closeRemoteTransport();
+      clearTimeout(reopenTimer);
+      hostingTransportReference.current?.closeRemoteTransport();
       hostingTransportReference.current = undefined;
       connectedRemotesReference.current = 0;
       setConnectedRemoteCount(0);
     };
-  }, [isHostingAvailable, hostingCode]);
+  }, [isHostingAvailable, hostingCode, hostingEpoch]);
 
   useEffect(() => {
     if (isHostingAvailable) postFollowedPosition();
@@ -160,7 +167,8 @@ export function useRemoteConnection(targetCode: string | undefined): RemoteConne
           },
         });
       },
-      (clientFailure) => reportFailed(clientFailure === "no-host" ? "unanswered" : "no-broker"),
+      (clientFailure) =>
+        reportFailed(clientFailure === "no-host" ? "unanswered" : clientFailure === "host-lost" ? "lost" : "no-broker"),
     );
     clientTransportReference.current = clientTransport;
     clientTransport.sendRemoteMessage({ messageKind: "greeting" });
