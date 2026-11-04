@@ -9,8 +9,20 @@ const staticCoverBeginMarker = "<!--slidemachina-static-cover-->";
 const staticCoverEndMarker = "<!--/slidemachina-static-cover-->";
 // Quick Look takes the slide pictures out of the same page: the copy there comes without the static cover.
 export const staticCoverPattern = /<!--slidemachina-static-cover-->[\s\S]*?<!--\/slidemachina-static-cover-->/;
+// The format a cover is captured in: the same numbers the live canvas measures its layout from.
+const defaultCoverFormat = { width: 1920, height: 1080 };
+// The same growth cap the live canvas measures with: a wide or tall window grows the canvas up to a third along the spare side.
+const largestCanvasGrowthShare = 4 / 3;
+// Division of one viewport unit by another yields a unitless ratio only in newer engines: without support the captured fixed layout stays.
+const unitlessDivisionProbe = "@supports (scale: calc(100dvw / 1px))";
 
-type StaticCoverCapture = { presentationVariables: string; letterboxColor: string; coverMarkup: string };
+type StaticCoverCapture = {
+  presentationVariables: string;
+  letterboxColor: string;
+  coverMarkup: string;
+  coverFormatWidth: number;
+  coverFormatHeight: number;
+};
 
 function waitForPagePictures(coverPage: Page): Promise<unknown> {
   return coverPage.evaluate(
@@ -56,6 +68,8 @@ async function captureStillFirstSlide(coverPage: Page): Promise<StaticCoverCaptu
       presentationVariables: presentationElement.style.cssText,
       letterboxColor: settledLetterboxColor,
       coverMarkup: coverClone.outerHTML,
+      coverFormatWidth: Number.parseFloat(presentationElement.style.getPropertyValue("--format-width")) || defaultCoverFormat.width,
+      coverFormatHeight: Number.parseFloat(presentationElement.style.getPropertyValue("--format-height")) || defaultCoverFormat.height,
     };
   });
 }
@@ -71,10 +85,25 @@ async function captureFirstSlide(builtPagePath: string, sharedChrome: SharedChro
   }
 }
 
+// The captured canvas variables remember one window size; recomputed from the viewport, the cover matches the live canvas in any window, so the swap does not jump.
+// !important stands against the captured inline variables: the recomputed ones must win.
+function createAdaptiveCanvasStyle({ coverFormatWidth, coverFormatHeight }: StaticCoverCapture): string {
+  const grownCoverWidth = Math.round(coverFormatWidth * largestCanvasGrowthShare);
+  const grownCoverHeight = Math.round(coverFormatHeight * largestCanvasGrowthShare);
+  return `<style>${unitlessDivisionProbe} {
+  [data-static-cover] [data-presentation] {
+    --canvas-scale: min(100dvw / ${coverFormatWidth}px, 100dvh / ${coverFormatHeight}px) !important;
+    --canvas-width: min(100dvw / var(--canvas-scale) / 1px, ${grownCoverWidth}) !important;
+    --canvas-height: min(100dvh / var(--canvas-scale) / 1px, ${grownCoverHeight}) !important;
+  }
+}</style>`;
+}
+
 function wrapStaticCover(staticCoverCapture: StaticCoverCapture): string {
   const escapedVariables = staticCoverCapture.presentationVariables.replaceAll('"', "&quot;");
   return `${staticCoverBeginMarker}
 <style>@media print { [data-static-cover] { display: none !important; } }</style>
+${createAdaptiveCanvasStyle(staticCoverCapture)}
 <div data-static-cover aria-hidden="true"><div data-presentation style="${escapedVariables} background: ${staticCoverCapture.letterboxColor};"><div data-canvas>${staticCoverCapture.coverMarkup}</div></div></div>
 ${staticCoverEndMarker}`;
 }
@@ -91,9 +120,10 @@ export async function captureStaticCover(builtPagePath: string, sharedChrome: Sh
   return staticCoverCapture === null ? null : wrapStaticCover(staticCoverCapture);
 }
 
-// The cover goes into the final single file after every other pass: the Quick Look step writes its own copy of the page without it.
+// The cover goes right after the body opens: it paints while the page still streams, and the mounted app covers it until the copy leaves.
 export function injectStaticCover(pagePath: string, coverMarkup: string): void {
   const pageHtml = readFileSync(pagePath, "utf8").replace(staticCoverPattern, "");
-  const bodyEnd = pageHtml.lastIndexOf("</body>");
-  writeFileSync(pagePath, pageHtml.slice(0, bodyEnd) + coverMarkup + pageHtml.slice(bodyEnd));
+  const bodyOpenTag = /<body[^>]*>/.exec(pageHtml);
+  if (bodyOpenTag === null) return;
+  writeFileSync(pagePath, pageHtml.replace(bodyOpenTag[0], bodyOpenTag[0] + coverMarkup));
 }
