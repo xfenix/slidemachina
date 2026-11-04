@@ -33,7 +33,7 @@ export function useRemoteControlHosting({
   }, [ownCode]);
   const isRemoteMode = panelCode !== ownCode;
   const targetCode = isRemoteMode && isCompleteRemoteCode(panelCode) ? panelCode : undefined;
-  const { connectedRemoteCount } = useRemoteHosting({
+  const { connectedRemoteCount, hostingReachability } = useRemoteHosting({
     isHostingAvailable,
     hostingCode: ownCode,
     currentPosition,
@@ -55,6 +55,7 @@ export function useRemoteControlHosting({
     changePanelCode: setPanelCode,
     isRemoteMode,
     connectedRemoteCount,
+    hostingReachability,
     describeFollowedPosition,
     disconnectFromHostingScreen: () => setPanelCode(ownCode),
     ...remoteConnection,

@@ -78,7 +78,9 @@
     color: var(--accent-color-on-dark);
   }
 
-  [data-remote-status="unanswered"] {
+  [data-remote-status="unanswered"],
+  [data-remote-status="no-broker"],
+  [data-remote-status="offline"] {
     color: #ff9d8a;
   }
 
