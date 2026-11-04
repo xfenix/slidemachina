@@ -41,6 +41,6 @@ export function useInterfaceAfterFirstFrame(waitsForFirstFrame: boolean): boolea
       cancelAnimationFrame(firstFrame);
       clearTimeout(afterFrameTimer);
     };
-  }, []);
+  }, [waitsForFirstFrame]);
   return rendersInterface;
 }
