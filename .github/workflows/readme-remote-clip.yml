@@ -42,7 +42,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout --quiet --branch "readme-remote-clip-$(date -u +%Y%m%d%H%M%S)"
+          git switch --create "readme-remote-clip-$(date -u +%Y%m%d%H%M%S)"
           git add docs/readme/remote-control.webp
           git commit --quiet --message "docs: refresh the phone-remote README clip"
           git push --quiet origin HEAD
