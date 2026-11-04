@@ -24,7 +24,7 @@ const mediaFolder = path.join(workspaceFolder, "docs", "readme");
 const clipFileName = "remote-control.webp";
 const remotePanelButtonLabel = "Пульт с телефона";
 const hostingCodeSelector = "[data-remote-code]";
-const remoteJumpInputSelector = "[data-remote-jump] input";
+const remoteJumpSelectSelector = "[data-remote-jump] select";
 const moveForwardSelector = '[data-remote-move="forward"]';
 const settlePauseMilliseconds = 2500;
 const panelLeadMilliseconds = 800;
@@ -210,8 +210,8 @@ async function recordRemoteControlClip() {
       try {
         // The jump field appears connected and shows the first slide: the welcome carried the position.
         await phonePage.waitForFunction(
-          (jumpSelector) => document.querySelector<HTMLInputElement>(jumpSelector)?.value === "1",
-          remoteJumpInputSelector,
+          (jumpSelector) => document.querySelector<HTMLSelectElement>(jumpSelector)?.value === "1",
+          remoteJumpSelectSelector,
           { timeout: phoneConnectedTimeoutMilliseconds },
         );
       } catch {

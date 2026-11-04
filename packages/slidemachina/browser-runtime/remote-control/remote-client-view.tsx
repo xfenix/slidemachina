@@ -67,7 +67,7 @@ export function RemoteClientView({
             </button>
           </p>
           {/* The black screen switch and the slide number share one row: the switch stays small, away from the
-              thumb row, and the number is typed over to jump to any slide. */}
+              thumb row, and the number is picked from a dropdown to jump to any slide. */}
           <div data-remote-pause-row>
             <button type="button" data-remote-pause onClick={() => pressAndSend("pause")}>
               <ScreenOffIcon />

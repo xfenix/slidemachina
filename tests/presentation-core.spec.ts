@@ -1217,22 +1217,21 @@ test("пульт с телефона: QR ведёт на страницу пул
   await phonePage.goto(`/?remote&remote-broker=localhost:9300#${hostingCode}`);
   await expect(phonePage.locator("[data-remote-screen]")).toBeVisible();
   await expect(phonePage.locator("[data-remote-code]")).toHaveValue(hostingCode);
-  await expect(phonePage.locator("[data-remote-jump] input")).toHaveValue("1", { timeout: 20_000 });
+  await expect(phonePage.locator("[data-remote-jump] select")).toHaveValue("1", { timeout: 20_000 });
   await expect(phonePage.locator("[data-remote-jump]")).toContainText("из");
   await expect(page.locator("[data-remote-status]")).toContainText("Подключено 1 устройство");
 
   await phonePage.locator('[data-remote-move="forward"]').click();
   await expect(page).toHaveURL(/#2$/);
-  await expect(phonePage.locator("[data-remote-jump] input")).toHaveValue("2");
+  await expect(phonePage.locator("[data-remote-jump] select")).toHaveValue("2");
   await phonePage.locator('[data-remote-move="backward"]').click();
   await expect(page).toHaveURL(/#1$/);
 
-  // The slide number is typed over: Enter jumps to that slide, the black screen switch sits in the same row.
+  // The slide number dropdown jumps to the chosen slide; the black screen switch sits in the same row.
   await expect(phonePage.locator("[data-remote-pause-row] [data-remote-pause]")).toContainText("Чёрный экран");
-  await phonePage.locator("[data-remote-jump] input").fill("3");
-  await phonePage.locator("[data-remote-jump] input").press("Enter");
+  await phonePage.locator("[data-remote-jump] select").selectOption("3");
   await expect(page).toHaveURL(/#3$/);
-  await expect(phonePage.locator("[data-remote-jump] input")).toHaveValue("3");
+  await expect(phonePage.locator("[data-remote-jump] select")).toHaveValue("3");
 
   await phonePage.locator("[data-remote-pause]").click();
   await expect(page.locator("[data-pause-screen]")).toBeVisible();
@@ -1250,7 +1249,7 @@ test("пульт с телефона: QR ведёт на страницу пул
   // The right code connects again; then the panel drops every phone at once and the phone says the link is lost.
   await phonePage.locator("[data-remote-code]").fill(hostingCode);
   await expect(phonePage.locator('[data-remote-status="connected"]')).toBeVisible({ timeout: 20_000 });
-  await expect(phonePage.locator("[data-remote-jump] input")).toHaveValue("3");
+  await expect(phonePage.locator("[data-remote-jump] select")).toHaveValue("3");
   await page.locator("[data-remote-disconnect-all]").click();
   await expect(phonePage.locator('[data-remote-status="lost"]')).toContainText("Связь с презентацией прервалась", { timeout: 15_000 });
   await expect(page.locator("[data-remote-status]")).toContainText("Ожидает подключения телефона");
