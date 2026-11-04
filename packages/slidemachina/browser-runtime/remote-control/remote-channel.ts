@@ -10,12 +10,14 @@ export type RemoteHostingOptions = {
   hostingCode: string;
   currentPosition: PresentationPosition;
   isPaused: boolean;
+  presentationTitle: string | undefined;
   describeSlideCaption: (slideIndex: number, stepIndex: number) => RemoteSlideCaption;
   runSlideCommand: (slideCommand: SlideCommand) => void;
 };
 export type RemoteConnection = {
   connectionStatus: RemoteConnectionStatus;
   followedCaption: RemoteSlideCaption | undefined;
+  followedPresentationTitle: string | undefined;
   isFollowedPaused: boolean;
   sendRemoteCommand: (slideCommand: SlideCommand) => void;
 };
@@ -56,7 +58,7 @@ export function isCompleteRemoteCode(remoteCode: string): boolean {
 }
 
 // Every slides window hosts its own code and obeys remotes that know it; the code is the only key, like a short password.
-export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosition, isPaused, describeSlideCaption, runSlideCommand }: RemoteHostingOptions) {
+export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosition, isPaused, presentationTitle, describeSlideCaption, runSlideCommand }: RemoteHostingOptions) {
   const hostingTransportReference = useRef<RemoteTransportHandle | undefined>(undefined);
   const connectedRemotesReference = useRef(0);
   const [connectedRemoteCount, setConnectedRemoteCount] = useState(0);
@@ -69,7 +71,12 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
     if (channelMessage.messageKind === "greeting") {
       connectedRemotesReference.current += 1;
       setConnectedRemoteCount(connectedRemotesReference.current);
-      hostingTransportReference.current?.sendRemoteMessage({ messageKind: "welcome", slideCaption: describeSlideCaption(slideIndex, stepIndex), isPaused });
+      hostingTransportReference.current?.sendRemoteMessage({
+        messageKind: "welcome",
+        slideCaption: describeSlideCaption(slideIndex, stepIndex),
+        presentationTitle: presentationTitle ?? "",
+        isPaused,
+      });
     }
     if (channelMessage.messageKind === "farewell") {
       connectedRemotesReference.current = Math.max(0, connectedRemotesReference.current - 1);
@@ -79,7 +86,12 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
   });
   const postFollowedPosition = useEffectEvent(() => {
     if (connectedRemotesReference.current > 0)
-      hostingTransportReference.current?.sendRemoteMessage({ messageKind: "position", slideCaption: describeSlideCaption(slideIndex, stepIndex), isPaused });
+      hostingTransportReference.current?.sendRemoteMessage({
+        messageKind: "position",
+        slideCaption: describeSlideCaption(slideIndex, stepIndex),
+        presentationTitle: presentationTitle ?? "",
+        isPaused,
+      });
   });
 
   useEffect(() => {
@@ -110,7 +122,11 @@ export function useRemoteHosting({ isHostingAvailable, hostingCode, currentPosit
 export function useRemoteConnection(targetCode: string | undefined): RemoteConnection {
   const clientTransportReference = useRef<RemoteTransportHandle | undefined>(undefined);
   const [connectionReport, setConnectionReport] = useState<
-    { targetCode: string; connectionStatus: Exclude<RemoteConnectionStatus, "idle">; followedPosition: { slideCaption: RemoteSlideCaption; isPaused: boolean } | undefined } | undefined
+    {
+      targetCode: string;
+      connectionStatus: Exclude<RemoteConnectionStatus, "idle">;
+      followedPosition: { slideCaption: RemoteSlideCaption; presentationTitle: string | undefined; isPaused: boolean } | undefined;
+    } | undefined
   >(undefined);
   const isReportCurrent = connectionReport !== undefined && connectionReport.targetCode === targetCode;
   const connectionStatus: RemoteConnectionStatus = targetCode === undefined ? "idle" : isReportCurrent ? connectionReport.connectionStatus : "connecting";
@@ -137,7 +153,11 @@ export function useRemoteConnection(targetCode: string | undefined): RemoteConne
         setConnectionReport({
           targetCode,
           connectionStatus: "connected",
-          followedPosition: { slideCaption: channelMessage.slideCaption, isPaused: channelMessage.isPaused },
+          followedPosition: {
+            slideCaption: channelMessage.slideCaption,
+            presentationTitle: channelMessage.presentationTitle === "" ? undefined : channelMessage.presentationTitle,
+            isPaused: channelMessage.isPaused,
+          },
         });
       },
       (clientFailure) => reportFailed(clientFailure === "no-host" ? "unanswered" : "no-broker"),
@@ -170,6 +190,7 @@ export function useRemoteConnection(targetCode: string | undefined): RemoteConne
   return {
     connectionStatus,
     followedCaption: followedPosition?.slideCaption,
+    followedPresentationTitle: followedPosition?.presentationTitle,
     isFollowedPaused: followedPosition?.isPaused ?? false,
     sendRemoteCommand,
   };

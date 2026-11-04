@@ -35,20 +35,27 @@
     animation: none;
   }
 
+  /* The title of the talk arrives with the connection and lands right over the controls, without moving them. */
+  [data-remote-title] {
+    margin: 0 0 10px;
+    color: rgb(255 255 255 / 0.75);
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 600;
+    text-align: center;
+  }
+
   [data-remote-screen] :is([data-remote-move], [data-remote-pause]) {
     min-height: 64px;
     font-size: 17px;
     line-height: 24px;
   }
 
-  /* The haptics switch is a quiet footer line under the controls. */
+  /* The haptics switch is a quiet row inside the panel grid, under the controls. */
   [data-remote-haptics] {
     display: flex;
     align-items: center;
     gap: 8px;
-    width: 100%;
-    max-width: 380px;
-    margin-block: 16px 4px;
     color: rgb(255 255 255 / 0.55);
     font-size: 13px;
     line-height: 18px;

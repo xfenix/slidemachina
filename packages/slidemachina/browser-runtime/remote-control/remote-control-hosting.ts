@@ -9,6 +9,7 @@ export type RemoteControlHostingOptions = {
   isHostingAvailable: boolean;
   currentPosition: PresentationPosition;
   isPaused: boolean;
+  presentationTitle: string | undefined;
   runSlideCommand: (slideCommand: SlideCommand) => void;
   slideNumbering: SlideNumbering;
   countSlideSteps: (slideIndex: number) => number;
@@ -20,6 +21,7 @@ export function useRemoteControlHosting({
   isHostingAvailable,
   currentPosition,
   isPaused,
+  presentationTitle,
   runSlideCommand,
   slideNumbering,
   countSlideSteps,
@@ -42,6 +44,7 @@ export function useRemoteControlHosting({
     hostingCode: ownCode,
     currentPosition,
     isPaused,
+    presentationTitle,
     describeSlideCaption,
     runSlideCommand,
   });

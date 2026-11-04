@@ -8,10 +8,10 @@ export type RemoteSlideCaption = {
   stepCount: number;
 };
 export type RemoteChannelMessage =
-  | { messageKind: "position"; slideCaption: RemoteSlideCaption; isPaused: boolean }
+  | { messageKind: "position"; slideCaption: RemoteSlideCaption; presentationTitle: string; isPaused: boolean }
   | { messageKind: "command"; slideCommand: SlideCommand }
   | { messageKind: "greeting" }
-  | { messageKind: "welcome"; slideCaption: RemoteSlideCaption; isPaused: boolean }
+  | { messageKind: "welcome"; slideCaption: RemoteSlideCaption; presentationTitle: string; isPaused: boolean }
   | { messageKind: "farewell" };
 export type RemoteClientFailure = "no-host" | "no-broker";
 export type RemoteTransportHandle = {
