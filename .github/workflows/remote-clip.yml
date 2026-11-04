@@ -24,7 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # Ruleset на main пускает прямые пуши только в обход: пушим токеном владельца из секрета, пока он задан,
+      # иначе обычным GITHUB_TOKEN — тогда шаг пуша снова отклонит ruleset, а клип перезальёт владелец руками.
       - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.CLIP_PUSH_TOKEN || github.token }}
 
       - uses: actions/setup-node@v5
         with:
