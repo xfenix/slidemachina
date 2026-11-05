@@ -35,6 +35,8 @@ jobs:
 
       - name: Prepare the packages
         run: node .github/prepare-npm-packages.ts "${{ github.event.release.tag_name }}"
+        env:
+          SLIDEMACHINA_TURN_CREDENTIAL: ${{ secrets.SLIDEMACHINA_TURN_CREDENTIAL }}
 
       # The packed packages work from node_modules, as on a user's machine: a new project, its slides checked and built.
       - name: Try the packed packages

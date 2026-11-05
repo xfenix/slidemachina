@@ -37,6 +37,16 @@ jobs:
       - name: Install
         run: npm ci
 
+      # The TURN credential is a repository secret: the published demos carry it, the source keeps a
+      # placeholder. A missing secret keeps the placeholder — TURN auth fails and STUN alone carries on.
+      - name: Put the TURN credential into the remote transport
+        env:
+          turnCredential: ${{ secrets.SLIDEMACHINA_TURN_CREDENTIAL }}
+        run: |
+          if [ -n "$turnCredential" ]; then
+            sed -i "s/__SLIDEMACHINA_TURN_CREDENTIAL__/$turnCredential/g" packages/slidemachina/browser-runtime/remote-control/remote-transport.ts
+          fi
+
       # Paths in the build are relative, so the site works under /slidemachina/.
       - name: Build the examples
         run: npx slidemachina build examples --folder --out "$RUNNER_TEMP/examples-site"

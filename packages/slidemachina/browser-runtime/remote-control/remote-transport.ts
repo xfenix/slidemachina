@@ -32,14 +32,15 @@ const peerLinkIdPrefix = "slidemachina";
 const knownMessageKinds = new Set(["position", "command", "greeting", "welcome", "farewell"]);
 // Google STUN is the peerjs default; Cloudflare STUN joins it as the backup for networks that block Google.
 // The TURN relay on the author's own server carries the sessions where the NATs refuse a direct path —
-// a VPN phone against a plain laptop is the usual one; STUN alone leaves that to luck.
+// a VPN phone against a plain laptop is the usual one; STUN alone leaves that to luck. The credential is
+// a repository secret: publish and demo workflows substitute it, the source keeps the placeholder.
 const publicIceServers: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun.cloudflare.com:3478" },
   {
     urls: ["turn:xfenix.ru:3478?transport=udp", "turn:xfenix.ru:3478?transport=tcp"],
     username: "slidemachina",
-    credential: "dee4fe97100e415c78942bd6",
+    credential: "__SLIDEMACHINA_TURN_CREDENTIAL__",
   },
 ];
 

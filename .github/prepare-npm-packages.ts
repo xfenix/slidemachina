@@ -49,6 +49,19 @@ const compiledSources = [
 ];
 execFileSync(path.join(workspaceFolder, "node_modules", ".bin", "tsc"), [...compilerFlags, ...compiledSources], { cwd: workspaceFolder, stdio: "inherit" });
 
+// The TURN credential is a repository secret: the published package carries it, the source keeps a
+// placeholder, so GitHub scrapers see nothing. A missing secret keeps the placeholder — TURN auth fails
+// and the remote falls back to STUN alone.
+const turnCredentialPlaceholder = "__SLIDEMACHINA_TURN_CREDENTIAL__";
+const turnCredential = process.env.SLIDEMACHINA_TURN_CREDENTIAL;
+const remoteTransportPath = path.join(workspaceFolder, "packages/slidemachina/browser-runtime/remote-control/remote-transport.ts");
+const remoteTransportSource = readFileSync(remoteTransportPath, "utf8");
+if (turnCredential !== undefined && turnCredential !== "") {
+  writeFileSync(remoteTransportPath, remoteTransportSource.replaceAll(turnCredentialPlaceholder, turnCredential));
+} else {
+  console.warn("SLIDEMACHINA_TURN_CREDENTIAL is not set: the published remote goes without TURN");
+}
+
 updateManifest("packages/slidemachina/package.json", (packageManifest) => {
   packageManifest.version = releaseVersion;
   packageManifest.bin = Object.fromEntries(Object.entries(packageManifest.bin).map(([binName, binPath]) => [binName, toJavaScriptPath(binPath)]));

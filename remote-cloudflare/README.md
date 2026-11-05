@@ -8,7 +8,8 @@ screen meets the phone on the first link that answers. The chain lives in
 1. `0.peerjs.com` — the public PeerJS cloud, free for everyone, first in line
 2. `xfenix.ru` — the author's own server: the official `peerjs/peerjs-server` behind nginx plus a coturn
    TURN relay (port 3478) that carries the sessions no direct path reaches — a VPN phone against a plain
-   network is the usual one
+   network is the usual one. The TURN credential is a repository secret (`SLIDEMACHINA_TURN_CREDENTIAL`):
+   publish and demo workflows substitute it into the code, the source keeps a placeholder
 3. `slidemachina-broker.xfenix.workers.dev` — this Worker, the backup
 
 The connection is lazy: neither the WebRTC module nor a broker session starts until the user opens
