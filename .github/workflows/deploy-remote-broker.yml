@@ -41,4 +41,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # wrangler 4 в package.json брокера: action по умолчанию ставит wrangler 3, который конфликтует
+          # с @cloudflare/workers-types v5 и падает на npm install.
+          wranglerVersion: "4"
           workingDirectory: remote-broker
