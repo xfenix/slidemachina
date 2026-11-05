@@ -45,9 +45,10 @@ type RemoteBrokerAddress = {
 
 // The chain of signaling brokers, most preferred first. Every link speaks the PeerJS protocol, so a screen and
 // a phone meet on the first broker that answers; the public PeerJS cloud stays as the last fallback.
+// A Hugging Face Space with the official peerjs server lives in huggingface-space/ as a backup option —
+// Docker Spaces there are a paid feature now, so it is not part of the default chain.
 const fallbackBrokerChain: RemoteBrokerAddress[] = [
   { host: "slidemachina-broker.xfenix.workers.dev", port: 443, secure: true, iceServers: publicStunServers },
-  { host: "slidemachina-remote-broker.hf.space", port: 443, secure: true, iceServers: publicStunServers },
   { host: "0.peerjs.com", port: 443, secure: true, iceServers: publicStunServers },
 ];
 
