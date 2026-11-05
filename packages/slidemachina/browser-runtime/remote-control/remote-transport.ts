@@ -77,11 +77,12 @@ export function openRemoteHostingTransport(hostingCode: string, hostingEvents: R
   let isHostingClosed = false;
   let hasOpenedBrokerPeer = false;
   void loadPeerModule().then(({ default: PeerConstructor }) => {
-    // The screen registers on EVERY link of the chain at once: different networks reach different links —
-    // a phone under a VPN may only see the public cloud while a Russian laptop only sees the own server —
-    // so whichever link a phone can walk to, its host is already there.
-    for (const brokerAddress of brokerChain) {
-      if (isHostingClosed) break;
+    // The screen registers on the primary links of the chain at once: different networks reach different
+    // links — a phone under a VPN may only see the public cloud while a Russian laptop only sees the own
+    // server — so whichever link a phone can walk to, its host is already there. The LAST link is a backup:
+    // it opens only when no primary answered, so a finite-quota broker (the Cloudflare Worker) never sees
+    // traffic while the own and the public servers are alive.
+    const registerOnBroker = (brokerAddress: RemoteBrokerAddress) => {
       const createdPeer = new PeerConstructor(peerLinkIdFor(hostingCode), toPeerJsOptions(brokerAddress));
       hostingPeers.push(createdPeer);
       // A silent broker never gets an online report from its peer; its timeout just cleans the dead socket up.
@@ -108,14 +109,28 @@ export function openRemoteHostingTransport(hostingCode: string, hostingEvents: R
       createdPeer.on("disconnected", () => {
         if (!isHostingClosed) createdPeer.reconnect();
       });
+    };
+    const backupBrokerAddress = brokerChain.length > 1 ? brokerChain[brokerChain.length - 1] : undefined;
+    for (const brokerAddress of brokerChain.slice(0, backupBrokerAddress === undefined ? undefined : -1)) {
+      if (isHostingClosed) break;
+      registerOnBroker(brokerAddress);
     }
-    // Only a chain where no link answered at all is an offline report.
-    setTimeout(() => {
-      if (hasOpenedBrokerPeer || isHostingClosed) return;
-      isHostingClosed = true;
-      for (const hostingPeer of hostingPeers) hostingPeer.destroy();
-      hostingEvents.onHostingOffline();
-    }, brokerRegistrationTimeoutMs);
+    if (backupBrokerAddress !== undefined) {
+      setTimeout(() => {
+        if (hasOpenedBrokerPeer || isHostingClosed) return;
+        registerOnBroker(backupBrokerAddress);
+      }, brokerRegistrationTimeoutMs);
+    }
+    // Only a chain where no link answered at all is an offline report; with a pending backup the window doubles.
+    setTimeout(
+      () => {
+        if (hasOpenedBrokerPeer || isHostingClosed) return;
+        isHostingClosed = true;
+        for (const hostingPeer of hostingPeers) hostingPeer.destroy();
+        hostingEvents.onHostingOffline();
+      },
+      backupBrokerAddress === undefined ? brokerRegistrationTimeoutMs : brokerRegistrationTimeoutMs * 2,
+    );
   });
   return {
     sendRemoteMessage: (channelMessage) => {
@@ -183,7 +198,14 @@ export function openRemoteClientTransport(
       });
       createdPeer.on("error", (clientError: { type: string }) => {
         if (isClientClosed) return;
-        walkToNextBroker(createdPeer.open && clientError.type === "peer-unavailable");
+        if (!createdPeer.open) {
+          walkToNextBroker(false);
+          return;
+        }
+        // The host is missing on this live broker: walk on. But not from the last link — the host may be
+        // registering there right now, it opens the backup link only after its primaries stayed silent,
+        // so the answer timeout of the channel gets the final word there.
+        if (clientError.type === "peer-unavailable" && brokerIndex < brokerChain.length - 1) walkToNextBroker(true);
       });
       createdPeer.on("disconnected", () => {
         if (!isClientClosed) clientPeer?.reconnect();

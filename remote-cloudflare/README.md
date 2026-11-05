@@ -12,9 +12,9 @@ screen meets the phone on the first link that answers. The chain lives in
 3. `slidemachina-broker.xfenix.workers.dev` — this Worker, the backup
 
 The connection is lazy: neither the WebRTC module nor a broker session starts until the user opens
-the remote panel for the first time. The presenting screen registers its code on **every** link of the
-chain at once — different networks reach different links, and a phone walks the chain until the first
-live one, where its host is already waiting.
+the remote panel for the first time. The presenting screen registers on the primary links of the
+chain at once, and opens the last link — the backup — only when no primary answered; a phone walks
+the chain until the first live link, where its host is already waiting.
 
 For debugging, the chain can be overridden with a URL parameter:
 `?remote-broker=host:port,host:port` (comma-separated; `localhost` and `127.0.0.1` get plain `ws`
