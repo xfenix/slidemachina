@@ -1,6 +1,7 @@
 # Any push to main that touches the Space folder syncs it to the Hugging Face Space.
 # Secret: HUGGINGFACE_TOKEN (type "write"); the Space lives at
 # https://huggingface.co/spaces/xfenix/slidemachina-remote-broker
+# Until the secret is set, the push step skips and the run stays green.
 name: Sync the Hugging Face Space
 
 on:
@@ -15,22 +16,31 @@ concurrency:
   group: sync-huggingface-space
   cancel-in-progress: true
 
-# Until the secret is set, the workflow skips instead of failing: the job if-guard reads this.
-env:
-  huggingfaceToken: ${{ secrets.HUGGINGFACE_TOKEN }}
-
 jobs:
   huggingface-space:
-    if: ${{ env.huggingfaceToken != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Check the Hugging Face token is set
+        id: huggingfaceSecret
+        env:
+          huggingfaceToken: ${{ secrets.HUGGINGFACE_TOKEN }}
+        run: |
+          if [ -n "$huggingfaceToken" ]; then
+            echo "isSet=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Secret HUGGINGFACE_TOKEN is not set — skipping the sync."
+            echo "isSet=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v5
+        if: steps.huggingfaceSecret.outputs.isSet == 'true'
         with:
           # git subtree needs the full history to split the folder into a branch.
           fetch-depth: 0
 
       - name: Push the Space folder to Hugging Face
+        if: steps.huggingfaceSecret.outputs.isSet == 'true'
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
