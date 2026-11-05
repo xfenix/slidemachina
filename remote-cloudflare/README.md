@@ -5,10 +5,11 @@ walks a **chain of signaling brokers** — every link speaks the PeerJS protocol
 screen meets the phone on the first link that answers. The chain lives in
 `packages/slidemachina/browser-runtime/remote-control/remote-transport.ts`:
 
-1. `xfenix.ru` — the author's own server (official `peerjs/peerjs-server` behind nginx, lives in the
-   xfenix.ru repository)
-2. `slidemachina-broker.xfenix.workers.dev` — this Worker
-3. `0.peerjs.com` — the public PeerJS cloud, the fallback for networks outside Russia
+1. `0.peerjs.com` — the public PeerJS cloud, free for everyone, first in line
+2. `xfenix.ru` — the author's own server: the official `peerjs/peerjs-server` behind nginx plus a coturn
+   TURN relay (port 3478) that carries the sessions no direct path reaches — a VPN phone against a plain
+   network is the usual one
+3. `slidemachina-broker.xfenix.workers.dev` — this Worker, the backup
 
 The connection is lazy: neither the WebRTC module nor a broker session starts until the user opens
 the remote panel for the first time. The presenting screen registers its code on **every** link of the

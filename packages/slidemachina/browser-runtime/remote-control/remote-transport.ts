@@ -31,9 +31,16 @@ const brokerRegistrationTimeoutMs = 4000;
 const peerLinkIdPrefix = "slidemachina";
 const knownMessageKinds = new Set(["position", "command", "greeting", "welcome", "farewell"]);
 // Google STUN is the peerjs default; Cloudflare STUN joins it as the backup for networks that block Google.
+// The TURN relay on the author's own server carries the sessions where the NATs refuse a direct path —
+// a VPN phone against a plain laptop is the usual one; STUN alone leaves that to luck.
 const publicIceServers: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun.cloudflare.com:3478" },
+  {
+    urls: ["turn:xfenix.ru:3478?transport=udp", "turn:xfenix.ru:3478?transport=tcp"],
+    username: "slidemachina",
+    credential: "dee4fe97100e415c78942bd6",
+  },
 ];
 
 type RemoteBrokerAddress = {
@@ -43,12 +50,14 @@ type RemoteBrokerAddress = {
   iceServers: RTCIceServer[];
 };
 
-// The chain of signaling brokers, most preferred first. Every link speaks the PeerJS protocol, so a screen and
-// a phone meet on the first broker that answers; the public PeerJS cloud stays as the last fallback.
+// The chain of signaling brokers, most preferred first. Every link speaks the PeerJS protocol, and the
+// presenting screen registers on EVERY link at once — a phone walks the chain and meets its host on the
+// first link that answers for both of them. The free public cloud goes first, the own server second,
+// the Cloudflare Worker stays as the backup.
 const fallbackBrokerChain: RemoteBrokerAddress[] = [
+  { host: "0.peerjs.com", port: 443, secure: true, iceServers: publicIceServers },
   { host: "xfenix.ru", port: 443, secure: true, iceServers: publicIceServers },
   { host: "slidemachina-broker.xfenix.workers.dev", port: 443, secure: true, iceServers: publicIceServers },
-  { host: "0.peerjs.com", port: 443, secure: true, iceServers: publicIceServers },
 ];
 
 // The presenting screen and the phone share one broker chain; ?remote-broker=host:port,host:port overrides it
@@ -120,9 +129,9 @@ export function openRemoteHostingTransport(hostingCode: string, hostingEvents: R
 }
 
 // A phone or a second laptop joins the link of the target code and drives the window that hosts it. Outgoing
-// messages wait in a queue until the channel opens, so the greeting can be sent right away. A silent broker is
-// passed over for the next chain link; a reachable broker without an answer means a wrong code or an offline
-// screen and is reported by the answer timeout below.
+// messages wait in a queue until the channel opens, so the greeting can be sent right away. The client walks
+// the chain past dead links and past live links without the host; a wrong code or an offline screen surfaces
+// through the answer timeout of the channel above.
 export function openRemoteClientTransport(
   targetCode: string,
   receiveChannelMessage: (channelMessage: RemoteChannelMessage) => void,
@@ -134,23 +143,25 @@ export function openRemoteClientTransport(
   const pendingMessages: RemoteChannelMessage[] = [];
   let isClientClosed = false;
   void loadPeerModule().then(({ default: PeerConstructor }) => {
-    // Registration walks the broker chain link by link; only a failure of the last link means no broker at all.
-    const registerClientPeer = (brokerIndex: number) => {
+    // Registration walks the broker chain link by link. A pre-open failure means a dead link; a
+    // "peer-unavailable" after registration means the broker is alive but the host sits on another link —
+    // both walk on. Only the failure of the last link reports anything: no broker at all, or no host anywhere.
+    const registerClientPeer = (brokerIndex: number, hasMissedHost = false) => {
       if (isClientClosed) return;
       const brokerAddress = brokerChain[brokerIndex];
       if (brokerAddress === undefined) {
-        reportClientFailure("no-broker");
+        reportClientFailure(hasMissedHost ? "no-host" : "no-broker");
         return;
       }
       const createdPeer = new PeerConstructor(toPeerJsOptions(brokerAddress));
       clientPeer = createdPeer;
-      const failOverToNextBroker = () => {
-        if (createdPeer.open || isClientClosed) return;
+      const walkToNextBroker = (isMissingHost: boolean) => {
+        if (isClientClosed) return;
         clearTimeout(registrationTimeout);
         createdPeer.destroy();
-        registerClientPeer(brokerIndex + 1);
+        registerClientPeer(brokerIndex + 1, hasMissedHost || isMissingHost);
       };
-      const registrationTimeout = setTimeout(failOverToNextBroker, brokerRegistrationTimeoutMs);
+      const registrationTimeout = setTimeout(() => walkToNextBroker(false), brokerRegistrationTimeoutMs);
       createdPeer.on("open", () => {
         clearTimeout(registrationTimeout);
         if (isClientClosed) return;
@@ -170,7 +181,10 @@ export function openRemoteClientTransport(
           reportClientFailure("host-lost");
         });
       });
-      createdPeer.on("error", failOverToNextBroker);
+      createdPeer.on("error", (clientError: { type: string }) => {
+        if (isClientClosed) return;
+        walkToNextBroker(createdPeer.open && clientError.type === "peer-unavailable");
+      });
       createdPeer.on("disconnected", () => {
         if (!isClientClosed) clientPeer?.reconnect();
       });
