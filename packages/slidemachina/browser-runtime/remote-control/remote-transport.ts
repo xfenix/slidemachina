@@ -31,7 +31,7 @@ const brokerRegistrationTimeoutMs = 4000;
 const peerLinkIdPrefix = "slidemachina";
 const knownMessageKinds = new Set(["position", "command", "greeting", "welcome", "farewell"]);
 // Google STUN is the peerjs default; Cloudflare STUN joins it as the backup for networks that block Google.
-const publicStunServers: RTCIceServer[] = [
+const publicIceServers: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun.cloudflare.com:3478" },
 ];
@@ -45,11 +45,9 @@ type RemoteBrokerAddress = {
 
 // The chain of signaling brokers, most preferred first. Every link speaks the PeerJS protocol, so a screen and
 // a phone meet on the first broker that answers; the public PeerJS cloud stays as the last fallback.
-// A Hugging Face Space with the official peerjs server lives in huggingface-space/ as a backup option —
-// Docker Spaces there are a paid feature now, so it is not part of the default chain.
 const fallbackBrokerChain: RemoteBrokerAddress[] = [
-  { host: "slidemachina-broker.xfenix.workers.dev", port: 443, secure: true, iceServers: publicStunServers },
-  { host: "0.peerjs.com", port: 443, secure: true, iceServers: publicStunServers },
+  { host: "slidemachina-broker.xfenix.workers.dev", port: 443, secure: true, iceServers: publicIceServers },
+  { host: "0.peerjs.com", port: 443, secure: true, iceServers: publicIceServers },
 ];
 
 // The presenting screen and the phone share one broker chain; ?remote-broker=host:port,host:port overrides it
@@ -194,7 +192,7 @@ function readSingleBrokerOverride(overrideEntry: string): RemoteBrokerAddress {
   const isLocalBroker = overrideHost === "localhost" || overrideHost === "127.0.0.1";
   // A local broker means a local test: host candidates alone connect two same-machine tabs instantly,
   // and no public STUN server is polled.
-  return { host: overrideHost, port: Number(overridePort), secure: !isLocalBroker, iceServers: isLocalBroker ? [] : publicStunServers };
+  return { host: overrideHost, port: Number(overridePort), secure: !isLocalBroker, iceServers: isLocalBroker ? [] : publicIceServers };
 }
 
 function toPeerJsOptions(brokerAddress: RemoteBrokerAddress): PeerJSOption {
