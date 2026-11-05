@@ -37,6 +37,6 @@
     "builtin": true
   },
   "ignorePatterns": [
-    "remote-broker/**"
+    "remote-cloudflare/**"
   ]
 }
