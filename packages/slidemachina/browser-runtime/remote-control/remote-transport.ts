@@ -25,8 +25,8 @@ export type RemoteHostingEvents = {
 };
 
 const brokerQueryParameter = "remote-broker";
-// A broker either answers in these four seconds or is not reachable: the client moves on to the next one,
-// and the panel says the remote needs the internet only after the whole chain has failed.
+// A broker either answers in these four seconds or counts as dead: the hosting screen reports offline only
+// when no link of the chain answered, a joining phone walks the links until the first live one.
 const brokerRegistrationTimeoutMs = 4000;
 const peerLinkIdPrefix = "slidemachina";
 const knownMessageKinds = new Set(["position", "command", "greeting", "welcome", "farewell"]);
@@ -63,35 +63,31 @@ export function readRemoteBrokerChain(): RemoteBrokerAddress[] {
 // like a short password. One transport for all remotes: messages fan out to every open connection.
 export function openRemoteHostingTransport(hostingCode: string, hostingEvents: RemoteHostingEvents): RemoteTransportHandle {
   const brokerChain = readRemoteBrokerChain();
-  let hostingPeer: Peer | undefined;
+  const hostingPeers: Peer[] = [];
   const openConnections = new Set<DataConnection>();
   let isHostingClosed = false;
+  let hasOpenedBrokerPeer = false;
   void loadPeerModule().then(({ default: PeerConstructor }) => {
-    // The code registers on the first broker that answers; a dead or blocked broker costs the registration
-    // timeout and moves the registration to the next link of the chain.
-    const registerHostingPeer = (brokerIndex: number) => {
-      if (isHostingClosed) return;
-      const brokerAddress = brokerChain[brokerIndex];
-      if (brokerAddress === undefined) {
-        isHostingClosed = true;
-        hostingEvents.onHostingOffline();
-        return;
-      }
+    // The screen registers on EVERY link of the chain at once: different networks reach different links —
+    // a phone under a VPN may only see the public cloud while a Russian laptop only sees the own server —
+    // so whichever link a phone can walk to, its host is already there.
+    for (const brokerAddress of brokerChain) {
+      if (isHostingClosed) break;
       const createdPeer = new PeerConstructor(peerLinkIdFor(hostingCode), toPeerJsOptions(brokerAddress));
-      hostingPeer = createdPeer;
-      const failOverToNextBroker = () => {
-        if (createdPeer.open || isHostingClosed) return;
-        clearTimeout(registrationTimeout);
-        createdPeer.destroy();
-        registerHostingPeer(brokerIndex + 1);
-      };
-      const registrationTimeout = setTimeout(failOverToNextBroker, brokerRegistrationTimeoutMs);
+      hostingPeers.push(createdPeer);
+      // A silent broker never gets an online report from its peer; its timeout just cleans the dead socket up.
+      const registrationTimeout = setTimeout(() => createdPeer.destroy(), brokerRegistrationTimeoutMs);
       createdPeer.on("open", () => {
         clearTimeout(registrationTimeout);
         if (isHostingClosed) return;
+        hasOpenedBrokerPeer = true;
         hostingEvents.onHostingOnline();
       });
-      createdPeer.on("error", failOverToNextBroker);
+      createdPeer.on("error", () => {
+        if (createdPeer.open || isHostingClosed) return;
+        clearTimeout(registrationTimeout);
+        createdPeer.destroy();
+      });
       createdPeer.on("connection", (incomingConnection: DataConnection) => {
         incomingConnection.on("data", (rawMessage: unknown) => {
           const channelMessage = parseRemoteMessage(rawMessage);
@@ -101,10 +97,16 @@ export function openRemoteHostingTransport(hostingCode: string, hostingEvents: R
         incomingConnection.on("close", () => openConnections.delete(incomingConnection));
       });
       createdPeer.on("disconnected", () => {
-        if (!isHostingClosed) hostingPeer?.reconnect();
+        if (!isHostingClosed) createdPeer.reconnect();
       });
-    };
-    registerHostingPeer(0);
+    }
+    // Only a chain where no link answered at all is an offline report.
+    setTimeout(() => {
+      if (hasOpenedBrokerPeer || isHostingClosed) return;
+      isHostingClosed = true;
+      for (const hostingPeer of hostingPeers) hostingPeer.destroy();
+      hostingEvents.onHostingOffline();
+    }, brokerRegistrationTimeoutMs);
   });
   return {
     sendRemoteMessage: (channelMessage) => {
@@ -112,7 +114,7 @@ export function openRemoteHostingTransport(hostingCode: string, hostingEvents: R
     },
     closeRemoteTransport: () => {
       isHostingClosed = true;
-      hostingPeer?.destroy();
+      for (const hostingPeer of hostingPeers) hostingPeer.destroy();
     },
   };
 }

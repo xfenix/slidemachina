@@ -11,7 +11,9 @@ screen meets the phone on the first link that answers. The chain lives in
 3. `0.peerjs.com` — the public PeerJS cloud, the fallback for networks outside Russia
 
 The connection is lazy: neither the WebRTC module nor a broker session starts until the user opens
-the remote panel for the first time.
+the remote panel for the first time. The presenting screen registers its code on **every** link of the
+chain at once — different networks reach different links, and a phone walks the chain until the first
+live one, where its host is already waiting.
 
 For debugging, the chain can be overridden with a URL parameter:
 `?remote-broker=host:port,host:port` (comma-separated; `localhost` and `127.0.0.1` get plain `ws`
