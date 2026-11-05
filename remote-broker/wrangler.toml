@@ -10,4 +10,4 @@ class_name = "RemoteBrokerRoom"
 
 [[migrations]]
 tag = "v1"
-new_classes = ["RemoteBrokerRoom"]
+new_sqlite_classes = ["RemoteBrokerRoom"]
