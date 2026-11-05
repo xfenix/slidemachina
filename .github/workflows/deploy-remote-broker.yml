@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
     paths:
-      - remote-broker/**
+      - remote/cloudflare/**
       - .github/workflows/deploy-remote-broker.yml
   workflow_dispatch:
 
@@ -44,4 +44,4 @@ jobs:
           # wrangler 4 в package.json брокера: action по умолчанию ставит wrangler 3, который конфликтует
           # с @cloudflare/workers-types v5 и падает на npm install.
           wranglerVersion: "4"
-          workingDirectory: remote-broker
+          workingDirectory: remote/cloudflare

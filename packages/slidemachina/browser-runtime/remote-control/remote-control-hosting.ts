@@ -29,6 +29,7 @@ export function useRemoteControlHosting({
   countSlideSteps,
 }: RemoteControlHostingOptions) {
   const [isRemoteAccessEnabled, setIsRemoteAccessEnabled] = useState(true);
+  const [hasOpenedRemotePanel, setHasOpenedRemotePanel] = useState(false);
   const [ownCode, setOwnCode] = useState(readStoredHostingCode);
   const [panelCode, setPanelCode] = useState(ownCode);
   const [hostingEpoch, setHostingEpoch] = useState(0);
@@ -47,8 +48,10 @@ export function useRemoteControlHosting({
   // a slide index, and a number past the end lands on the last slide like the typed numbers on the keyboard.
   const runHostedSlideCommand = (slideCommand: SlideCommand) =>
     runSlideCommand(typeof slideCommand === "number" ? findShownSlide(slideNumbering, slideCommand) : slideCommand);
+  // The broker session and the WebRTC module start only after the user opened the panel for the first time:
+  // a deck that never shows the remote costs no broker traffic at all.
   const { connectedRemoteCount, hostingReachability } = useRemoteHosting({
-    isHostingAvailable: isHostingAvailable && isRemoteAccessEnabled,
+    isHostingAvailable: isHostingAvailable && isRemoteAccessEnabled && hasOpenedRemotePanel,
     hostingCode: ownCode,
     hostingEpoch,
     currentPosition,
@@ -80,6 +83,7 @@ export function useRemoteControlHosting({
     isRemoteMode,
     isRemoteAccessEnabled,
     changeRemoteAccessEnabled,
+    reportRemotePanelOpened: () => setHasOpenedRemotePanel(true),
     disconnectConnectedRemotes,
     hostingLink,
     typableJoinLink,

@@ -46,6 +46,7 @@ type RemoteBrokerAddress = {
 // The chain of signaling brokers, most preferred first. Every link speaks the PeerJS protocol, so a screen and
 // a phone meet on the first broker that answers; the public PeerJS cloud stays as the last fallback.
 const fallbackBrokerChain: RemoteBrokerAddress[] = [
+  { host: "xfenix.ru", port: 443, secure: true, iceServers: publicIceServers },
   { host: "slidemachina-broker.xfenix.workers.dev", port: 443, secure: true, iceServers: publicIceServers },
   { host: "0.peerjs.com", port: 443, secure: true, iceServers: publicIceServers },
 ];

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { drawQRCode } from "../content-blocks/qr-block/qr-module-shapes.ts";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
 import { usePopoverClosing } from "../presentation-interface/popover-closing.ts";
@@ -13,6 +13,7 @@ type RemotePanelProperties = {
   isRemoteMode: boolean;
   isRemoteAccessEnabled: boolean;
   changeRemoteAccessEnabled: (isEnabled: boolean) => void;
+  reportRemotePanelOpened: () => void;
   disconnectConnectedRemotes: () => void;
   hostingLink: string;
   typableJoinLink: string;
@@ -30,6 +31,7 @@ export function RemoteControlPanel({
   isRemoteMode,
   isRemoteAccessEnabled,
   changeRemoteAccessEnabled,
+  reportRemotePanelOpened,
   disconnectConnectedRemotes,
   hostingLink,
   typableJoinLink,
@@ -42,6 +44,9 @@ export function RemoteControlPanel({
   const [isPanelOpen, setPanelOpen] = useState(false);
   const panelAnchorReference = useRef<HTMLDivElement>(null);
   usePopoverClosing(isPanelOpen, panelAnchorReference, () => setPanelOpen(false));
+  useEffect(() => {
+    if (isPanelOpen) reportRemotePanelOpened();
+  }, [isPanelOpen, reportRemotePanelOpened]);
   const joinQrDrawing = useMemo(() => drawQRCode(hostingLink, "M", false), [hostingLink]);
 
   return (
