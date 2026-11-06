@@ -16,7 +16,7 @@ type ExportedMotion = {
   totalFrames: number;
   states: Array<{ slideHeading: string }>;
   frames: Array<{ assetName: string; firstFrame: number; frameCount: number; frameKind: string; stateIndex: number }>;
-  transitions: Array<{ frameCount: number; animationNames: string[] }>;
+  transitions: Array<{ stateIndex: number; frameCount: number; animationNames: string[] }>;
 };
 
 async function seekComposition(compositionPage: Page, currentSeconds: number) {
@@ -62,9 +62,12 @@ export default <Presentation aspectRatio="4:3" transition="morph" progress={fals
     const exportedMotion = JSON.parse(await readFile(path.join(compositionFolder, "motion.json"), "utf8")) as ExportedMotion;
     expect(exportedMotion.totalFrames).toBe(expectedFrameCount);
     expect(exportedMotion.states.map((exportedState) => exportedState.slideHeading.replace(/\s+/g, " "))).toEqual(["Test your handler.", "Test your handler.", "Test your handler. In memory."]);
-    expect(exportedMotion.transitions).toHaveLength(1);
-    expect(exportedMotion.transitions[0]!.frameCount).toBe(6);
-    const animationNames = exportedMotion.transitions[0]!.animationNames.join(" ");
+    expect(exportedMotion.transitions).toHaveLength(2);
+    const stepTransition = exportedMotion.transitions.find((exportedTransition) => exportedTransition.stateIndex === 1)!;
+    expect(stepTransition.frameCount).toBe(6);
+    const slideTransition = exportedMotion.transitions.find((exportedTransition) => exportedTransition.stateIndex === 2)!;
+    expect(slideTransition.frameCount).toBe(6);
+    const animationNames = slideTransition.animationNames.join(" ");
     expect(animationNames).toContain("code-piece");
     expect(animationNames).toContain("morph-word");
     expect(animationNames).toMatch(/morph-\d/);
@@ -125,6 +128,54 @@ export default <Presentation><Slide hidden><h1>Hidden first</h1></Slide><Slide><
     await expect(compositionRoot).not.toHaveAttribute("data-fps");
     await seekComposition(page, 1);
     await expect(page.locator("img.clip:not([hidden])")).toHaveAttribute("alt", "Visible last");
+  } finally {
+    await rm(repositoryFolder, { recursive: true, force: true });
+    await rm(outputFolder, { recursive: true, force: true });
+  }
+});
+
+test("HyperFrames native motion: same-slide step entrances are recorded, timed by the incoming state", async ({ page }) => {
+  test.setTimeout(180_000);
+  const repositoryFolder = await mkdtemp(path.join(examplesFolder, "hyperframes-steps-"));
+  const projectFolder = path.join(repositoryFolder, "step-talk");
+  const outputFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-steps-"));
+  const compositionFolder = path.join(outputFolder, "step-talk-hyperframes");
+  const buildArguments = [commandLineScript, "build", projectFolder, "--hyperframes", "--out", outputFolder];
+  try {
+    await mkdir(projectFolder);
+    await writeFile(path.join(projectFolder, "index.tsx"), `
+import { Presentation, Slide } from "slidemachina";
+export default <Presentation title="Step export" lang="en">
+  <Slide>
+    <h2>Publish a message</h2>
+    <ul data-steps data-step-effect="rise">
+      <li>Validate the payload</li>
+      <li>Publish to the broker</li>
+    </ul>
+  </Slide>
+</Presentation>;
+`);
+    await writeFile(path.join(projectFolder, "hyperframes.json"), JSON.stringify({ durations: [1, 1, 1], motion: "native", fps: 30, transitionDuration: 0.4 }));
+    await runCommand(process.execPath, buildArguments).catch((commandError) => { throw new Error(`${commandError.stdout}\n${commandError.stderr}`); });
+    const exportedMotion = JSON.parse(await readFile(path.join(compositionFolder, "motion.json"), "utf8")) as ExportedMotion;
+    expect(exportedMotion.totalFrames).toBe(90);
+    expect(exportedMotion.transitions.map((exportedTransition) => [exportedTransition.stateIndex, exportedTransition.frameCount])).toEqual([[1, 12], [2, 12]]);
+    const holdFrames = exportedMotion.frames.filter((exportedFrame) => exportedFrame.frameKind === "hold");
+    expect(holdFrames.map((holdFrame) => [holdFrame.firstFrame, holdFrame.frameCount, holdFrame.stateIndex])).toEqual([[0, 30, 0], [42, 18, 1], [72, 18, 2]]);
+    const transitionFrames = exportedMotion.frames.filter((exportedFrame) => exportedFrame.frameKind === "transition");
+    expect(transitionFrames.map((transitionFrame) => transitionFrame.firstFrame)).toEqual([...Array(12).keys()].map((frameOffset) => frameOffset + 30).concat([...Array(12).keys()].map((frameOffset) => frameOffset + 60)));
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(pathToFileURL(path.join(compositionFolder, "index.html")).href);
+    await page.evaluate(() => Promise.all([...document.images].map((frameImage) => frameImage.decode())));
+    // The entrance frames around the step boundary differ from each other and from the hold that follows; seeking stays reversible.
+    const entranceTimestamps = [1.0, 1.2, 1.4, 1.8];
+    const entrancePictures = [];
+    for (const currentSeconds of entranceTimestamps) entrancePictures.push(await seekComposition(page, currentSeconds));
+    expect(new Set(entrancePictures.map((entrancePicture) => entrancePicture.toString("base64"))).size).toBeGreaterThanOrEqual(3);
+    for (let timestampIndex = entranceTimestamps.length - 1; timestampIndex >= 0; timestampIndex -= 1) {
+      const reversePicture = await seekComposition(page, entranceTimestamps[timestampIndex]!);
+      expect(reversePicture.equals(entrancePictures[timestampIndex]!)).toBe(true);
+    }
   } finally {
     await rm(repositoryFolder, { recursive: true, force: true });
     await rm(outputFolder, { recursive: true, force: true });
