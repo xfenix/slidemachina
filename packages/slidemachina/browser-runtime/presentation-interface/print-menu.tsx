@@ -40,34 +40,34 @@ export function PrintMenu({ languageCode, printsSteps, choosePrintedSteps, print
         <PrinterIcon />
       </ToolbarButton>
       {isMenuOpen && (
-        <div data-print-menu role="menu" aria-label={interfaceTexts.printButton}>
+        <div data-toolbar-menu role="menu" aria-label={interfaceTexts.printButton}>
           <button type="button" role="menuitem" onClick={runAndClose(printPresentation)}>
             <PrinterIcon />
-            <span data-print-option-title>{interfaceTexts.printNowTitle}</span>
-            <kbd data-print-option-shortcut>{printShortcut}</kbd>
+            <span data-menu-option-title>{interfaceTexts.printNowTitle}</span>
+            <kbd data-menu-option-shortcut>{printShortcut}</kbd>
           </button>
           <button type="button" role="menuitem" onClick={runAndClose(openPrintView)}>
             <PageSheetIcon />
-            <span data-print-option-text>
-              <span data-print-option-title>{interfaceTexts.printViewTitle}</span>
-              <span data-print-option-hint>{interfaceTexts.printViewHint}</span>
+            <span data-menu-option-text>
+              <span data-menu-option-title>{interfaceTexts.printViewTitle}</span>
+              <span data-menu-option-hint>{interfaceTexts.printViewHint}</span>
             </span>
           </button>
-          <span data-print-menu-divider />
+          <span data-toolbar-menu-divider />
           <button type="button" role="menuitemcheckbox" aria-checked={printsSteps} onClick={() => choosePrintedSteps(!printsSteps)}>
             <StackedPagesIcon />
-            <span data-print-option-text>
-              <span data-print-option-title>{interfaceTexts.printStepsTitle}</span>
-              <span data-print-option-hint>{interfaceTexts.printStepsHint}</span>
+            <span data-menu-option-text>
+              <span data-menu-option-title>{interfaceTexts.printStepsTitle}</span>
+              <span data-menu-option-hint>{interfaceTexts.printStepsHint}</span>
             </span>
             <span data-print-switch />
           </button>
           {printsHidden !== undefined && (
             <button type="button" role="menuitemcheckbox" aria-checked={printsHidden} onClick={() => chooseHiddenSlides(!printsHidden)}>
               <HiddenSlideIcon />
-              <span data-print-option-text>
-                <span data-print-option-title>{interfaceTexts.printHiddenTitle}</span>
-                <span data-print-option-hint>{interfaceTexts.printHiddenHint}</span>
+              <span data-menu-option-text>
+                <span data-menu-option-title>{interfaceTexts.printHiddenTitle}</span>
+                <span data-menu-option-hint>{interfaceTexts.printHiddenHint}</span>
               </span>
               <span data-print-switch />
             </button>

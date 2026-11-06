@@ -9,5 +9,7 @@ export const printViewStepsValue = "steps";
 export const printViewHiddenParameter = "hidden";
 export const printViewNoHiddenValue = "no";
 export const memeSearchEndpoint = "/@slidemachina/meme-search";
+// "?presentation=/talk&variant=pdf" builds the presentation of this dev server and answers with the file, ready to save.
+export const presentationExportEndpoint = "/@slidemachina/export";
 // Engine links carry it: a presentation with its own favicon removes them.
 export const engineFaviconAttribute = "data-engine-favicon";

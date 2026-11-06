@@ -6,6 +6,7 @@ import { EditorSwitch } from "../source-editor/editor-switch.tsx";
 import { MemePanelSwitch } from "../source-editor/meme-panel-switch.tsx";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
 import { PresentationToolbar, useToolbarHiding } from "../presentation-interface/presentation-toolbar.tsx";
+import { ExportMenu } from "../presentation-interface/export-menu.tsx";
 import { PrintMenu } from "../presentation-interface/print-menu.tsx";
 import { PrintViewBar } from "../presentation-interface/print-view-bar.tsx";
 import { PrintPages } from "../slide-printing/print-pages.tsx";
@@ -322,6 +323,7 @@ export function Presentation({
           {import.meta.env.DEV && (
             <span data-toolbar-dev>
               <span data-toolbar-divider />
+              <ExportMenu languageCode={lang} />
               <MinimapSwitch languageCode={lang} isMinimapShown={isMinimapShown} toggleMinimap={toggleMinimap} />
               <EditorSwitch languageCode={lang} />
               <MemePanelSwitch languageCode={lang} />
