@@ -11,6 +11,14 @@ Today the talks are made with reveal.js 4:
 
 They show which features are needed in practice: section slides, lists with fragments, full-slide pictures, code highlighting, speaker notes, breadcrumbs, printing to PDF.
 
+## Layout
+
+A strict grid is our strong side: every presentation is built on one visible grid, and every element snaps to it. No exceptions.
+
+The grid is the same on every slide: side margins, a header line for the slide tag and top stickers, a footer line for breadcrumbs and the slide number, and content columns between them. An element stands with its edges on grid lines; it never floats near a line. Rotations stay with stickers and decorations, but their position is still a grid point. Breadcrumbs and the slide number are part of the grid: they stand on the footer line of their slide, not wherever the theme's defaults put them.
+
+When a slide looks off by a pixel, measure it against the grid in a browser and fix the coordinates — do not nudge by eye.
+
 ## Code
 
 The rules of this section and of "Tests" are mandatory. No exceptions.

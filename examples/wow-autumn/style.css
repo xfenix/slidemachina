@@ -106,6 +106,24 @@
   box-shadow: 0.35cqw 0.35cqw 0 0 var(--autumn-shadow-color);
 }
 
+/* Футер стоит на той же сетке, что и шапка: крошки слева, номер справа, линия 6cqh от низа. */
+[data-slide] [data-breadcrumbs],
+[data-slide] [data-slide-number] {
+  bottom: 6cqh;
+  font-family: var(--font-code);
+  font-size: 1.25cqw;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+[data-slide] [data-breadcrumbs] {
+  left: 8cqw;
+}
+
+[data-slide] [data-slide-number] {
+  right: 8cqw;
+}
+
 /* Наклейка: бумажный ярлык с поворотом и жёсткой тенью. */
 .autumn-sticker {
   position: absolute;
@@ -122,6 +140,11 @@
   border-radius: 0.7cqw;
   padding: 0.5em 0.85em;
   box-shadow: var(--autumn-shadow);
+}
+
+/* Пока анимация не играет (соседние слайды, печать) наклейка держит свой поворот через transform:
+   на текущем слайде поворот даёт только анимация, и двойного вращения не выходит. */
+[data-slide]:not([data-current]) .autumn-sticker {
   transform: rotate(var(--autumn-tilt, -2deg));
 }
 
@@ -193,11 +216,11 @@
   transform-origin: center bottom;
 }
 
-/* Обложка: слово-афиша с жёсткой тенью. */
+/* Обложка: слово-афиша с жёсткой тенью. Левый край сдвинут на 6.4: у «К» толстая левая подшка, без сдвига слово висит правее линии 8. */
 .autumn-cover-title {
   position: absolute;
-  left: 8cqw;
-  top: 16cqh;
+  left: 6.65cqw;
+  top: 14cqh;
   margin: 0;
   font-size: 21cqw;
   font-weight: 700;
@@ -217,7 +240,7 @@
 .autumn-cover-lead {
   position: absolute;
   left: 8cqw;
-  top: 48cqh;
+  top: 50cqh;
   width: 42cqw;
   font-size: 2.4cqw;
   font-weight: 500;
@@ -274,7 +297,7 @@
   display: flex;
   align-items: center;
   gap: 1.1cqw;
-  width: 30cqw;
+  width: 32cqw;
   box-sizing: border-box;
   background: var(--autumn-cream);
   border: var(--autumn-border);
@@ -311,6 +334,7 @@
   font-family: var(--font-code);
   font-size: 1.4cqw;
   font-weight: 700;
+  white-space: nowrap;
   background: #f6efe1;
   border: 0.2cqw solid #33261a;
   border-radius: 0.5cqw;
@@ -541,7 +565,9 @@
   font-family: var(--font-heading);
   font-size: 6cqw;
   font-weight: 700;
+  line-height: 1;
   color: #33261a;
+  translate: -50% -50%;
 }
 
 /* Скорость: гигантская цифра и две полосы. */
@@ -568,7 +594,7 @@
 .autumn-speed-row {
   position: absolute;
   z-index: 5;
-  width: 42cqw;
+  width: 44cqw;
 }
 
 .autumn-speed-row-label {
@@ -599,7 +625,7 @@
 .autumn-drawer {
   position: absolute;
   z-index: 5;
-  width: 22cqw;
+  width: 24cqw;
   box-sizing: border-box;
   background: var(--autumn-cream);
   border: var(--autumn-border);
@@ -638,7 +664,7 @@
 .autumn-flow-arrow {
   position: absolute;
   z-index: 4;
-  width: 5.5cqw;
+  width: 5cqw;
   height: 4cqh;
 }
 
@@ -692,7 +718,7 @@
 .autumn-file {
   position: absolute;
   z-index: 5;
-  width: 34cqw;
+  width: 32cqw;
   height: 46cqh;
   box-sizing: border-box;
   background: var(--autumn-manila);
@@ -763,11 +789,11 @@
 /* Четыре недели: столбики-градусник. */
 .autumn-bars {
   position: absolute;
-  left: 24cqw;
-  top: 20cqh;
+  left: 26cqw;
+  top: 24cqh;
   display: flex;
   align-items: flex-end;
-  gap: 6cqw;
+  gap: 4cqw;
   height: 62cqh;
 }
 
@@ -815,6 +841,7 @@
   display: flex;
   flex-direction: row !important;
   width: 40cqw;
+  height: 26cqh;
   background: var(--autumn-cream) !important;
   border: var(--autumn-border) !important;
   border-radius: 1cqw !important;
@@ -842,6 +869,9 @@
 
 .autumn-ticket-body {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 2.2cqw 2.4cqw;
 }
 
@@ -1008,10 +1038,14 @@
   color: var(--muted-color);
 }
 
-/* Листопад: внешний span падает, вложенный качается и крутится. */
+/* Листопад: внешний span падает, вложенный качается и крутится.
+   Слой развёрнут на весь слайд, а не на колонку контента: листья долетают до низа. */
 .autumn-leaf-layer {
   position: absolute;
-  inset: 0;
+  top: calc(var(--content-top) * -1);
+  left: calc(var(--frame-padding) * -1);
+  width: calc(var(--canvas-width) * 1px);
+  height: calc(var(--canvas-height) * 1px);
   z-index: 4;
   overflow: hidden;
   pointer-events: none;
@@ -1087,7 +1121,7 @@
   position: absolute;
   left: 8cqw;
   top: 36cqh;
-  width: 30cqw;
+  width: 32cqw;
   height: 44cqh;
   display: flex;
   flex-direction: column;
@@ -1119,5 +1153,9 @@
 
   [data-slide] [class*="autumn-anim"] {
     animation: none !important;
+  }
+
+  [data-slide] .autumn-sticker {
+    transform: rotate(var(--autumn-tilt, -2deg));
   }
 }
