@@ -83,6 +83,17 @@
     background: rgb(255 255 255 / 0.18);
   }
 
+  /* The wrapper keeps the buttons direct flex items; on a narrow screen the whole group hides, so the capsule fits. */
+  [data-toolbar-dev] {
+    display: contents;
+  }
+
+  @media (max-width: 520px) {
+    [data-toolbar-dev] {
+      display: none;
+    }
+  }
+
   [data-toolbar] {
     transition: opacity 0.4s;
   }

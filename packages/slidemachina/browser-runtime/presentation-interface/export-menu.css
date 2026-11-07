@@ -1,0 +1,18 @@
+@layer slidemachina {
+  /* A running export turns the toolbar button into a spinner. */
+  [data-export-spinner] {
+    width: 18px;
+    height: 18px;
+    margin: 1px;
+    border-radius: 50%;
+    border: 2px solid rgb(255 255 255 / 0.25);
+    border-top-color: #fff;
+    animation: slidemachina-export-spin 0.8s linear infinite;
+  }
+
+  @keyframes slidemachina-export-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+}

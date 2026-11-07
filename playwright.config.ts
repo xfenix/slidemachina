@@ -22,11 +22,27 @@ export default defineConfig({
   workers: 1,
   use: {
     channel: "chrome",
+    // The suite reads the Russian interface texts; the browser locale must not depend on the machine it runs on.
+    locale: "ru-RU",
     baseURL: `http://localhost:${testServerPort}`,
+    launchOptions: {
+      // Two same-machine tabs connect over plain host candidates in the remote control test:
+      // without this flag Chrome masks local IPs behind mDNS names that this network does not resolve.
+      args: ["--disable-features=WebRtcHideLocalIpsWithMdns", "--enable-features=WebRtcAllowLoopbackNetwork"],
+    },
   },
-  webServer: {
-    command: `node ${JSON.stringify(commandLineScript)} dev ${JSON.stringify(process.env.SLIDEMACHINA_TEST_DEMO_COPY)} --port ${testServerPort}`,
-    url: `http://localhost:${testServerPort}`,
-    reuseExistingServer: false,
-  },
+  webServer: [
+    {
+      command: `node ${JSON.stringify(commandLineScript)} dev ${JSON.stringify(process.env.SLIDEMACHINA_TEST_DEMO_COPY)} --port ${testServerPort}`,
+      url: `http://localhost:${testServerPort}`,
+      reuseExistingServer: false,
+    },
+    // The remote control test drives a real WebRTC connection: both pages talk to this local PeerJS broker
+    // through ?remote-broker=localhost:9300, so the suite stays deterministic and offline-friendly.
+    {
+      command: "node_modules/.bin/peerjs --port 9300 --path /",
+      url: "http://localhost:9300",
+      reuseExistingServer: false,
+    },
+  ],
 });

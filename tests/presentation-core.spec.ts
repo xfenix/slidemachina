@@ -15,6 +15,9 @@ const chartAnimationDuration = 60_000;
 const chartAlignmentTolerance = 2;
 const chartAuthorAxisWidth = 88;
 const minimumChartLabelGap = 8;
+const balancedListWidthShare = 0.75;
+const minimumBalancedLineRatio = 0.7;
+const maximumUnbalancedLineRatio = 0.6;
 
 async function editFileWhile(filePath: string, editText: (originalText: string) => string, checkEditedPage: () => Promise<void>) {
   const originalText = await readFile(filePath, "utf8");
@@ -982,6 +985,72 @@ test("демо листается, показывает шаги и навига
   });
 });
 
+test("строки списков сбалансированы, типограф и ручные переносы сохранены", async ({ page }) => {
+  await page.goto("/");
+  await editFileWhile(
+    demoPresentationFile,
+    (originalPresentation) => originalPresentation.replace(
+      "    <Machina.Slide hidden>",
+      `    <Machina.Slide>
+      <h2>Переносы списков</h2>
+      <ul><li data-balanced-bullet>Сетевики закупают серверы для обхода ограничений: больше адресов для всех подписок</li></ul>
+      <ol><li data-balanced-bullet>Сетевики закупают серверы для обхода ограничений: больше адресов для всех подписок</li></ol>
+      <ul><li data-manual-break>«Переходим в прод»<br />после проверки</li></ul>
+    </Machina.Slide>
+    <Machina.Slide hidden>`,
+    ),
+    async () => {
+      await expect(page.locator("[data-canvas] h2").filter({ hasText: "Переносы списков" })).toHaveCount(1);
+      await jumpToHeading(page, "Переносы списков");
+      await page.evaluate(() => document.fonts.ready);
+      for (const listBullet of await currentSlide(page).locator("[data-balanced-bullet]").all()) {
+        const lineMeasurements = await listBullet.evaluate((bulletElement, widthShare) => {
+          const measureLineWidths = () => {
+            const lineEdges = new Map<number, { left: number; right: number }>();
+            const textWalker = document.createTreeWalker(bulletElement, NodeFilter.SHOW_TEXT);
+            while (textWalker.nextNode()) {
+              const textRange = document.createRange();
+              textRange.selectNodeContents(textWalker.currentNode);
+              for (const textBounds of textRange.getClientRects()) {
+                if (textBounds.width === 0) continue;
+                const linePosition = Math.round(textBounds.top);
+                const previousEdges = lineEdges.get(linePosition);
+                lineEdges.set(linePosition, {
+                  left: Math.min(previousEdges?.left ?? textBounds.left, textBounds.left),
+                  right: Math.max(previousEdges?.right ?? textBounds.right, textBounds.right),
+                });
+              }
+            }
+            return [...lineEdges.values()].map((lineEdges) => lineEdges.right - lineEdges.left);
+          };
+          const canvasElement = bulletElement.closest<HTMLElement>("[data-canvas]")!;
+          const canvasScale = canvasElement.getBoundingClientRect().width / canvasElement.offsetWidth;
+          bulletElement.style.whiteSpace = "nowrap";
+          const fullTextWidth = Math.max(...measureLineWidths()) / canvasScale;
+          const bulletPadding = parseFloat(getComputedStyle(bulletElement).paddingLeft);
+          bulletElement.style.width = fullTextWidth * widthShare + bulletPadding + "px";
+          bulletElement.style.removeProperty("white-space");
+          const balancedWidths = measureLineWidths();
+          const originalText = bulletElement.textContent;
+          bulletElement.style.textWrap = "wrap";
+          const unbalancedWidths = measureLineWidths();
+          bulletElement.style.removeProperty("text-wrap");
+          return { balancedWidths, unbalancedWidths, originalText, finalText: bulletElement.textContent };
+        }, balancedListWidthShare);
+        expect(lineMeasurements.balancedWidths).toHaveLength(2);
+        expect(Math.min(...lineMeasurements.balancedWidths) / Math.max(...lineMeasurements.balancedWidths)).toBeGreaterThan(minimumBalancedLineRatio);
+        expect(Math.min(...lineMeasurements.unbalancedWidths) / Math.max(...lineMeasurements.unbalancedWidths)).toBeLessThan(maximumUnbalancedLineRatio);
+        expect(lineMeasurements.finalText).toBe(lineMeasurements.originalText);
+      }
+      const manualBreakBullet = currentSlide(page).locator("[data-manual-break]");
+      expect(await manualBreakBullet.textContent()).toContain("в\u00a0прод");
+      await expect(manualBreakBullet.locator("br")).toHaveCount(1);
+      await expect(manualBreakBullet).toHaveCSS("hyphens", "auto");
+      await expect(currentSlide(page).locator("h2")).toHaveCSS("hyphens", "manual");
+    },
+  );
+});
+
 test("графики Recharts используют тему слайда, сохраняют цвета автора и готовы к печати", async ({ page }) => {
   test.setTimeout(chartTestTimeout);
   await page.goto("/");
@@ -1125,4 +1194,150 @@ test("графики Recharts используют тему слайда, сох
     );
     expect(sliceColors, "цвет серии действует на ячейки без своего цвета").toEqual(["rgb(255, 0, 0)", "rgb(0, 0, 255)"]);
   });
+});
+
+
+// Two same-machine tabs must be able to reach each other over WebRTC for the check below. Some corporate VPNs
+// hijack every interface so local UDP dies: the probe connects two peer connections inside the page and the test
+// skips with a clear reason instead of flaking forever.
+async function checkWebRtcLoopbackWorks(page: import("@playwright/test").Page): Promise<boolean> {
+  await page.goto("/");
+  return page.evaluate(async () => {
+    const probeTimeoutMs = 4000;
+    const firstConnection = new RTCPeerConnection({ iceServers: [] });
+    const secondConnection = new RTCPeerConnection({ iceServers: [] });
+    const probeChannel = firstConnection.createDataChannel("probe");
+    const channelOpened = new Promise<boolean>((resolve) => {
+      probeChannel.onopen = () => resolve(true);
+      setTimeout(() => resolve(false), probeTimeoutMs);
+    });
+    firstConnection.onicecandidate = (candidateEvent) => {
+      if (candidateEvent.candidate) void secondConnection.addIceCandidate(candidateEvent.candidate);
+    };
+    secondConnection.onicecandidate = (candidateEvent) => {
+      if (candidateEvent.candidate) void firstConnection.addIceCandidate(candidateEvent.candidate);
+    };
+    secondConnection.ondatachannel = (channelEvent) => {
+      channelEvent.channel.onopen = () => channelEvent.channel.send("probe");
+    };
+    await firstConnection.setLocalDescription(await firstConnection.createOffer());
+    await secondConnection.setRemoteDescription(firstConnection.localDescription!);
+    await secondConnection.setLocalDescription(await secondConnection.createAnswer());
+    await firstConnection.setRemoteDescription(secondConnection.localDescription!);
+    const opened = await channelOpened;
+    firstConnection.close();
+    secondConnection.close();
+    return opened;
+  });
+}
+
+test("пульт с телефона: QR ведёт на страницу пульта, телефон подключается по коду из адреса и листает по WebRTC", async ({ page, context }) => {
+  test.setTimeout(60_000);
+  if (!(await checkWebRtcLoopbackWorks(page))) {
+    test.skip(true, "WebRTC между двумя вкладками этой машины недоступен — VPN режет локальный UDP; полный путь проверяется на CI");
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
+  // The chain starts with a port nothing listens on: the registration must fail over to the local broker,
+  // the same way a blocked public broker is skipped in a real network.
+  await page.goto("/?remote-broker=localhost:5999,localhost:9300");
+
+  await page.getByRole("button", { name: "Пульт с телефона" }).click();
+  const hostingCode = await page.locator("[data-remote-code]").inputValue();
+  expect(hostingCode, "код шесть цифр").toMatch(/^\d{6}$/);
+  await expect(page.locator("[data-remote-panel]")).toHaveAttribute("data-remote-mode", "hosting");
+  await expect(page.locator("[data-remote-status]")).toContainText("Ожидает подключения телефона");
+  // The dev server is localhost: a phone cannot open it, so the QR code leads to the published remote page.
+  // The QR keeps the full link: a scanned code never depends on a shortener staying alive.
+  const joinLink = await page.locator("[data-remote-qr] title").textContent();
+  expect(joinLink).toBe(`https://xfenix.github.io/slidemachina/remote.html#${hostingCode}`);
+  // The link under the code is fully visible for typing by hand: the original address, or a short one from a
+  // shortener service when it answers; on a machine without the internet the original one stays.
+  const typedLinkText = ((await page.locator("[data-remote-link]").textContent()) ?? "").trim();
+  if (typedLinkText.endsWith(`#${hostingCode}`)) expect(typedLinkText).toBe(`xfenix.github.io/slidemachina/remote.html#${hostingCode}`);
+  else expect(typedLinkText, "короткая ссылка для набора руками").toMatch(/^[a-z0-9.-]+\/[A-Za-z0-9_-]+$/);
+
+  // The phone opens the remote screen of the same address with the code after #: it connects without typing.
+  const phonePage = await context.newPage();
+  await phonePage.setViewportSize({ width: 390, height: 844 });
+  await phonePage.goto(`/?remote&remote-broker=localhost:5999,localhost:9300#${hostingCode}`);
+  await expect(phonePage.locator("[data-remote-screen]")).toBeVisible();
+  await expect(phonePage.locator("[data-remote-code]")).toHaveValue(hostingCode);
+  await expect(phonePage.locator("[data-remote-jump] select")).toHaveValue("1", { timeout: 20_000 });
+  await expect(phonePage.locator("[data-remote-jump]")).toContainText("из");
+  await expect(page.locator("[data-remote-status]")).toContainText("Подключено 1 устройство");
+
+  await phonePage.locator('[data-remote-move="forward"]').click();
+  await expect(page).toHaveURL(/#2$/);
+  await expect(phonePage.locator("[data-remote-jump] select")).toHaveValue("2");
+  await phonePage.locator('[data-remote-move="backward"]').click();
+  await expect(page).toHaveURL(/#1$/);
+
+  // The slide number dropdown jumps to the chosen slide; the black screen switch sits in the same row.
+  await expect(phonePage.locator("[data-remote-pause-row] [data-remote-pause]")).toContainText("Чёрный экран");
+  await phonePage.locator("[data-remote-jump] select").selectOption("3");
+  await expect(page).toHaveURL(/#3$/);
+  await expect(phonePage.locator("[data-remote-jump] select")).toHaveValue("3");
+
+  await phonePage.locator("[data-remote-pause]").click();
+  await expect(page.locator("[data-pause-screen]")).toBeVisible();
+  await expect(phonePage.locator("[data-remote-pause]")).toContainText("Вернуться к слайду");
+  await expect(phonePage.locator('[data-remote-status="paused"]')).toContainText("Зал видит чёрный экран");
+  await phonePage.locator("[data-remote-pause]").click();
+  await expect(page.locator("[data-pause-screen]")).toHaveCount(0);
+
+  // Disconnecting clears the field; a code nobody hosts is reported by the broker itself.
+  await phonePage.locator("[data-remote-disconnect]").click();
+  await expect(phonePage.locator("[data-remote-code]")).toHaveValue("");
+  await phonePage.locator("[data-remote-code]").fill(hostingCode === "999999" ? "999998" : "999999");
+  await expect(phonePage.locator('[data-remote-status="unanswered"]')).toContainText("Никто не ответил на код", { timeout: 15_000 });
+
+  // The right code connects again; then the panel drops every phone at once and the phone says the link is lost.
+  await phonePage.locator("[data-remote-code]").fill(hostingCode);
+  await expect(phonePage.locator('[data-remote-status="connected"]')).toBeVisible({ timeout: 20_000 });
+  await expect(phonePage.locator("[data-remote-jump] select")).toHaveValue("3");
+  await page.locator("[data-remote-disconnect-all]").click();
+  await expect(phonePage.locator('[data-remote-status="lost"]')).toContainText("Связь с презентацией прервалась", { timeout: 15_000 });
+  await expect(page.locator("[data-remote-status]")).toContainText("Ожидает подключения телефона");
+
+  // The access switch turns the hosting off entirely and hides the code; turning it back on issues a fresh code.
+  const accessToggle = page.locator("[data-remote-access-toggle]");
+  await accessToggle.click();
+  await expect(page.locator("[data-remote-code]")).toHaveCount(0);
+  await expect(page.locator("[data-remote-panel]")).toContainText("Пульт выключен");
+  await accessToggle.click();
+  const rotatedHostingCode = await page.locator("[data-remote-code]").inputValue();
+  expect(rotatedHostingCode).toMatch(/^\d{6}$/);
+  expect(rotatedHostingCode).not.toBe(hostingCode);
+  await phonePage.close();
+});
+
+test("повторный морфинг по кэшу выдаёт те же слои и снимает обёртки слов", async ({ page }) => {
+  await page.goto("/");
+  await jumpToHeading(page, "Морфинг кода");
+  const collectMorphLayers = async () => {
+    await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "morph");
+    // Среди анимаций страницы бывают переходы обычных элементов вроде фона письма: сравниваем только слои перехода.
+    const morphLayers = (await collectTransitionAnimations(page))
+      .filter((animationLayer) => animationLayer.startsWith("::view-transition"))
+      .sort();
+    await expect.poll(() => listTransitionAnimations(page)).toEqual([]);
+    await expect(page.locator("[style*=view-transition]")).toHaveCount(0);
+    return morphLayers;
+  };
+  await page.keyboard.press("PageDown");
+  const firstRunLayers = await collectMorphLayers();
+  expect(firstRunLayers).toEqual(
+    expect.arrayContaining([
+      "::view-transition-group(code-piece-0-0) -ua-view-transition-group-anim-code-piece-0-0",
+      "::view-transition-group(code-box-0) -ua-view-transition-group-anim-code-box-0",
+    ]),
+  );
+  // Назад и снова вперёд: анализ этой пары уже в кэше, переход должен выглядеть точно так же.
+  await page.keyboard.press("PageUp");
+  await expect.poll(() => listTransitionAnimations(page)).toEqual([]);
+  await expect(page.locator("[style*=view-transition]")).toHaveCount(0);
+  await page.waitForTimeout(1500);
+  await page.keyboard.press("PageDown");
+  const secondRunLayers = await collectMorphLayers();
+  expect(secondRunLayers).toEqual(firstRunLayers);
 });

@@ -9,6 +9,8 @@ export const enginePackageFolder = fileURLToPath(new URL("../..", import.meta.ur
 
 // The entry module mounts the presentation through this name: pre-bundled, it shares one copy of the engine with "slidemachina".
 export const presentationMountingId = "slidemachina/presentation-mounting";
+// The ?remote mode of a presentation page mounts the standalone remote screen through this name.
+export const remoteMountingId = "slidemachina/remote-mounting";
 // A folder run with npx has no node_modules: these packages come from the engine's install, with one copy of React.
 const sharedPackageNames = ["react", "react-dom", "three", "agentation", "tailwindcss", "uqr", "recharts"];
 const packageRequire = createRequire(path.join(enginePackageFolder, "package.json"));
@@ -22,6 +24,7 @@ export const engineResolution = {
   alias: [
     { find: /^slidemachina$/, replacement: path.join(enginePackageFolder, "browser-runtime", "slidemachina.ts") },
     { find: presentationMountingId, replacement: path.join(enginePackageFolder, "browser-runtime", "presentation-core", "presentation-mounting.tsx") },
+    { find: remoteMountingId, replacement: path.join(enginePackageFolder, "browser-runtime", "remote-control", "remote-mounting.tsx") },
     ...sharedPackageFolders.map(({ packageName, packageLocation }) => ({ find: new RegExp(`^${packageName}(?=/|$)`), replacement: packageLocation })),
   ],
 };

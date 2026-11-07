@@ -1,6 +1,6 @@
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { enginePackageFolder, presentationMountingId } from "./engine-resolution.ts";
+import { enginePackageFolder, presentationMountingId, remoteMountingId } from "./engine-resolution.ts";
 import { presentationFileName, toSitePath } from "../presentation-repository/presentation-repository.ts";
 import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
 
@@ -9,8 +9,12 @@ export const listModuleId = "/@slidemachina/presentation-list.js";
 const engineRuntimeFolder = "browser-runtime";
 // engine-layout.css declares the order of CSS layers, the default theme comes before the blocks that refine it.
 const leadingStylesheets = ["browser-runtime/visual-theme/engine-layout.css", "browser-runtime/visual-theme/default-theme.css"];
-// The editor and the meme panel exist only in slidemachina dev, so a build leaves their styles out.
-const developmentStylesheets = ["browser-runtime/source-editor/source-editor.css", "browser-runtime/source-editor/meme-panel.css"];
+// The editor, the meme panel and the export button exist only in slidemachina dev, so a build leaves their styles out.
+const developmentStylesheets = [
+  "browser-runtime/source-editor/source-editor.css",
+  "browser-runtime/source-editor/meme-panel.css",
+  "browser-runtime/presentation-interface/export-menu.css",
+];
 const memeFontStylesheetName = "browser-runtime/content-blocks/meme-block/meme-font.css";
 // The slide source plugin imports it into files with <Meme>: other presentations do not carry the caption font.
 export const memeFontStylesheet = path.join(enginePackageFolder, memeFontStylesheetName);
@@ -55,17 +59,23 @@ export function createEntryModuleCode(siteLayout: SiteLayout, presentationFolder
   const presentationModuleId = JSON.stringify(`${sitePath}/${presentationFileName}`);
   // A presentation of a repository links back to the list: "../" in dev, "../index.html" in dist/ that also opens from disk.
   const listAddress = JSON.stringify(siteLayout.listAddress ?? (siteLayout.isRepository ? "../" : undefined));
+  // ?remote turns the page into the standalone remote screen: a phone opens the same address to drive the talk.
+  const remoteScreenCheck = `new URLSearchParams(location.search).has("remote")`;
   return `
 ${createStylesheetImports(stylesheetPaths)}
 import { mountPresentation } from ${JSON.stringify(presentationMountingId)};
 import presentationElement from ${presentationModuleId};
 ${createStylesheetImports(ownStylesheet === undefined ? [] : [ownStylesheet])}
 
-mountPresentation(presentationElement, ${listAddress});
-if (import.meta.hot) {
-  import.meta.hot.accept(${presentationModuleId}, (updatedPresentationModule) => {
-    if (updatedPresentationModule) mountPresentation(updatedPresentationModule.default, ${listAddress});
-  });
+if (${remoteScreenCheck}) {
+  void import(${JSON.stringify(remoteMountingId)}).then((remoteMountingModule) => remoteMountingModule.mountRemoteClientScreen());
+} else {
+  mountPresentation(presentationElement, ${listAddress});
+  if (import.meta.hot) {
+    import.meta.hot.accept(${presentationModuleId}, (updatedPresentationModule) => {
+      if (updatedPresentationModule) mountPresentation(updatedPresentationModule.default, ${listAddress});
+    });
+  }
 }
 `;
 }

@@ -1,0 +1,62 @@
+@layer slidemachina {
+  /* The phone page fills the screen with the dark stage colour of the engine and keeps the thumb away from the edges.
+     Its accent is the brand purple of the logo, never the accent of the talk it controls. */
+  [data-remote-screen] {
+    --accent-color: #7000d1;
+    --accent-color-on-dark: oklch(from var(--accent-color) max(l, 0.68) min(c, 0.19) h);
+    position: fixed;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+    background: var(--dark-background);
+    color: #fff;
+    font-family: var(--font-text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  [data-remote-screen] > svg {
+    width: min(210px, 62vw);
+    height: auto;
+    margin-block: 4vh 24px;
+    flex: none;
+  }
+
+  /* The logo is on top, the controls sit above the thumb: the empty state and the connected state share the floor. */
+  [data-remote-screen] [data-remote-panel] {
+    position: static;
+    translate: none;
+    width: 100%;
+    max-width: 380px;
+    margin-block: auto 0;
+    background: transparent;
+    box-shadow: none;
+    animation: none;
+  }
+
+  /* The title of the talk arrives with the connection and lands right over the controls, without moving them. */
+  [data-remote-title] {
+    margin: 0 0 10px;
+    color: rgb(255 255 255 / 0.75);
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  [data-remote-screen] [data-remote-move] {
+    min-height: 72px;
+    font-size: 17px;
+    line-height: 24px;
+  }
+
+  /* The haptics switch keeps its own row inside the panel grid, under the controls; a double gap over it
+     keeps the switch away from the driving buttons. The toggle look itself lives in remote-panel.css. */
+  [data-remote-haptics] {
+    margin-block-start: 14px;
+  }
+}

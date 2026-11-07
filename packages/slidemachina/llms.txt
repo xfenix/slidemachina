@@ -64,6 +64,7 @@ export default (
 - `Slide`: `cover`, `align`, `valign` (`top`, `center`, `bottom`), `background` (a color, picture, video, GIF or `{ iframe: "https://…" }`), `tone` (`dark`, `light`), `transition`, `speed`, `stepEffect`, `plain` (no logo, breadcrumbs or number), `logo` (`"top-right"`, `"top-left"`, `"top"`, `"center"`, `"bottom"`, `false`), `breadcrumbs`, `number={false}`, `hidden` (skipped on stage, kept in print, PDF and PowerPoint: details for the sent copy, answers to questions), `className`, `onEnter`, `onLeave`.
 - A cover has `h1`, a regular slide has `h2`.
 - `<Machina.Notes>` are speaker notes, `<Machina.Notes step={2}>` belong to step 2. They are not on the slide; the P key opens the presenter window.
+- A phone as a remote: the phone button on the control panel shows a six-digit code and a QR code; the panel prints the full address for typing by hand, shortened through one of several configured shortener services when one answers. The panel also turns the remote access off entirely (turning it back on issues a fresh code) and disconnects every connected phone at once. Opening the same address on the phone and entering the code in the same panel gives big Back/Next buttons, a compact black screen switch and a slide number typed over to jump to any slide, side by side in one row. Connection runs over WebRTC through a public broker; `?remote-broker=host:port` points both sides at another one.
 - `useSlide()` in your own component: `{ number, step, isCurrent, isCopy }`.
 
 ## Steps
@@ -96,7 +97,7 @@ export default (
 Block components:
 - `Image`: `src`, `alt`, `stretch` (fills the free space), `full` (the whole slide), `fit` (`contain`, `cover`), `float` (`left`, `right`: text flows around it); `<figcaption>` inside.
 - `Video`: `src`, `poster`, `stretch`, `full`, `fit`, `loop`, `controls`.
-- `QR`: `value`, `logo`, `color`, `correction`; `<figcaption>` inside.
+- `QR`: `value`, `logo`, `color`, `correction`, `float` (`left`, `right`: text flows around it); `<figcaption>` inside.
 - `Chart`: themes a recharts chart from the theme; `height`, `stretch`; see Charts below.
 - `Meme`: `src` (an import, a web address, or a bare name like `"fine"` for `images/memes/fine.jpg` without an import), `alt`, `float`; captions inside, one `<p>` per line, `data-place` (`top`, `bottom`, `center`), and `<figcaption>` with the source.
 
@@ -215,6 +216,8 @@ The theme is CSS in `style.css`, in any CSS file imported by `index.tsx`, or rig
 - Text colors for dark slides: `--text-color-on-dark`, `--muted-color-on-dark`, `--accent-color-on-dark`.
 - One slide of its own: `className` on `Slide` and Tailwind classes in the markup: `className="text-(--accent-color)"`, `className="[--hanging-punctuation:0]"`.
 - A dark slide: `background="var(--dark-background)"`; the engine picks the text color.
+
+List items use `text-wrap: balance` to keep short multiline bullets visually even. Typography still protects short words with non-breaking spaces, and explicit `<br />` breaks remain. Paragraphs keep `pretty`; code keeps its whitespace. Browsers may limit balancing for long items. Use `className="text-wrap"` on a list item to keep ordinary wrapping.
 
 ## Rules of a clear talk
 

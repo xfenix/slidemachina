@@ -83,8 +83,8 @@ function describeMorphClass(morphedElement: HTMLElement): string | undefined {
   return isTextElement(morphedElement) ? "morph-text" : "morph-shape";
 }
 
-// Parts marked data-morph-apart or named with morph get their own layers, or they would stretch with their group's snapshot:
-// a new diagram box appears in its place instead of growing out of its group. A part with a pair of its own morphs.
+// Parts marked data-morph-apart or named with morph get their own layers, or a new diagram box would grow
+// out of its group's snapshot instead of appearing in its place. A part paired by its own morph is skipped: the pair gives it a layer.
 function describeApartLayers(morphPairs: MorphPair[]): NamedLayer[] {
   const pairedElements = new Set(morphPairs.flatMap((morphPair) => [morphPair.outgoingElement, morphPair.incomingElement]));
   const listApartParts = (pairedElement: HTMLElement) =>

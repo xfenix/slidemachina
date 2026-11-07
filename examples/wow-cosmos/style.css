@@ -1,0 +1,157 @@
+/* Кинематографичный космос: звёздное небо, туманности, неоновый градиент, тонкая типографика. */
+
+@import "tailwindcss";
+
+:root {
+  --font-text: "Onest Variable", system-ui, sans-serif;
+  --font-heading: var(--font-text);
+  --font-code: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  --slide-background: #060913;
+  --dark-background: #04060d;
+  --section-background: #0a0f24;
+  --text-color: #eaf0ff;
+  --muted-color: #96a0c8;
+  --text-color-on-dark: #eaf0ff;
+  --muted-color-on-dark: #96a0c8;
+
+  --accent-color: #6ee7ff;
+  --second-accent-color: #b49bff;
+  --accent-soft-color: rgb(110 231 255 / 0.1);
+  --second-accent-soft-color: rgb(180 155 255 / 0.14);
+  --accent-color-on-dark: #6ee7ff;
+  --second-accent-color-on-dark: #b49bff;
+
+  --heading-weight: 300;
+  --heading-letter-spacing: -0.015em;
+  --display-size: 124px;
+  --cover-heading-size: 148px;
+  --caption-size: 30px;
+
+  --hairline-color: rgb(150 160 200 / 0.22);
+  --hairline-color-on-dark: rgb(150 160 200 / 0.3);
+
+  --code-background: #0a1022;
+  --code-background-on-dark: rgb(255 255 255 / 0.05);
+
+  --diagram-box-background: #0c1329;
+  --diagram-box-background-on-dark: rgb(255 255 255 / 0.07);
+  --diagram-box-border-color: rgb(150 160 200 / 0.35);
+  --diagram-box-border-color-on-dark: rgb(150 160 200 / 0.4);
+  --diagram-group-background: rgb(110 231 255 / 0.05);
+  --diagram-group-background-on-dark: rgb(110 231 255 / 0.05);
+  --diagram-group-border-color: rgb(110 231 255 / 0.25);
+  --diagram-group-border-color-on-dark: rgb(110 231 255 / 0.25);
+  --diagram-line-color: rgb(150 160 200 / 0.5);
+  --diagram-line-color-on-dark: rgb(150 160 200 / 0.55);
+
+  --section-number-start-color: #6ee7ff;
+  --section-number-end-color: #b49bff;
+  --section-glow-strength: 45%;
+  --section-texture: none;
+
+  --progress-color: var(--accent-color);
+  --progress-color-on-dark: var(--accent-color);
+
+  --toolbar-background: #04060d;
+  --navigator-background: #04060d;
+  --transition-stage-background: radial-gradient(circle at 50% 45%, #0b1230, #03040a 78%);
+}
+
+/* Звёздное небо: две плитки разного размера и сдвига, чтобы точки не складывались в решётку.
+   Отрицательный z-index: рисуется поверх фона слайда и под контентом. */
+[data-slide]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1.6px 1.6px at 24px 32px, rgb(255 255 255 / 0.95) 50%, transparent 52%),
+    radial-gradient(1.1px 1.1px at 96px 78px, rgb(180 200 255 / 0.75) 50%, transparent 52%),
+    radial-gradient(1px 1px at 168px 24px, rgb(255 255 255 / 0.5) 50%, transparent 52%),
+    radial-gradient(1.3px 1.3px at 216px 96px, rgb(150 225 255 / 0.8) 50%, transparent 52%),
+    radial-gradient(1px 1px at 56px 128px, rgb(255 255 255 / 0.4) 50%, transparent 52%),
+    radial-gradient(2px 2px at 244px 140px, rgb(255 255 255 / 0.9) 50%, transparent 52%),
+    radial-gradient(1.2px 1.2px at 130px 200px, rgb(255 255 255 / 0.7) 50%, transparent 52%),
+    radial-gradient(1.6px 1.6px at 320px 60px, rgb(190 215 255 / 0.85) 50%, transparent 52%),
+    radial-gradient(1px 1px at 30px 90px, rgb(255 255 255 / 0.55) 50%, transparent 52%);
+  background-size: 280px 170px, 280px 170px, 280px 170px, 280px 170px, 280px 170px, 280px 170px, 370px 290px, 370px 290px, 370px 290px;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 90px 40px, 90px 40px, 90px 40px;
+}
+
+/* Туманности: мягкие свечения в углах, как в фотографиях глубокого космоса. */
+[data-slide]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38cqw 30cqw at 88% -8%, rgb(110 231 255 / 0.22), transparent 70%),
+    radial-gradient(34cqw 30cqw at -6% 100%, rgb(180 155 255 / 0.2), transparent 70%),
+    radial-gradient(50cqw 40cqw at 50% 118%, rgb(70 90 220 / 0.16), transparent 75%);
+}
+
+/* Контент стоит в середине слайда, а не прижимается к верху. */
+[data-slide] [data-content] {
+  justify-content: center;
+}
+
+/* Заголовки: градиент от ледяного белого к неону, без тени — она проступает сквозь вырезанный текст. */
+[data-slide] :is(h1, h2) {
+  background: linear-gradient(105deg, #f4f7ff 25%, var(--accent-color) 62%, var(--second-accent-color) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Под заголовком — световая линия: начало яркое, дальше растворяется в небе. */
+[data-slide] h2 {
+  position: relative;
+}
+
+[data-slide] h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.42em;
+  width: 5.5em;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-color), transparent);
+}
+
+/* Стеклянные карточки: полупрозрачный градиент, тонкая рамка, мягкое свечение снизу. */
+[data-slide] .machina-card {
+  background: linear-gradient(160deg, rgb(150 175 255 / 0.11), rgb(110 231 255 / 0.04));
+  border: 1px solid rgb(150 160 200 / 0.28);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px -30px rgb(70 110 255 / 0.35);
+}
+
+/* Маленькие подписи — моноширинные, как бирки в космическом интерфейсе. */
+[data-slide] figcaption,
+[data-slide] .machina-note,
+[data-slide] .machina-source,
+[data-slide] .machina-lead {
+  font-family: var(--font-code);
+  letter-spacing: 0.02em;
+}
+
+[data-slide] .machina-big-number p {
+  background: linear-gradient(120deg, var(--accent-color), var(--second-accent-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-slide] :is(ul, ol) > li::marker {
+  color: var(--accent-color);
+}
+
+@media print {
+  [data-slide]::before,
+  [data-slide]::after {
+    display: none;
+  }
+}

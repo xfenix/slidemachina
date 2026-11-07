@@ -6,6 +6,7 @@ import { EditorSwitch } from "../source-editor/editor-switch.tsx";
 import { MemePanelSwitch } from "../source-editor/meme-panel-switch.tsx";
 import { pickInterfaceTexts } from "../presentation-interface/interface-texts.ts";
 import { PresentationToolbar, useToolbarHiding } from "../presentation-interface/presentation-toolbar.tsx";
+import { ExportMenu } from "../presentation-interface/export-menu.tsx";
 import { PrintMenu } from "../presentation-interface/print-menu.tsx";
 import { PrintViewBar } from "../presentation-interface/print-view-bar.tsx";
 import { PrintPages } from "../slide-printing/print-pages.tsx";
@@ -28,16 +29,18 @@ import { MinimapSwitch, SlideMinimap, useMinimapShowing } from "../presentation-
 import { useOverviewAddress } from "../presentation-interface/overview-address.ts";
 import { buildSlideOutline, readPresentationTitle } from "./slide-outline.tsx";
 import { runNavigatorTransition } from "../slide-transitions/navigator-transition.ts";
+import { scheduleAdjacentTransitionPrecaching } from "../slide-transitions/transition-precaching.ts";
 import { useTouchControls } from "../slide-navigation/touch-controls.ts";
 import { useTypedSlideNumber } from "../slide-navigation/typed-slide-number.ts";
 import { usePresenterSync, type SlideCommand } from "../presenter-view/presenter-channel.ts";
+import { useRemoteControlHosting } from "../remote-control/remote-control-hosting.ts";
+import { RemoteControlPanel } from "../remote-control/remote-panel.tsx";
 import { useCustomFavicon } from "./custom-favicon.ts";
-import { useEverySlideAfterFirstFrame } from "./slide-deferring.ts";
+import { useEverySlideAfterFirstFrame, useInterfaceAfterFirstFrame } from "./slide-deferring.ts";
 import { isPresenterWindow, openPresenterWindow, PresenterWindowSwitch } from "../presenter-view/presenter-window.tsx";
 
 // Only the presenter window runs this code: the audience never loads it.
 const PresenterView = lazy(() => import("../presenter-view/presenter-view.tsx").then((presenterModule) => ({ default: presenterModule.PresenterView })));
-
 // The list of a repository shows /talk/?cover in a frame, and the build photographs it: the first slide alone, every step shown.
 const isCoverPreview = new URLSearchParams(location.search).has("cover");
 // A slide two slides away or closer starts its heavy parts.
@@ -98,7 +101,7 @@ export function Presentation({
   const hasHiddenSlides = shownSlideIndexes.length < outlinedSlides.length;
   const stepCountsReference = useRef<number[]>([]);
   const slideNavigation = useSlideNavigation(slideNumbering, stepCountsReference);
-  const { currentPosition } = slideNavigation;
+  const { currentPosition, readLatestPosition } = slideNavigation;
   const formatSize = useMemo(() => {
     const measuredFormatSize = measureCanvasSize(aspectRatio);
     if (measuredFormatSize === undefined) throw new Error(pickInterfaceTexts(lang).wrongAspectRatio(aspectRatio));
@@ -117,11 +120,6 @@ export function Presentation({
   const isCanvasResizing = useCanvasResizing({ canvasWidth, canvasHeight });
   const [isPaused, setPaused] = useState(false);
   const { isToolbarHidden, toggleToolbar } = useToolbarHiding();
-  const switchNavigator = (opensNavigator: boolean, chosenSlideIndex?: number) =>
-    runNavigatorTransition(() => {
-      if (chosenSlideIndex !== undefined) slideNavigation.jumpToSlide(chosenSlideIndex);
-      setNavigatorOpen(opensNavigator);
-    }, chosenSlideIndex ?? currentPosition.slideIndex);
   const presentationSettings: PresentationSettings = useMemo(
     () => ({ align, logo, lang, transition, speed, stepEffect }),
     [align, logo, lang, transition, speed, stepEffect],
@@ -129,11 +127,17 @@ export function Presentation({
   const sectionTrails = useMemo(() => outlinedSlides.map((outlinedSlide) => outlinedSlide.sectionTrail), [outlinedSlides]);
   const describeSlideEnvironment = useSlideEnvironments(slideNumbering, sectionTrails, presentationSettings, stepCountsReference);
   const rendersEverySlide = useEverySlideAfterFirstFrame();
+  const rendersInterface = useInterfaceAfterFirstFrame(!import.meta.env.DEV);
 
+  // The matching work between a slide and its neighbours waits for idle moments, so a key press finds it ready.
+  // A step inside a slide changes no key here: leaving forward always happens at the last step, leaving backward at the first.
+  useEffect(() => {
+    if (isCoverPreview || isPrintView || isPresenterWindow) return;
+    return scheduleAdjacentTransitionPrecaching(currentPosition.slideIndex, () => readLatestPosition().stepIndex, (slideIndex) => stepCountsReference.current[slideIndex] ?? 0, slideNumbering);
+  }, [currentPosition.slideIndex, isPrintView, slideNumbering, readLatestPosition]);
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
-
   const reportPosition = useEffectEvent((slideIndex: number, stepIndex: number) => onChange?.({ slide: shownNumbers[slideIndex] ?? slideIndex + 1, step: stepIndex }));
   useEffect(() => {
     if (!isCoverPreview && !isPresenterWindow) reportPosition(currentPosition.slideIndex, currentPosition.stepIndex);
@@ -148,6 +152,12 @@ export function Presentation({
     else if (slideCommand === "backward") unlessPaused(slideNavigation.goBackward)();
     else unlessPaused(slideNavigation.goToSlide)(slideCommand);
   };
+  const switchNavigator = (opensNavigator: boolean, chosenSlideIndex?: number) =>
+    runNavigatorTransition(() => {
+      if (chosenSlideIndex !== undefined) slideNavigation.jumpToSlide(chosenSlideIndex);
+      setNavigatorOpen(opensNavigator);
+    }, chosenSlideIndex ?? currentPosition.slideIndex);
+
   const { isAudienceConnected, steerSlides } = usePresenterSync({
     windowRole: isPresenterWindow ? "presenter" : isPrintView || isCoverPreview ? "alone" : "audience",
     currentPosition,
@@ -159,6 +169,16 @@ export function Presentation({
     },
   });
   const typedSlideNumber = useTypedSlideNumber((slideNumber) => steerSlides(findShownSlide(slideNumbering, slideNumber)));
+  const remoteHosting = useRemoteControlHosting({
+    // The WebSocket to the broker opens after the first frame: it is no use to the opening slide and would compete with its paint.
+    isHostingAvailable: rendersInterface && !isPresenterWindow && !isPrintView && !isCoverPreview,
+    currentPosition,
+    isPaused,
+    presentationTitle: pageTitle,
+    runSlideCommand,
+    slideNumbering,
+    countSlideSteps: (slideIndex) => stepCountsReference.current[slideIndex] ?? 0,
+  });
   useKeyboardControls(
     {
       goForward: () => steerSlides("forward"),
@@ -194,7 +214,6 @@ export function Presentation({
       </SlideEnvironmentContext>
     );
   };
-
   const canvasStyle = {
     "--format-width": formatWidth,
     "--format-height": formatHeight,
@@ -226,7 +245,6 @@ export function Presentation({
       </Suspense>
     );
   }
-
   if (isCoverPreview) {
     return (
       <div data-presentation data-cover-preview style={canvasStyle}>
@@ -234,7 +252,6 @@ export function Presentation({
       </div>
     );
   }
-
   return (
     <div data-presentation data-print-view={isPrintView || undefined} data-toolbar-under-canvas={hasRoomUnderCanvas || undefined} style={canvasStyle}>
       {pageTitle !== undefined && pageTitle !== "" && <title>{pageTitle}</title>}
@@ -283,34 +300,38 @@ export function Presentation({
           goToSlide={slideNavigation.goToSlide}
         />
       )}
-      <PresentationToolbar
-        languageCode={lang}
-        isHidden={isToolbarHidden}
-        toggleHidden={toggleToolbar}
-        isNavigatorOpen={isNavigatorOpen}
-        toggleNavigator={() => switchNavigator(!isNavigatorOpen)}
-        toggleFullscreen={toggleFullscreen}
-      >
-        <PresenterWindowSwitch languageCode={lang} />
-        <PrintMenu
+      {rendersInterface && (
+        <PresentationToolbar
           languageCode={lang}
-          printsSteps={printsSteps}
-          choosePrintedSteps={printPreparation.choosePrintedSteps}
-          printsHidden={hasHiddenSlides ? printsHidden : undefined}
-          chooseHiddenSlides={printPreparation.chooseHiddenSlides}
-          printPresentation={printPreparation.printPresentation}
-          openPrintView={printPreparation.openPrintView}
-        />
-        {import.meta.env.DEV && (
-          <>
-            <span data-toolbar-divider />
-            <MinimapSwitch languageCode={lang} isMinimapShown={isMinimapShown} toggleMinimap={toggleMinimap} />
-            <EditorSwitch languageCode={lang} />
-            <MemePanelSwitch languageCode={lang} />
-            {import.meta.env.SLIDEMACHINA_AGENTATION !== "off" && <DevelopmentFeedback />}
-          </>
-        )}
-      </PresentationToolbar>
+          isHidden={isToolbarHidden}
+          toggleHidden={toggleToolbar}
+          isNavigatorOpen={isNavigatorOpen}
+          toggleNavigator={() => switchNavigator(!isNavigatorOpen)}
+          toggleFullscreen={toggleFullscreen}
+        >
+          <PresenterWindowSwitch languageCode={lang} />
+          <RemoteControlPanel languageCode={lang} {...remoteHosting} />
+          <PrintMenu
+            languageCode={lang}
+            printsSteps={printsSteps}
+            choosePrintedSteps={printPreparation.choosePrintedSteps}
+            printsHidden={hasHiddenSlides ? printsHidden : undefined}
+            chooseHiddenSlides={printPreparation.chooseHiddenSlides}
+            printPresentation={printPreparation.printPresentation}
+            openPrintView={printPreparation.openPrintView}
+          />
+          {import.meta.env.DEV && (
+            <span data-toolbar-dev>
+              <span data-toolbar-divider />
+              <ExportMenu languageCode={lang} />
+              <MinimapSwitch languageCode={lang} isMinimapShown={isMinimapShown} toggleMinimap={toggleMinimap} />
+              <EditorSwitch languageCode={lang} />
+              <MemePanelSwitch languageCode={lang} />
+              {import.meta.env.SLIDEMACHINA_AGENTATION !== "off" && <DevelopmentFeedback />}
+            </span>
+          )}
+        </PresentationToolbar>
+      )}
       {printPreparation.isPrintPrepared && (
         <PrintPages
           printedSlideIndexes={printedSlideIndexes}

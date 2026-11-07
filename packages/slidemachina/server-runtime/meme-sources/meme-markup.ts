@@ -34,6 +34,13 @@ const markupTextsByLanguage = {
   },
 };
 
+// <Meme> puts its first caption along the top and the second along the bottom, the bands of a fifth that memegen uses by default.
+const percentScale = 100;
+const roundingScale = 10;
+const defaultBoxes = ["0 0 100 20", "0 80 100 20"];
+const namedBoxes: Record<string, string> = { "0 0 100 20": "top", "0 80 100 20": "bottom", "0 40 100 20": "center" };
+const thinFontWeight = 500;
+
 function shortenAddress(fullAddress: string): string {
   return fullAddress.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 }
@@ -60,13 +67,6 @@ export function nameMediaImport(mediaPath: string, isNameTaken: (importName: str
     if (!isNameTaken(importName)) return importName;
   }
 }
-
-// <Meme> puts its first caption along the top and the second along the bottom, the bands of a fifth that memegen uses by default.
-const percentScale = 100;
-const roundingScale = 10;
-const defaultBoxes = ["0 0 100 20", "0 80 100 20"];
-const namedBoxes: Record<string, string> = { "0 0 100 20": "top", "0 80 100 20": "bottom", "0 40 100 20": "center" };
-const thinFontWeight = 500;
 
 function roundPercent(fieldShare: number): number {
   return Math.round(fieldShare * percentScale * roundingScale) / roundingScale;

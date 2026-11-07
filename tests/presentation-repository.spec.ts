@@ -12,8 +12,8 @@ const repositoryServerPort = 5197;
 const repositoryServerAddress = `http://localhost:${repositoryServerPort}`;
 // Newest first, by <Presentation date>.
 // The demo and team-sync have no title: the list takes the h1 of the opening cover. python-news overrides it with title.
-const presentationTitles = ["Слайды из кода", "Итоги квартала", "Python 3.15: что нового"];
-const coverHeadings = ["Слайды из кода", "Итоги квартала", "Python 3.15"];
+const presentationTitles = ["Клен", "8 бит", "Глубокий космос", "Слайды из кода", "Итоги квартала", "Python 3.15: что нового"];
+const coverHeadings = ["Клен", "8 бит", "Глубокий космос", "Слайды из кода", "Итоги квартала", "Python 3.15"];
 // The ELK worker itself and three.js: a cover of a first slide without a diagram or a scene needs neither.
 const heavyRequestPattern = /elk-worker\.min\.js(?!\?url)|\/three\/|scene-view/;
 // The shared theme of the examples sets nothing of its own: the copy gets a variable that shows the file is in the cascade.
@@ -69,7 +69,7 @@ test("репозиторий презентаций: список с облож�
       await page.goto(repositoryServerAddress);
       await expect(page.locator("h1")).toHaveText("Презентации");
       await expect(page.locator("[data-list-title]")).toHaveText(presentationTitles);
-      await expect(page.locator("[data-list-meta] time").first()).toHaveText("23 октября 2026");
+      await expect(page.locator("[data-list-meta] time").first()).toHaveText("3 ноября 2026");
       // Only a format other than 16:9 is named: team-sync is 4:3.
       await expect(page.locator("[data-list-aspect-ratio]")).toHaveText(["4:3"]);
       for (const [cardIndex, coverHeading] of coverHeadings.entries()) {
@@ -79,12 +79,14 @@ test("репозиторий презентаций: список с облож�
       await expect(page.frameLocator("[data-list-cover] iframe").first().locator("[data-toolbar]")).toHaveCount(0);
       expect(requestedAddresses.filter((requestedAddress) => heavyRequestPattern.test(requestedAddress))).toEqual([]);
       // The cards share the width of the page instead of huddling in the left corner.
-      const cardWidths = await page.locator("[data-list-card]").evaluateAll((cardElements) => cardElements.map((cardElement) => cardElement.getBoundingClientRect().width));
-      expect(cardWidths[0]! * cardWidths.length, "карточки занимают ширину страницы").toBeGreaterThan(1440 * 0.8);
+      await expect.poll(async () => {
+        const cardWidths = await page.locator("[data-list-card]").evaluateAll((cardElements) => cardElements.map((cardElement) => cardElement.getBoundingClientRect().width));
+        return cardWidths[0]! * cardWidths.length;
+      }, { timeout: 15_000 }).toBeGreaterThan(1440 * 0.8);
     });
 
     await test.step("клик по карточке открывает презентацию, тема: движок → общая → своя", async () => {
-      await page.locator("[data-list-link]").nth(2).click();
+      await page.locator("[data-list-link]").nth(5).click();
       await expect(page).toHaveURL(/\/python-news\/#1$/);
       await expect(page.locator("[data-canvas] > [data-current] h1")).toHaveText("Python 3.15");
       await expect(page.locator("[data-toolbar]")).toBeVisible();
@@ -150,18 +152,18 @@ test("репозиторий презентаций: список с облож�
       await expect(page.locator("[data-list-title]")).toHaveText(presentationTitles);
       const coverPictures = page.locator("[data-list-cover] img");
       await expect(coverPictures).toHaveCount(presentationTitles.length);
-      // team-sync is 4:3: its cover, card and PDF pages keep that format.
+      // team-sync is 4:3: its cover, card and PDF pages keep that format. In the newest-first list it follows the three wow decks and the demo.
       const coverSizes = presentationTitles.map((presentationTitle) => (presentationTitle === "Итоги квартала" ? "960×720" : "960×540"));
       await expect
         .poll(() => coverPictures.evaluateAll((pictureElements: HTMLImageElement[]) => pictureElements.map(({ naturalWidth, naturalHeight }) => `${naturalWidth}×${naturalHeight}`)))
         .toEqual(coverSizes);
-      expect(await page.locator("[data-list-cover]").nth(1).evaluate((coverElement) => getComputedStyle(coverElement).aspectRatio)).toBe("1440 / 1080");
+      expect(await page.locator("[data-list-cover]").nth(4).evaluate((coverElement) => getComputedStyle(coverElement).aspectRatio)).toBe("1440 / 1080");
       await expect(page.locator("[data-list-downloads] a")).toHaveText(presentationTitles.map(() => "PDF"));
       const teamSyncPdf = (await readFile(path.join(outputFolder, "team-sync", "team-sync.pdf"))).toString("latin1");
       expect(teamSyncPdf.startsWith("%PDF")).toBe(true);
       // 1440×1080 CSS pixels are 1080×810 points.
       expect(teamSyncPdf.match(/\/MediaBox\s*\[\s*0 0 ([\d.]+) ([\d.]+)/)?.slice(1)).toEqual(["1080", "810"]);
-      await page.locator("[data-list-link]").nth(2).click();
+      await page.locator("[data-list-link]").nth(5).click();
       await expect(page).toHaveURL(/python-news\/index\.html#1$/);
       // The painted build-time copy of the first slide leaves the page once the live app is up.
       await expect(page.locator("[data-static-cover]")).toHaveCount(0);

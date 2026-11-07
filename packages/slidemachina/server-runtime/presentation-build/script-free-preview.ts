@@ -3,7 +3,7 @@ import path from "node:path";
 import { commandLineTexts } from "../command-line/command-line-texts.ts";
 import sharp from "sharp";
 import { openWorkingTabs, shareWorkBetweenTabs, shootPageClip } from "./chrome-sharing.ts";
-import { addressPrintView, printWaitLimit } from "./pdf-printing.ts";
+import { addressPrintView, printPdfFromPrintedTab, printWaitLimit } from "./pdf-printing.ts";
 import { escapeHtml } from "./html-escaping.ts";
 import { readNativeMotionOptions } from "./hyperframes-motion-options.ts";
 import { exportHyperframesNativeMotion } from "./hyperframes-native-motion.ts";
@@ -25,6 +25,7 @@ const previewStyle = `<style>
     </style>`;
 
 type SlidePicture = { pictureBytes: Buffer, slideHeading: string };
+type RawSlideShot = { screenshotBytes: Buffer, slideHeading: string };
 
 async function openPrintedTab(chromeBrowser: Browser, pagePath: string, printsSteps = false, printsHidden = true): Promise<Page> {
   const printedTab = await chromeBrowser.newPage({ viewport: printedViewport });
@@ -35,7 +36,8 @@ async function openPrintedTab(chromeBrowser: Browser, pagePath: string, printsSt
   return printedTab;
 }
 
-async function shootSlidePicture(printedTab: Page, pageIndex: number, fullResolution = false): Promise<SlidePicture> {
+// The scroll and the capture of one tab stay strictly in order; only the sharp encoding moves to a background thread.
+async function shootSlideScreenshot(printedTab: Page, pageIndex: number): Promise<RawSlideShot> {
   const { pageClip, slideHeading } = await printedTab.evaluate((shownPageIndex) => {
     const printedSlide = document.querySelectorAll("[data-print-page]")[shownPageIndex]!;
     printedSlide.scrollIntoView({ block: "start", inline: "start" });
@@ -46,18 +48,37 @@ async function shootSlidePicture(printedTab: Page, pageIndex: number, fullResolu
     };
   }, pageIndex);
   const screenshotBytes = await shootPageClip(printedTab, pageClip, false);
-  const pictureBytes = fullResolution
-    ? await sharp(screenshotBytes).webp({ lossless: true }).toBuffer()
-    : await sharp(screenshotBytes).resize({ width: previewPictureWidth }).webp({ quality: previewPictureQuality, smartSubsample: true }).toBuffer();
-  return { pictureBytes, slideHeading: slideHeading.trim() };
+  return { screenshotBytes, slideHeading: slideHeading.trim() };
 }
 
-async function shootSlidePictures(pagePath: string, sharedChrome: SharedChrome, printsSteps = false, printsHidden = true): Promise<SlidePicture[]> {
+function encodeSlidePicture(rawShot: RawSlideShot, fullResolution: boolean): Promise<SlidePicture> {
+  const { screenshotBytes, slideHeading } = rawShot;
+  const picturePromise = (
+    fullResolution
+      ? sharp(screenshotBytes).webp({ lossless: true }).toBuffer()
+      : sharp(screenshotBytes).resize({ width: previewPictureWidth }).webp({ quality: previewPictureQuality, smartSubsample: true }).toBuffer()
+  ).then((pictureBytes) => ({ pictureBytes, slideHeading }));
+  return picturePromise;
+}
+
+async function shootSlidePictures(pagePath: string, sharedChrome: SharedChrome, printsSteps = false, printsHidden = true, printedPdfPath?: string): Promise<SlidePicture[]> {
   const chromeBrowser = await sharedChrome.openChrome();
   const printedTabs = await openWorkingTabs(() => openPrintedTab(chromeBrowser, pagePath, printsSteps, printsHidden));
   try {
     const pageIndexes = [...Array(await printedTabs[0]!.locator("[data-print-page]").count()).keys()];
-    return await shareWorkBetweenTabs(printedTabs, pageIndexes, (printedTab, pageIndex) => shootSlidePicture(printedTab, pageIndex, printsSteps));
+    // The webp encoding of one picture overlaps the capture of the next: the tab never waits for its own encoding.
+    // A failure stays fatal: the early catch only keeps a rejection from going unhandled before Promise.all attaches.
+    const pendingPictures: Promise<SlidePicture>[] = [];
+    await shareWorkBetweenTabs(printedTabs, pageIndexes, async (printedTab, pageIndex) => {
+      const rawShot = await shootSlideScreenshot(printedTab, pageIndex);
+      const pendingPicture = encodeSlidePicture(rawShot, printsSteps);
+      pendingPicture.catch(() => undefined);
+      pendingPictures[pageIndex] = pendingPicture;
+    });
+    const slidePictures = await Promise.all(pendingPictures);
+    // The same print view drives the PDF: printing it from a picture tab saves loading the page again.
+    if (printedPdfPath !== undefined) await printPdfFromPrintedTab(printedTabs[0]!, printedPdfPath);
+    return slidePictures;
   } finally {
     await Promise.all(printedTabs.map((printedTab) => printedTab.close()));
   }
@@ -131,11 +152,16 @@ showPresentationFrame(0);
 
 // The built page is a React app: without scripts, as in macOS Quick Look, it is empty, so the file carries pictures of its slides.
 // Returns false when the file would be too big for Quick Look anyway: then the pictures only add weight.
-export async function addScriptFreePreview(builtPagePath: string, previewedPagePath: string, sharedChrome: SharedChrome): Promise<boolean> {
+// The PDF prints from a picture tab of the same print view, so a build that asks for both loads the page once.
+export async function addScriptFreePreview(builtPagePath: string, previewedPagePath: string, sharedChrome: SharedChrome, printedPdfPath?: string): Promise<boolean> {
   const { staticCoverPattern } = await import("./static-cover.ts");
   const pageHtml = readFileSync(builtPagePath, "utf8").replace(staticCoverPattern, "");
-  if (Buffer.byteLength(pageHtml) > quickLookSizeLimit) return false;
-  const slidePictures = await shootSlidePictures(builtPagePath, sharedChrome);
+  if (Buffer.byteLength(pageHtml) > quickLookSizeLimit) {
+    // No pictures and no shared tab: the PDF prints the usual way so the build still gets it.
+    if (printedPdfPath !== undefined) await (await import("./pdf-printing.ts")).printPdf(builtPagePath, printedPdfPath, { printsSteps: false, printsHidden: true }, sharedChrome);
+    return false;
+  }
+  const slidePictures = await shootSlidePictures(builtPagePath, sharedChrome, false, true, printedPdfPath);
   const pictureTags = slidePictures.map(
     ({ pictureBytes, slideHeading }) => `<img src="data:image/webp;base64,${pictureBytes.toString("base64")}" alt="${escapeHtml(slideHeading)}" />`,
   );

@@ -1,8 +1,9 @@
-import { listTextWords, matchWords, type WordMatch } from "./word-morphing.ts";
+import { findUnreachedStepAncestor, listTextWords, matchWords, type StepReachedPredicate, type WordMatch } from "./word-morphing.ts";
 
 const textSelector = "h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption";
 const mediaSelector = "img, video, iframe";
 const codeSelector = "pre";
+const unreachedStepSelector = "[data-step]:not([data-step-reached])";
 const candidateSelector = `[morph], ${textSelector}, ${mediaSelector}, ${codeSelector}`;
 // Engine blocks with a fixed role pair by their order on the slide when nothing pairs them exactly.
 const orderedBlockRoles = [
@@ -31,13 +32,18 @@ const walkedCandidateSelector = `${candidateSelector}, ${orderedBlockSelector}, 
 const morphCandidateSelector = `${candidateSelector}, ${orderedBlockSelector}`;
 
 // One walk of the slide collects every element a transition can pair: morphing parts and code blocks.
-export function collectSlideCandidates(slideElement: HTMLElement): SlideMorphCandidates {
+// Without a predicate the live DOM decides which steps are reached; a predicate lets a background pass look at an arrival step before it is applied.
+export function collectSlideCandidates(slideElement: HTMLElement, isStepReached?: StepReachedPredicate): SlideMorphCandidates {
   const contentElement = slideElement.querySelector<HTMLElement>("[data-content]");
   const walkedElements = [...(contentElement?.querySelectorAll<HTMLElement>(walkedCandidateSelector) ?? [])];
   const morphCandidates: HTMLElement[] = [];
   const codeBlocks: HTMLElement[] = [];
   for (const walkedElement of walkedElements) {
-    if (walkedElement.closest("[data-step]:not([data-step-reached])") !== null) continue;
+    const hasUnreachedStep =
+      isStepReached === undefined
+        ? walkedElement.closest(unreachedStepSelector) !== null
+        : findUnreachedStepAncestor(walkedElement, isStepReached) !== null;
+    if (hasUnreachedStep) continue;
     // <Code> blocks morph piece by piece in code-morphing.ts, so their parts are not morph candidates.
     if (walkedElement.matches("[data-code]")) codeBlocks.push(walkedElement);
     else if (walkedElement.closest("[data-code]") === null && walkedElement.matches(morphCandidateSelector)) morphCandidates.push(walkedElement);
@@ -128,15 +134,21 @@ function countRealWords(textWords: string[]): number {
 }
 
 // "Python 3.14" → "Python 3.15": same tag and at least half the words shared, punctuation aside.
-export function findRewordedPairs(outgoingCandidates: HTMLElement[], incomingCandidates: HTMLElement[], morphPairs: MorphPair[]): RewordedPair[] {
+export function findRewordedPairs(
+  outgoingCandidates: HTMLElement[],
+  incomingCandidates: HTMLElement[],
+  morphPairs: MorphPair[],
+  isOutgoingStepReached?: StepReachedPredicate,
+  isIncomingStepReached?: StepReachedPredicate,
+): RewordedPair[] {
   const pairedElements = new Set(morphPairs.flatMap((morphPair) => [morphPair.outgoingElement, morphPair.incomingElement]));
   const incomingRewordables = listRewordableElements(incomingCandidates, pairedElements).map((incomingElement) => ({
     incomingElement,
-    incomingWords: listTextWords(incomingElement),
+    incomingWords: listTextWords(incomingElement, isIncomingStepReached),
   }));
   const rewordedPairs: RewordedPair[] = [];
   for (const outgoingElement of listRewordableElements(outgoingCandidates, pairedElements)) {
-    const outgoingWords = listTextWords(outgoingElement);
+    const outgoingWords = listTextWords(outgoingElement, isOutgoingStepReached);
     let bestPair: RewordedPair | undefined;
     for (const { incomingElement, incomingWords } of incomingRewordables) {
       if (incomingElement.tagName !== outgoingElement.tagName || pairedElements.has(incomingElement)) continue;
@@ -155,8 +167,12 @@ export function findRewordedPairs(outgoingCandidates: HTMLElement[], incomingCan
   return rewordedPairs;
 }
 
-// Paired text morphs word by word too: two snapshots of one line at different sizes or widths never line up and show it twice.
-export function rewordPairedTexts(morphPairs: MorphPair[]): { shapePairs: MorphPair[]; textPairs: RewordedPair[] } {
+// Paired text morphs word by word too: two snapshots of one line at different sizes or widths never line up, and the line would show twice.
+export function rewordPairedTexts(
+  morphPairs: MorphPair[],
+  isOutgoingStepReached?: StepReachedPredicate,
+  isIncomingStepReached?: StepReachedPredicate,
+): { shapePairs: MorphPair[]; textPairs: RewordedPair[] } {
   const shapePairs: MorphPair[] = [];
   const textPairs: RewordedPair[] = [];
   for (const morphPair of morphPairs) {
@@ -164,8 +180,8 @@ export function rewordPairedTexts(morphPairs: MorphPair[]): { shapePairs: MorphP
     const isInnermostText = [outgoingElement, incomingElement].every(
       (pairedElement) => pairedElement.matches(textSelector) && !pairedElement.querySelector(textSelector),
     );
-    const outgoingWords = isInnermostText ? listTextWords(outgoingElement) : [];
-    const incomingWords = isInnermostText ? listTextWords(incomingElement) : [];
+    const outgoingWords = isInnermostText ? listTextWords(outgoingElement, isOutgoingStepReached) : [];
+    const incomingWords = isInnermostText ? listTextWords(incomingElement, isIncomingStepReached) : [];
     const wordMatches = matchWords(outgoingWords, incomingWords);
     if (wordMatches.length === 0) {
       shapePairs.push(morphPair);

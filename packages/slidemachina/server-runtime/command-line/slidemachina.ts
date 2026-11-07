@@ -7,6 +7,7 @@ import { createServer } from "vite";
 import { commandLineTexts } from "./command-line-texts.ts";
 import { describeSite } from "../presentation-repository/presentation-repository.ts";
 import { createViteConfiguration } from "../development-server/vite-configuration.ts";
+import { createPresentationExportPlugin } from "../development-server/export-server.ts";
 import { nameEntryModuleId } from "../development-server/entry-modules.ts";
 
 const largestPortNumber = 65536;
@@ -24,6 +25,7 @@ function readCommandLine() {
       allowNegative: true,
       options: {
         port: { type: "string" },
+        host: { type: "boolean" },
         html: { type: "boolean" },
         protected: { type: "boolean" },
         folder: { type: "boolean" },
@@ -50,74 +52,87 @@ function readCommandLine() {
   }
 }
 
-const parsedCommandLine = readCommandLine();
-const [commandName] = parsedCommandLine.positionals;
-// slidemachina shot 12 my-talk: the slide comes before the folder.
-const [slidePosition, projectFolderArgument = "."] = commandName === "shot" ? parsedCommandLine.positionals.slice(1) : [undefined, parsedCommandLine.positionals[1]];
-// "12", "12.2" after two steps, "12+1" for the first hidden slide after 12, as in the address of the slide.
-const slidePositionPattern = /^\d+(\+\d+)?(\.\d+)?$/;
+async function runCommandLine() {
+  const parsedCommandLine = readCommandLine();
+  const [commandName] = parsedCommandLine.positionals;
+  // slidemachina shot 12 my-talk: the slide comes before the folder.
+  const [slidePosition, projectFolderArgument = "."] = commandName === "shot" ? parsedCommandLine.positionals.slice(1) : [undefined, parsedCommandLine.positionals[1]];
+  // "12", "12.2" after two steps, "12+1" for the first hidden slide after 12, as in the address of the slide.
+  const slidePositionPattern = /^\d+(\+\d+)?(\.\d+)?$/;
 
-if (commandName === "meme") {
-  // The meme command needs no Vite: it searches, downloads and prints markup.
-  const { runMemeCommand } = await import("./meme-command.ts");
-  await runMemeCommand(parsedCommandLine.positionals.slice(1), parsedCommandLine.values);
-  process.exit(0);
-}
+  if (commandName === "meme") {
+    // The meme command needs no Vite: it searches, downloads and prints markup.
+    const { runMemeCommand } = await import("./meme-command.ts");
+    await runMemeCommand(parsedCommandLine.positionals.slice(1), parsedCommandLine.values);
+    process.exit(0);
+  }
 
-if (commandName !== "dev" && commandName !== "build" && commandName !== "check" && commandName !== "shot") {
-  console.log(commandLineTexts.usage);
-  process.exit(commandName === undefined ? 0 : 1);
-}
+  if (commandName === "remote-page") {
+    // The remote page build needs no presentation: it is one engine file for any talk.
+    const { runRemotePageCommand } = await import("./remote-page-command.ts");
+    await runRemotePageCommand(parsedCommandLine.values.out ?? "remote.html");
+    process.exit(0);
+  }
 
-if (commandName === "shot" && !slidePositionPattern.test(slidePosition ?? "")) stopWithProblem(commandLineTexts.wrongSlidePosition(slidePosition ?? ""));
+  if (commandName !== "dev" && commandName !== "build" && commandName !== "check" && commandName !== "shot") {
+    console.log(commandLineTexts.usage);
+    process.exit(commandName === undefined ? 0 : 1);
+  }
 
-const portText = parsedCommandLine.values.port;
-const portNumber = portText === undefined ? undefined : Number(portText);
-if (portNumber !== undefined && !(Number.isInteger(portNumber) && portNumber > 0 && portNumber < largestPortNumber)) {
-  stopWithProblem(commandLineTexts.wrongPort(String(portText)));
-}
+  if (commandName === "shot" && !slidePositionPattern.test(slidePosition ?? "")) stopWithProblem(commandLineTexts.wrongSlidePosition(slidePosition ?? ""));
 
-// Vite reports real file paths: with a link in the path (macOS /tmp) a resolved folder would never match them.
-const requestedFolder = path.resolve(projectFolderArgument);
-const siteLayout = existsSync(requestedFolder) ? describeSite(realpathSync(requestedFolder)) : undefined;
-if (siteLayout === undefined) {
-  console.error(commandLineTexts.missingPresentationFile(requestedFolder));
-  process.exit(1);
-}
+  const portText = parsedCommandLine.values.port;
+  const portNumber = portText === undefined ? undefined : Number(portText);
+  if (portNumber !== undefined && !(Number.isInteger(portNumber) && portNumber > 0 && portNumber < largestPortNumber)) {
+    stopWithProblem(commandLineTexts.wrongPort(String(portText)));
+  }
 
-if (commandName === "check") {
-  const { runCheckCommand } = await import("./check-command.ts");
-  process.exit(runCheckCommand(siteLayout, parsedCommandLine.values));
-}
-
-if (commandName === "shot") {
-  if (siteLayout.isRepository) stopWithProblem(commandLineTexts.shotNeedsPresentation);
-  const { shootSlide } = await import("../presentation-build/slide-shooting.ts");
-  const picturePath = path.resolve(parsedCommandLine.values.out ?? `slide-${slidePosition!.replace(/[+.]/g, "-")}.png`);
-  try {
-    await shootSlide(siteLayout, slidePosition!, picturePath);
-  } catch (shotError) {
-    console.error(shotError instanceof Error ? shotError.message : String(shotError));
+  // Vite reports real file paths: with a link in the path (macOS /tmp) a resolved folder would never match them.
+  const requestedFolder = path.resolve(projectFolderArgument);
+  const siteLayout = existsSync(requestedFolder) ? describeSite(realpathSync(requestedFolder)) : undefined;
+  if (siteLayout === undefined) {
+    console.error(commandLineTexts.missingPresentationFile(requestedFolder));
     process.exit(1);
   }
-  console.log(commandLineTexts.shotSaved(path.relative(process.cwd(), picturePath)));
-  process.exit(0);
+
+  if (commandName === "check") {
+    const { runCheckCommand } = await import("./check-command.ts");
+    process.exit(runCheckCommand(siteLayout, parsedCommandLine.values));
+  }
+
+  if (commandName === "shot") {
+    if (siteLayout.isRepository) stopWithProblem(commandLineTexts.shotNeedsPresentation);
+    const { shootSlide } = await import("../presentation-build/slide-shooting.ts");
+    const picturePath = path.resolve(parsedCommandLine.values.out ?? `slide-${slidePosition!.replace(/[+.]/g, "-")}.png`);
+    try {
+      await shootSlide(siteLayout, slidePosition!, picturePath);
+    } catch (shotError) {
+      console.error(shotError instanceof Error ? shotError.message : String(shotError));
+      process.exit(1);
+    }
+    console.log(commandLineTexts.shotSaved(path.relative(process.cwd(), picturePath)));
+    process.exit(0);
+  }
+
+  if (commandName === "build") {
+    // The build pulls in sharp, staticrypt and Playwright only when it runs.
+    const { runBuildCommand } = await import("./build-command.ts");
+    try {
+      await runBuildCommand(siteLayout, parsedCommandLine.values);
+    } catch (buildError) {
+      const { log } = await import("@clack/prompts");
+      log.error(buildError instanceof Error ? buildError.message : String(buildError));
+      process.exit(1);
+    }
+  } else {
+    const developmentConfiguration = createViteConfiguration(siteLayout, { port: portNumber, host: parsedCommandLine.values.host ? true : undefined, open: process.stdout.isTTY });
+    developmentConfiguration.plugins = [...(developmentConfiguration.plugins ?? []), createPresentationExportPlugin(siteLayout)];
+    const developmentServer = await createServer(developmentConfiguration);
+    await developmentServer.listen();
+    developmentServer.printUrls();
+    // The page and its modules compile while the browser opens; a repository does not know which presentation comes first.
+    if (!siteLayout.isRepository) void developmentServer.warmupRequest(nameEntryModuleId(siteLayout, siteLayout.rootFolder));
+  }
 }
 
-if (commandName === "build") {
-  // The build pulls in sharp, staticrypt and Playwright only when it runs.
-  const { runBuildCommand } = await import("./build-command.ts");
-  try {
-    await runBuildCommand(siteLayout, parsedCommandLine.values);
-  } catch (buildError) {
-    const { log } = await import("@clack/prompts");
-    log.error(buildError instanceof Error ? buildError.message : String(buildError));
-    process.exit(1);
-  }
-} else {
-  const developmentServer = await createServer(createViteConfiguration(siteLayout, { port: portNumber, open: process.stdout.isTTY }));
-  await developmentServer.listen();
-  developmentServer.printUrls();
-  // The page and its modules compile while the browser opens; a repository does not know which presentation comes first.
-  if (!siteLayout.isRepository) void developmentServer.warmupRequest(nameEntryModuleId(siteLayout, siteLayout.rootFolder));
-}
+await runCommandLine();

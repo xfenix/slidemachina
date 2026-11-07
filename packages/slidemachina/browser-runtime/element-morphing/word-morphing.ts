@@ -1,24 +1,43 @@
 // Punctuation is a word of its own, so "пункта" still pairs with "пункта:"; dots inside "3.14" stay.
 const wordPattern = /[^\s.,:;!?…«»()"]+(?:[.,:][^\s.,:;!?…«»()"]+)*|[.,:;!?…«»()"]+/gu;
-
+// Steps a transition can treat as reached without touching the DOM: the arrival step is applied only when the transition runs.
+export type StepReachedPredicate = (stepElement: HTMLElement) => boolean;
+const unreachedStepSelector = "[data-step]:not([data-step-reached])";
 export type WordMatch = {
   outgoingWordPosition: number;
   incomingWordPosition: number;
 };
 
-function listVisibleTextNodes(textElement: HTMLElement): Text[] {
+// The nearest step ancestor (or the element itself) that the predicate keeps unreached; the live-DOM path matches it with one native closest call.
+export function findUnreachedStepAncestor(walkedElement: HTMLElement, isStepReached: StepReachedPredicate): HTMLElement | null {
+  let ancestorElement: HTMLElement | null = walkedElement;
+  while (ancestorElement !== null) {
+    if (ancestorElement.hasAttribute("data-step") && !isStepReached(ancestorElement)) return ancestorElement;
+    ancestorElement = ancestorElement.parentElement;
+  }
+  return null;
+}
+
+function listVisibleTextNodes(textElement: HTMLElement, isStepReached?: StepReachedPredicate): Text[] {
   const textWalker = document.createTreeWalker(textElement, NodeFilter.SHOW_TEXT);
   const visibleTextNodes: Text[] = [];
   while (textWalker.nextNode()) {
     const textNode = textWalker.currentNode as Text;
-    if (textNode.data.trim() === "" || textNode.parentElement?.closest("[data-step]:not([data-step-reached])")) continue;
+    if (textNode.data.trim() === "") continue;
+    const closestUnreachedStep =
+      isStepReached === undefined
+        ? textNode.parentElement?.closest(unreachedStepSelector)
+        : textNode.parentElement === null
+          ? null
+          : findUnreachedStepAncestor(textNode.parentElement, isStepReached);
+    if (closestUnreachedStep != null) continue;
     visibleTextNodes.push(textNode);
   }
   return visibleTextNodes;
 }
 
-export function listTextWords(textElement: HTMLElement): string[] {
-  return listVisibleTextNodes(textElement).flatMap((textNode) => textNode.data.match(wordPattern) ?? []);
+export function listTextWords(textElement: HTMLElement, isStepReached?: StepReachedPredicate): string[] {
+  return listVisibleTextNodes(textElement, isStepReached).flatMap((textNode) => textNode.data.match(wordPattern) ?? []);
 }
 
 // Repeated words pair up in order, like repeated elements in morph-matching.ts.

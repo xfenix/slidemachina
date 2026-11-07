@@ -26,9 +26,8 @@
   <a href="#features">Features</a> ·
   <a href="#your-own-theme">Your own theme</a> ·
   <a href="#for-agents">For agents</a> ·
-  <a href="#how-it-compares">Comparison</a> ·
-  <a href="#benchmark">Benchmark</a> ·
-  <a href="docs/slidemachina.md">Docs (Russian)</a>
+  <a href="#comparison">Comparison</a> ·
+  <a href="#benchmark">Benchmark</a>
 </p>
 
 <p align="center">
@@ -124,6 +123,12 @@ Pictures go to `images/`, and TypeScript suggests components and their props.
     <td>Pictures and video fill the free space, the whole slide or float beside the text. On a dark background the text and the logo turn light automatically.</td>
     <td>QR codes with a logo, drawn as vectors. Memes and GIFs are one command away: <code>slidemachina meme</code>. A picture in <code>images/memes/</code> works by name, without an import: <code>&lt;Meme src="fine"&gt;</code>.</td>
   </tr>
+  <tr>
+    <td colspan="2"><img src="docs/readme/remote-control.webp" alt="A phone becomes a remote: the deck shows a QR code, the phone connects by itself and turns the slides" width="860"></td>
+  </tr>
+  <tr>
+    <td colspan="2">A phone remote: the phone button on the panel shows a code and a QR code; the phone connects by itself over WebRTC and turns the slides with big buttons. No server and no install.</td>
+  </tr>
 </table>
 
 ### Layout
@@ -162,6 +167,7 @@ Line, bar, pie and other Recharts charts show numeric data. Wrap a chart in `<Ma
 ### For the speaker
 
 - The presenter window opens with <kbd>P</kbd>: the current slide, the next step, notes for each step in large type, a timer, a clock and how far ahead or behind you are. Either window can turn the slides, and it also works in an HTML file opened from disk.
+- A phone becomes a remote: the phone button on the control panel shows a six-digit code and a QR code. The phone scans the code and the page connects by itself over WebRTC; a deck on a public address serves the remote page itself, a deck opened from disk sends the phone to a public remote page. Big Back and Next buttons, a black screen toggle and the current slide and step. No server and no install.
 - The slide overview opens with <kbd>Esc</kbd>. There is also a jump by number, a pause with a black screen, full screen and a progress bar.
 - Hidden slides are skipped on stage and kept in print, PDF and PowerPoint. Put the details and theses for the copy you send after the talk there, and answers to audience questions.
 - Keys work in the Russian layout too, and on a phone a swipe or a tap turns the slide.
@@ -420,11 +426,9 @@ const BrandLogo = ({ dark }: { dark: boolean }) => (
 - A theme for some of the talks is a CSS file imported in `index.tsx`: `import "../theme/brand.css"`.
 - CSS right in `index.tsx` is `Machina.css` with a template, the same as `style.css`. `${…}` does not work in it: use CSS variables.
 
-Every variable is described in the "Тема" section of [docs/slidemachina.md](docs/slidemachina.md) (in Russian).
-
 </details>
 
-## How it compares
+## Comparison
 
 Other tools help you make a beautiful slide.
 slidemachina helps you give a talk people follow: it keeps lists, text and diagrams within Miller's 7±2 and follows Richard Mayer's 12 principles of multimedia learning.
@@ -444,6 +448,7 @@ The second rule is minimal markup. A slide is plain tags: no wrappers, ids or co
 | Morphing | ✅ on by default: shared elements, words and pieces of code are matched automatically | 🟡 `data-auto-animate` on both slides, pairs through `data-id` | 🟡 code only, through `magic-move` | 🟡 `MorphElement` with the same `id` on both pages |
 | Code highlighting | ✅ Shiki at build time: 0 KB of highlighting code in the browser, lines by steps | 🟡 highlight.js runs in the browser on every load | Shiki, live editing in Monaco | ❌ |
 | Diagrams | ✅ flowcharts and sequence diagrams from tags, laid out by ELK; arrows morph between slides | 🟡 Mermaid through a third-party plugin, no morphing | 🟡 Mermaid, no morphing | ❌ |
+| Charts | ✅ `<Chart>` on Recharts: series, axes, labels and tooltips take the theme, dark slides included. Recharts ships in the engine | ❌ an external library | 🟡 a Vue component of your own | ❌ |
 | 3D scenes | ✅ `Scene` on three.js: shapes, light and camera are tags and move by steps | ❌ | ❌ | ❌ |
 | Hanging punctuation | ✅ **quotes and brackets hang off the edge of the text, like in a book; bullets, code and line numbers hang too** | ❌ | ❌ | ❌ |
 | Typographer | ✅ Russian and English: dashes, quotes, non-breaking spaces | ❌ | ❌ | ❌ |
@@ -456,6 +461,8 @@ The second rule is minimal markup. A slide is plain tags: no wrappers, ids or co
 | Password protection | ✅ `--protected`: the file is encrypted, the password is asked for or taken from `SLIDEMACHINA_PASSWORD` | ❌ | ❌ | ❌ |
 | Editing | ✅ in a code editor and on the slide, written back to `index.tsx` | In a code editor | In a code editor and a Markdown panel | Comments on the slide, an agent applies them |
 | Presenter window | ✅ notes, timer, next slide, next step, notes per step | Notes, timer, next slide | Notes, timer, next slide, drawing | Notes, timer, next slide |
+| Phone remote | ✅ **the phone scans a QR code or types a six-digit code and turns the slides over WebRTC. No server, no install; a deck from disk sends the phone to a public remote page** | 🟡 a multiplex plugin with its own server | 🟡 the `--remote` flag: the phone opens the deck address on the same network | ❌ |
+| Slide overview | ✅ **Esc: a dark grid of thumbnails by section; arrows pick a slide, Enter opens it; the current slide shrinks into its thumbnail and grows back** | 🟡 the zoom plugin scales the deck, no thumbnails | 🟡 a list of titles in presenter mode | ❌ |
 | For agents | ✅ `llms.txt`, a skill, CLI commands: `check` for the rules of a clear talk, `shot` for a picture of a slide. No MCP server | ❌ | 🟡 an MCP server in `slidev dev` occupies agent context | 🟡 skills for writing and editing, an agent panel in the browser |
 | Many talks | ✅ a repository: a shared theme, a list with covers, one build for all | ❌ each one on its own | 🟡 themes as npm packages | 🟡 decks in one workspace, shared Markdown themes |
 | Hidden slides | ✅ **`<Slide hidden>`: the stage keeps a clean talk, the details wait for readers of the static copy. One attribute; print, PDF and PowerPoint keep them, one flag (`--no-hidden`, `?print&hidden=no`) drops them** | 🟡 `data-visibility="hidden"` removes the slide everywhere, PDF too | 🟡 `hide: true` drops the slide from the deck and the export | ❌ |
@@ -471,6 +478,7 @@ Speed is in the [benchmark](#benchmark) below: it is measured again every week.
 - ✅ **Export to one HTML file** — even password-protected; the others give a folder
 - ✅ **The widest export range** — PDF per slide and per step, editable PowerPoint with step click animations, HyperFrames for video
 - ✅ **Floating images** — text wraps around pictures and memes
+- ✅ **Phone remote** — a QR code, WebRTC, no server and no install
 - ✅ **Hidden slides** — the stage keeps the talk clean by Mayer's rules, the details wait in the handout for readers; printing keeps them or drops them by one flag
 - ✅ **Agent commands** — `check` for the rules of a clear talk, `shot` for a slide picture
 
@@ -482,7 +490,7 @@ Honest gaps, and the way we close them:
 - **Draggable elements** — Slidev's `v-drag` · we place pictures and memes with `float` and columns
 - **Drawing and a pointer over slides** — Slidev, Quarto · not yet
 - **Formulas** — LaTeX in Slidev and Quarto · not yet
-- **Phone remote, audience view, scroll reading, image lightbox** — reveal.js and Slidev · not yet
+- **Audience view, scroll reading, image lightbox** — reveal.js and Slidev · not yet
 - **A visual editor in the browser** — open-slide: comment pins, an assets manager, an agent panel · we edit right on the slide, changes write back to `index.tsx`
 - **Free-form wow pages** — open-slide pages are hand-positioned pixel React · the engine lays our slides out by rules, and that is why they stay readable
 - **Markdown syntax** — none, on purpose: components and plain tags customize deeper than Markdown with frontmatter and layouts
@@ -495,7 +503,7 @@ Pick open-slide if an agent writes the slides and you only leave comments.
 ## Benchmark
 
 <p align="center">
-  <a href="https://github.com/xfenix/slidemachina/tree/benchmark"><img src="https://cdn.jsdelivr.net/gh/xfenix/slidemachina@benchmark/benchmark.svg" alt="Benchmark: the same talk in slidemachina, reveal.js, Slidev and open-slide" width="860"></a>
+  <a href="https://github.com/xfenix/slidemachina/tree/benchmark"><img src="https://raw.githubusercontent.com/xfenix/slidemachina/benchmark/benchmark.svg" alt="Benchmark: the same talk in slidemachina, reveal.js, Slidev and open-slide" width="860"></a>
 </p>
 
 The same talk in the latest versions of all four tools from npm.
@@ -512,7 +520,6 @@ npm run check    # TypeScript, Oxlint and module boundaries
 npm test         # integration tests on Playwright
 ```
 
-How the engine works, the decisions behind it and its limits are in [docs/slidemachina.md](docs/slidemachina.md) (in Russian).
 The rules for the code are in [AGENTS.md](AGENTS.md).
 
 ## License

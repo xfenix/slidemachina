@@ -11,21 +11,13 @@ Today the talks are made with reveal.js 4:
 
 They show which features are needed in practice: section slides, lists with fragments, full-slide pictures, code highlighting, speaker notes, breadcrumbs, printing to PDF.
 
-## Stages
+## Layout
 
-The final document is `docs/slidemachina.md` (in Russian).
-The current stage has its own file: `docs/stage48.md`, then `docs/stage49.md` and so on.
-The stage file says what was done, which decisions were made and why, and what remains.
+A strict grid is our strong side: every presentation is built on one visible grid, and every element snaps to it. No exceptions.
 
-When a stage is closed, its outcome moves to `docs/slidemachina.md` and the stage file is deleted.
-The outcome is decisions and reasons. The search history and measurements stay out.
-What was not done goes to the section about what remains.
+The grid is the same on every slide: side margins, a header line for the slide tag and top stickers, a footer line for breadcrumbs and the slide number, and content columns between them. An element stands with its edges on grid lines; it never floats near a line. Rotations stay with stickers and decorations, but their position is still a grid point. Breadcrumbs and the slide number are part of the grid: they stand on the footer line of their slide, not wherever the theme's defaults put them.
 
-Stages 1–44, 46 and 47 were closed on October 28, 2026, including the second 36 (line breaks) and 37 (hidden slides). Their outcome is condensed in `docs/slidemachina.md`.
-
-A new stage starts with a clean context.
-Everything needed for the work comes from the project files: `AGENTS.md`, `docs/slidemachina.md`, the current stage file, the code.
-So before moving to a new stage, finish the current stage file: whatever is not in the files is lost.
+When a slide looks off by a pixel, measure it against the grid in a browser and fix the coordinates — do not nudge by eye.
 
 ## Code
 
@@ -36,14 +28,28 @@ Keep folder nesting as shallow as possible.
 Remove an extra level if the logic and order of the project do not suffer.
 Code is clear without comments: names explain everything.
 Write a comment only when the code cannot be understood without it.
+A comment says why, never what: delete a comment that restates the line below it.
+One component does one thing: a component that renders two unrelated pieces of UI or keeps two unrelated states is two components, or a component plus a hook in its own module.
+Code is written in clear plain English: names, comments and user-facing texts use common words, no invented terms or abbreviations.
 
 Names are long and descriptive, at least 8 characters. This applies to everything: variables, functions, classes, files.
 No generic names like `data`, `user`, `item`, `result`.
 A name says what is inside: not `data` but `parsedSlideMarkup`.
 Function names are always verbs.
-Constants, types and interfaces are grouped at the top of the file.
-Declarations of one kind go in a row without blank lines between them: constants, types, interfaces.
 Magic numbers are forbidden: always use constants with meaningful names.
+
+## File structure
+
+Every file keeps one straight order of groups, top to bottom, and a group never comes back:
+
+1. Imports.
+2. Constants, types and interfaces of the module: constants in one row, types and interfaces in one row, no blank lines inside a row.
+3. The main component, hook or function the file is named after.
+4. Local helpers: the non-exported functions the main one uses, in the order they are read.
+
+A constant, a type or an interface is never declared below a function. A file that needs a value in a group above the one being written gets the value from the group that already exists, not the other way around.
+
+Inside a component the same straight order applies: hook calls in one block — a later hook may be preceded only by the plain callbacks it takes as arguments or uses inside — then derived values and event handlers in one block, then the returned JSX. Destructuring the properties belongs to the signature, not to a block. No blank lines inside a block, exactly one blank line between blocks.
 
 ## Tests
 

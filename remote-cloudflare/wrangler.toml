@@ -1,0 +1,13 @@
+name = "slidemachina-broker"
+main = "src/index.ts"
+compatibility_date = "2025-11-05"
+
+# The free Workers plan hosts only SQLite-backed Durable Objects; this broker stores its tiny registry there
+# and keeps connected phones in hibernated websockets, so the always-free quotas cover a hall full of remotes.
+[[durable_objects.bindings]]
+name = "REMOTE_BROKER"
+class_name = "RemoteBrokerRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RemoteBrokerRoom"]

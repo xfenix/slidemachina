@@ -47,9 +47,6 @@ function resolveCaptionBox(captionPlace: string): CaptionBox {
 export function Meme({ src, alt = "", stretch, float, children }: MemeProperties) {
   const memeReference = useRef<HTMLDivElement>(null);
   useCaptionFitting(memeReference, children);
-  const childNodes = Children.toArray(children);
-  const captionNodes = childNodes.filter((childNode) => !isFigureCaption(childNode));
-  const isStretched = stretch ?? float === undefined;
   // The meme takes the proportions of its picture, and the captions their limits from its height in pixels of the picture.
   useLayoutEffect(() => {
     const memeElement = memeReference.current;
@@ -65,6 +62,9 @@ export function Meme({ src, alt = "", stretch, float, children }: MemeProperties
     pictureElement.addEventListener("load", rememberPictureSize);
     return () => pictureElement.removeEventListener("load", rememberPictureSize);
   }, [src]);
+  const childNodes = Children.toArray(children);
+  const captionNodes = childNodes.filter((childNode) => !isFigureCaption(childNode));
+  const isStretched = stretch ?? float === undefined;
   return (
     <MediaFrame stretch={isStretched} caption={childNodes.filter(isFigureCaption)}>
       <div ref={memeReference} data-media data-meme data-media-float={float}>

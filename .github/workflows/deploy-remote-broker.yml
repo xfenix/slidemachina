@@ -1,0 +1,47 @@
+# Any push to main that touches the broker rebuilds the Cloudflare Worker.
+# Secrets: CLOUDFLARE_API_TOKEN (template "Edit Cloudflare Workers") and CLOUDFLARE_ACCOUNT_ID.
+# Until they are set, the deploy steps skip and the run stays green.
+name: Deploy the remote broker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - remote-cloudflare/**
+      - .github/workflows/deploy-remote-broker.yml
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-remote-broker
+  cancel-in-progress: true
+
+jobs:
+  cloudflare-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check the Cloudflare secrets are set
+        id: cloudflareSecrets
+        env:
+          cloudflareApiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          cloudflareAccountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$cloudflareApiToken" ] && [ -n "$cloudflareAccountId" ]; then
+            echo "areSet=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are not set — skipping the deploy."
+            echo "areSet=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.cloudflareSecrets.outputs.areSet == 'true'
+
+      - uses: cloudflare/wrangler-action@v3
+        if: steps.cloudflareSecrets.outputs.areSet == 'true'
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # wrangler 4 в package.json брокера: action по умолчанию ставит wrangler 3, который конфликтует
+          # с @cloudflare/workers-types v5 и падает на npm install.
+          wranglerVersion: "4"
+          workingDirectory: remote-cloudflare

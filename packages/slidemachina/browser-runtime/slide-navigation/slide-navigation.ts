@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { flushSync } from "react-dom";
 import { readPositionFromHash, writePositionToHash, type PresentationPosition } from "./position-hash.ts";
 import { findNeighbourSlide, type SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
@@ -13,6 +13,8 @@ export function useSlideNavigation(slideNumbering: SlideNumbering, stepCountsRef
   const latestPositionReference = useRef(currentPosition);
 
   const countSteps = (slideIndex: number) => stepCountsReference.current[slideIndex] ?? 0;
+  // The idle precache pass asks for the step at the moment it runs, not the one at render time.
+  const readLatestPosition = useCallback(() => latestPositionReference.current, []);
 
   // Shows a position at once, without a slide transition: the navigator plays its own, the presenter window has none.
   const showPosition = (nextPosition: PresentationPosition) => {
@@ -35,6 +37,7 @@ export function useSlideNavigation(slideNumbering: SlideNumbering, stepCountsRef
     runSlideTransition(
       () => flushSync(showArrivedPosition),
       previousPosition.slideIndex,
+      previousPosition.stepIndex,
       nextPosition.slideIndex,
       nextPosition.stepIndex,
     );
@@ -58,6 +61,7 @@ export function useSlideNavigation(slideNumbering: SlideNumbering, stepCountsRef
 
   return {
     currentPosition,
+    readLatestPosition,
     goForward: () =>
       movePosition(({ slideIndex, stepIndex }) => {
         if (stepIndex < countSteps(slideIndex)) return { slideIndex, stepIndex: stepIndex + 1 };

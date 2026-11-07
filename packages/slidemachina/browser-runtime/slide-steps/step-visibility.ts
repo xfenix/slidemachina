@@ -12,7 +12,13 @@ const stepStructureSignatures = new WeakMap<HTMLElement, string>();
 const countedSteps = new WeakMap<HTMLElement, number>();
 const elementIdentifiers = new WeakMap<HTMLElement, number>();
 const slideRenderStates = new WeakMap<HTMLElement, string>();
+// Hot reload replaces step elements without a step change: a new update count re-marks every rendered slide.
+let hotUpdateCounter = 0;
 let lastElementIdentifier = 0;
+import.meta.hot?.on("vite:afterUpdate", () => {
+  hotUpdateCounter += 1;
+});
+const markedStepStates = new WeakMap<HTMLElement, { revealedStep: number; hotUpdateCounter: number }>();
 
 export function useStepVisibility(
   slideElementReference: RefObject<HTMLElement | null>,
@@ -27,8 +33,10 @@ export function useStepVisibility(
     if (slideElement === null) return;
     const renderState = `${isCurrentSlide} ${isSlideNearby}`;
     const structureSignature = readStepStructureSignature(slideElement);
+    const markedState = markedStepStates.get(slideElement);
     const shouldNotify =
-      lastRevealedSteps.get(slideElement) !== revealedStep ||
+      markedState?.revealedStep !== revealedStep ||
+      markedState.hotUpdateCounter !== hotUpdateCounter ||
       stepStructureSignatures.get(slideElement) !== structureSignature ||
       slideRenderStates.get(slideElement) !== renderState;
     reportStepCount(markReachedSteps(slideElement, revealedStep, structureSignature));
@@ -113,7 +121,10 @@ function readStepStructureSignature(slideElement: HTMLElement): string {
 
 // Returns the number of steps on the slide.
 export function markReachedSteps(slideElement: HTMLElement, revealedStep: number, structureSignature = readStepStructureSignature(slideElement)): number {
-  if (lastRevealedSteps.get(slideElement) === revealedStep && stepStructureSignatures.get(slideElement) === structureSignature) return countedSteps.get(slideElement) ?? 0;
+  const markedState = markedStepStates.get(slideElement);
+  if (markedState?.revealedStep === revealedStep && markedState.hotUpdateCounter === hotUpdateCounter && stepStructureSignatures.get(slideElement) === structureSignature) {
+    return countedSteps.get(slideElement) ?? 0;
+  }
   if (stepStructureSignatures.get(slideElement) !== structureSignature) {
     markSequenceSteps(slideElement);
     markDefaultEffects(slideElement);
@@ -126,6 +137,7 @@ export function markReachedSteps(slideElement: HTMLElement, revealedStep: number
     stepElement.toggleAttribute("data-step-reached", Number(stepElement.dataset.stepIndex) <= revealedStep);
   }
   markArrivingSteps(slideElement, stepElements, revealedStep);
+  markedStepStates.set(slideElement, { revealedStep, hotUpdateCounter });
   return stepCount;
 }
 

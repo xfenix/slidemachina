@@ -84,7 +84,7 @@ async function waitForScreencastQuiet(screencastFrames: ScreencastFrame[], quiet
   }
 }
 
-async function measureSlideChangeTurns(chromeBrowser: Browser, pageAddress: string, repeatCount: number): Promise<number> {
+export async function measureSlideChangeTurns(chromeBrowser: Browser, pageAddress: string, repeatCount: number): Promise<number> {
   const browserContext = await chromeBrowser.newContext({ viewport: viewportSize });
   const measuredPage = await browserContext.newPage();
   await measuredPage.goto(pageAddress, { waitUntil: "commit" });
@@ -218,7 +218,7 @@ function measurePdfExport(projectFolder: string, benchmarkTool: BenchmarkTool, c
   return Promise.resolve((performance.now() - startTime) / millisecondsInSecond);
 }
 
-function serveFolder(siteFolder: string): Promise<http.Server> {
+export function serveFolder(siteFolder: string): Promise<http.Server> {
   const siteServer = http.createServer((siteRequest, siteResponse) => {
     const requestPath = decodeURIComponent((siteRequest.url ?? "/").split("?")[0]!);
     const candidatePath = path.join(siteFolder, requestPath);

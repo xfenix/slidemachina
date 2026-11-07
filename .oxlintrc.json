@@ -35,5 +35,8 @@
   },
   "env": {
     "builtin": true
-  }
+  },
+  "ignorePatterns": [
+    "remote-cloudflare/**"
+  ]
 }

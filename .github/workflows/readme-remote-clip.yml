@@ -1,0 +1,47 @@
+# Records the phone-remote clip for the README: a real WebRTC connection between two tabs.
+# The development machine sits behind a VPN that kills local WebRTC, CI runners allow it.
+# The clip goes to a branch with a pull request: main gets no direct bot pushes.
+name: README remote clip
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: readme-remote-clip
+  cancel-in-progress: true
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 26
+
+      - name: Install
+        run: npm ci
+
+      - name: Browser and encoders
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install --yes webp
+
+      - name: Record the clip
+        run: node tests/remote-media-recording.ts
+
+      - name: Push the new clip branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch --create "readme-remote-clip-$(date -u +%Y%m%d%H%M%S)"
+          git add docs/readme/remote-control.webp
+          git commit --quiet --message "docs: refresh the phone-remote README clip"
+          git push --quiet origin HEAD
+          echo "Clip branch pushed: $(git branch --show-current). A pull request from it is created by hand — GitHub Actions cannot create pull requests."
+
