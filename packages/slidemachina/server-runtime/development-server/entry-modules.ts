@@ -9,8 +9,12 @@ export const listModuleId = "/@slidemachina/presentation-list.js";
 const engineRuntimeFolder = "browser-runtime";
 // engine-layout.css declares the order of CSS layers, the default theme comes before the blocks that refine it.
 const leadingStylesheets = ["browser-runtime/visual-theme/engine-layout.css", "browser-runtime/visual-theme/default-theme.css"];
-// The editor and the meme panel exist only in slidemachina dev, so a build leaves their styles out.
-const developmentStylesheets = ["browser-runtime/source-editor/source-editor.css", "browser-runtime/source-editor/meme-panel.css"];
+// The editor, the meme panel and the export button exist only in slidemachina dev, so a build leaves their styles out.
+const developmentStylesheets = [
+  "browser-runtime/source-editor/source-editor.css",
+  "browser-runtime/source-editor/meme-panel.css",
+  "browser-runtime/presentation-interface/export-menu.css",
+];
 const memeFontStylesheetName = "browser-runtime/content-blocks/meme-block/meme-font.css";
 // The slide source plugin imports it into files with <Meme>: other presentations do not carry the caption font.
 export const memeFontStylesheet = path.join(enginePackageFolder, memeFontStylesheetName);
