@@ -5,6 +5,7 @@ import { bendCrossingPaths, type MovingLayer } from "../element-morphing/morph-a
 import { markReachedSteps } from "../slide-steps/step-visibility.ts";
 import { findPaintedShapes, paintShapeGroups, readIncomingPaints } from "./shape-layers.ts";
 import { maskSlideTiles } from "./tile-masks.ts";
+import { runDirectSlideTransition, runsWithoutSnapshots } from "./direct-slide-transition.ts";
 import { readContentGeneration, type TransitionPressMeasurements } from "./transition-measuring.ts";
 import {
   analyseSlideTransition,
@@ -90,6 +91,11 @@ export function runSlideTransition(
     chosenTransition = requestedTransition;
   }
   const movesWholeSlides = wholeSlideTransitions.has(chosenTransition);
+  // Sliding the whole canvas needs no snapshots: both slides stay live, so the turn plays at once instead of after two captures.
+  if (runsWithoutSnapshots(chosenTransition)) {
+    runDirectSlideTransition(updateSlides, outgoingSlide, incomingSlide, chosenTransition, isMovingForward);
+    return;
+  }
   const documentElement = document.documentElement;
   documentElement.dataset.slideTransition = chosenTransition;
   documentElement.dataset.slideDirection = isMovingForward ? "forward" : "backward";

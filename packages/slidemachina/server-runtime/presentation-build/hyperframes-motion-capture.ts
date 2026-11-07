@@ -21,6 +21,8 @@ declare global { interface Window { __slidemachinaMotionCapture: NativeMotionCap
 export function installMotionCapture() {
   const captureWindow = window;
   const startTransition = document.startViewTransition.bind(document);
+  // Snapshot-free turns would starve the capture of view transitions: whole-slide turns stay on the snapshot path while it watches.
+  (captureWindow as unknown as Record<string, boolean>).__slidemachinaSnapshotCaptureActive = true;
   captureWindow.__slidemachinaMotionCapture = {
     isEnabled: false, isReady: false, isPositionReady: false,
     capturedAnimations: [], previousAnimations: new Set(), durationMilliseconds: 0, animationNames: [],
@@ -105,6 +107,7 @@ export async function finishMotionCapture(capturePage: Page) {
   await capturePage.evaluate(async () => {
     const motionCapture = window.__slidemachinaMotionCapture;
     motionCapture.isEnabled = false;
+    (window as unknown as Record<string, boolean>).__slidemachinaSnapshotCaptureActive = false;
     for (const capturedAnimation of motionCapture.capturedAnimations) {
       try { capturedAnimation.finish(); } catch { capturedAnimation.cancel(); }
     }
