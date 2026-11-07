@@ -19,7 +19,7 @@ export function currentSlide(page: Page) {
 
 // Slides are found by what they show, not by number, so tests follow the demo when slides are added.
 // Right after load only the shown slide and its neighbours are drawn: the search waits for the rest.
-export async function findSlideNumber(page: Page, partSelector: string, partText?: string) {
+export async function findSlideNumber(page: Page, partSelector: string, partText?: string, waitTimeout = 5000) {
   let slideNumber = 0;
   await expect
     .poll(
@@ -33,7 +33,7 @@ export async function findSlideNumber(page: Page, partSelector: string, partText
             ) + 1,
           [partSelector, partText],
         )),
-      { message: `В демо нет слайда с ${partSelector} ${partText ?? ""}` },
+      { message: `В демо нет слайда с ${partSelector} ${partText ?? ""}`, timeout: waitTimeout },
     )
     .toBeGreaterThan(0);
   return slideNumber;

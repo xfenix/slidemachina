@@ -6,6 +6,7 @@ import { log, spinner } from "@clack/prompts";
 import { build } from "vite";
 import { commandLineTexts, formatFileSize } from "../command-line/command-line-texts.ts";
 import { zipFolder } from "./folder-archive.ts";
+import { createBuildCache } from "./build-cache.ts";
 import { presentationFileName } from "../presentation-repository/presentation-repository.ts";
 import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
 import { createBuildConfiguration } from "../development-server/vite-configuration.ts";
@@ -130,6 +131,9 @@ export async function buildPresentation(
   const folderBuild = path.join(temporaryFolder, "folder");
   const singleFileFolder = path.join(temporaryFolder, "single-file");
   try {
+    const buildCache = createBuildCache(presentationLayout, outputPaths);
+    const restoredFolderBuild = buildsFolder && buildCache.restoreCachedBuild(folderBuild, false, buildReport);
+    const restoredSingleFileBuild = buildsSingleFile && buildCache.restoreCachedBuild(singleFileFolder, true, buildReport);
     // The two builds share nothing but the compressed-picture cache, so they run at the same time.
     const bundleTitles = [buildsFolder && commandLineTexts.buildingFiles(false), buildsSingleFile && commandLineTexts.buildingFiles(true)].filter(
       (bundleTitle): bundleTitle is string => bundleTitle !== false,
@@ -139,11 +143,12 @@ export async function buildPresentation(
         nameStepTitle(bundleTitles.join(" · ")),
         () =>
           Promise.all([
-            buildsFolder ? build(createBuildConfiguration(presentationLayout, folderBuild, false, buildReport)) : undefined,
-            buildsSingleFile ? build(createBuildConfiguration(presentationLayout, singleFileFolder, true, buildReport)) : undefined,
+            buildsFolder && !restoredFolderBuild ? build(createBuildConfiguration(presentationLayout, folderBuild, false, buildReport)) : undefined,
+            buildsSingleFile && !restoredSingleFileBuild ? build(createBuildConfiguration(presentationLayout, singleFileFolder, true, buildReport)) : undefined,
           ]),
         isInteractive,
       );
+      if (buildsSingleFile && !restoredSingleFileBuild) buildCache.saveBuiltOutput(singleFileFolder, true, buildReport);
     }
     if (buildsFolder) {
       // The folder index opens on a painted first slide, like the single-file builds; a missing Chrome leaves it without one.
@@ -159,9 +164,10 @@ export async function buildPresentation(
           log.warn(commandLineTexts.staticCoverFailed(coverProblem));
         }
       }
+      if (!restoredFolderBuild) buildCache.saveBuiltOutput(folderBuild, false, buildReport);
       if (chosenVariants.includes("folder")) {
         removeOldOutput(outputPaths.folder);
-        cpSync(folderBuild, outputPaths.folder, { recursive: true });
+        cpSync(folderBuild, outputPaths.folder, { recursive: true, preserveTimestamps: true });
       }
       if (chosenVariants.includes("zip")) zipFolder(folderBuild, outputPaths.zip);
       builtPages.push(folderBuild);

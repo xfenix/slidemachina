@@ -64,7 +64,7 @@ export function Slide({
   const { presentationSettings } = slideEnvironment;
   const slideElementReference = useRef<HTMLElement>(null);
   const detectedTone = useBackgroundTone(slideElementReference, background, className);
-  useStepVisibility(slideElementReference, slideEnvironment.revealedStep, slideEnvironment.reportStepCount);
+  useStepVisibility(slideElementReference, slideEnvironment.revealedStep, slideEnvironment.reportStepCount, slideEnvironment.isCurrentSlide, slideEnvironment.isSlideNearby);
   const { isSlideDistant } = slideEnvironment;
   useBigNumberFitting(slideElementReference, children, isSlideDistant);
   useFloatFitting(slideElementReference, children, isSlideDistant);

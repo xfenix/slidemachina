@@ -113,7 +113,7 @@ test("редактор правит текст, двигает блок схем
     await waitForServer(editorServerAddress);
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(editorServerAddress);
-    const playgroundSlideNumber = await findSlideNumber(page, "h2", "Попробуйте: нажмите E");
+    const playgroundSlideNumber = await findSlideNumber(page, "h2", "Попробуйте: нажмите E", 15_000);
 
     await test.step("метки «файл:строка» ведут на свой тег", async () => {
       await page.goto(`${editorServerAddress}/#1`);

@@ -22,6 +22,6 @@ const addressImportExternalizing: Rolldown.Plugin = {
 // instead of a hundred modules, and a restart skips compiling them. A linked engine, as in this repository, stays source,
 // so an edit of the engine shows up without a restart.
 export function describeEnginePrebundling(): Pick<DepOptimizationOptions, "exclude" | "extensions" | "rolldownOptions"> & { include: string[] } {
-  if (!isEngineInstalled) return { include: [], exclude: ["slidemachina"] };
-  return { include: engineEntryIds, extensions: [".ts", ".tsx"], rolldownOptions: { plugins: [addressImportExternalizing] } };
+  if (!isEngineInstalled) return { include: [], exclude: ["slidemachina", "three", "agentation"] };
+  return { include: engineEntryIds, exclude: ["three", "agentation"], extensions: [".ts", ".tsx"], rolldownOptions: { plugins: [addressImportExternalizing] } };
 }

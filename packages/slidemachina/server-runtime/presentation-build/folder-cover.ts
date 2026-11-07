@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { captureShownFirstSlide, firstFrameViewport, injectStaticCover } from "./static-cover.ts";
+import { captureShownFirstSlide, firstFrameViewport, injectStaticCover, staticCoverPattern } from "./static-cover.ts";
 import type { SharedChrome } from "./chrome-sharing.ts";
 
 // A made-up address: Playwright answers it from the built folder, so the capture needs no web server.
@@ -59,6 +59,8 @@ async function shootFolderCover(builtFolder: string, sharedChrome: SharedChrome)
 
 // The folder index opens on its painted first slide, as the single-file builds do; a rebuild of the same sources reuses the shot.
 export async function addFolderCover(builtFolder: string, sharedChrome: SharedChrome): Promise<void> {
+  const indexPath = path.join(builtFolder, "index.html");
+  if (staticCoverPattern.test(readFileSync(indexPath, "utf8"))) return;
   const coverKey = hashBuiltFolder(builtFolder);
   let coverMarkup = readCachedCover(coverKey);
   if (coverMarkup === undefined) {
@@ -67,5 +69,5 @@ export async function addFolderCover(builtFolder: string, sharedChrome: SharedCh
     writeCachedCover(coverKey, capturedMarkup);
     coverMarkup = capturedMarkup;
   }
-  injectStaticCover(path.join(builtFolder, "index.html"), coverMarkup);
+  injectStaticCover(indexPath, coverMarkup);
 }

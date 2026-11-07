@@ -8,7 +8,7 @@
     "check": "slidemachina check"
   },
   "dependencies": {
-    "slidemachina": "^1.0.0"
+    "slidemachina": "^1.5.0"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
