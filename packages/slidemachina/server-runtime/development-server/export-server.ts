@@ -2,17 +2,19 @@ import { createReadStream, mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
-import { presentationExportEndpoint } from "../../shared-between-runtimes/engine-constants.ts";
+import { presentationExportEndpoint, presentationExportStatusEndpoint } from "../../shared-between-runtimes/engine-constants.ts";
 import { isOwnPageRequest } from "./edit-request-checks.ts";
 import { listPresentationFolders } from "../presentation-repository/presentation-repository.ts";
 import { shareChrome } from "../presentation-build/chrome-sharing.ts";
 import { buildPresentation, namePresentationOutputs } from "../presentation-build/presentation-build.ts";
-import type { BuildVariant } from "../command-line/build-choice.ts";
+import type { ExportStatusAnswer, ExportedFileVariant } from "../../shared-between-runtimes/engine-constants.ts";
 import type { BuildReport } from "../presentation-build/image-compression.ts";
 import type { SiteLayout } from "../presentation-repository/presentation-repository.ts";
 import type { Connect, Logger, Plugin } from "vite";
 
-type ExportVariant = Extract<BuildVariant, "html" | "pdf" | "pptx">;
+type ExportVariant = ExportedFileVariant;
+type RunningExport = { variant: ExportVariant };
+type FinishedExport = { variant: ExportVariant; succeeded: boolean; finishedAt: number };
 
 const exportedFileTypes: Record<ExportVariant, string> = {
   html: "text/html; charset=utf-8",
@@ -40,6 +42,8 @@ export function createPresentationExportPlugin(siteLayout: SiteLayout): Plugin {
 
 function installPresentationExport(serverMiddlewares: Connect.Server, siteLayout: SiteLayout, buildLogger: Logger): void {
   let exportQueue: Promise<void> = Promise.resolve();
+  let runningExport: RunningExport | undefined;
+  let finishedExport: FinishedExport | undefined;
   serverMiddlewares.use(presentationExportEndpoint, (incomingRequest, serverResponse) => {
     const sendProblem = (statusCode: number, problemCode: string) => {
       serverResponse.statusCode = statusCode;
@@ -59,6 +63,8 @@ function installPresentationExport(serverMiddlewares: Connect.Server, siteLayout
     exportQueue = exportQueue.catch(() => undefined).then(async () => {
       const temporaryFolder = mkdtempSync(path.join(os.tmpdir(), "slidemachina-export-"));
       const sharedChrome = shareChrome();
+      let exportSucceeded = false;
+      runningExport = { variant: exportVariant };
       try {
         const outputPaths = namePresentationOutputs(temporaryFolder, path.basename(exportLayout.rootFolder));
         const buildReport: BuildReport = { savedPictureBytes: new Map(), videoSizes: new Map() };
@@ -74,6 +80,7 @@ function installPresentationExport(serverMiddlewares: Connect.Server, siteLayout
         serverResponse.setHeader("Content-Type", exportedFileTypes[exportVariant]);
         serverResponse.setHeader("Content-Disposition", `attachment; ${describeDispositionFilename(path.basename(exportedFilePath))}`);
         await pipeline(createReadStream(exportedFilePath), serverResponse);
+        exportSucceeded = true;
       } catch (exportError) {
         buildLogger.error(exportError instanceof Error ? String(exportError.stack ?? exportError) : String(exportError));
         if (!serverResponse.headersSent) sendProblem(failedExportStatus, "exportFailed");
@@ -81,8 +88,24 @@ function installPresentationExport(serverMiddlewares: Connect.Server, siteLayout
       } finally {
         await sharedChrome.closeChrome();
         rmSync(temporaryFolder, { recursive: true, force: true });
+        runningExport = undefined;
+        finishedExport = { variant: exportVariant, succeeded: exportSucceeded, finishedAt: Date.now() };
       }
     });
+  });
+  // The page polls it to move the export button from "building" to "done".
+  serverMiddlewares.use(presentationExportStatusEndpoint, (incomingRequest, serverResponse) => {
+    const sendProblem = (statusCode: number, problemCode: string) => {
+      serverResponse.statusCode = statusCode;
+      serverResponse.setHeader("Content-Type", "application/json");
+      serverResponse.end(JSON.stringify({ problemCode }));
+    };
+    if (incomingRequest.method !== "GET") return sendProblem(methodNotAllowedStatus, "wrongRequest");
+    if (!isOwnPageRequest(incomingRequest)) return sendProblem(foreignOriginStatus, "wrongRequest");
+    const statusAnswer: ExportStatusAnswer = { runningVariant: runningExport?.variant ?? null, finished: finishedExport ?? null };
+    serverResponse.statusCode = successStatus;
+    serverResponse.setHeader("Content-Type", "application/json");
+    serverResponse.end(JSON.stringify(statusAnswer));
   });
 }
 

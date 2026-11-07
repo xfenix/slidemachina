@@ -48,9 +48,14 @@ test("кнопка экспорта в тулбаре выгружает HTML, P
   try {
     await waitForServer(exportServerAddress);
     await page.goto(`${exportServerAddress}/sample-talk/`);
-    await expect(page.getByRole("toolbar")).toBeVisible();
-    // A fresh dev server re-optimizes dependencies on the first load and reloads the page: an open export menu would not survive it.
-    await page.waitForTimeout(4000);
+    // A fresh dev server re-optimizes dependencies once and full-reloads the page, which would kill an open
+    // export menu mid-click: put a marker on the window and wait until it survives a quiet window.
+    for (let settleAttempt = 0; settleAttempt < 4; settleAttempt += 1) {
+      await page.evaluate(() => ((window as unknown as { settleMarker: boolean }).settleMarker = true));
+      await page.waitForTimeout(6000);
+      const markerSurvived = await page.evaluate(() => "settleMarker" in window).catch(() => false);
+      if (markerSurvived) break;
+    }
     await expect(page.getByRole("toolbar")).toBeVisible();
 
     await test.step("HTML: файл качается одним куском и открывает слайд", async () => {
@@ -65,6 +70,7 @@ test("кнопка экспорта в тулбаре выгружает HTML, P
       const htmlText = await readFile(htmlPath, "utf8");
       expect(htmlText).toContain("Export check");
       expect(htmlText).toContain("data-static-cover");
+      await expect(page.getByRole("button", { name: "Done" })).toBeVisible();
     });
 
     await test.step("PDF: файл качается и начинается с сигнатуры PDF", async () => {

@@ -1,19 +1,62 @@
-import { useRef, useState, type ReactNode } from "react";
-import { presentationExportEndpoint } from "../../shared-between-runtimes/engine-constants.ts";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { presentationExportEndpoint, presentationExportStatusEndpoint } from "../../shared-between-runtimes/engine-constants.ts";
 import { pickInterfaceTexts } from "./interface-texts.ts";
 import { usePopoverClosing } from "./popover-closing.ts";
 import { ToolbarButton } from "./presentation-toolbar.tsx";
 
 type ExportVariant = "html" | "pdf" | "pptx";
+type ExportPhase = "building" | "done" | "failed";
+type ExportProgress = { variant: ExportVariant; phase: ExportPhase };
 type ExportChoice = { variantName: ExportVariant; choiceTitle: string; choiceHint: string; ChoiceIcon: () => ReactNode };
 
-// The dev-server export of the build command: one click asks the server for the built file, the browser saves it.
+const statusPollingIntervalMilliseconds = 500;
+const progressResetDelayMilliseconds = 2500;
+const progressGiveUpMilliseconds = 5 * 60 * 1000;
+// The browser and the dev server live on one machine; the skew covers a leap between the two clocks.
+const clockSkewMilliseconds = 2000;
+
+// The dev-server export of the build command: one click asks the server for the built file, the button shows the build progress.
 export function ExportMenu({ languageCode }: { languageCode: string }) {
   const interfaceTexts = pickInterfaceTexts(languageCode);
   const [isMenuOpen, setMenuOpen] = useState(false);
+  const [exportProgress, setExportProgress] = useState<ExportProgress | undefined>(undefined);
   const menuAnchorReference = useRef<HTMLDivElement>(null);
 
   usePopoverClosing(isMenuOpen, menuAnchorReference, () => setMenuOpen(false));
+
+  useEffect(() => {
+    if (exportProgress === undefined || exportProgress.phase !== "building") return;
+    const startedAt = Date.now();
+    let pollTimer = 0;
+    let sawRunningExport = false;
+    const stopPolling = (finalPhase: ExportPhase) => {
+      window.clearTimeout(pollTimer);
+      setExportProgress((currentProgress) => (currentProgress === undefined ? currentProgress : { ...currentProgress, phase: finalPhase }));
+      window.setTimeout(() => setExportProgress(undefined), progressResetDelayMilliseconds);
+    };
+    const pollExportStatus = async () => {
+      try {
+        const statusResponse = await fetch(presentationExportStatusEndpoint);
+        if (statusResponse.ok) {
+          const statusAnswer = (await statusResponse.json()) as { runningVariant: ExportVariant | null; finished: { variant: ExportVariant; succeeded: boolean; finishedAt: number } | null };
+          if (statusAnswer.runningVariant === exportProgress.variant) sawRunningExport = true;
+          const isFreshFinish = statusAnswer.finished !== null && statusAnswer.finished.finishedAt >= startedAt - clockSkewMilliseconds;
+          if (statusAnswer.finished?.variant === exportProgress.variant && isFreshFinish && (sawRunningExport || !statusAnswer.runningVariant)) {
+            return stopPolling(statusAnswer.finished.succeeded ? "done" : "failed");
+          }
+        }
+      } catch {
+        // A restarted server misses the build: keep polling until the give-up timer clears the button.
+      }
+      pollTimer = window.setTimeout(() => void pollExportStatus(), statusPollingIntervalMilliseconds);
+    };
+    void pollExportStatus();
+    const giveUpTimer = window.setTimeout(() => setExportProgress(undefined), progressGiveUpMilliseconds);
+    return () => {
+      window.clearTimeout(pollTimer);
+      window.clearTimeout(giveUpTimer);
+    };
+  }, [exportProgress]);
 
   const exportChoices: ExportChoice[] = [
     { variantName: "html", choiceTitle: interfaceTexts.exportHtmlTitle, choiceHint: interfaceTexts.exportHtmlHint, ChoiceIcon: BrowserFileIcon },
@@ -22,16 +65,28 @@ export function ExportMenu({ languageCode }: { languageCode: string }) {
   ];
   const exportAddressFor = (chosenVariant: ExportVariant) =>
     `${presentationExportEndpoint}?${new URLSearchParams({ presentation: presentationSitePath(), variant: chosenVariant })}`;
+  const trackExportProgress = (chosenVariant: ExportVariant) => {
+    setMenuOpen(false);
+    setExportProgress({ variant: chosenVariant, phase: "building" });
+  };
+  const exportButtonLabel =
+    exportProgress === undefined
+      ? interfaceTexts.exportButton
+      : exportProgress.phase === "building"
+        ? interfaceTexts.exportWorkingTitle
+        : exportProgress.phase === "done"
+          ? interfaceTexts.exportDoneTitle
+          : interfaceTexts.exportFailedTitle;
 
   return (
     <div data-export-anchor ref={menuAnchorReference}>
-      <ToolbarButton label={interfaceTexts.exportButton} isPressed={isMenuOpen} onPress={() => setMenuOpen((wasMenuOpen) => !wasMenuOpen)}>
-        <DownloadIcon />
+      <ToolbarButton label={exportButtonLabel} isPressed={isMenuOpen} onPress={() => setMenuOpen((wasMenuOpen) => !wasMenuOpen)}>
+        {exportProgress === undefined ? <DownloadIcon /> : <span data-export-spinner aria-hidden="true" />}
       </ToolbarButton>
       {isMenuOpen && (
         <div data-toolbar-menu role="menu" aria-label={interfaceTexts.exportButton}>
           {exportChoices.map(({ variantName, choiceTitle, choiceHint, ChoiceIcon }) => (
-            <a key={variantName} role="menuitem" href={exportAddressFor(variantName)} download onClick={() => setMenuOpen(false)}>
+            <a key={variantName} role="menuitem" href={exportAddressFor(variantName)} download onClick={() => trackExportProgress(variantName)}>
               <ChoiceIcon />
               <span data-menu-option-text>
                 <span data-menu-option-title>{choiceTitle}</span>
