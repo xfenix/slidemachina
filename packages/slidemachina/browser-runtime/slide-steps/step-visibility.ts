@@ -7,6 +7,9 @@ export const stepChangeEventName = "slidemachina-steps";
 const writtenStepMark = "data-written-step";
 // The step just revealed, one forward from the step before: only it plays an animation such as glitch.
 const arrivingStepMark = "data-step-arriving";
+// Steps a slide re-renders with nothing to redo: no signature walk, no marking pass. A DOM edit flips the flag.
+const structureDirtyFlags = new WeakMap<HTMLElement, boolean>();
+const structureObservers = new WeakMap<HTMLElement, MutationObserver>();
 const lastRevealedSteps = new WeakMap<HTMLElement, number>();
 const stepStructureSignatures = new WeakMap<HTMLElement, string>();
 const countedSteps = new WeakMap<HTMLElement, number>();
@@ -28,12 +31,34 @@ export function useStepVisibility(
   isSlideNearby: boolean,
 ) {
   // Runs after every render: hot reload and nested components may replace step elements.
+  // A key press finds its slide untouched most of the time, so the cheap guards run first and the signature walk only on a real change.
   useLayoutEffect(() => {
     const slideElement = slideElementReference.current;
     if (slideElement === null) return;
+    // One observer per slide: it outlives bails, and a WeakMap lets both go with the element.
+    if (!structureObservers.has(slideElement)) {
+      const structureObserver = new MutationObserver(() => structureDirtyFlags.set(slideElement, true));
+      structureObserver.observe(slideElement, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ["data-steps", "data-step", "data-step-effect"],
+      });
+      structureObservers.set(slideElement, structureObserver);
+    }
     const renderState = `${isCurrentSlide} ${isSlideNearby}`;
-    const structureSignature = readStepStructureSignature(slideElement);
     const markedState = markedStepStates.get(slideElement);
+    const structureUnchanged =
+      structureDirtyFlags.get(slideElement) !== true &&
+      markedState !== undefined &&
+      markedState.revealedStep === revealedStep &&
+      markedState.hotUpdateCounter === hotUpdateCounter &&
+      slideRenderStates.get(slideElement) === renderState;
+    if (structureUnchanged) {
+      reportStepCount(countedSteps.get(slideElement) ?? 0);
+      return;
+    }
+    const structureSignature = readStepStructureSignature(slideElement);
     const shouldNotify =
       markedState?.revealedStep !== revealedStep ||
       markedState.hotUpdateCounter !== hotUpdateCounter ||
@@ -41,6 +66,7 @@ export function useStepVisibility(
       slideRenderStates.get(slideElement) !== renderState;
     reportStepCount(markReachedSteps(slideElement, revealedStep, structureSignature));
     slideRenderStates.set(slideElement, renderState);
+    structureDirtyFlags.set(slideElement, false);
     if (shouldNotify) slideElement.dispatchEvent(new Event(stepChangeEventName));
   });
 }

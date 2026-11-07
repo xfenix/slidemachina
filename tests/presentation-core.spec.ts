@@ -56,15 +56,21 @@ function listLitLines(page: Page) {
 }
 
 // Animations live on pseudo-elements and are sampled every frame: one look may come before the transition starts.
+// A snapshot-free turn animates the slides themselves: they read as "slide" here.
 function collectTransitionAnimations(page: Page) {
   return page.evaluate(
     () =>
       new Promise<string[]>((resolveAnimations) => {
         const seenAnimations = new Set<string>();
         const samplingStart = performance.now();
+        const describeAnimationTarget = (animationEffect: KeyframeEffect) => {
+          if (animationEffect.pseudoElement !== null && animationEffect.pseudoElement !== "") return animationEffect.pseudoElement;
+          const targetElement = animationEffect.target as HTMLElement | null;
+          return targetElement !== null && targetElement.hasAttribute("data-slide") ? "slide" : "element";
+        };
         const sampleAnimations = () => {
           for (const runningAnimation of document.getAnimations()) {
-            seenAnimations.add(`${(runningAnimation.effect as KeyframeEffect).pseudoElement} ${(runningAnimation instanceof CSSAnimation ? runningAnimation.animationName : runningAnimation.id)}`);
+            seenAnimations.add(`${describeAnimationTarget(runningAnimation.effect as KeyframeEffect)} ${(runningAnimation instanceof CSSAnimation ? runningAnimation.animationName : runningAnimation.id)}`);
           }
           if (performance.now() - samplingStart < 500) requestAnimationFrame(sampleAnimations);
           else resolveAnimations([...seenAnimations]);
@@ -185,21 +191,22 @@ test("демо листается, показывает шаги и навига
   await test.step("листание и шаги", async () => {
     await page.keyboard.press("PageDown");
     // The whole slide moves with its background and frame; the page root keeps only the letterbox.
-    const movingLayerHeight = await page.evaluate(
+    // The turn runs without view-transition snapshots: the leaving slide itself plays the keyframe over the arrived one.
+    const movingSlideHeight = await page.evaluate(
       () =>
-        new Promise<string>((resolveHeight) => {
-          const waitForLayer = () => {
-            const hasLayer = document.getAnimations().some((runningAnimation) => (runningAnimation.effect as KeyframeEffect).pseudoElement === "::view-transition-old(slide-out)");
-            if (hasLayer) resolveHeight(getComputedStyle(document.documentElement, "::view-transition-group(slide-out)").height);
-            else requestAnimationFrame(waitForLayer);
+        new Promise<number>((resolveHeight) => {
+          const waitForSlideAnimation = () => {
+            const slideOutAnimation = document
+              .getAnimations()
+              .find((runningAnimation) => runningAnimation instanceof CSSAnimation && runningAnimation.animationName === "slidemachina-slide-out");
+            if (slideOutAnimation !== undefined) resolveHeight(((slideOutAnimation.effect as KeyframeEffect).target as HTMLElement).offsetHeight);
+            else requestAnimationFrame(waitForSlideAnimation);
           };
-          waitForLayer();
+          waitForSlideAnimation();
         }),
     );
-    expect(movingLayerHeight, "уезжает весь слайд, а не только содержимое").toBe("1080px");
-    expect(await collectTransitionAnimations(page)).toEqual(
-      expect.arrayContaining(["::view-transition-old(slide-out) slidemachina-slide-out", "::view-transition-new(slide-in) slidemachina-slide-in"]),
-    );
+    expect(movingSlideHeight, "уезжает весь слайд, а не только содержимое").toBe(1080);
+    expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining(["slide slidemachina-slide-out"]));
     await expect(page).toHaveURL(/#2$/);
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "slide");
     await expect(page.locator("html")).toHaveAttribute("data-slide-direction", "forward");
