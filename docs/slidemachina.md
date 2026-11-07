@@ -724,7 +724,7 @@ README показывает слайды демо из `docs/readme/` и сни�
 `node benchmark/run-benchmark.ts <папка>` ставит в отдельные проекты свежие slidemachina, reveal.js, Slidev и open-slide из npm и собирает в каждом один и тот же доклад из 21 слайда. Меряет: первый слайд на экране после загрузки, JS в сборке (gzip), память JS после загрузки, dev-сервер до первого слайда, сборку и размер `node_modules`. Медиана пяти прогонов.
 
 - Результат — `benchmark.svg`, `benchmark.json` и `README.md` в папке. Цвет нашей полосы: зелёный — лучше всех, жёлтый — в пределах 5% от лучшего, красный — отстаём.
-- `.github/workflows/benchmark.yml` запускает его после публикации в npm, по понедельникам и при правке `benchmark/`, и кладёт результат в ветку `benchmark`. README показывает картинку через jsDelivr, кэш которого workflow сбрасывает.
+- `.github/workflows/benchmark.yml` запускает его после публикации в npm, по понедельникам, при правке `main` и в pull request. Результат для `main` попадает в ветку `benchmark`, результат PR — в `benchmark-pr-<номер>` и в комментарий с SVG. README показывает картинку через jsDelivr, кэш которого workflow сбрасывает.
 - Локально Chrome не запускается, если задан `SLIDEMACHINA_BENCHMARK_CHROME_ENDPOINT`: бенчмарк подключится к уже запущенному.
 
 ### Раскладка движка
