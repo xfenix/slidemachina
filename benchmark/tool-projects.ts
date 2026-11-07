@@ -9,6 +9,7 @@ export type BenchmarkTool = {
   buildOutputFolder: string;
   developmentPath: string;
   exportScript?: string;
+  exportChromeArgument?: string;
   writeProject: (projectFolder: string, picturePath: string) => void;
 };
 
@@ -228,6 +229,6 @@ function writeOpenSlideProject(projectFolder: string, picturePath: string): void
 export const benchmarkTools: BenchmarkTool[] = [
   { toolName: "slidemachina", versionPackage: "slidemachina", buildOutputFolder: "site/slidemachina", developmentPath: "/", exportScript: "export-pdf", writeProject: writeSlidemachinaProject },
   { toolName: "reveal.js", versionPackage: "reveal.js", buildOutputFolder: "dist", developmentPath: "/", exportScript: "export-pdf", writeProject: writeRevealProject },
-  { toolName: "Slidev", versionPackage: "@slidev/cli", buildOutputFolder: "dist", developmentPath: "/", exportScript: "export-pdf", writeProject: writeSlidevProject },
+  { toolName: "Slidev", versionPackage: "@slidev/cli", buildOutputFolder: "dist", developmentPath: "/", exportScript: "export-pdf", exportChromeArgument: "--executable-path", writeProject: writeSlidevProject },
   { toolName: "open-slide", versionPackage: "@open-slide/core", buildOutputFolder: "dist", developmentPath: "/s/benchmark", writeProject: writeOpenSlideProject },
 ];

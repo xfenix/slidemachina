@@ -113,7 +113,7 @@ test("редактор правит текст, двигает блок схем
     await waitForServer(editorServerAddress);
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(editorServerAddress);
-    const playgroundSlideNumber = await findSlideNumber(page, "h2", "Попробуйте: нажмите E");
+    const playgroundSlideNumber = await findSlideNumber(page, "h2", "Попробуйте: нажмите E", 15_000);
 
     await test.step("метки «файл:строка» ведут на свой тег", async () => {
       await page.goto(`${editorServerAddress}/#1`);
@@ -126,6 +126,8 @@ test("редактор правит текст, двигает блок схем
 
     await test.step("правку принимают только со своей страницы, только в файл слайдов и только с полями нужного типа", async () => {
       await page.goto(`${editorServerAddress}/#${playgroundSlideNumber}`);
+      await expect(currentSlide(page).locator("h2")).toHaveText("Попробуйте: нажмите E", { timeout: 15_000 });
+      await expect(currentSlide(page).locator("[data-node-id=file]")).toBeAttached({ timeout: 15_000 });
       const boxLocation = await currentSlide(page).locator("[data-node-id=file]").getAttribute("data-source-location");
       const sourceVersion = await page.evaluate(() => window.slidemachinaSourceVersions!["index.tsx"]);
       const presentationBefore = await readPresentation();
@@ -149,7 +151,7 @@ test("редактор правит текст, двигает блок схем
     await test.step("E включает редактор", async () => {
       await page.keyboard.press("e");
       await expect(page.getByRole("button", { name: "Редактор · E" })).toHaveAttribute("aria-pressed", "true");
-      await expect(page.locator("[data-editor-status]")).toBeVisible();
+      await expect(page.locator("[data-editor-status]")).toBeVisible({ timeout: 15_000 });
       await expect(page.locator("html")).toHaveAttribute("data-source-editor");
     });
 

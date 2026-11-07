@@ -28,7 +28,7 @@ function waitForPagePictures(coverPage: Page): Promise<unknown> {
   return coverPage.evaluate(
     () =>
       new Promise<void>((resolvePictures) => {
-        const pageImages = [...document.images];
+        const pageImages = [...(document.querySelector("[data-canvas] > [data-slide]:not([data-hidden])")?.querySelectorAll("img") ?? [])];
         const pendingImages = pageImages.filter((pageImage) => !pageImage.complete);
         if (pendingImages.length === 0) return resolvePictures();
         let settledCount = 0;

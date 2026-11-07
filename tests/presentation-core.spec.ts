@@ -104,6 +104,49 @@ async function jumpToHeading(page: Page, headingText: string) {
   return slideNumber;
 }
 
+test("шаги не переписывают свои атрибуты при раскрытии следующего", async ({ page }) => {
+  await page.goto("/");
+  await jumpToSlide(page, await findSlideNumber(page, ":is(h1, h2)", "Вся презентация в одном файле"));
+  const listItems = currentSlide(page).locator("li");
+  await expect(listItems.first()).toHaveAttribute("data-step", "");
+  await page.evaluate(() => {
+    const observedSlide = document.querySelector("[data-canvas] > [data-current]")!;
+    const attributeWrites: string[] = [];
+    const attributeObserver = new MutationObserver((mutations) => attributeWrites.push(...mutations.map((mutation) => mutation.attributeName!)));
+    attributeObserver.observe(observedSlide, { attributes: true, subtree: true, attributeFilter: ["data-step", "data-step-effect", "data-step-index", "data-written-step"] });
+    (window as unknown as { stepAttributeWrites: string[] }).stepAttributeWrites = attributeWrites;
+  });
+  await page.keyboard.press("ArrowRight");
+  await expect(listItems.first()).toHaveAttribute("data-step-reached");
+  expect(await page.evaluate(() => (window as unknown as { stepAttributeWrites: string[] }).stepAttributeWrites)).toEqual([]);
+});
+
+test("картинки получают приоритет и отложенную загрузку по расстоянию от текущего слайда", async ({ page }) => {
+  await page.goto("/");
+  await jumpToSlide(page, await findSlideNumber(page, "img[data-media]"));
+  const currentPicture = currentSlide(page).locator("img[data-media]").first();
+  await expect(currentPicture).toHaveAttribute("loading", "eager");
+  await expect(currentPicture).toHaveAttribute("fetchpriority", "high");
+  await expect(currentPicture).toHaveAttribute("decoding", "async");
+  const distantPicture = page.locator("[data-canvas] > [data-slide][data-distant] img[data-media]").first();
+  await expect(distantPicture).toBeAttached();
+  await expect(distantPicture).toHaveAttribute("loading", "lazy");
+  await expect(distantPicture).toHaveAttribute("fetchpriority", "low");
+  await expect(distantPicture).toHaveAttribute("decoding", "async");
+});
+
+test("входящий слайд получает событие шагов для восстановления подсветки кода", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const incomingSlide = document.querySelectorAll("[data-canvas] > [data-slide]")[1]!;
+    (window as unknown as { incomingStepEvents: number }).incomingStepEvents = 0;
+    incomingSlide.addEventListener("slidemachina-steps", () => (window as unknown as { incomingStepEvents: number }).incomingStepEvents++);
+  });
+  await page.keyboard.press("PageDown");
+  await expect(currentSlide(page).locator("h1")).toHaveText("Зачем");
+  expect(await page.evaluate(() => (window as unknown as { incomingStepEvents: number }).incomingStepEvents)).toBe(1);
+});
+
 test("демо листается, показывает шаги и навигатор, переживает перезагрузку и правку файла", async ({ page }) => {
   // One run walks the whole demo and takes about 30 seconds, the default limit.
   test.setTimeout(60_000);

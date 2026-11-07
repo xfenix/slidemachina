@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { createServer, type ServerResponse } from "node:http";
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -50,6 +50,36 @@ function countPrintedPages(page: Page) {
     return document.querySelectorAll("[data-print-page]").length;
   });
 }
+
+test("неизменная сборка берётся из кэша, а правка исходника его сбрасывает", async () => {
+  const scratchFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-cached-build-"));
+  const outputFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-cached-output-"));
+  const linkedFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-linked-source-"));
+  const sourceFile = path.join(scratchFolder, "index.tsx");
+  const linkedComponent = path.join(linkedFolder, "linked-component.tsx");
+  const outputIndex = path.join(outputFolder, path.basename(scratchFolder), "index.html");
+  try {
+    await writeFile(linkedComponent, "export function LinkedHeading() { return <h1>Первая версия</h1>; }");
+    await symlink(linkedComponent, path.join(scratchFolder, "linked-component.tsx"));
+    await writeFile(sourceFile, 'import { Presentation, Slide } from "slidemachina"; import { LinkedHeading } from "./linked-component.tsx"; export default <Presentation><Slide><LinkedHeading /></Slide></Presentation>;');
+    await runCommand(process.execPath, [commandLineScript, "build", scratchFolder, "--folder", "--out", outputFolder]);
+    const firstBuildTime = (await stat(outputIndex)).mtimeMs;
+    await runCommand(process.execPath, [commandLineScript, "build", scratchFolder, "--folder", "--out", outputFolder]);
+    expect((await stat(outputIndex)).mtimeMs).toBe(firstBuildTime);
+    await writeFile(sourceFile, 'import { Presentation, Slide } from "slidemachina"; import { LinkedHeading } from "./linked-component.tsx"; export default <Presentation><Slide><h1>Новая версия</h1></Slide></Presentation>;');
+    await runCommand(process.execPath, [commandLineScript, "build", scratchFolder, "--folder", "--out", outputFolder]);
+    expect((await stat(outputIndex)).mtimeMs).not.toBe(firstBuildTime);
+    expect(await readFile(outputIndex, "utf8")).toContain("Новая версия");
+    await writeFile(linkedComponent, "export function LinkedHeading() { return <h1>Связанная версия</h1>; }");
+    await writeFile(sourceFile, 'import { Presentation, Slide } from "slidemachina"; import { LinkedHeading } from "./linked-component.tsx"; export default <Presentation><Slide><LinkedHeading /></Slide></Presentation>;');
+    await runCommand(process.execPath, [commandLineScript, "build", scratchFolder, "--folder", "--out", outputFolder]);
+    expect(await readFile(outputIndex, "utf8")).toContain("Связанная версия");
+  } finally {
+    await rm(scratchFolder, { recursive: true, force: true });
+    await rm(outputFolder, { recursive: true, force: true });
+    await rm(linkedFolder, { recursive: true, force: true });
+  }
+});
 
 test("HyperFrames: сборка шагов, расписание, формат кадра и проверка длительностей", async ({ page }) => {
   test.setTimeout(120_000);
@@ -156,8 +186,9 @@ test("сборка: один HTML-файл листается без серве�
       await expect(page).toHaveURL(/#2$/);
       await page.goto(`${pathToFileURL(singleFile).href}#${await findSlideNumber(page, "[data-diagram]")}`);
       await expect(page.locator("[data-canvas] > [data-current] [data-diagram]")).toHaveAttribute("data-laid-out");
-      const stretchedPicture = page.locator("[data-canvas] [data-media-frame=stretch] img").first();
-      expect(await stretchedPicture.evaluate((pictureElement: HTMLImageElement) => pictureElement.currentSrc.slice(0, 15))).toBe("data:image/webp");
+      await page.goto(`${pathToFileURL(singleFile).href}#${await findSlideNumber(page, "[data-media-frame=stretch] img")}`);
+      const stretchedPicture = page.locator("[data-canvas] > [data-current] [data-media-frame=stretch] img").first();
+      await expect.poll(async () => stretchedPicture.evaluate((pictureElement: HTMLImageElement) => pictureElement.currentSrc.slice(0, 15))).toBe("data:image/webp");
       const firstSceneSlideNumber = await findSlideNumber(page, "[data-scene]");
       await page.goto(`${pathToFileURL(singleFile).href}#${firstSceneSlideNumber}`);
       const sceneCanvas = page.locator("[data-canvas] > [data-current] [data-scene-canvas]");

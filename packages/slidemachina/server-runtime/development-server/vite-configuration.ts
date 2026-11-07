@@ -37,6 +37,8 @@ export function createViteConfiguration(siteLayout: SiteLayout, serverOptions: S
       // are bundled before the first page instead of reloading it mid-talk. A repository may hold old reveal.js pages
       // next to the presentations: dependencies are looked up from presentations only.
       entries: [siteLayout.isRepository ? `*/${presentationFileName}` : presentationFileName],
+      // The scanner and the include list know every optimized import: the browser can start before the whole crawl ends.
+      holdUntilCrawlEnd: false,
       ...enginePrebundling,
       include: [
         ...enginePrebundling.include,
@@ -45,15 +47,10 @@ export function createViteConfiguration(siteLayout: SiteLayout, serverOptions: S
         "react/jsx-dev-runtime",
         "react-dom",
         "react-dom/client",
-        "agentation",
+        // Recharts pulls a CommonJS store shim that Vite must convert before the browser reads it.
+        "recharts",
         // The QR block is engine code, which the scan skips: found late, it would reload the page on the first start.
         "uqr",
-        // Found only when the first scene loads; listed here, so Vite does not reload the page to bundle them mid-talk.
-        "three",
-        "three/examples/jsm/environments/RoomEnvironment.js",
-        "three/examples/jsm/geometries/RoundedBoxGeometry.js",
-        // Imported from index.tsx; listed here, so Vite does not reload the page to bundle it mid-talk.
-        "recharts",
       ],
     },
     server: {

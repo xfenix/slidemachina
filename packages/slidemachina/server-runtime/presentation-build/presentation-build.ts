@@ -6,6 +6,7 @@ import { log, spinner } from "@clack/prompts";
 import { build } from "vite";
 import { commandLineTexts, formatFileSize } from "../command-line/command-line-texts.ts";
 import { zipFolder } from "./folder-archive.ts";
+import { createBuildCache } from "./build-cache.ts";
 import { presentationFileName } from "../presentation-repository/presentation-repository.ts";
 import { readPresentationFile } from "../source-transforms/presentation-settings.ts";
 import { createBuildConfiguration } from "../development-server/vite-configuration.ts";
@@ -158,6 +159,9 @@ export async function buildPresentation(
   const folderNeedsChrome = buildsFolder && !presentationLayout.isRepository;
   if (singleFileNeedsChrome || folderNeedsChrome) void sharedChrome.openChrome().catch(() => undefined);
   try {
+    const buildCache = createBuildCache(presentationLayout, outputPaths);
+    const restoredFolderBuild = buildsFolder && buildCache.restoreCachedBuild(folderBuild, false, buildReport);
+    const restoredSingleFileBuild = buildsSingleFile && buildCache.restoreCachedBuild(singleFileFolder, true, buildReport);
     // The two builds share nothing but the compressed-picture cache, so they run at the same time.
     const bundleTitles = [buildsFolder && commandLineTexts.buildingFiles(false), buildsSingleFile && commandLineTexts.buildingFiles(true)].filter(
       (bundleTitle): bundleTitle is string => bundleTitle !== false,
@@ -167,11 +171,12 @@ export async function buildPresentation(
         nameStepTitle(bundleTitles.join(" · ")),
         () =>
           Promise.all([
-            buildsFolder ? build(createBuildConfiguration(presentationLayout, folderBuild, false, buildReport)) : undefined,
-            buildsSingleFile ? build(createBuildConfiguration(presentationLayout, singleFileFolder, true, buildReport)) : undefined,
+            buildsFolder && !restoredFolderBuild ? build(createBuildConfiguration(presentationLayout, folderBuild, false, buildReport)) : undefined,
+            buildsSingleFile && !restoredSingleFileBuild ? build(createBuildConfiguration(presentationLayout, singleFileFolder, true, buildReport)) : undefined,
           ]),
         isInteractive,
       );
+      if (buildsSingleFile && !restoredSingleFileBuild) buildCache.saveBuiltOutput(singleFileFolder, true, buildReport);
     }
     if (buildsFolder && chosenVariants.includes("folder")) removeOldOutput(outputPaths.folder);
     const chromeSteps: ChromeStep[] = [];
@@ -226,7 +231,8 @@ export async function buildPresentation(
       for (const stepReport of stepReports) stepReport?.();
     }
     if (buildsFolder) {
-      if (chosenVariants.includes("folder")) cpSync(folderBuild, outputPaths.folder, { recursive: true });
+      if (!restoredFolderBuild) buildCache.saveBuiltOutput(folderBuild, false, buildReport);
+      if (chosenVariants.includes("folder")) cpSync(folderBuild, outputPaths.folder, { recursive: true, preserveTimestamps: true });
       if (chosenVariants.includes("zip")) zipFolder(folderBuild, outputPaths.zip);
       builtPages.push(folderBuild);
     }

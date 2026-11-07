@@ -8,8 +8,13 @@ const writtenStepMark = "data-written-step";
 // The step just revealed, one forward from the step before: only it plays an animation such as glitch.
 const arrivingStepMark = "data-step-arriving";
 const lastRevealedSteps = new WeakMap<HTMLElement, number>();
+const stepStructureSignatures = new WeakMap<HTMLElement, string>();
+const countedSteps = new WeakMap<HTMLElement, number>();
+const elementIdentifiers = new WeakMap<HTMLElement, number>();
+const slideRenderStates = new WeakMap<HTMLElement, string>();
 // Hot reload replaces step elements without a step change: a new update count re-marks every rendered slide.
 let hotUpdateCounter = 0;
+let lastElementIdentifier = 0;
 import.meta.hot?.on("vite:afterUpdate", () => {
   hotUpdateCounter += 1;
 });
@@ -19,16 +24,24 @@ export function useStepVisibility(
   slideElementReference: RefObject<HTMLElement | null>,
   revealedStep: number,
   reportStepCount: (stepCount: number) => void,
+  isCurrentSlide: boolean,
+  isSlideNearby: boolean,
 ) {
   // Runs after every render: hot reload and nested components may replace step elements.
   useLayoutEffect(() => {
     const slideElement = slideElementReference.current;
     if (slideElement === null) return;
+    const renderState = `${isCurrentSlide} ${isSlideNearby}`;
+    const structureSignature = readStepStructureSignature(slideElement);
     const markedState = markedStepStates.get(slideElement);
-    if (markedState?.revealedStep !== revealedStep || markedState.hotUpdateCounter !== hotUpdateCounter) {
-      reportStepCount(markReachedSteps(slideElement, revealedStep));
-    }
-    slideElement.dispatchEvent(new Event(stepChangeEventName));
+    const shouldNotify =
+      markedState?.revealedStep !== revealedStep ||
+      markedState.hotUpdateCounter !== hotUpdateCounter ||
+      stepStructureSignatures.get(slideElement) !== structureSignature ||
+      slideRenderStates.get(slideElement) !== renderState;
+    reportStepCount(markReachedSteps(slideElement, revealedStep, structureSignature));
+    slideRenderStates.set(slideElement, renderState);
+    if (shouldNotify) slideElement.dispatchEvent(new Event(stepChangeEventName));
   });
 }
 
@@ -82,11 +95,44 @@ function markArrivingSteps(slideElement: HTMLElement, stepElements: HTMLElement[
   }
 }
 
-export function markReachedSteps(slideElement: HTMLElement, revealedStep: number): number {
-  markSequenceSteps(slideElement);
-  markDefaultEffects(slideElement);
+function readElementIdentifier(element: HTMLElement): number {
+  const knownIdentifier = elementIdentifiers.get(element);
+  if (knownIdentifier !== undefined) return knownIdentifier;
+  lastElementIdentifier += 1;
+  elementIdentifiers.set(element, lastElementIdentifier);
+  return lastElementIdentifier;
+}
+
+function readStepStructureSignature(slideElement: HTMLElement): string {
+  const sequenceSignatures = [...slideElement.querySelectorAll<HTMLElement>("[data-steps]")].map((sequenceElement) => [
+    readElementIdentifier(sequenceElement),
+    sequenceElement.dataset.steps,
+    sequenceElement.dataset.stepEffect,
+    listSequenceItems(sequenceElement).map((sequenceItem) => [readElementIdentifier(sequenceItem), sequenceItem.dataset.step, sequenceItem.dataset.stepEffect, sequenceItem.getAttribute(writtenStepMark)]),
+  ]);
+  const stepSignatures = [...slideElement.querySelectorAll<HTMLElement>("[data-step]")].map((stepElement) => [
+    readElementIdentifier(stepElement),
+    stepElement.dataset.step,
+    stepElement.dataset.stepEffect,
+    stepElement.getAttribute(writtenStepMark),
+  ]);
+  return JSON.stringify([slideElement.dataset.defaultStepEffect, sequenceSignatures, stepSignatures]);
+}
+
+// Returns the number of steps on the slide.
+export function markReachedSteps(slideElement: HTMLElement, revealedStep: number, structureSignature = readStepStructureSignature(slideElement)): number {
+  const markedState = markedStepStates.get(slideElement);
+  if (markedState?.revealedStep === revealedStep && markedState.hotUpdateCounter === hotUpdateCounter && stepStructureSignatures.get(slideElement) === structureSignature) {
+    return countedSteps.get(slideElement) ?? 0;
+  }
+  if (stepStructureSignatures.get(slideElement) !== structureSignature) {
+    markSequenceSteps(slideElement);
+    markDefaultEffects(slideElement);
+    stepStructureSignatures.set(slideElement, readStepStructureSignature(slideElement));
+  }
   const stepElements = [...slideElement.querySelectorAll<HTMLElement>("[data-step]")];
   const stepCount = numberStepElements(stepElements);
+  countedSteps.set(slideElement, stepCount);
   for (const stepElement of stepElements) {
     stepElement.toggleAttribute("data-step-reached", Number(stepElement.dataset.stepIndex) <= revealedStep);
   }
@@ -101,7 +147,8 @@ function numberStepElements(stepElements: HTMLElement[]): number {
   for (const stepElement of stepElements) {
     const explicitStepNumber = Number.parseInt(stepElement.dataset.step ?? "", 10);
     const stepNumber = Number.isInteger(explicitStepNumber) ? explicitStepNumber : lastStepNumber + 1;
-    stepElement.dataset.stepIndex = String(stepNumber);
+    const stepIndex = String(stepNumber);
+    if (stepElement.dataset.stepIndex !== stepIndex) stepElement.dataset.stepIndex = stepIndex;
     lastStepNumber = Math.max(lastStepNumber, stepNumber);
   }
   return lastStepNumber;

@@ -185,6 +185,14 @@ function measureBuild(projectFolder: string): Promise<number> {
 }
 
 function findChromeExecutablePath(): string | undefined {
+  if (process.env.SLIDEMACHINA_BENCHMARK_CHROME_EXECUTABLE !== undefined) return process.env.SLIDEMACHINA_BENCHMARK_CHROME_EXECUTABLE;
+  const installedApplications = [
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  ];
+  for (const candidatePath of installedApplications) {
+    if (statSync(candidatePath, { throwIfNoEntry: false })?.isFile() === true) return candidatePath;
+  }
   for (const commandName of ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"]) {
     const lookedUpPath = spawnSync("which", [commandName], { encoding: "utf8" }).stdout.trim();
     if (lookedUpPath !== "") return lookedUpPath;
@@ -198,13 +206,15 @@ function findChromeExecutablePath(): string | undefined {
   return undefined;
 }
 
-function measurePdfExport(projectFolder: string, exportScript: string): Promise<number> {
+function measurePdfExport(projectFolder: string, benchmarkTool: BenchmarkTool, chromeExecutablePath: string | undefined): Promise<number> {
   const startTime = performance.now();
-  const chromeExecutablePath = findChromeExecutablePath();
+  const exportScript = benchmarkTool.exportScript!;
+  const exportArguments = ["run", exportScript];
+  if (benchmarkTool.exportChromeArgument !== undefined && chromeExecutablePath !== undefined) exportArguments.push("--", benchmarkTool.exportChromeArgument, chromeExecutablePath);
   // Decktape drives Chrome through puppeteer; a found Chrome saves its postinstall download.
   const launchEnvironment = chromeExecutablePath === undefined ? process.env : { ...process.env, PUPPETEER_EXECUTABLE_PATH: chromeExecutablePath };
-  const finishedRun = spawnSync("npm", ["run", exportScript], { cwd: projectFolder, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8", env: launchEnvironment });
-  if (finishedRun.status !== 0) throw new Error(`npm run ${exportScript} failed in ${projectFolder}:\n${finishedRun.stderr.slice(-2000)}`);
+  const finishedRun = spawnSync("npm", exportArguments, { cwd: projectFolder, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8", env: launchEnvironment });
+  if (finishedRun.status !== 0) throw new Error(`npm ${exportArguments.join(" ")} failed in ${projectFolder}:\n${finishedRun.stderr.slice(-2000)}`);
   return Promise.resolve((performance.now() - startTime) / millisecondsInSecond);
 }
 
@@ -243,7 +253,8 @@ export async function measureTool(benchmarkTool: BenchmarkTool, projectFolder: s
   const slideChangeMilliseconds = await measureSlideChangeTurns(chromeBrowser, `http://127.0.0.1:${sitePort}${benchmarkTool.developmentPath}`, repeatCount);
   siteServer.close();
   const exportScript = benchmarkTool.exportScript;
-  const pdfExportSeconds = exportScript === undefined ? null : await repeatMeasurement(repeatCount, () => measurePdfExport(projectFolder, exportScript));
+  const chromeExecutablePath = exportScript === undefined ? undefined : findChromeExecutablePath();
+  const pdfExportSeconds = exportScript === undefined ? null : await repeatMeasurement(repeatCount, () => measurePdfExport(projectFolder, benchmarkTool, chromeExecutablePath));
   const developmentSeconds = await repeatMeasurement(repeatCount, () => measureDevelopmentStart(benchmarkTool, projectFolder, chromeBrowser));
   return {
     toolName: benchmarkTool.toolName,

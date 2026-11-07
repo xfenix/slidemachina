@@ -1,5 +1,5 @@
 import { execFile, spawn } from "node:child_process";
-import { access, appendFile, cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { access, appendFile, cp, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -79,8 +79,10 @@ test("репозиторий презентаций: список с облож�
       await expect(page.frameLocator("[data-list-cover] iframe").first().locator("[data-toolbar]")).toHaveCount(0);
       expect(requestedAddresses.filter((requestedAddress) => heavyRequestPattern.test(requestedAddress))).toEqual([]);
       // The cards share the width of the page instead of huddling in the left corner.
-      const cardWidths = await page.locator("[data-list-card]").evaluateAll((cardElements) => cardElements.map((cardElement) => cardElement.getBoundingClientRect().width));
-      expect(cardWidths[0]! * cardWidths.length, "карточки занимают ширину страницы").toBeGreaterThan(1440 * 0.8);
+      await expect.poll(async () => {
+        const cardWidths = await page.locator("[data-list-card]").evaluateAll((cardElements) => cardElements.map((cardElement) => cardElement.getBoundingClientRect().width));
+        return cardWidths[0]! * cardWidths.length;
+      }, { timeout: 15_000 }).toBeGreaterThan(1440 * 0.8);
     });
 
     await test.step("клик по карточке открывает презентацию, тема: движок → общая → своя", async () => {
@@ -92,6 +94,7 @@ test("репозиторий презентаций: список с облож�
       await page.getByRole("link", { name: "Все презентации" }).click();
       await expect(page.locator("[data-list-title]")).toHaveText(presentationTitles);
       await page.goto(`${repositoryServerAddress}/team-sync/`);
+      await expect(page.locator("[data-canvas] > [data-current] h1")).toHaveText("Итоги квартала");
       expect(await readThemeVariable(page, "--section-background"), "раздел из бренда, своего цвета нет").toBe("#fee600");
     });
 
@@ -99,7 +102,7 @@ test("репозиторий презентаций: список с облож�
       const themeFile = path.join(copyFolder, "theme", "style.css");
       const themeBefore = await readFile(themeFile, "utf8");
       await writeFile(themeFile, themeBefore.replace("--slidemachina-test-shared-theme: #fee600;", "--slidemachina-test-shared-theme: #00ff00;"));
-      await expect.poll(() => readThemeVariable(page, "--slidemachina-test-shared-theme")).toBe("#00ff00");
+      await expect.poll(() => readThemeVariable(page, "--slidemachina-test-shared-theme"), { timeout: 15_000 }).toBe("#00ff00");
       expect(await page.evaluate(() => performance.getEntriesByType("navigation").length)).toBe(1);
       await writeFile(themeFile, themeBefore);
     });
@@ -194,6 +197,25 @@ test("репозиторий презентаций: список с облож�
       // The template itself follows the rules it gives the agent.
       await runCommand(process.execPath, [commandLineScript, "check", projectFolder]);
     });
+  } finally {
+    developmentServer.kill();
+    await rm(scratchFolder, { recursive: true, force: true });
+  }
+});
+
+test("dev без 3D не собирает three заранее", async ({ page }) => {
+  const scratchFolder = await mkdtemp(path.join(os.tmpdir(), "slidemachina-test-light-dev-"));
+  const plainServerPort = repositoryServerPort - 1;
+  const plainServerAddress = `http://localhost:${plainServerPort}`;
+  await writeFile(path.join(scratchFolder, "index.tsx"), 'import { Presentation, Slide } from "slidemachina"; export default <Presentation><Slide><h1>Лёгкий доклад</h1></Slide></Presentation>;');
+  const developmentServer = spawn(process.execPath, [commandLineScript, "dev", scratchFolder, "--port", String(plainServerPort)], { cwd: workspaceFolder, stdio: "ignore" });
+  try {
+    await waitForServer(plainServerAddress);
+    await page.goto(plainServerAddress);
+    await expect(page.locator("[data-canvas] > [data-current] h1")).toHaveText("Лёгкий доклад");
+    await expect.poll(async () => (await readdir(scratchFolder, { recursive: true })).some((fileName) => String(fileName).includes("deps/react"))).toBe(true);
+    const optimizedFiles = await readdir(scratchFolder, { recursive: true });
+    expect(optimizedFiles.filter((fileName) => /deps\/three[^/]*$/.test(String(fileName)))).toEqual([]);
   } finally {
     developmentServer.kill();
     await rm(scratchFolder, { recursive: true, force: true });

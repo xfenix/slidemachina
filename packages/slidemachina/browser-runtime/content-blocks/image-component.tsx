@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useSlideEnvironment } from "../presentation-core/slide-environment.ts";
 import { pickSourceMarks } from "../presentation-core/source-marks.ts";
 import { MediaFrame, rememberProportions, type MediaPlacement } from "./media-frame.tsx";
 
@@ -12,6 +13,8 @@ export type ImageProperties = MediaPlacement & {
 };
 
 export function Image({ src, alt = "", stretch, full, fit, float, children, ...otherProperties }: ImageProperties) {
+  const { isCurrentSlide, isSlideNearby, isSlideCopy } = useSlideEnvironment();
+  const loadsPictureEagerly = isSlideNearby || isSlideCopy;
   return (
     <MediaFrame stretch={stretch} full={full} fit={fit} caption={children}>
       <img
@@ -20,6 +23,9 @@ export function Image({ src, alt = "", stretch, full, fit, float, children, ...o
         {...pickSourceMarks(otherProperties)}
         src={src}
         alt={alt}
+        loading={loadsPictureEagerly ? "eager" : "lazy"}
+        fetchPriority={isCurrentSlide ? "high" : loadsPictureEagerly ? "auto" : "low"}
+        decoding="async"
         // A cached picture is complete at once: printed pages get their proportions before the print is laid out.
         ref={(pictureElement) => {
           if (pictureElement?.complete) rememberProportions(pictureElement, pictureElement.naturalWidth, pictureElement.naturalHeight);

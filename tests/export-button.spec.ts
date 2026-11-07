@@ -34,6 +34,8 @@ export default (
 async function wakeToolbar(page: Page) {
   await page.mouse.move(400, 690);
   await page.mouse.move(880, 690);
+  await expect(page.locator("[data-toolbar]")).toHaveCSS("opacity", "1");
+  await expect(page.locator("[data-toolbar]")).toHaveCSS("pointer-events", "auto");
 }
 
 test("кнопка экспорта в тулбаре выгружает HTML, PDF и PowerPoint", async ({ page }) => {
@@ -60,9 +62,9 @@ test("кнопка экспорта в тулбаре выгружает HTML, P
 
     await test.step("HTML: файл качается одним куском и открывает слайд", async () => {
       await wakeToolbar(page);
-      await page.getByRole("button", { name: "Export" }).click();
+      await page.getByRole("button", { name: "Export" }).press("Enter");
       const htmlDownloadPromise = page.waitForEvent("download");
-      await page.getByRole("menuitem", { name: /One HTML file/ }).click();
+      await page.getByRole("menuitem", { name: /One HTML file/ }).press("Enter");
       const htmlDownload = await htmlDownloadPromise;
       expect(htmlDownload.suggestedFilename()).toBe("sample-talk.html");
       const htmlPath = path.join(downloadsFolder, "sample-talk.html");
@@ -75,9 +77,9 @@ test("кнопка экспорта в тулбаре выгружает HTML, P
 
     await test.step("PDF: файл качается и начинается с сигнатуры PDF", async () => {
       await wakeToolbar(page);
-      await page.getByRole("button", { name: "Export" }).click();
+      await page.getByRole("button", { name: "Export" }).press("Enter");
       const pdfDownloadPromise = page.waitForEvent("download");
-      await page.getByRole("menuitem", { name: /^PDF/ }).click();
+      await page.getByRole("menuitem", { name: /^PDF/ }).press("Enter");
       const pdfDownload = await pdfDownloadPromise;
       expect(pdfDownload.suggestedFilename()).toBe("sample-talk.pdf");
       const pdfPath = path.join(downloadsFolder, "sample-talk.pdf");
@@ -87,9 +89,9 @@ test("кнопка экспорта в тулбаре выгружает HTML, P
 
     await test.step("PowerPoint: файл качается, это zip со слайдами", async () => {
       await wakeToolbar(page);
-      await page.getByRole("button", { name: "Export" }).click();
+      await page.getByRole("button", { name: "Export" }).press("Enter");
       const pptxDownloadPromise = page.waitForEvent("download");
-      await page.getByRole("menuitem", { name: /PowerPoint/ }).click();
+      await page.getByRole("menuitem", { name: /PowerPoint/ }).press("Enter");
       const pptxDownload = await pptxDownloadPromise;
       expect(pptxDownload.suggestedFilename()).toBe("sample-talk.pptx");
       const pptxPath = path.join(downloadsFolder, "sample-talk.pptx");
