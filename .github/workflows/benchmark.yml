@@ -16,13 +16,18 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number for the benchmark comment"
+        required: false
+        type: string
 
 permissions:
   contents: write
   pull-requests: write
 
 concurrency:
-  group: benchmark-${{ github.event.pull_request.number || 'main' }}
+  group: benchmark-${{ github.event.pull_request.number || inputs.pr_number || 'main' }}
   cancel-in-progress: true
 
 jobs:
@@ -45,10 +50,12 @@ jobs:
         run: node benchmark/run-benchmark.ts "$RUNNER_TEMP/benchmark-results"
 
       - name: Publish to the benchmark branch
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
         run: |
           cd "$RUNNER_TEMP/benchmark-results"
           resultBranch="benchmark"
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then resultBranch="benchmark-pr-${{ github.event.pull_request.number }}"; fi
+          if [[ -n "$PR_NUMBER" ]]; then resultBranch="benchmark-pr-$PR_NUMBER"; fi
           git init --quiet --initial-branch "$resultBranch"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -58,20 +65,23 @@ jobs:
 
       # jsDelivr keeps a branch file for hours; the README should show the new picture now.
       - name: Refresh the jsDelivr copy
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && inputs.pr_number == ''
         run: curl --fail --silent --show-error "https://purge.jsdelivr.net/gh/${{ github.repository }}@benchmark/benchmark.svg" > /dev/null
 
       - name: Put the picture into the pull request
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || inputs.pr_number != ''
         uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
         with:
           script: |
             const { owner, repo } = context.repo;
+            const prNumber = Number(process.env.PR_NUMBER);
             const marker = "<!-- slidemachina-benchmark -->";
-            const resultBranch = `benchmark-pr-${context.issue.number}`;
+            const resultBranch = `benchmark-pr-${prNumber}`;
             const pictureAddress = `https://raw.githubusercontent.com/${owner}/${repo}/${resultBranch}/benchmark.svg?v=${context.sha}`;
             const body = `${marker}\n## Benchmark\n\n![Benchmark](${pictureAddress})\n\n[Results and methodology](https://github.com/${owner}/${repo}/blob/${resultBranch}/README.md)`;
-            const comments = await github.rest.issues.listComments({ owner, repo, issue_number: context.issue.number, per_page: 100 });
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number: prNumber, per_page: 100 });
             const previousComment = comments.data.find((comment) => comment.body?.includes(marker));
             if (previousComment) await github.rest.issues.updateComment({ owner, repo, comment_id: previousComment.id, body });
-            else await github.rest.issues.createComment({ owner, repo, issue_number: context.issue.number, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
