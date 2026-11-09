@@ -10,6 +10,7 @@ const demoPresentationFile = path.join(demoCopyFolder, "index.tsx");
 const demoCodeFile = path.join(demoCopyFolder, "agent.py");
 const publicInterfaceFile = path.join(workspaceFolder, "packages", "slidemachina", "browser-runtime", "slidemachina.ts");
 const chartTestTimeout = 60_000;
+const canvasHeight = 1080;
 const chartPreviewHeight = 240;
 const chartAnimationDuration = 60_000;
 const chartAlignmentTolerance = 2;
@@ -185,7 +186,7 @@ test("демо листается, показывает шаги и навига
     await expect(currentSlide(page).locator("[data-slide-number]")).toHaveCount(0);
     // The logo above the title and the baseline of the lead stand evenly around the middle of the slide.
     const coverEdges = await measureOnCanvas(page, ["[data-logo]", "p"]);
-    expect(coverEdges[0]!.top + coverEdges[1]!.bottom).toBeCloseTo(1080, 0);
+    expect(coverEdges[0]!.top + coverEdges[1]!.bottom).toBeCloseTo(canvasHeight, 0);
   });
 
   await test.step("листание и шаги", async () => {
@@ -202,7 +203,7 @@ test("демо листается, показывает шаги и навига
           waitForTransition();
         }),
     );
-    expect(movingLayerHeight, "уезжает весь слайд, а не только содержимое").toBe("1080px");
+    expect(movingLayerHeight, "уезжает весь слайд, а не только содержимое").toBe(`${canvasHeight}px`);
     expect(await collectTransitionAnimations(page)).toEqual(
       expect.arrayContaining(["::view-transition-old(slide-out) slidemachina-slide-out", "::view-transition-new(slide-in) slidemachina-slide-in"]),
     );

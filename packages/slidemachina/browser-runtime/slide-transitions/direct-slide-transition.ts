@@ -1,4 +1,4 @@
-// Instant turns need no view-transition snapshots. Sliding uses both snapshot layers as one continuous ribbon.
+// Instant turns need no view-transition snapshots.
 const snapshotFreeTransitions = new Set(["none"]);
 
 // The HyperFrames motion capture reads the animations of a view transition:

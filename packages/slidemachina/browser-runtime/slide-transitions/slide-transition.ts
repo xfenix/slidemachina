@@ -91,7 +91,6 @@ export function runSlideTransition(
     chosenTransition = requestedTransition;
   }
   const movesWholeSlides = wholeSlideTransitions.has(chosenTransition);
-  // Instant turns skip snapshots; sliding keeps the outgoing and incoming layers moving together.
   if (runsWithoutSnapshots(chosenTransition)) {
     runDirectSlideTransition(updateSlides, outgoingSlide, incomingSlide, chosenTransition, isMovingForward);
     return;
