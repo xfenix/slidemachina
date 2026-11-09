@@ -1,0 +1,47 @@
+{
+  "measuredDate": "9 November 2026",
+  "repeatCount": 5,
+  "slideCount": 21,
+  "toolMeasurements": [
+    {
+      "toolName": "slidemachina",
+      "toolVersion": "1.5.0",
+      "loadMilliseconds": 194.1793919999982,
+      "slideChangeMilliseconds": 26.88759699998991,
+      "developmentSeconds": 1.1958747379999985,
+      "buildSeconds": 0.7574379799999987,
+      "outputMegabytes": 0.6587028503417969,
+      "pdfExportSeconds": 1.4878155739999965
+    },
+    {
+      "toolName": "reveal.js",
+      "toolVersion": "6.0.2",
+      "loadMilliseconds": 254.73049699999683,
+      "slideChangeMilliseconds": 20.636193999998795,
+      "developmentSeconds": 0.6534240559999889,
+      "buildSeconds": 0.4638655790000048,
+      "outputMegabytes": 1.7664203643798828,
+      "pdfExportSeconds": 23.445460687000015
+    },
+    {
+      "toolName": "Slidev",
+      "toolVersion": "53.1.0",
+      "loadMilliseconds": 347.31924800001434,
+      "slideChangeMilliseconds": 28.989054999983637,
+      "developmentSeconds": 4.6134399780000095,
+      "buildSeconds": 3.3915569959999994,
+      "outputMegabytes": 0.9146871566772461,
+      "pdfExportSeconds": 5.228352375000017
+    },
+    {
+      "toolName": "open-slide",
+      "toolVersion": "2.3.2",
+      "loadMilliseconds": 467.1346599999815,
+      "slideChangeMilliseconds": 34.47819799993886,
+      "developmentSeconds": 3.5997778180000024,
+      "buildSeconds": 1.4787777149999748,
+      "outputMegabytes": 1.855788230895996,
+      "pdfExportSeconds": null
+    }
+  ]
+}
