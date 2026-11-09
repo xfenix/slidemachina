@@ -91,7 +91,6 @@ export function runSlideTransition(
     chosenTransition = requestedTransition;
   }
   const movesWholeSlides = wholeSlideTransitions.has(chosenTransition);
-  // Sliding the whole canvas needs no snapshots: both slides stay live, so the turn plays at once instead of after two captures.
   if (runsWithoutSnapshots(chosenTransition)) {
     runDirectSlideTransition(updateSlides, outgoingSlide, incomingSlide, chosenTransition, isMovingForward);
     return;

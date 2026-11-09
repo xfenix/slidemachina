@@ -10,6 +10,7 @@ const demoPresentationFile = path.join(demoCopyFolder, "index.tsx");
 const demoCodeFile = path.join(demoCopyFolder, "agent.py");
 const publicInterfaceFile = path.join(workspaceFolder, "packages", "slidemachina", "browser-runtime", "slidemachina.ts");
 const chartTestTimeout = 60_000;
+const canvasHeight = 1080;
 const chartPreviewHeight = 240;
 const chartAnimationDuration = 60_000;
 const chartAlignmentTolerance = 2;
@@ -185,28 +186,27 @@ test("демо листается, показывает шаги и навига
     await expect(currentSlide(page).locator("[data-slide-number]")).toHaveCount(0);
     // The logo above the title and the baseline of the lead stand evenly around the middle of the slide.
     const coverEdges = await measureOnCanvas(page, ["[data-logo]", "p"]);
-    expect(coverEdges[0]!.top + coverEdges[1]!.bottom).toBeCloseTo(1080, 0);
+    expect(coverEdges[0]!.top + coverEdges[1]!.bottom).toBeCloseTo(canvasHeight, 0);
   });
 
   await test.step("листание и шаги", async () => {
     await page.keyboard.press("PageDown");
     // The whole slide moves with its background and frame; the page root keeps only the letterbox.
-    // The turn runs without view-transition snapshots: the leaving slide itself plays the keyframe over the arrived one.
-    const movingSlideHeight = await page.evaluate(
+    const movingLayerHeight = await page.evaluate(
       () =>
-        new Promise<number>((resolveHeight) => {
-          const waitForSlideAnimation = () => {
-            const slideOutAnimation = document
-              .getAnimations()
-              .find((runningAnimation) => runningAnimation instanceof CSSAnimation && runningAnimation.animationName === "slidemachina-slide-out");
-            if (slideOutAnimation !== undefined) resolveHeight(((slideOutAnimation.effect as KeyframeEffect).target as HTMLElement).offsetHeight);
-            else requestAnimationFrame(waitForSlideAnimation);
+        new Promise<string>((resolveHeight) => {
+          const waitForTransition = () => {
+            const slideOutAnimation = document.getAnimations().find((runningAnimation) => (runningAnimation.effect as KeyframeEffect).pseudoElement === "::view-transition-old(slide-out)");
+            if (slideOutAnimation !== undefined) resolveHeight(getComputedStyle(document.documentElement, "::view-transition-old(slide-out)").height);
+            else requestAnimationFrame(waitForTransition);
           };
-          waitForSlideAnimation();
+          waitForTransition();
         }),
     );
-    expect(movingSlideHeight, "уезжает весь слайд, а не только содержимое").toBe(1080);
-    expect(await collectTransitionAnimations(page)).toEqual(expect.arrayContaining(["slide slidemachina-slide-out"]));
+    expect(movingLayerHeight, "уезжает весь слайд, а не только содержимое").toBe(`${canvasHeight}px`);
+    expect(await collectTransitionAnimations(page)).toEqual(
+      expect.arrayContaining(["::view-transition-old(slide-out) slidemachina-slide-out", "::view-transition-new(slide-in) slidemachina-slide-in"]),
+    );
     await expect(page).toHaveURL(/#2$/);
     await expect(page.locator("html")).toHaveAttribute("data-slide-transition", "slide");
     await expect(page.locator("html")).toHaveAttribute("data-slide-direction", "forward");
