@@ -307,16 +307,6 @@
 }
 
 @layer slidemachina {
-  /* Turns without snapshots: the leaving slide stays live and covers the arriving one while it moves away.
-     The leaving mark also keeps the slide visible: without data-current the canvas hides it, marks and all.
-     The arriving slide stands still under it, so a jump finds measurable DOM the moment the hash changes. */
-  :root[data-slide-transition="slide"] [data-canvas] > [data-slide][data-leaving] {
-    visibility: visible;
-    z-index: 1;
-    will-change: translate;
-    animation: slidemachina-slide-out var(--transition-time) var(--transition-easing) both;
-  }
-
   /* Wipe and iris: the new slide covers the old one. Going back, the old slide uncovers the earlier one the same way in reverse. */
   :root[data-slide-direction="forward"]:is([data-slide-transition="wipe"], [data-slide-transition="iris"])::view-transition-old(slide-out),
   :root[data-slide-direction="backward"]:is([data-slide-transition="wipe"], [data-slide-transition="iris"])::view-transition-new(slide-in) {

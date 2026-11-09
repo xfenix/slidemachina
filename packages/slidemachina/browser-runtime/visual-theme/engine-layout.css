@@ -25,10 +25,6 @@
     background: var(--letterbox-background, var(--current-slide-background, var(--dark-background)));
     font-family: var(--font-text);
     -webkit-font-smoothing: antialiased;
-  }
-
-  /* The letterbox blends only while snapshots own the screen: on a snapshot-free turn a full-viewport repaint every frame costs the press its frame budget. */
-  :root:active-view-transition [data-presentation] {
     transition: background-color var(--transition-time) var(--transition-easing);
   }
 
