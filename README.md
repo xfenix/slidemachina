@@ -389,6 +389,7 @@ const BrandLogo = ({ dark }: { dark: boolean }) => (
   aspectRatio="4:3"
   transition="glitch"
   stepEffect="fade"
+  stepTransition="morph"
   speed="fast"
 >
 ```
@@ -412,7 +413,7 @@ const BrandLogo = ({ dark }: { dark: boolean }) => (
 | Margins and gaps | `--frame-padding` on the sides and bottom, `--frame-top` at the top, `--heading-gap` under the heading, `--block-gap` between blocks, `--columns-gap` between columns |
 | List bullets | `[data-slide] ul > li:before` and `--list-bullet-indent` |
 | Section covers | `--section-background`, `--section-number-start-color`, `--section-number-end-color`, `--section-number-size`, `--section-texture`, `--section-glow-strength`. Or your own `<Slide cover>` first in the section |
-| Motion | `transition` and `speed` on `Presentation` or `Slide`, durations `--transition-duration` and its neighbors, the curve `--transition-easing` |
+| Motion | `transition`, `speed` and `stepTransition` on `Presentation` or `Slide`, durations `--transition-duration` and its neighbors, the curve `--transition-easing` |
 | Steps | `stepEffect` on `Presentation` or `Slide`: `rise` (default), `fade`, `scale`, `glitch`, `highlight`, `dim`. `data-step-effect` on an element wins |
 | Progress bar | `--progress-color`, `--progress-color-on-dark`, `--progress-height`, `progress={false}` on `Presentation` |
 | Format | `<Presentation aspectRatio="4:3">`, `16:9` by default. Thumbnails, PDF and PowerPoint use this format; on screen the slide grows with the window by up to a third |

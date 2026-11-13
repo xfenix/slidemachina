@@ -2,20 +2,20 @@ import { useEffect, useEffectEvent, useRef, type CSSProperties, type ReactNode }
 import { classifySlideBackground, readBackgroundAddress, useBackgroundTone, type SlideBackgroundValue, type SlideTone } from "./background-tone.ts";
 import { useLetterboxBackground } from "./letterbox-background.ts";
 import { SlideBackgroundLayer } from "./slide-background.tsx";
-import { useSlideEnvironment, type PresentationLogo, type SlideAlign } from "./slide-environment.ts";
+import { useSlideEnvironment, type PresentationLogo, type SlideAlign, type SlideVerticalAlign } from "./slide-environment.ts";
 import { pickSourceMarks } from "./source-marks.ts";
 import { useBigNumberFitting } from "./width-fitting.ts";
 import { useFloatFitting } from "./float-fitting.ts";
 import { useSourceWidthFitting } from "./source-width-fitting.ts";
 import { useBottomBandRoom } from "./bottom-band-room.ts";
 import type { SlideTransition } from "../slide-transitions/slide-transition.ts";
+import type { StepTransition } from "../slide-transitions/step-transition.ts";
 import { resolveSpeedFactor, type TransitionSpeed } from "../slide-transitions/transition-speed.ts";
 import { useStepVisibility } from "../slide-steps/step-visibility.ts";
 import type { StepEffect } from "../slide-steps/step-attributes.ts";
 import { listSlideNotes, writeNotesText } from "./slide-notes.tsx";
 
 export type SlideLogoPlacement = "top-right" | "top-left" | "top" | "center" | "bottom";
-export type SlideVerticalAlign = "top" | "center" | "bottom";
 export type SlideProperties = {
   children?: ReactNode;
   align?: SlideAlign;
@@ -25,6 +25,8 @@ export type SlideProperties = {
   tone?: SlideTone;
   transition?: SlideTransition;
   speed?: TransitionSpeed;
+  // Opt-in animation between steps of this slide: morph-named elements glide from their old place to the new one.
+  stepTransition?: StepTransition;
   // The effect of every step on the slide that names none of its own; data-step-effect on an element or a list wins.
   stepEffect?: StepEffect;
   plain?: boolean;
@@ -49,11 +51,12 @@ export function Slide({
   tone,
   transition,
   speed,
+  stepTransition,
   stepEffect,
-  plain = false,
+  plain,
   logo = true,
-  breadcrumbs = true,
-  number = true,
+  breadcrumbs,
+  number,
   hidden = false,
   className,
   onEnter,
@@ -75,12 +78,15 @@ export function Slide({
   const { isSlideDistant } = slideEnvironment;
   const slideTone = tone ?? detectedTone;
   const slideAlign = align ?? (cover ? "center" : presentationSettings.align);
-  const breadcrumbTrail = typeof breadcrumbs === "string" ? [breadcrumbs] : slideEnvironment.sectionTrail;
+  const resolvedBreadcrumbs = breadcrumbs ?? presentationSettings.breadcrumbs;
+  const resolvedPlain = plain ?? presentationSettings.plain ?? false;
+  const resolvedNumber = number ?? presentationSettings.number ?? true;
+  const breadcrumbTrail = typeof resolvedBreadcrumbs === "string" ? [resolvedBreadcrumbs] : slideEnvironment.sectionTrail;
   const presentationLogo = presentationSettings.logo;
   const logoPlacement = logo === true ? "top-right" : logo;
-  const showsLogo = !plain && logoPlacement !== false && presentationLogo !== undefined;
-  const showsBreadcrumbs = !plain && !cover && breadcrumbs !== false && breadcrumbTrail.length > 0;
-  const showsNumber = !plain && !cover && !hidden && number;
+  const showsLogo = !resolvedPlain && logoPlacement !== false && presentationLogo !== undefined;
+  const showsBreadcrumbs = !resolvedPlain && !cover && resolvedBreadcrumbs !== false && breadcrumbTrail.length > 0;
+  const showsNumber = !resolvedPlain && !cover && !hidden && resolvedNumber;
   // Printed copies carry the notes as text: the PowerPoint export reads them from the print view.
   const notesText = slideEnvironment.isSlideCopy ? writeNotesText(listSlideNotes(children)) : "";
 
@@ -90,14 +96,15 @@ export function Slide({
       className={className}
       data-slide
       data-align={slideAlign}
-      data-valign={valign ?? (cover || slideAlign === "center" ? "center" : "top")}
+      data-valign={valign ?? presentationSettings.valign ?? (cover || slideAlign === "center" ? "center" : "top")}
       data-tone={slideTone}
       data-background={background === undefined ? undefined : classifySlideBackground(background)}
       data-cover={cover || undefined}
       data-hidden={hidden || undefined}
       data-slide-address={slideEnvironment.slideAddress}
       data-transition={transition ?? presentationSettings.transition}
-      data-default-step-effect={stepEffect ?? presentationSettings.stepEffect}
+      data--slidemachina-step-transition={stepTransition ?? presentationSettings.stepTransition}
+      data--slidemachina-default-step-effect={stepEffect ?? presentationSettings.stepEffect}
       data-current={slideEnvironment.isCurrentSlide || undefined}
       data-distant={isSlideDistant || undefined}
       data-notes={notesText === "" ? undefined : notesText}

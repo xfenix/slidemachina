@@ -38,6 +38,9 @@ A name says what is inside: not `data` but `parsedSlideMarkup`.
 Function names are always verbs.
 Magic numbers are forbidden: always use constants with meaningful names.
 
+Engine-internal DOM attributes always carry the `data--slidemachina-` prefix, so a reader of the markup never takes them for authoring attributes.
+Attributes an author writes in slides stay short and unprefixed: `data-step`, `data-morph`, `data-morph-path`.
+
 ## File structure
 
 Every file keeps one straight order of groups, top to bottom, and a group never comes back:

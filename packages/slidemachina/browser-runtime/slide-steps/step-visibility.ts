@@ -101,8 +101,8 @@ function markSequenceSteps(slideElement: HTMLElement) {
 
 // <Slide stepEffect> or <Presentation stepEffect> goes to every step that names no effect of its own, after the sequences gave theirs.
 function markDefaultEffects(slideElement: HTMLElement) {
-  const defaultEffect = slideElement.dataset.defaultStepEffect;
-  if (defaultEffect === undefined) return;
+  const defaultEffect = slideElement.getAttribute("data--slidemachina-default-step-effect");
+  if (defaultEffect === null) return;
   for (const stepElement of slideElement.querySelectorAll<HTMLElement>("[data-step]:not([data-step-effect])")) {
     stepElement.dataset.stepEffect = defaultEffect;
     const earlierWrites = stepElement.getAttribute(writtenStepMark);

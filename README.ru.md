@@ -389,6 +389,7 @@ const BrandLogo = ({ dark }: { dark: boolean }) => (
   aspectRatio="4:3"
   transition="glitch"
   stepEffect="fade"
+  stepTransition="morph"
   speed="fast"
 >
 ```
@@ -412,7 +413,7 @@ const BrandLogo = ({ dark }: { dark: boolean }) => (
 | Поля и отступы | `--frame-padding` по бокам и снизу, `--frame-top` сверху, `--heading-gap` под заголовком, `--block-gap` между блоками, `--columns-gap` между колонками |
 | Маркеры списка | `[data-slide] ul > li:before` и `--list-bullet-indent` |
 | Обложки разделов | `--section-background`, `--section-number-start-color`, `--section-number-end-color`, `--section-number-size`, `--section-texture`, `--section-glow-strength`. Или свой `<Slide cover>` первым в разделе |
-| Движение | `transition` и `speed` у `Presentation` или `Slide`, длительности `--transition-duration` и соседние, кривая `--transition-easing` |
+| Движение | `transition`, `speed` и `stepTransition` у `Presentation` или `Slide`, длительности `--transition-duration` и соседние, кривая `--transition-easing` |
 | Шаги | `stepEffect` у `Presentation` или `Slide`: `rise` (по умолчанию), `fade`, `scale`, `glitch`, `highlight`, `dim`. `data-step-effect` у элемента сильнее |
 | Полоса прогресса | `--progress-color`, `--progress-color-on-dark`, `--progress-height`, `progress={false}` у `Presentation` |
 | Формат | `<Presentation aspectRatio="4:3">`, по умолчанию `16:9`. Миниатюры, PDF и PowerPoint — в этом формате, на экране слайд растёт под окно до трети |

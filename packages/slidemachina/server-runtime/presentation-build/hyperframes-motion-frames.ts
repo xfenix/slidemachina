@@ -53,12 +53,11 @@ export async function captureMotionFrames(captureContext: MotionCaptureContext, 
     if (stateIndex > 0) {
       const changesSlide = currentState.slideAddress !== presentationStates[stateIndex - 1]!.slideAddress;
       await changeMotionPosition(captureContext.capturePage, currentState.positionAddress, changesSlide);
-      if (changesSlide) {
-        const transitionFrames = await captureTransitionFrames(captureContext, currentState, currentSlot, stateIndex);
-        transitionFrameCount = transitionFrames.capturedTransition.frameCount;
-        framePictures.push(...transitionFrames.framePictures);
-        capturedTransitions.push(transitionFrames.capturedTransition);
-      }
+      // Slide transitions and same-slide step entrances both spend the start of the incoming state on motion, then hold.
+      const transitionFrames = await captureTransitionFrames(captureContext, currentState, currentSlot, stateIndex);
+      transitionFrameCount = transitionFrames.capturedTransition.frameCount;
+      framePictures.push(...transitionFrames.framePictures);
+      if (transitionFrameCount > 0) capturedTransitions.push(transitionFrames.capturedTransition);
     }
     framePictures.push(await captureHoldFrame(captureContext, currentState, currentSlot, stateIndex, transitionFrameCount));
   }

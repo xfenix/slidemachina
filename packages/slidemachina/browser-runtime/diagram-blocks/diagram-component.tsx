@@ -1,6 +1,7 @@
 import { useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 import type { ElkPoint } from "elkjs/lib/elk-api";
 import { arrowHeadWidth, drawArrow, type LabelFrame } from "./arrow-geometry.ts";
+import { isCodeAnchorEndpoint, readArrowNodeIdentifier } from "./arrow-endpoints.ts";
 import { useFocusSteps } from "./diagram-focus.ts";
 import type { DiagramDirection } from "./diagram-graph.ts";
 import type { DiagramGeometry, NodeFrame } from "./diagram-layout.ts";
@@ -48,8 +49,25 @@ function placeFrame(nodeFrame: NodeFrame | undefined): CSSProperties | undefined
 function DiagramArrow({ arrowPart, drawingContext }: { arrowPart: ArrowPart; drawingContext: DrawingContext }) {
   const { arrowIdentifier, arrowProperties } = arrowPart;
   const { diagramGeometry, containerOrigin } = drawingContext;
+  const sourceNodeId = readArrowNodeIdentifier(arrowProperties.from);
+  const targetNodeId = readArrowNodeIdentifier(arrowProperties.to);
   const arrowRoute = diagramGeometry?.arrowRoutes[arrowIdentifier];
-  const arrowDrawing = arrowRoute && drawArrow(arrowRoute.routePoints, arrowCornerRadius);
+  // An anchor inside an unreached step or outside the clipped code viewport stays hidden with it: the arrow waits, it does not point at a stale place.
+  const anchorEndsHidden = [arrowProperties.from, arrowProperties.to].some((arrowEndpoint) => {
+    if (!isCodeAnchorEndpoint(arrowEndpoint)) return false;
+    const codeElement = document.querySelector<HTMLElement>(`[data-node-id="${arrowEndpoint.node}"] [data--slidemachina-code-id="${arrowEndpoint.code}"]`);
+    const anchorJson = codeElement?.getAttribute("data--slidemachina-code-anchors");
+    const anchorSpecification = anchorJson === undefined || anchorJson === null ? undefined : JSON.parse(anchorJson)[arrowEndpoint.anchor];
+    const anchorLine = anchorSpecification === undefined ? null : codeElement?.querySelector(`[data-code-line="${anchorSpecification.line}"]`);
+    if (anchorLine === undefined || anchorLine === null) return false;
+    if (anchorLine.closest("[data-step]:not([data-step-reached])") !== null) return true;
+    const viewportElement = codeElement?.querySelector<HTMLElement>("[data-code-viewport]");
+    if (viewportElement === undefined || viewportElement === null) return false;
+    const lineRectangle = anchorLine.getBoundingClientRect();
+    const viewportRectangle = viewportElement.getBoundingClientRect();
+    return lineRectangle.bottom < viewportRectangle.top || lineRectangle.top > viewportRectangle.bottom;
+  });
+  const arrowDrawing = anchorEndsHidden || arrowRoute === undefined ? undefined : drawArrow(arrowRoute.routePoints, arrowCornerRadius);
   const labelFrame = arrowRoute?.labelFrame;
   const arrowFrame = arrowRoute && frameArrow(arrowRoute.routePoints, labelFrame);
   const arrowStyle = arrowFrame && {
@@ -62,10 +80,10 @@ function DiagramArrow({ arrowPart, drawingContext }: { arrowPart: ArrowPart; dra
     <div
       data-arrow
       data-morph-apart
-      morph={`diagram-arrow:${arrowProperties.from}:${arrowProperties.to}`}
+      morph={`diagram-arrow:${sourceNodeId}:${targetNodeId}`}
       data-arrow-id={arrowIdentifier}
       data-focus-id={arrowProperties.id ?? arrowIdentifier}
-      data-focus-ends={`${arrowProperties.from} ${arrowProperties.to}`}
+      data-focus-ends={`${sourceNodeId} ${targetNodeId}`}
       style={arrowStyle}
       {...createPartStepAttributes(arrowProperties.step, arrowProperties.effect, "fade")}
     >

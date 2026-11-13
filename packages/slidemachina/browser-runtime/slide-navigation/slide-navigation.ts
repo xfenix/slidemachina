@@ -3,6 +3,7 @@ import { flushSync } from "react-dom";
 import { readPositionFromHash, writePositionToHash, type PresentationPosition } from "./position-hash.ts";
 import { findNeighbourSlide, type SlideNumbering } from "../../shared-between-runtimes/slide-numbering.ts";
 import { runSlideTransition } from "../slide-transitions/slide-transition.ts";
+import { runStepTransition } from "../slide-transitions/step-transition.ts";
 
 export function useSlideNavigation(slideNumbering: SlideNumbering, stepCountsReference: RefObject<number[]>) {
   const { slideAddresses } = slideNumbering;
@@ -26,6 +27,12 @@ export function useSlideNavigation(slideNumbering: SlideNumbering, stepCountsRef
     const previousPosition = fitPosition(latestPositionReference.current, lastSlideIndex);
     latestPositionReference.current = nextPosition;
     if (nextPosition.slideIndex === previousPosition.slideIndex) {
+      const currentSlide = document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide]")[previousPosition.slideIndex];
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (currentSlide?.getAttribute("data--slidemachina-step-transition") === "morph" && !prefersReducedMotion) {
+        runStepTransition(() => flushSync(() => setRequestedPosition(nextPosition)), currentSlide);
+        return;
+      }
       setRequestedPosition(nextPosition);
       return;
     }

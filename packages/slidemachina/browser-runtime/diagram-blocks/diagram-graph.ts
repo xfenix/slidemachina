@@ -1,4 +1,5 @@
 import type { ElkExtendedEdge, ElkNode, LayoutOptions } from "elkjs/lib/elk-api";
+import { readArrowNodeIdentifier } from "./arrow-endpoints.ts";
 import { listNodeParts, type ArrowPart, type DiagramPart } from "./diagram-outline.ts";
 
 // Far apart, so ELK's interactive layering reads them only as column and order, never as overlapping shapes.
@@ -101,8 +102,8 @@ export function buildElkGraph(
     });
   const elkEdges: ElkExtendedEdge[] = drawnArrows.map(({ arrowIdentifier, arrowProperties }) => ({
     id: arrowIdentifier,
-    sources: [arrowProperties.from],
-    targets: [arrowProperties.to],
+    sources: [readArrowNodeIdentifier(arrowProperties.from)],
+    targets: [readArrowNodeIdentifier(arrowProperties.to)],
   }));
   return {
     id: "diagram:root",

@@ -1,5 +1,7 @@
 import type { CodePair } from "../element-morphing/code-morphing.ts";
 import type { MorphPair, RewordedPair } from "../element-morphing/morph-matching.ts";
+import { findPathMorphPairs, runPathMorphTransition } from "../element-morphing/path-morphing.ts";
+import { cancelStepTransitions } from "./step-transition.ts";
 import { carryLeavingWords, measureWordLayers, type WordBoxes } from "../element-morphing/word-carrying.ts";
 import { bendCrossingPaths, type MovingLayer } from "../element-morphing/morph-arcs.ts";
 import { markReachedSteps } from "../slide-steps/step-visibility.ts";
@@ -55,6 +57,7 @@ export function runSlideTransition(
   incomingStepIndex: number,
 ) {
   const slideElements = document.querySelectorAll<HTMLElement>("[data-canvas] > [data-slide]");
+  cancelStepTransitions();
   const outgoingSlide = slideElements[outgoingSlideIndex];
   const incomingSlide = slideElements[incomingSlideIndex];
   const prefersReducedMotion = reducedMotionQuery.matches;
@@ -66,6 +69,14 @@ export function runSlideTransition(
   const isMovingForward = incomingSlideIndex > outgoingSlideIndex;
   // Going back plays the same transition in reverse: it belongs to the later of the two slides.
   const requestedTransition = (isMovingForward ? incomingSlide : outgoingSlide).dataset.transition ?? "auto";
+  // Opted-in contour pairs draw their own interpolation on a live overlay; a view transition would freeze them into snapshots.
+  if (requestedTransition === "auto" || requestedTransition === "morph") {
+    const pathMorphPairs = findPathMorphPairs(outgoingSlide, incomingSlide);
+    if (pathMorphPairs.length > 0) {
+      runPathMorphTransition(updateSlides, pathMorphPairs);
+      return;
+    }
+  }
   const usesMorph = requestedTransition === "auto" || requestedTransition === "morph";
   const transitionPosition = { outgoingSlideIndex, outgoingStepIndex, incomingSlideIndex, incomingStepIndex };
   const precachedAnalysis = usesMorph ? takePrecachedSlideAnalysis(requestedTransition, outgoingSlide, incomingSlide, transitionPosition) : undefined;
